@@ -16,7 +16,10 @@
   },
   "dependencies": {
     "@cveriskpilot/domain": "*",
-    "@cveriskpilot/shared": "*"
+    "@cveriskpilot/shared": "*",
+    "nodemailer": "^8.0.4"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.0"
+  }
 }

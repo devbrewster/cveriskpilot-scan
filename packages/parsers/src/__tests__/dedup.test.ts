@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { generateDedupKey, deduplicateFindings } from '../dedup.js';
-import type { CanonicalFinding } from '../types.js';
+import { generateDedupKey, deduplicateFindings } from '../dedup';
+import type { CanonicalFinding } from '../types';
 
 function makeFinding(overrides: Partial<CanonicalFinding> = {}): CanonicalFinding {
   return {

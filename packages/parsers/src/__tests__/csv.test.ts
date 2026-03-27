@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCsv } from '../parsers/csv.js';
+import { parseCsv } from '../parsers/csv';
 
 const MINIMAL_CSV = `title,severity,cve,host,ip,port,description,cvss
 SSL Certificate Expired,HIGH,CVE-2023-12345,webserver01,192.168.1.10,443,The SSL certificate has expired,7.5

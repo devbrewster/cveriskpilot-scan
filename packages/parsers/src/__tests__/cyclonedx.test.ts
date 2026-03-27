@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCycloneDx } from '../parsers/cyclonedx.js';
+import { parseCycloneDx } from '../parsers/cyclonedx';
 
 const MINIMAL_CDX = JSON.stringify({
   bomFormat: 'CycloneDX',

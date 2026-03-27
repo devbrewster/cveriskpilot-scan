@@ -1,0 +1,264 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+// ---------------------------------------------------------------------------
+// In-memory export job tracking.
+// In production, use a DB table or cloud storage for job state.
+// ---------------------------------------------------------------------------
+
+export interface ExportJob {
+  id: string;
+  type: 'findings' | 'cases' | 'assets';
+  format: 'csv' | 'json';
+  filters: Record<string, unknown>;
+  organizationId: string;
+  clientId: string | null;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  progress: number; // 0-100
+  totalRecords: number;
+  processedRecords: number;
+  result: string | null; // The generated export content
+  filename: string | null;
+  error: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+const exportJobStore = new Map<string, ExportJob>();
+
+export { exportJobStore };
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function generateJobId(): string {
+  return `exp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function escapeCSV(value: string): string {
+  if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+// ---------------------------------------------------------------------------
+// Background Processing
+// ---------------------------------------------------------------------------
+
+async function processExportJob(jobId: string): Promise<void> {
+  const job = exportJobStore.get(jobId);
+  if (!job) return;
+
+  try {
+    job.status = 'processing';
+    job.progress = 10;
+    exportJobStore.set(jobId, { ...job });
+
+    const where: Record<string, unknown> = { organizationId: job.organizationId };
+    if (job.clientId) where.clientId = job.clientId;
+
+    // Apply filters
+    if (job.filters.severity) {
+      if (job.type === 'cases') {
+        where.severity = job.filters.severity;
+      } else if (job.type === 'findings') {
+        where.vulnerabilityCase = { severity: job.filters.severity };
+      }
+    }
+    if (job.filters.status && job.type === 'cases') {
+      where.status = job.filters.status;
+    }
+
+    let result: string;
+    let filename: string;
+    const timestamp = new Date().toISOString().slice(0, 10);
+
+    switch (job.type) {
+      case 'findings': {
+        const findings = await (prisma.finding as any).findMany({
+          where,
+          include: {
+            asset: { select: { name: true, type: true, environment: true } },
+            vulnerabilityCase: {
+              select: { title: true, severity: true, status: true, cveIds: true, cvssScore: true, epssScore: true, kevListed: true },
+            },
+          },
+          orderBy: { createdAt: 'desc' as const },
+          take: 100000,
+        });
+
+        job.totalRecords = findings.length;
+        job.progress = 50;
+        exportJobStore.set(jobId, { ...job });
+
+        if (job.format === 'csv') {
+          const headers = ['Finding ID', 'Scanner Type', 'Scanner Name', 'Asset', 'Severity', 'Status', 'CVE IDs', 'CVSS', 'EPSS', 'KEV', 'Discovered At'];
+          const rows = findings.map((f: any) => [
+            f.id, f.scannerType, f.scannerName,
+            f.asset?.name ?? '', f.vulnerabilityCase?.severity ?? '', f.vulnerabilityCase?.status ?? '',
+            (f.vulnerabilityCase?.cveIds ?? []).join('; '),
+            f.vulnerabilityCase?.cvssScore?.toString() ?? '', f.vulnerabilityCase?.epssScore?.toString() ?? '',
+            f.vulnerabilityCase?.kevListed ? 'Yes' : 'No',
+            f.discoveredAt?.toISOString() ?? '',
+          ]);
+          result = [headers.map(escapeCSV).join(','), ...rows.map((r: string[]) => r.map(escapeCSV).join(','))].join('\r\n');
+          filename = `findings-export-${timestamp}.csv`;
+        } else {
+          result = JSON.stringify(findings, null, 2);
+          filename = `findings-export-${timestamp}.json`;
+        }
+        break;
+      }
+
+      case 'cases': {
+        const cases = await (prisma.vulnerabilityCase as any).findMany({
+          where,
+          include: {
+            assignedTo: { select: { name: true, email: true } },
+            slaPolicy: { select: { name: true } },
+          },
+          orderBy: { createdAt: 'desc' as const },
+          take: 100000,
+        });
+
+        job.totalRecords = cases.length;
+        job.progress = 50;
+        exportJobStore.set(jobId, { ...job });
+
+        if (job.format === 'csv') {
+          const headers = ['Case ID', 'Title', 'Severity', 'Status', 'CVE IDs', 'CVSS', 'EPSS', 'KEV', 'Assigned To', 'Due At', 'Finding Count', 'First Seen', 'Last Seen'];
+          const rows = cases.map((c: any) => [
+            c.id, c.title, c.severity, c.status,
+            (c.cveIds ?? []).join('; '),
+            c.cvssScore?.toString() ?? '', c.epssScore?.toString() ?? '',
+            c.kevListed ? 'Yes' : 'No',
+            c.assignedTo?.name ?? '',
+            c.dueAt?.toISOString()?.slice(0, 10) ?? '',
+            c.findingCount?.toString() ?? '0',
+            c.firstSeenAt?.toISOString()?.slice(0, 10) ?? '',
+            c.lastSeenAt?.toISOString()?.slice(0, 10) ?? '',
+          ]);
+          result = [headers.map(escapeCSV).join(','), ...rows.map((r: string[]) => r.map(escapeCSV).join(','))].join('\r\n');
+          filename = `cases-export-${timestamp}.csv`;
+        } else {
+          result = JSON.stringify(cases, null, 2);
+          filename = `cases-export-${timestamp}.json`;
+        }
+        break;
+      }
+
+      case 'assets': {
+        const assets = await (prisma.asset as any).findMany({
+          where,
+          orderBy: { createdAt: 'desc' as const },
+          take: 100000,
+        });
+
+        job.totalRecords = assets.length;
+        job.progress = 50;
+        exportJobStore.set(jobId, { ...job });
+
+        if (job.format === 'csv') {
+          const headers = ['Asset ID', 'Name', 'Type', 'Environment', 'Criticality', 'Internet Exposed', 'Tags', 'Created At'];
+          const rows = assets.map((a: any) => [
+            a.id, a.name, a.type, a.environment, a.criticality,
+            a.internetExposed ? 'Yes' : 'No',
+            (a.tags ?? []).join('; '),
+            a.createdAt?.toISOString()?.slice(0, 10) ?? '',
+          ]);
+          result = [headers.map(escapeCSV).join(','), ...rows.map((r: string[]) => r.map(escapeCSV).join(','))].join('\r\n');
+          filename = `assets-export-${timestamp}.csv`;
+        } else {
+          result = JSON.stringify(assets, null, 2);
+          filename = `assets-export-${timestamp}.json`;
+        }
+        break;
+      }
+
+      default:
+        throw new Error(`Unknown export type: ${job.type}`);
+    }
+
+    job.status = 'completed';
+    job.progress = 100;
+    job.processedRecords = job.totalRecords;
+    job.result = result;
+    job.filename = filename;
+    job.completedAt = new Date().toISOString();
+    exportJobStore.set(jobId, { ...job });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`[export-bulk] Job ${jobId} failed:`, message);
+    job.status = 'failed';
+    job.error = message;
+    exportJobStore.set(jobId, { ...job });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/export/bulk — Start an async bulk export
+// ---------------------------------------------------------------------------
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { type, filters, format, organizationId, clientId } = body;
+
+    if (!organizationId) {
+      return NextResponse.json({ error: 'organizationId is required' }, { status: 400 });
+    }
+
+    if (!type || !['findings', 'cases', 'assets'].includes(type)) {
+      return NextResponse.json(
+        { error: 'type must be findings, cases, or assets' },
+        { status: 400 },
+      );
+    }
+
+    if (format && !['csv', 'json'].includes(format)) {
+      return NextResponse.json(
+        { error: 'format must be csv or json' },
+        { status: 400 },
+      );
+    }
+
+    const job: ExportJob = {
+      id: generateJobId(),
+      type,
+      format: format ?? 'csv',
+      filters: filters ?? {},
+      organizationId,
+      clientId: clientId ?? null,
+      status: 'queued',
+      progress: 0,
+      totalRecords: 0,
+      processedRecords: 0,
+      result: null,
+      filename: null,
+      error: null,
+      createdAt: new Date().toISOString(),
+      completedAt: null,
+    };
+
+    exportJobStore.set(job.id, job);
+
+    // Fire and forget — process in background
+    processExportJob(job.id).catch((err) => {
+      console.error(`[export-bulk] Background processing error for ${job.id}:`, err);
+    });
+
+    return NextResponse.json(
+      {
+        jobId: job.id,
+        status: job.status,
+        message: 'Export job started. Poll GET /api/export/bulk/{jobId} for status.',
+      },
+      { status: 202 },
+    );
+  } catch (error) {
+    console.error('[API] POST /api/export/bulk error:', error);
+    return NextResponse.json({ error: 'Failed to start export' }, { status: 500 });
+  }
+}

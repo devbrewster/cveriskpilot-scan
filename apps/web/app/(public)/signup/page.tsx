@@ -1,6 +1,50 @@
+'use client';
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, orgName }),
+      });
+
+      if (res.ok) {
+        router.push("/dashboard");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Signup failed. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <h1 className="text-center text-2xl font-bold text-gray-900 dark:text-white">
@@ -45,8 +89,15 @@ export default function SignupPage() {
         <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
       </div>
 
+      {/* Error message */}
+      {error && (
+        <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+          {error}
+        </div>
+      )}
+
       {/* Sign Up Form */}
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="signup-name"
@@ -56,9 +107,12 @@ export default function SignupPage() {
           </label>
           <input
             id="signup-name"
+            name="name"
             type="text"
             autoComplete="name"
             placeholder="Jane Doe"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
           />
         </div>
@@ -71,9 +125,12 @@ export default function SignupPage() {
           </label>
           <input
             id="signup-email"
+            name="email"
             type="email"
             autoComplete="email"
             placeholder="you@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
           />
         </div>
@@ -86,8 +143,11 @@ export default function SignupPage() {
           </label>
           <input
             id="signup-org"
+            name="orgName"
             type="text"
             placeholder="Acme Corp"
+            value={orgName}
+            onChange={(e) => setOrgName(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
           />
         </div>
@@ -100,9 +160,12 @@ export default function SignupPage() {
           </label>
           <input
             id="signup-password"
+            name="password"
             type="password"
             autoComplete="new-password"
             placeholder="Create a password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
           />
         </div>
@@ -115,28 +178,32 @@ export default function SignupPage() {
           </label>
           <input
             id="signup-confirm"
+            name="confirmPassword"
             type="password"
             autoComplete="new-password"
             placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
           />
         </div>
         <button
           type="submit"
-          className="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
+          disabled={loading}
+          className="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Create Account
+          {loading ? "Creating account..." : "Create Account"}
         </button>
       </form>
 
       {/* Terms */}
       <p className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
         By signing up, you agree to our{" "}
-        <a href="#" className="underline hover:text-gray-600 dark:hover:text-gray-300">
+        <a href="/terms" className="underline hover:text-gray-600 dark:hover:text-gray-300">
           Terms
         </a>{" "}
         and{" "}
-        <a href="#" className="underline hover:text-gray-600 dark:hover:text-gray-300">
+        <a href="/privacy" className="underline hover:text-gray-600 dark:hover:text-gray-300">
           Privacy Policy
         </a>
         .

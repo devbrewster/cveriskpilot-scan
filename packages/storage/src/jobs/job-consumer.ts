@@ -1,5 +1,14 @@
-import type { PrismaClient } from '@prisma/client';
-import { downloadFromGCS } from '../gcs/upload.js';
+import type { PrismaClient } from '@cveriskpilot/domain';
+import { downloadFromGCS } from '../gcs/upload';
+import { downloadFromLocal } from '../gcs/local-upload';
+import { buildCases } from '../case-builder/case-builder';
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Process findings in batches of this size to limit memory pressure */
+const BATCH_SIZE = 500;
 
 // ---------------------------------------------------------------------------
 // Upload job processor — called by the worker (Cloud Run or local dev)
@@ -32,20 +41,28 @@ export async function processUploadJob(
       data: { status: 'PARSING' },
     });
 
-    // Download artifact from GCS
-    const buffer = await downloadFromGCS(
-      job.artifact.gcsBucket,
-      job.artifact.gcsPath,
-    );
+    // Download artifact — use local fallback when stored locally
+    const buffer =
+      job.artifact.gcsBucket === 'local'
+        ? await downloadFromLocal(job.artifact.gcsPath)
+        : await downloadFromGCS(job.artifact.gcsBucket, job.artifact.gcsPath);
 
     // Detect format and parse
-    const { detectFormat, parse } = await import('@cveriskpilot/parsers');
-    const format = detectFormat(buffer, job.artifact.filename);
+    const { detectFormat, parse, normalizeFindings, deduplicateFindings } =
+      await import('@cveriskpilot/parsers');
+
+    const format =
+      (job.artifact.parserFormat as string) ||
+      detectFormat(buffer, job.artifact.filename);
     const result = await parse(format, buffer);
+
+    // Normalize and deduplicate
+    const normalized = normalizeFindings(result.findings);
+    const deduplicated = deduplicateFindings(normalized);
 
     // Collect unique CVEs
     const uniqueCves = new Set<string>();
-    for (const finding of result.findings) {
+    for (const finding of deduplicated) {
       for (const cve of finding.cveIds) {
         uniqueCves.add(cve);
       }
@@ -55,30 +72,63 @@ export async function processUploadJob(
       where: { id: jobId },
       data: {
         totalFindings: result.metadata.totalFindings,
-        parsedFindings: result.findings.length,
+        parsedFindings: deduplicated.length,
         uniqueCvesFound: uniqueCves.size,
       },
     });
 
-    // 3. ENRICHING
+    // 3. ENRICHING — process in batches for large files
     await prisma.uploadJob.update({
       where: { id: jobId },
       data: { status: 'ENRICHING' },
     });
 
-    // Enrichment placeholder — will be implemented by the enrichment agent
+    const { enrichFindings } = await import('@cveriskpilot/enrichment');
+
+    const allEnriched: Awaited<ReturnType<typeof enrichFindings>> = [];
+
+    for (let i = 0; i < deduplicated.length; i += BATCH_SIZE) {
+      const batch = deduplicated.slice(i, i + BATCH_SIZE);
+      const enrichedBatch = await enrichFindings(batch);
+      allEnriched.push(...enrichedBatch);
+    }
+
     await prisma.uploadJob.update({
       where: { id: jobId },
       data: { uniqueCvesEnriched: uniqueCves.size },
     });
 
-    // 4. BUILDING_CASES
+    // 4. BUILDING_CASES — save findings to DB in batches
     await prisma.uploadJob.update({
       where: { id: jobId },
       data: { status: 'BUILDING_CASES' },
     });
 
-    // Case building placeholder — will be implemented later
+    let totalCasesCreated = 0;
+    let totalCasesUpdated = 0;
+    let totalFindingsLinked = 0;
+
+    for (let i = 0; i < allEnriched.length; i += BATCH_SIZE) {
+      const batch = allEnriched.slice(i, i + BATCH_SIZE);
+      const casesResult = await buildCases({
+        organizationId: job.organizationId,
+        clientId: job.clientId,
+        findings: batch,
+        prisma,
+      });
+
+      totalCasesCreated += casesResult.casesCreated;
+      totalCasesUpdated += casesResult.casesUpdated;
+      totalFindingsLinked += casesResult.findingsLinked;
+    }
+
+    await prisma.uploadJob.update({
+      where: { id: jobId },
+      data: {
+        findingsCreated: totalFindingsLinked,
+        casesCreated: totalCasesCreated,
+      },
+    });
 
     // 5. COMPLETED
     await prisma.uploadJob.update({
@@ -88,6 +138,15 @@ export async function processUploadJob(
         completedAt: new Date(),
       },
     });
+
+    console.log(
+      `[job-consumer] Job ${jobId} completed: ` +
+        `${deduplicated.length} findings parsed, ` +
+        `${uniqueCves.size} CVEs enriched, ` +
+        `${totalCasesCreated} cases created, ` +
+        `${totalCasesUpdated} cases updated, ` +
+        `${totalFindingsLinked} findings linked`,
+    );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : String(error);

@@ -3,7 +3,7 @@ import type {
   RiskLevel,
   RiskScoreInput,
   RiskScoreResult,
-} from '../types.js';
+} from '../types';
 
 const ENV_MULTIPLIERS: Record<AssetCriticality, number> = {
   critical: 1.5,

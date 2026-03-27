@@ -2,7 +2,7 @@
 // Uses sorted sets for accurate sliding-window counting.
 
 import type Redis from 'ioredis';
-import { getRedisClient } from '../session/redis-store.js';
+import { getRedisClient } from '../session/redis-store';
 
 // ---------------------------------------------------------------------------
 // Types

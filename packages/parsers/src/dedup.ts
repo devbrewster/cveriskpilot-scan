@@ -1,4 +1,4 @@
-import type { CanonicalFinding } from './types.js';
+import type { CanonicalFinding } from './types';
 
 async function sha256(input: string): Promise<string> {
   // Use Web Crypto API (available in Node 18+ and browsers)

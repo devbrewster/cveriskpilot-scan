@@ -8,6 +8,8 @@ export interface UploadParams {
   organizationId: string;
   clientId: string;
   mimeType: string;
+  /** Optional job ID used to build the GCS path as {orgId}/scans/{jobId}/{filename} */
+  jobId?: string;
 }
 
 export interface UploadResult {
@@ -25,6 +27,8 @@ export interface CreateArtifactParams {
   clientId: string;
   uploadedById: string;
   parserFormat: string;
+  /** Optional job ID used to build the GCS path as {orgId}/scans/{jobId}/{filename} */
+  jobId?: string;
 }
 
 export interface ArtifactRecord {

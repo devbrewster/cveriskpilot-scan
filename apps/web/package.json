@@ -15,7 +15,10 @@
     "react-dom": "^19.0.0",
     "@cveriskpilot/domain": "*",
     "@cveriskpilot/shared": "*",
-    "@cveriskpilot/auth": "*"
+    "@cveriskpilot/auth": "*",
+    "@cveriskpilot/notifications": "*",
+    "@cveriskpilot/integrations": "*",
+    "@cveriskpilot/api-docs": "*"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

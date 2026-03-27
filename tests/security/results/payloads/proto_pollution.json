@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Proto Pollution Test",
+    "severity": "HIGH",
+    "host": "test",
+    "__proto__": {"isAdmin": true, "role": "PLATFORM_ADMIN"},
+    "constructor": {"prototype": {"isAdmin": true}}
+  }
+]

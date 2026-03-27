@@ -1,0 +1,4 @@
+title,severity,cve,host,ip,port,description,cvss
+"=cmd|'/C calc'!A0",HIGH,CVE-2024-FORMULA1,host1,10.0.0.1,80,Formula injection test,7.5
+"+cmd|'/C notepad'!A0",CRITICAL,CVE-2024-FORMULA2,host2,10.0.0.2,443,Formula injection test 2,9.0
+"@SUM(1+1)*cmd|'/C whoami'!A0",HIGH,CVE-2024-FORMULA3,host3,10.0.0.3,22,Formula injection test 3,8.0

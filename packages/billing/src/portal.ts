@@ -1,8 +1,8 @@
 // @cveriskpilot/billing — subscription status and management
 
 import Stripe from 'stripe';
-import type { SubscriptionStatus } from './types.js';
-import { getUsageSummary } from './usage.js';
+import type { SubscriptionStatus } from './types';
+import { getUsageSummary } from './usage';
 
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;

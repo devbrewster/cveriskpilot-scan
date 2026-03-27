@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('../gcs/upload.js', () => ({
+vi.mock('../gcs/upload', () => ({
   downloadFromGCS: vi.fn().mockResolvedValue(Buffer.from('<NessusClientData></NessusClientData>')),
 }));
 
@@ -35,7 +35,26 @@ vi.mock('@cveriskpilot/parsers', () => ({
   }),
 }));
 
-import { processUploadJob } from '../jobs/job-consumer.js';
+vi.mock('@cveriskpilot/enrichment', () => ({
+  enrichFindings: vi.fn().mockImplementation((findings: any[]) =>
+    Promise.resolve(
+      findings.map((f: any) => ({
+        ...f,
+        riskScore: { score: 50, breakdown: { base: 50, epssMultiplier: 1, kevBoost: 0, envMultiplier: 1 }, riskLevel: 'MEDIUM' },
+      })),
+    ),
+  ),
+}));
+
+vi.mock('../case-builder/case-builder', () => ({
+  buildCases: vi.fn().mockResolvedValue({
+    casesCreated: 1,
+    casesUpdated: 0,
+    findingsLinked: 1,
+  }),
+}));
+
+import { processUploadJob } from '../jobs/job-consumer';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -140,7 +159,7 @@ describe('processUploadJob', () => {
   });
 
   it('should set FAILED status and errorMessage on processing error', async () => {
-    const { downloadFromGCS } = await import('../gcs/upload.js');
+    const { downloadFromGCS } = await import('../gcs/upload');
     (downloadFromGCS as any).mockRejectedValueOnce(new Error('GCS down'));
 
     const { prisma, updates } = createMockPrisma();

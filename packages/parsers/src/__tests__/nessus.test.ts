@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseNessus } from '../parsers/nessus.js';
+import { parseNessus } from '../parsers/nessus';
 
 const MINIMAL_NESSUS = `<?xml version="1.0" ?>
 <NessusClientData_v2>

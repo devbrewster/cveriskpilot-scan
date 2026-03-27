@@ -3,7 +3,7 @@
 
 import type { PrismaClient } from '@cveriskpilot/domain';
 import { UserRole, UserStatus } from '@cveriskpilot/domain';
-import { hashPassword } from '../providers/credentials.js';
+import { hashPassword } from '../providers/credentials';
 import crypto from 'node:crypto';
 
 /** Default invite expiry: 7 days in milliseconds */

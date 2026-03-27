@@ -139,10 +139,10 @@ export function ScanCompare() {
 
   const diff = useMemo(() => {
     if (!scanAId || !scanBId) return null;
-    return compareScanResults(
-      MOCK_SCANS[scanAId].findings,
-      MOCK_SCANS[scanBId].findings,
-    );
+    const scanA = MOCK_SCANS[scanAId];
+    const scanB = MOCK_SCANS[scanBId];
+    if (!scanA || !scanB) return null;
+    return compareScanResults(scanA.findings, scanB.findings);
   }, [scanAId, scanBId]);
 
   function handleExportDiff() {
@@ -179,7 +179,7 @@ export function ScanCompare() {
               <option value="">Select a scan...</option>
               {SCAN_IDS.map((id) => (
                 <option key={id} value={id} disabled={id === scanBId}>
-                  {MOCK_SCANS[id].label} ({MOCK_SCANS[id].findings.length} findings)
+                  {MOCK_SCANS[id]?.label} ({MOCK_SCANS[id]?.findings.length} findings)
                 </option>
               ))}
             </select>
@@ -204,7 +204,7 @@ export function ScanCompare() {
               <option value="">Select a scan...</option>
               {SCAN_IDS.map((id) => (
                 <option key={id} value={id} disabled={id === scanAId}>
-                  {MOCK_SCANS[id].label} ({MOCK_SCANS[id].findings.length} findings)
+                  {MOCK_SCANS[id]?.label} ({MOCK_SCANS[id]?.findings.length} findings)
                 </option>
               ))}
             </select>

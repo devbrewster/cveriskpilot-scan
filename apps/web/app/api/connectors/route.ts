@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import {
+  getConnectorStatus,
+  registerConnector,
+} from '@cveriskpilot/integrations/connectors/connector-manager';
+
+/**
+ * GET /api/connectors
+ * List all connectors for an organization.
+ * Query: organizationId
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const organizationId = searchParams.get('organizationId');
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: 'organizationId is required' },
+        { status: 400 },
+      );
+    }
+
+    const connectors = await getConnectorStatus(prisma, organizationId);
+
+    return NextResponse.json({ connectors });
+  } catch (error) {
+    console.error('[API] GET /api/connectors error:', error);
+    return NextResponse.json(
+      { error: 'Failed to list connectors' },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * POST /api/connectors
+ * Register a new scanner connector.
+ * Body: { organizationId, name, type, endpoint, authConfig, schedule? }
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { organizationId, name, type, endpoint, authConfig, schedule, metadata } = body;
+
+    if (!organizationId || !name || !type || !endpoint) {
+      return NextResponse.json(
+        { error: 'organizationId, name, type, and endpoint are required' },
+        { status: 400 },
+      );
+    }
+
+    const validTypes = ['nessus', 'qualys', 'openvas', 'generic'];
+    if (!validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: `Invalid connector type. Must be one of: ${validTypes.join(', ')}` },
+        { status: 400 },
+      );
+    }
+
+    const { connector, authKey } = await registerConnector(prisma, {
+      orgId: organizationId,
+      name,
+      type,
+      endpoint,
+      authConfig: authConfig ?? { method: 'api_key' },
+      schedule,
+      status: 'pending',
+      metadata,
+    });
+
+    return NextResponse.json(
+      {
+        connector,
+        authKey, // Only returned on creation
+        message: 'Connector registered. Save the authKey now — it will not be shown again.',
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error('[API] POST /api/connectors error:', error);
+    return NextResponse.json(
+      { error: 'Failed to register connector' },
+      { status: 500 },
+    );
+  }
+}

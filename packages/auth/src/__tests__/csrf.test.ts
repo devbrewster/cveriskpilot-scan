@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { generateCsrfToken, validateCsrfToken, CSRF_COOKIE_NAME } from '../security/csrf.js';
+import { generateCsrfToken, validateCsrfToken, CSRF_COOKIE_NAME } from '../security/csrf';
 
 describe('CSRF protection', () => {
   describe('generateCsrfToken', () => {

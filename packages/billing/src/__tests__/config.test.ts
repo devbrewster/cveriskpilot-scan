@@ -3,7 +3,7 @@ import {
   TIER_ENTITLEMENTS,
   getEntitlements,
   getTierFromPriceId,
-} from '../config.js';
+} from '../config';
 
 describe('config', () => {
   describe('TIER_ENTITLEMENTS', () => {

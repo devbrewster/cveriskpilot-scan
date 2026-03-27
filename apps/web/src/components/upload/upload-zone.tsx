@@ -79,8 +79,20 @@ export function UploadZone() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, []);
 
-  /* Simulate the full upload + processing pipeline */
-  const simulateUpload = useCallback((file: File) => {
+  /* Detect parser format from file extension */
+  const detectParserFormat = useCallback((name: string): string => {
+    const lower = name.toLowerCase();
+    if (lower.endsWith('.nessus')) return 'NESSUS';
+    if (lower.endsWith('.sarif')) return 'SARIF';
+    if (lower.endsWith('.cdx.json')) return 'CYCLONEDX';
+    if (lower.endsWith('.csv')) return 'CSV';
+    if (lower.endsWith('.xml')) return 'NESSUS'; // default XML to Nessus
+    if (lower.endsWith('.json')) return 'JSON_FORMAT';
+    return 'JSON_FORMAT';
+  }, []);
+
+  /* Upload file to /api/upload via XHR for progress tracking */
+  const uploadFile = useCallback((file: File) => {
     abortRef.current = false;
 
     // Validate extension
@@ -96,80 +108,194 @@ export function UploadZone() {
     }
 
     const filename = file.name;
-
-    // Phase 1: Upload progress (0-100% over 2s)
     setState({ kind: 'uploading', filename, progress: 0 });
 
-    let uploadProgress = 0;
-    const uploadInterval = setInterval(() => {
-      if (abortRef.current) { clearInterval(uploadInterval); return; }
-      uploadProgress += 5;
-      if (uploadProgress >= 100) {
-        clearInterval(uploadInterval);
-        // Phase 2: Parsing
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('organizationId', 'default-org');
+    formData.append('clientId', 'default-client');
+    formData.append('uploadedById', 'default-user');
+    formData.append('parserFormat', detectParserFormat(file.name));
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.upload.addEventListener('progress', (e) => {
+      if (abortRef.current) { xhr.abort(); return; }
+      if (e.lengthComputable) {
+        const progress = Math.round((e.loaded / e.total) * 100);
+        setState({ kind: 'uploading', filename, progress });
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (abortRef.current) return;
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        let response: { jobId?: string; artifactId?: string };
+        try {
+          response = JSON.parse(xhr.responseText);
+        } catch {
+          setState({ kind: 'error', filename, message: 'Invalid response from server.' });
+          return;
+        }
+
+        // Move to processing state — the backend processes asynchronously
         setState({
           kind: 'processing', filename,
           stage: 'parse', stageProgress: 0,
-          statusText: 'Parsing scan file...',
+          statusText: 'Upload complete. Processing queued...',
           stats: {},
         });
-        setTimeout(() => {
-          if (abortRef.current) return;
+
+        // Poll job status if we have a jobId
+        if (response.jobId) {
+          pollJobStatus(response.jobId, filename);
+        } else {
+          // No job ID, just show completion
           setState({
-            kind: 'processing', filename,
-            stage: 'parse', stageProgress: 100,
-            statusText: 'Parsing complete',
-            stats: { findingsParsed: 245 },
+            kind: 'complete', filename,
+            stats: { findingsParsed: 0, uniqueCves: 0, casesCreated: 0 },
           });
-          // Phase 3: Enriching
-          setTimeout(() => {
-            if (abortRef.current) return;
-            setState({
-              kind: 'processing', filename,
-              stage: 'enrich', stageProgress: 0,
-              statusText: 'Enriching with CVE data...',
-              stats: { findingsParsed: 245 },
-            });
-            setTimeout(() => {
-              if (abortRef.current) return;
+        }
+      } else {
+        let errorMsg = 'Upload failed.';
+        try {
+          const body = JSON.parse(xhr.responseText);
+          if (body.error) errorMsg = body.error;
+        } catch {
+          // Use default error message
+        }
+        setState({ kind: 'error', filename, message: errorMsg });
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      if (abortRef.current) return;
+      setState({ kind: 'error', filename, message: 'Network error. Please check your connection and try again.' });
+    });
+
+    xhr.addEventListener('abort', () => {
+      if (!abortRef.current) {
+        setState({ kind: 'error', filename, message: 'Upload was cancelled.' });
+      }
+    });
+
+    xhr.open('POST', '/api/upload');
+    xhr.send(formData);
+  }, [detectParserFormat]);
+
+  /* Poll /api/upload/[jobId] for processing progress */
+  const pollJobStatus = useCallback((jobId: string, filename: string) => {
+    let attempts = 0;
+    const maxAttempts = 120; // 2 minutes at 1s interval
+
+    const poll = () => {
+      if (abortRef.current || attempts >= maxAttempts) {
+        if (attempts >= maxAttempts) {
+          setState({ kind: 'error', filename, message: 'Processing timed out. The job may still be running in the background.' });
+        }
+        return;
+      }
+      attempts++;
+
+      fetch(`/api/upload/${encodeURIComponent(jobId)}`)
+        .then((res) => res.json())
+        .then((data: {
+          status: string;
+          progress?: {
+            totalFindings?: number;
+            parsedFindings?: number;
+            uniqueCvesEnriched?: number;
+            findingsCreated?: number;
+            casesCreated?: number;
+          };
+          error?: string;
+        }) => {
+          if (abortRef.current) return;
+
+          const p = data.progress ?? {};
+          const stats = {
+            findingsParsed: p.parsedFindings,
+            uniqueCves: p.uniqueCvesEnriched,
+            casesCreated: p.casesCreated,
+          };
+
+          switch (data.status) {
+            case 'QUEUED':
               setState({
                 kind: 'processing', filename,
-                stage: 'enrich', stageProgress: 100,
-                statusText: 'Enrichment complete',
-                stats: { findingsParsed: 245, uniqueCves: 89 },
+                stage: 'parse', stageProgress: 0,
+                statusText: 'Waiting in queue...',
+                stats,
               });
-              // Phase 4: Building cases
-              setTimeout(() => {
-                if (abortRef.current) return;
-                setState({
-                  kind: 'processing', filename,
-                  stage: 'complete', stageProgress: 50,
-                  statusText: 'Building cases...',
-                  stats: { findingsParsed: 245, uniqueCves: 89 },
-                });
-                setTimeout(() => {
-                  if (abortRef.current) return;
-                  setState({
-                    kind: 'complete', filename,
-                    stats: { findingsParsed: 245, uniqueCves: 89, casesCreated: 12 },
-                  });
-                }, 800);
-              }, 600);
-            }, 800);
-          }, 400);
-        }, 800);
-      } else {
-        setState({ kind: 'uploading', filename, progress: uploadProgress });
-      }
-    }, 100); // 20 steps * 100ms = 2s
+              setTimeout(poll, 1000);
+              break;
+            case 'PARSING':
+              setState({
+                kind: 'processing', filename,
+                stage: 'parse',
+                stageProgress: p.totalFindings ? Math.round(((p.parsedFindings ?? 0) / p.totalFindings) * 100) : 50,
+                statusText: `Parsing findings... ${p.parsedFindings ?? 0} found`,
+                stats,
+              });
+              setTimeout(poll, 1000);
+              break;
+            case 'ENRICHING':
+              setState({
+                kind: 'processing', filename,
+                stage: 'enrich',
+                stageProgress: p.parsedFindings ? Math.round(((p.uniqueCvesEnriched ?? 0) / p.parsedFindings) * 100) : 50,
+                statusText: `Enriching with CVE data... ${p.uniqueCvesEnriched ?? 0} enriched`,
+                stats,
+              });
+              setTimeout(poll, 1000);
+              break;
+            case 'BUILDING_CASES':
+              setState({
+                kind: 'processing', filename,
+                stage: 'complete', stageProgress: 50,
+                statusText: `Building cases... ${p.casesCreated ?? 0} created`,
+                stats,
+              });
+              setTimeout(poll, 1000);
+              break;
+            case 'COMPLETED':
+              setState({
+                kind: 'complete', filename,
+                stats: {
+                  findingsParsed: p.parsedFindings ?? 0,
+                  uniqueCves: p.uniqueCvesEnriched ?? 0,
+                  casesCreated: p.casesCreated ?? 0,
+                },
+              });
+              break;
+            case 'FAILED':
+              setState({
+                kind: 'error', filename,
+                message: data.error ?? 'Processing failed. Please try again.',
+              });
+              break;
+            default:
+              setTimeout(poll, 1000);
+              break;
+          }
+        })
+        .catch(() => {
+          if (abortRef.current) return;
+          // Retry on network error
+          setTimeout(poll, 2000);
+        });
+    };
+
+    setTimeout(poll, 1000);
   }, []);
 
   const handleFile = useCallback(
     (file: File | undefined) => {
       if (!file) return;
-      simulateUpload(file);
+      uploadFile(file);
     },
-    [simulateUpload],
+    [uploadFile],
   );
 
   /* ---- Event handlers ---- */

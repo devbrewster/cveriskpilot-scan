@@ -1,0 +1,26 @@
+# =============================================================================
+# CVERiskPilot — Terraform Variables
+# =============================================================================
+# Copy to terraform.tfvars and fill in values.
+# NEVER commit terraform.tfvars — it's in .gitignore.
+# =============================================================================
+
+project_id  = "your-gcp-project-id"
+region      = "us-central1"
+environment = "dev"
+
+# Cloud SQL
+db_tier     = "db-f1-micro"       # dev: db-f1-micro, prod: db-custom-2-8192
+db_password = ""                   # Generate: openssl rand -base64 32
+
+# Redis
+redis_memory_size_gb = 1
+
+# Container image (leave empty to use gcr.io/{project}/cveriskpilot-web:latest)
+image_tag = ""
+
+# Monitoring
+alert_email = ""
+
+# Geo-blocking (ISO 3166-1 alpha-2 codes)
+blocked_countries = []

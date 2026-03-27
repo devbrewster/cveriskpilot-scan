@@ -1,5 +1,5 @@
 import Redis from 'ioredis';
-import type { NvdCveData, EpssData } from '../types.js';
+import type { NvdCveData, EpssData } from '../types';
 
 const TTL_SECONDS = 24 * 60 * 60; // 24 hours
 

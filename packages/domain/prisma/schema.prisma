@@ -35,6 +35,7 @@ enum UserStatus {
 
 enum Tier {
   FREE
+  FOUNDERS_BETA
   PRO
   ENTERPRISE
   MSSP
@@ -636,4 +637,29 @@ model GlobalKevRecord {
 
   @@index([cveId])
   @@map("global_kev_records")
+}
+
+// ---------------------------------------------------------------------------
+// Scanner Connector Model (t97)
+// ---------------------------------------------------------------------------
+
+model ScannerConnector {
+  id                     String    @id @default(cuid()) @map("id")
+  organizationId         String    @map("organization_id")
+  name                   String    @map("name")
+  type                   String    @map("type") // nessus, qualys, openvas, generic
+  endpoint               String    @map("endpoint")
+  authConfig             Json      @map("auth_config")
+  authKeyHash            String    @map("auth_key_hash")
+  schedule               String?   @map("schedule")
+  lastHeartbeat          DateTime? @map("last_heartbeat")
+  lastHeartbeatData      Json?     @map("last_heartbeat_data")
+  status                 String    @default("pending") @map("status") // online, offline, degraded, pending
+  metadata               Json?     @map("metadata")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([authKeyHash])
+  @@map("scanner_connectors")
 }

@@ -4,9 +4,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { UserRole } from '@cveriskpilot/domain';
-import { getServerSession, type AuthenticatedHandler } from '../session/middleware.js';
-import type { Session } from '../session/redis-store.js';
-import { hasPermission, type Permission } from './permissions.js';
+import { getServerSession, type AuthenticatedHandler } from '../session/middleware';
+import { hasPermission, type Permission } from './permissions';
 
 /**
  * Middleware wrapper that requires the authenticated user to have one of the specified roles.

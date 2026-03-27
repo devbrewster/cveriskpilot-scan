@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { loadKevCatalog, checkKev, _resetKevCache } from '../clients/kev.js';
-import type { KevData } from '../types.js';
+import { loadKevCatalog, checkKev, _resetKevCache } from '../clients/kev';
+import type { KevData } from '../types';
 
 const FIXTURE_CATALOG = {
   catalogVersion: '2024.01.15',

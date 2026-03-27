@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { getJobStatus, listOrgJobs } from '../jobs/job-status.js';
+import { getJobStatus, listOrgJobs } from '../jobs/job-status';
 
 // ---------------------------------------------------------------------------
 // Helpers

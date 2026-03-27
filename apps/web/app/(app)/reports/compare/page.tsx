@@ -1,5 +1,7 @@
 import { ScanCompare } from '@/components/reports/scan-compare';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Scan Comparison | CVERiskPilot',
 };

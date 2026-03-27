@@ -1,4 +1,4 @@
-import type { CanonicalFinding, ParseResult, ParseError } from '../types.js';
+import type { CanonicalFinding, ParseResult, ParseError } from '../types';
 
 const CVE_REGEX = /CVE-\d{4}-\d{4,}/g;
 const CWE_REGEX = /CWE-\d+/g;

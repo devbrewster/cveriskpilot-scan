@@ -1,6 +1,7 @@
 import { Storage } from '@google-cloud/storage';
 import { createHash } from 'node:crypto';
-import type { UploadParams, UploadResult } from '../types.js';
+import type { UploadParams, UploadResult } from '../types';
+import { uploadToLocal } from './local-upload';
 
 // ---------------------------------------------------------------------------
 // Lazy-initialised GCS client (uses ADC in production)
@@ -43,7 +44,11 @@ export function buildGcsPath(
   organizationId: string,
   clientId: string,
   filename: string,
+  jobId?: string,
 ): string {
+  if (jobId) {
+    return `${organizationId}/scans/${jobId}/${filename}`;
+  }
   const timestamp = Date.now();
   return `orgs/${organizationId}/clients/${clientId}/${timestamp}-${filename}`;
 }
@@ -55,10 +60,15 @@ export function buildGcsPath(
 const RESUMABLE_THRESHOLD = 5 * 1024 * 1024; // 5 MB
 
 export async function uploadToGCS(params: UploadParams): Promise<UploadResult> {
-  const { buffer, filename, organizationId, clientId, mimeType } = params;
+  // Fall back to local filesystem when GCS is not configured (local dev)
+  if (!process.env.GCS_BUCKET_ARTIFACTS) {
+    return uploadToLocal(params);
+  }
+
+  const { buffer, filename, organizationId, clientId, mimeType, jobId } = params;
 
   const bucketName = getBucketName();
-  const gcsPath = buildGcsPath(organizationId, clientId, filename);
+  const gcsPath = buildGcsPath(organizationId, clientId, filename, jobId);
   const checksumSha256 = computeSha256(buffer);
   const sizeBytes = buffer.length;
 

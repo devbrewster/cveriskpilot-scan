@@ -1,5 +1,5 @@
 import { XMLParser } from 'fast-xml-parser';
-import type { CanonicalFinding, ParseResult, ParseError } from '../types.js';
+import type { CanonicalFinding, ParseResult, ParseError } from '../types';
 
 const SEVERITY_MAP: Record<number, CanonicalFinding['severity']> = {
   0: 'INFO',

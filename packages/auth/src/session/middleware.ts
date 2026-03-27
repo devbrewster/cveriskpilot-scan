@@ -3,7 +3,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getSession, type Session } from './redis-store.js';
+import { getSession, type Session } from './redis-store';
 
 /** Cookie name for the session ID */
 export const SESSION_COOKIE_NAME = 'crp_session';

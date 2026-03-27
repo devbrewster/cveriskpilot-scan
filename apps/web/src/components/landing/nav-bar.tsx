@@ -1,20 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export function NavBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <nav className="fixed top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-950/80">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+    <nav
+      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+        scrolled
+          ? "border-b border-gray-200/60 bg-white/90 shadow-sm backdrop-blur-xl dark:border-gray-800/60 dark:bg-gray-950/90"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600 text-sm font-bold text-white">
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-bold text-white shadow-md shadow-primary-600/20">
             CR
           </div>
-          <span className="text-lg font-bold text-gray-900 dark:text-white">
+          <span className={`text-lg font-bold transition-colors ${scrolled ? "text-gray-900 dark:text-white" : "text-white"}`}>
             CVERiskPilot
           </span>
         </Link>
@@ -23,34 +36,60 @@ export function NavBar() {
         <div className="hidden items-center gap-8 md:flex">
           <a
             href="#features"
-            className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
           >
             Features
           </a>
           <a
+            href="#how-it-works"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            How It Works
+          </a>
+          <a
             href="#pricing"
-            className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
           >
             Pricing
           </a>
           <Link
             href="/login"
-            className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
           >
             Log In
           </Link>
           <Link
             href="/signup"
-            className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700"
+            className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-500/25"
           >
-            Sign Up
+            Start Free
           </Link>
         </div>
 
         {/* Mobile Menu Button */}
         <button
           type="button"
-          className="inline-flex items-center justify-center rounded-md p-2 text-gray-600 hover:text-gray-900 md:hidden dark:text-gray-400 dark:hover:text-white"
+          className={`inline-flex items-center justify-center rounded-lg p-2 transition-colors md:hidden ${
+            scrolled
+              ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white"
+              : "text-gray-300 hover:text-white"
+          }`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle navigation menu"
         >
@@ -68,7 +107,7 @@ export function NavBar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="border-t border-gray-200 bg-white px-4 py-4 md:hidden dark:border-gray-800 dark:bg-gray-950">
+        <div className="border-t border-gray-200/60 bg-white/95 px-4 py-5 backdrop-blur-xl md:hidden dark:border-gray-800/60 dark:bg-gray-950/95">
           <div className="flex flex-col gap-4">
             <a
               href="#features"
@@ -76,6 +115,13 @@ export function NavBar() {
               onClick={() => setMobileOpen(false)}
             >
               Features
+            </a>
+            <a
+              href="#how-it-works"
+              className="text-sm font-medium text-gray-600 dark:text-gray-400"
+              onClick={() => setMobileOpen(false)}
+            >
+              How It Works
             </a>
             <a
               href="#pricing"
@@ -89,9 +135,9 @@ export function NavBar() {
             </Link>
             <Link
               href="/signup"
-              className="rounded-lg bg-primary-600 px-4 py-2 text-center text-sm font-semibold text-white"
+              className="rounded-lg bg-primary-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-md shadow-primary-600/20"
             >
-              Sign Up
+              Start Free
             </Link>
           </div>
         </div>

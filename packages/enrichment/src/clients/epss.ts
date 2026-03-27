@@ -1,4 +1,4 @@
-import type { EpssData } from '../types.js';
+import type { EpssData } from '../types';
 
 const EPSS_API_BASE = 'https://api.first.org/data/v1/epss';
 const BATCH_SIZE = 100;

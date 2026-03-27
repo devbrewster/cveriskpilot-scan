@@ -5,17 +5,17 @@ import type {
   NvdCveData,
   EpssData,
   KevData,
-} from '../types.js';
-import { fetchNvdCves } from '../clients/nvd.js';
-import { fetchEpssScores } from '../clients/epss.js';
-import { loadKevCatalog, checkKev } from '../clients/kev.js';
+} from '../types';
+import { fetchNvdCves } from '../clients/nvd';
+import { fetchEpssScores } from '../clients/epss';
+import { loadKevCatalog, checkKev } from '../clients/kev';
 import {
   getCachedNvd,
   setCachedNvd,
   getCachedEpss,
   setCachedEpss,
-} from '../cache/redis-cache.js';
-import { computeRiskScore } from '../scoring/risk-score.js';
+} from '../cache/redis-cache';
+import { computeRiskScore } from '../scoring/risk-score';
 
 // ---------------------------------------------------------------------------
 // Stage 1: Extract unique CVE IDs

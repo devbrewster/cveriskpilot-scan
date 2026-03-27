@@ -1,5 +1,5 @@
-import type { PrismaClient } from '@prisma/client';
-import type { JobStatus } from '../types.js';
+import type { PrismaClient } from '@cveriskpilot/domain';
+import type { JobStatus } from '../types';
 
 // ---------------------------------------------------------------------------
 // Job status queries

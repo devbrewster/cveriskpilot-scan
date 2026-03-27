@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchEpssScores } from '../clients/epss.js';
+import { fetchEpssScores } from '../clients/epss';
 
 describe('fetchEpssScores', () => {
   const originalFetch = globalThis.fetch;

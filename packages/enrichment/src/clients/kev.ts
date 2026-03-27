@@ -1,4 +1,4 @@
-import type { KevData, KevMatch } from '../types.js';
+import type { KevData, KevMatch } from '../types';
 
 const KEV_CATALOG_URL =
   'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json';

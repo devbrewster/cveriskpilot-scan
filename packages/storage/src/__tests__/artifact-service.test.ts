@@ -11,7 +11,7 @@ const mockUploadResult = {
   sizeBytes: 1024,
 };
 
-vi.mock('../gcs/upload.js', () => ({
+vi.mock('../gcs/upload', () => ({
   uploadToGCS: vi.fn().mockResolvedValue({
     gcsBucket: 'test-bucket',
     gcsPath: 'orgs/org-1/clients/client-1/123-scan.nessus',
@@ -27,7 +27,7 @@ import {
   getArtifact,
   getArtifactDownloadUrl,
   getArtifactBuffer,
-} from '../artifacts/artifact-service.js';
+} from '../artifacts/artifact-service';
 
 // ---------------------------------------------------------------------------
 // Mock Prisma client

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createRateLimiter } from '../security/rate-limit.js';
+import { createRateLimiter } from '../security/rate-limit';
 
 // ---------------------------------------------------------------------------
 // Mock Redis

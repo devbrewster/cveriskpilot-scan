@@ -22,7 +22,9 @@
       "@cveriskpilot/compliance": ["packages/compliance/src"],
       "@cveriskpilot/compliance/*": ["packages/compliance/src/*"],
       "@cveriskpilot/shared": ["packages/shared/src"],
-      "@cveriskpilot/shared/*": ["packages/shared/src/*"]
+      "@cveriskpilot/shared/*": ["packages/shared/src/*"],
+      "@cveriskpilot/integrations": ["packages/integrations/src"],
+      "@cveriskpilot/integrations/*": ["packages/integrations/src/*"]
     }
   },
   "references": [

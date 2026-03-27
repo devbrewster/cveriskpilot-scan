@@ -1,0 +1,225 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+
+// ---------------------------------------------------------------------------
+// GET /api/exceptions/[id] — Get exception details
+// ---------------------------------------------------------------------------
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+
+    const exception = await prisma.riskException.findUnique({
+      where: { id },
+      include: {
+        vulnerabilityCase: {
+          select: {
+            id: true,
+            title: true,
+            severity: true,
+            status: true,
+            cveIds: true,
+            organizationId: true,
+          },
+        },
+        decidedBy: {
+          select: { id: true, name: true, email: true },
+        },
+        approvedBy: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    if (!exception) {
+      return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
+    }
+
+    // Compute derived status
+    const now = new Date();
+    const evidence = exception.evidence as Record<string, unknown> | null;
+    let derivedStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' = 'PENDING';
+
+    if (evidence?.rejected) {
+      derivedStatus = 'REJECTED';
+    } else if (exception.approvedById) {
+      if (exception.expiresAt && new Date(exception.expiresAt) < now) {
+        derivedStatus = 'EXPIRED';
+      } else {
+        derivedStatus = 'APPROVED';
+      }
+    }
+
+    return NextResponse.json({ ...exception, derivedStatus });
+  } catch (error) {
+    console.error('[API] GET /api/exceptions/[id] error:', error);
+    return NextResponse.json(
+      { error: 'Failed to load exception' },
+      { status: 500 },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PUT /api/exceptions/[id] — Approve or reject an exception
+// Only ORG_OWNER and SECURITY_ADMIN roles should call this
+// ---------------------------------------------------------------------------
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+
+    const { action, approvedById, durationDays } = body as {
+      action?: 'approve' | 'reject';
+      approvedById?: string;
+      durationDays?: number;
+    };
+
+    if (!action || !['approve', 'reject'].includes(action)) {
+      return NextResponse.json(
+        { error: 'action must be "approve" or "reject"' },
+        { status: 400 },
+      );
+    }
+
+    if (!approvedById) {
+      return NextResponse.json(
+        { error: 'approvedById is required' },
+        { status: 400 },
+      );
+    }
+
+    // Verify the approver has the right role
+    const approver = await prisma.user.findUnique({
+      where: { id: approvedById },
+      select: { id: true, role: true },
+    });
+
+    if (!approver) {
+      return NextResponse.json({ error: 'Approver not found' }, { status: 404 });
+    }
+
+    if (!['ORG_OWNER', 'SECURITY_ADMIN', 'PLATFORM_ADMIN'].includes(approver.role)) {
+      return NextResponse.json(
+        { error: 'Only ORG_OWNER, SECURITY_ADMIN, or PLATFORM_ADMIN can approve/reject exceptions' },
+        { status: 403 },
+      );
+    }
+
+    const existing = await prisma.riskException.findUnique({
+      where: { id },
+      include: {
+        vulnerabilityCase: {
+          select: { id: true, status: true },
+        },
+      },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
+    }
+
+    if (action === 'approve') {
+      const expiresAt = durationDays
+        ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
+        : null;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await prisma.$transaction(async (tx: any) => {
+        const updated = await tx.riskException.update({
+          where: { id },
+          data: {
+            approvedById,
+            expiresAt,
+            evidence: {
+              ...(existing.evidence as Record<string, unknown> ?? {}),
+              rejected: false,
+              approvedAt: new Date().toISOString(),
+            },
+          },
+          include: {
+            vulnerabilityCase: {
+              select: { id: true, title: true, severity: true, status: true },
+            },
+            decidedBy: {
+              select: { id: true, name: true, email: true },
+            },
+            approvedBy: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        });
+
+        // Update case status to ACCEPTED_RISK (or FALSE_POSITIVE / NOT_APPLICABLE based on type)
+        const caseStatusMap: Record<string, string> = {
+          ACCEPTED_RISK: 'ACCEPTED_RISK',
+          FALSE_POSITIVE: 'FALSE_POSITIVE',
+          NOT_APPLICABLE: 'NOT_APPLICABLE',
+        };
+        const newStatus = caseStatusMap[existing.type] ?? 'ACCEPTED_RISK';
+
+        const previousStatus = existing.vulnerabilityCase.status;
+
+        await tx.vulnerabilityCase.update({
+          where: { id: existing.vulnerabilityCaseId },
+          data: { status: newStatus },
+        });
+
+        // Record workflow lineage
+        await tx.workflowLineage.create({
+          data: {
+            vulnerabilityCaseId: existing.vulnerabilityCaseId,
+            fromStatus: previousStatus,
+            toStatus: newStatus,
+            changedById: approvedById,
+            reason: `Risk exception approved: ${existing.reason}`,
+            metadata: { exceptionId: id },
+          },
+        });
+
+        return updated;
+      });
+
+      return NextResponse.json({ ...result, derivedStatus: 'APPROVED' });
+    } else {
+      // Reject
+      const updated = await prisma.riskException.update({
+        where: { id },
+        data: {
+          evidence: {
+            ...(existing.evidence as Record<string, unknown> ?? {}),
+            rejected: true,
+            rejectedAt: new Date().toISOString(),
+            rejectedById: approvedById,
+          },
+        },
+        include: {
+          vulnerabilityCase: {
+            select: { id: true, title: true, severity: true, status: true },
+          },
+          decidedBy: {
+            select: { id: true, name: true, email: true },
+          },
+          approvedBy: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+
+      return NextResponse.json({ ...updated, derivedStatus: 'REJECTED' });
+    }
+  } catch (error) {
+    console.error('[API] PUT /api/exceptions/[id] error:', error);
+    return NextResponse.json(
+      { error: 'Failed to update exception' },
+      { status: 500 },
+    );
+  }
+}

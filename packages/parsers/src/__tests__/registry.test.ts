@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectFormat, parse, getSupportedFormats } from '../registry.js';
+import { detectFormat, parse, getSupportedFormats } from '../registry';
 
 describe('detectFormat', () => {
   it('should detect .nessus files', () => {

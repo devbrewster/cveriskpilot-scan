@@ -8,7 +8,7 @@ import {
   checkAssetLimit,
   getUsageSummary,
   _setRedisForTest,
-} from '../usage.js';
+} from '../usage';
 
 // Mock Redis
 function createMockRedis(store: Record<string, string> = {}) {

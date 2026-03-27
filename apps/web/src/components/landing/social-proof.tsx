@@ -1,40 +1,29 @@
 const stats = [
-  { value: "8,000+", label: "CVEs processed per scan in < 90s" },
-  { value: "5", label: "Scanner formats supported" },
-  { value: "AI", label: "Powered remediation with code examples" },
+  { value: "8,000+", label: "CVEs processed per scan", sublabel: "in under 90 seconds" },
+  { value: "11", label: "Scanner formats supported", sublabel: "Nessus, SARIF, CycloneDX, and more" },
+  { value: "50%", label: "Faster remediation", sublabel: "with AI-powered fix guidance" },
 ];
 
 export function SocialProof() {
   return (
-    <section className="border-y border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <p className="mb-8 text-center text-sm font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-          Trusted by security teams at forward-thinking companies
-        </p>
-
-        {/* Placeholder company logos */}
-        <div className="mb-10 flex flex-wrap items-center justify-center gap-x-12 gap-y-4">
-          {["Acme Corp", "TechSecure", "CloudGuard", "DevShield", "NetWatch"].map(
-            (name) => (
-              <span
-                key={name}
-                className="text-lg font-bold tracking-wide text-gray-300 dark:text-gray-700"
-              >
-                {name}
-              </span>
-            )
-          )}
-        </div>
-
+    <section className="relative border-y border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         {/* Stats */}
-        <div className="grid gap-6 sm:grid-cols-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <p className="text-3xl font-extrabold text-gray-900 dark:text-white">
+        <div className="grid gap-8 sm:grid-cols-3 sm:gap-6">
+          {stats.map((stat, i) => (
+            <div key={stat.label} className="relative text-center">
+              {/* Divider between stats on desktop */}
+              {i > 0 && (
+                <div className="absolute left-0 top-1/2 hidden h-12 w-px -translate-y-1/2 bg-gray-200 sm:block dark:bg-gray-800" />
+              )}
+              <p className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white">
                 {stat.value}
               </p>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
                 {stat.label}
+              </p>
+              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-500">
+                {stat.sublabel}
               </p>
             </div>
           ))}

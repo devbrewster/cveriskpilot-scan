@@ -1,8 +1,8 @@
 // @cveriskpilot/billing — Redis-based usage tracking and limit enforcement
 
 import Redis from 'ioredis';
-import { getEntitlements } from './config.js';
-import type { UsageLimitResult, UsageSummary } from './types.js';
+import { getEntitlements } from './config';
+import type { UsageLimitResult, UsageSummary } from './types';
 
 // Singleton Redis connection (lazy-initialized)
 let _redis: Redis | null = null;

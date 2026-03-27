@@ -1,5 +1,5 @@
-import type { PrismaClient } from '@prisma/client';
-import type { EnqueueParams } from '../types.js';
+import type { PrismaClient } from '@cveriskpilot/domain';
+import type { EnqueueParams } from '../types';
 
 // ---------------------------------------------------------------------------
 // Cloud Tasks client (lazy, production only)
@@ -59,7 +59,7 @@ export async function enqueueUploadJob(
   } else {
     // In development, import and call the consumer directly
     // Use dynamic import to avoid circular dependency at module level
-    const { processUploadJob } = await import('./job-consumer.js');
+    const { processUploadJob } = await import('./job-consumer');
     // Fire and forget — do not await so the caller gets the jobId immediately
     processUploadJob(job.id, prisma).catch((err) => {
       console.error(`[dev] Upload job ${job.id} failed:`, err);

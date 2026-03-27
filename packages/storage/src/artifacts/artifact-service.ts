@@ -1,6 +1,7 @@
-import type { PrismaClient } from '@prisma/client';
-import { uploadToGCS, generateSignedUrl, downloadFromGCS } from '../gcs/upload.js';
-import type { CreateArtifactParams, ArtifactRecord } from '../types.js';
+import type { PrismaClient } from '@cveriskpilot/domain';
+import { uploadToGCS, generateSignedUrl, downloadFromGCS } from '../gcs/upload';
+import { downloadFromLocal } from '../gcs/local-upload';
+import type { CreateArtifactParams, ArtifactRecord } from '../types';
 
 // ---------------------------------------------------------------------------
 // Create an immutable scan artifact (GCS upload + DB record)
@@ -18,15 +19,17 @@ export async function createArtifact(
     clientId,
     uploadedById,
     parserFormat,
+    jobId,
   } = params;
 
-  // 1. Upload to GCS
+  // 1. Upload to GCS (or local fallback)
   const uploadResult = await uploadToGCS({
     buffer: file,
     filename,
     organizationId,
     clientId,
     mimeType,
+    jobId,
   });
 
   // 2. Create ScanArtifact record in DB
@@ -87,6 +90,11 @@ export async function getArtifactBuffer(
 
   if (!artifact) {
     throw new Error(`Artifact not found: ${artifactId}`);
+  }
+
+  // Use local download when the artifact was stored locally
+  if (artifact.gcsBucket === 'local') {
+    return downloadFromLocal(artifact.gcsPath);
   }
 
   return downloadFromGCS(artifact.gcsBucket, artifact.gcsPath);

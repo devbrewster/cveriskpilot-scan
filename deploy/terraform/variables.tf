@@ -43,3 +43,15 @@ variable "image_tag" {
   type        = string
   default     = ""
 }
+
+variable "alert_email" {
+  description = "Email for monitoring alerts"
+  type        = string
+  default     = ""
+}
+
+variable "blocked_countries" {
+  description = "List of ISO 3166-1 alpha-2 country codes to block via Cloud Armor geo-blocking"
+  type        = list(string)
+  default     = []
+}

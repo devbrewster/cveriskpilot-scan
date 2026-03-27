@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getCspHeader, getSecurityHeaders } from '../security/headers.js';
+import { getCspHeader, getSecurityHeaders } from '../security/headers';
 
 describe('getCspHeader', () => {
   const nonce = 'test-nonce-123';

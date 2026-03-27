@@ -1,0 +1,151 @@
+{
+  "runId": 1774648526102,
+  "timestamp": "2026-03-27T22:00:29.659Z",
+  "baseUrl": "http://localhost:3004",
+  "analystCount": 200,
+  "batchSize": 25,
+  "totalTestMs": 300464,
+  "totalRequests": 4600,
+  "passedAnalysts": 0,
+  "failedAnalysts": 200,
+  "stepSummaries": {
+    "1-signup": {
+      "avg": 7386,
+      "p95": 10451,
+      "p99": 11217,
+      "errors": 0
+    },
+    "2-login": {
+      "avg": 4809,
+      "p95": 6013,
+      "p99": 8446,
+      "errors": 0
+    },
+    "3-dashboard": {
+      "avg": 2659,
+      "p95": 3584,
+      "p99": 3928,
+      "errors": 0
+    },
+    "4-upload-scan": {
+      "avg": 2214,
+      "p95": 3839,
+      "p99": 4466,
+      "errors": 200
+    },
+    "5-findings-filter-0": {
+      "avg": 2078,
+      "p95": 3042,
+      "p99": 3286,
+      "errors": 0
+    },
+    "5-findings-filter-1": {
+      "avg": 1492,
+      "p95": 3996,
+      "p99": 4015,
+      "errors": 0
+    },
+    "5-findings-filter-2": {
+      "avg": 1193,
+      "p95": 1456,
+      "p99": 1556,
+      "errors": 0
+    },
+    "6-finding-detail": {
+      "avg": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "7-build-cases": {
+      "avg": 1377,
+      "p95": 1529,
+      "p99": 1855,
+      "errors": 0
+    },
+    "8-list-cases": {
+      "avg": 1236,
+      "p95": 1410,
+      "p99": 1435,
+      "errors": 0
+    },
+    "9-triage-case": {
+      "avg": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "10-case-comment": {
+      "avg": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "11-bulk-update": {
+      "avg": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "12-ai-remediation": {
+      "avg": 1171,
+      "p95": 1423,
+      "p99": 1469,
+      "errors": 0
+    },
+    "13-generate-report": {
+      "avg": 1237,
+      "p95": 2249,
+      "p99": 2313,
+      "errors": 0
+    },
+    "14-compliance-frameworks": {
+      "avg": 1038,
+      "p95": 1113,
+      "p99": 1164,
+      "errors": 0
+    },
+    "15-compliance-poam": {
+      "avg": 1051,
+      "p95": 1122,
+      "p99": 3822,
+      "errors": 0
+    },
+    "16-sla-check": {
+      "avg": 1212,
+      "p95": 3807,
+      "p99": 3844,
+      "errors": 0
+    },
+    "17-export-csv": {
+      "avg": 1207,
+      "p95": 2051,
+      "p99": 3423,
+      "errors": 0
+    },
+    "18-portfolio": {
+      "avg": 1109,
+      "p95": 1645,
+      "p99": 2288,
+      "errors": 0
+    },
+    "19-billing-usage": {
+      "avg": 1608,
+      "p95": 2244,
+      "p99": 2469,
+      "errors": 200
+    },
+    "20-notifications": {
+      "avg": 1616,
+      "p95": 3578,
+      "p99": 4037,
+      "errors": 0
+    },
+    "21-logout": {
+      "avg": 1007,
+      "p95": 1563,
+      "p99": 3327,
+      "errors": 0
+    }
+  }
+}

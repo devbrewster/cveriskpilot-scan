@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createAuditEntry, verifyAuditEntry } from '../security/audit.js';
+import { createAuditEntry, verifyAuditEntry } from '../security/audit';
 
 describe('Audit logging', () => {
   const baseParams = {

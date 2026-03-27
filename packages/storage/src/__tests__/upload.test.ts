@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { computeSha256, buildGcsPath } from '../gcs/upload.js';
+import { computeSha256, buildGcsPath } from '../gcs/upload';
 
 // ---------------------------------------------------------------------------
 // Mock @google-cloud/storage before importing the upload module functions
@@ -28,7 +28,7 @@ vi.mock('@google-cloud/storage', () => ({
 
 // Must import after mocks are set up
 const { uploadToGCS, downloadFromGCS, generateSignedUrl } = await import(
-  '../gcs/upload.js'
+  '../gcs/upload'
 );
 
 describe('computeSha256', () => {

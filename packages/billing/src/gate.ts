@@ -1,7 +1,7 @@
 // @cveriskpilot/billing — plan-gated feature checks
 
-import type { GateResult } from './types.js';
-import { checkUploadLimit, checkAiLimit, checkUserLimit, checkAssetLimit } from './usage.js';
+import type { GateResult } from './types';
+import { checkUploadLimit, checkAiLimit, checkUserLimit, checkAssetLimit } from './usage';
 
 // ---------------------------------------------------------------------------
 // Tier hierarchy helpers
@@ -9,6 +9,7 @@ import { checkUploadLimit, checkAiLimit, checkUserLimit, checkAssetLimit } from 
 
 const TIER_RANK: Record<string, number> = {
   FREE: 0,
+  FOUNDERS_BETA: 1,
   PRO: 1,
   ENTERPRISE: 2,
   MSSP: 3,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSarif } from '../parsers/sarif.js';
+import { parseSarif } from '../parsers/sarif';
 
 const MINIMAL_SARIF = JSON.stringify({
   $schema: 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json',

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { handleWebhookEvent } from '../webhooks.js';
+import { handleWebhookEvent } from '../webhooks';
 import type Stripe from 'stripe';
 
 // Minimal mock Prisma client

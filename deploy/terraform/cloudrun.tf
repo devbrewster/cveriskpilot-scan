@@ -23,9 +23,16 @@ resource "google_cloud_run_v2_service" "web" {
   location = var.region
 
   template {
+    service_account = google_service_account.cloudrun.email
+
     scaling {
       min_instance_count = 0
       max_instance_count = 10
+    }
+
+    vpc_access {
+      connector = google_vpc_access_connector.cloudrun.id
+      egress    = "PRIVATE_RANGES_ONLY"
     }
 
     volumes {
@@ -49,6 +56,22 @@ resource "google_cloud_run_v2_service" "web" {
         }
       }
 
+      startup_probe {
+        http_get {
+          path = "/api/health"
+        }
+        initial_delay_seconds = 5
+        period_seconds        = 10
+        failure_threshold     = 3
+      }
+
+      liveness_probe {
+        http_get {
+          path = "/api/health"
+        }
+        period_seconds = 30
+      }
+
       # Plain environment variables
       env {
         name  = "NODE_ENV"
@@ -58,6 +81,16 @@ resource "google_cloud_run_v2_service" "web" {
       env {
         name  = "ENVIRONMENT"
         value = var.environment
+      }
+
+      env {
+        name  = "GCS_BUCKET_ARTIFACTS"
+        value = google_storage_bucket.artifacts.name
+      }
+
+      env {
+        name  = "GCS_PROJECT_ID"
+        value = var.project_id
       }
 
       # Secret-backed environment variables
@@ -81,7 +114,10 @@ resource "google_cloud_run_v2_service" "web" {
     }
   }
 
-  depends_on = [google_secret_manager_secret.app_secrets]
+  depends_on = [
+    google_secret_manager_secret.app_secrets,
+    google_service_networking_connection.private_vpc,
+  ]
 }
 
 # Allow unauthenticated access (public web app)
@@ -101,9 +137,16 @@ resource "google_cloud_run_v2_service" "worker" {
   location = var.region
 
   template {
+    service_account = google_service_account.cloudrun.email
+
     scaling {
       min_instance_count = 0
       max_instance_count = 5
+    }
+
+    vpc_access {
+      connector = google_vpc_access_connector.cloudrun.id
+      egress    = "PRIVATE_RANGES_ONLY"
     }
 
     volumes {
@@ -140,6 +183,16 @@ resource "google_cloud_run_v2_service" "worker" {
         value = "worker"
       }
 
+      env {
+        name  = "GCS_BUCKET_ARTIFACTS"
+        value = google_storage_bucket.artifacts.name
+      }
+
+      env {
+        name  = "GCS_PROJECT_ID"
+        value = var.project_id
+      }
+
       dynamic "env" {
         for_each = local.secret_env_vars
         content {
@@ -160,5 +213,8 @@ resource "google_cloud_run_v2_service" "worker" {
     }
   }
 
-  depends_on = [google_secret_manager_secret.app_secrets]
+  depends_on = [
+    google_secret_manager_secret.app_secrets,
+    google_service_networking_connection.private_vpc,
+  ]
 }

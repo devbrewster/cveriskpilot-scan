@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { ExecutiveReport } from './executive-report';
 import { ExportButton } from './export-button';
+import { ScheduleManager } from './schedule-manager';
+import { BulkExport } from './bulk-export';
 import { mockCases } from '@/lib/mock-data';
-import { ComingSoonBadge } from '@/components/ui/coming-soon';
 
-type ActiveView = 'hub' | 'executive';
+type ActiveView = 'hub' | 'executive' | 'schedules' | 'bulk-export';
 
 function ReportCard({
   title,
@@ -59,7 +60,13 @@ export function ReportsHub() {
   // Prepare mock data for export button
   const casesForExport = mockCases.map((c) => ({ ...c } as Record<string, unknown>));
 
-  if (view === 'executive') {
+  if (view !== 'hub') {
+    const viewTitles: Record<string, string> = {
+      executive: 'Executive Summary',
+      schedules: 'Scheduled Reports',
+      'bulk-export': 'Bulk Export',
+    };
+
     return (
       <div className="space-y-4">
         <button
@@ -72,7 +79,9 @@ export function ReportsHub() {
           </svg>
           Back to Reports
         </button>
-        <ExecutiveReport />
+        {view === 'executive' && <ExecutiveReport />}
+        {view === 'schedules' && <ScheduleManager organizationId="demo-org-id" />}
+        {view === 'bulk-export' && <BulkExport organizationId="demo-org-id" />}
       </div>
     );
   }
@@ -105,15 +114,26 @@ export function ReportsHub() {
           />
         </a>
 
-        {/* Scheduled Reports - Coming Soon */}
+        {/* Scheduled Reports */}
         <ReportCard
           title="Scheduled Reports"
           description="Set up automated recurring reports delivered via email on a schedule you define."
-          disabled
-          badge={<ComingSoonBadge />}
+          onClick={() => setView('schedules')}
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        />
+
+        {/* Bulk Export */}
+        <ReportCard
+          title="Bulk Export"
+          description="Export large datasets of findings, cases, or assets asynchronously with filters."
+          onClick={() => setView('bulk-export')}
+          icon={
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
           }
         />

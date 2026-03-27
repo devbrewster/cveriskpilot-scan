@@ -8,7 +8,7 @@ import {
   sanitizeFilename,
   validateFileSize,
   validateMimeType,
-} from '../security/validation.js';
+} from '../security/validation';
 
 describe('sanitizeHtml', () => {
   it('strips simple HTML tags', () => {

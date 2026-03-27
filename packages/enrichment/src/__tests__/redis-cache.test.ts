@@ -5,8 +5,8 @@ import {
   getCachedEpss,
   setCachedEpss,
   _setRedisClient,
-} from '../cache/redis-cache.js';
-import type { NvdCveData, EpssData } from '../types.js';
+} from '../cache/redis-cache';
+import type { NvdCveData, EpssData } from '../types';
 
 // ---------------------------------------------------------------------------
 // Mock Redis client

@@ -1,0 +1,3 @@
+title,severity,cve,host,ip,port,description,cvss
+PENTEST Injected Critical Finding,CRITICAL,CVE-2024-99999,victim-server,10.0.0.1,443,This finding was injected by a pentest,9.8
+PENTEST Injected High Finding,HIGH,CVE-2024-99998,victim-db,10.0.0.2,5432,Injected finding #2,8.5

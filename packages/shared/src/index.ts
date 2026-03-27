@@ -1,2 +1,3 @@
 // @cveriskpilot/shared
-export {};
+export { createLogger } from './logger';
+export type { Logger } from './logger';

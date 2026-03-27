@@ -1,7 +1,7 @@
 // @cveriskpilot/billing — Stripe Checkout session creation
 
 import Stripe from 'stripe';
-import type { CheckoutParams } from './types.js';
+import type { CheckoutParams } from './types';
 
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;

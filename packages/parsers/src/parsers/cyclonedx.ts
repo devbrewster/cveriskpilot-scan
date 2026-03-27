@@ -1,4 +1,4 @@
-import type { CanonicalFinding, ParseResult, ParseError } from '../types.js';
+import type { CanonicalFinding, ParseResult, ParseError } from '../types';
 
 interface CycloneDxBom {
   bomFormat?: string;

@@ -196,7 +196,7 @@ function Spinner() {
 // ---------------------------------------------------------------------------
 
 export function AiRemediation({
-  caseId,
+  caseId: _caseId,
   caseData,
   existingAdvisory,
 }: AiRemediationProps) {

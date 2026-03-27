@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseJson } from '../parsers/json.js';
+import { parseJson } from '../parsers/json';
 
 const GENERIC_JSON = JSON.stringify([
   {

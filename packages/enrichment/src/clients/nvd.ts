@@ -1,4 +1,4 @@
-import type { NvdCveData, NvdCvssData } from '../types.js';
+import type { NvdCveData, NvdCvssData } from '../types';
 
 const NVD_API_BASE = 'https://services.nvd.nist.gov/rest/json/cves/2.0';
 const BATCH_SIZE = 100;

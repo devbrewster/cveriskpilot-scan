@@ -1,7 +1,7 @@
 // @cveriskpilot/billing — Stripe webhook handling
 
 import Stripe from 'stripe';
-import { getEntitlements, getTierFromPriceId } from './config.js';
+import { getEntitlements, getTierFromPriceId } from './config';
 
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;

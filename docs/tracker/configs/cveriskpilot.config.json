@@ -37,17 +37,17 @@
         {
           "title": "Upload & Parse (Week 2-4)",
           "tasks": [
-            { "id": "t8", "name": "Scan upload (drag & drop)", "detail": "Accept files up to 100MB via GCS", "source": "Both" },
+            { "id": "t8", "name": "Scan upload (drag & drop)", "detail": "Accept files up to 100MB via GCS", "source": "Both", "status": "completed" },
             { "id": "t9", "name": "Nessus XML parser", "detail": "Most common VM scanner format", "source": "1.x", "status": "completed" },
             { "id": "t10", "name": "SARIF parser", "detail": "SAST/DAST standard format", "source": "1.x", "status": "completed" },
             { "id": "t11", "name": "CSV parser", "detail": "Universal fallback format", "source": "Both", "status": "completed" },
             { "id": "t12", "name": "JSON parser", "detail": "Generic JSON ingestion", "source": "Both", "status": "completed" },
             { "id": "t13", "name": "CycloneDX parser", "detail": "SCA/SBOM standard format", "source": "1.x", "status": "completed" },
-            { "id": "t14", "name": "Streaming parse via Pub/Sub", "detail": "Handles 8K+ CVEs without timeout", "source": "New" },
+            { "id": "t14", "name": "Streaming parse via Pub/Sub", "detail": "Handles 8K+ CVEs without timeout", "source": "New", "status": "completed" },
             { "id": "t15", "name": "CanonicalFinding normalization", "detail": "All formats to same schema", "source": "2.0", "status": "completed" },
             { "id": "t16", "name": "Dedup by CVE+asset", "detail": "Idempotent upsert with SHA-256 dedup key", "source": "Both", "status": "completed" },
-            { "id": "t17", "name": "Finding to VulnerabilityCase grouping", "detail": "Two-object model per reference report", "source": "Ref" },
-            { "id": "t18", "name": "Raw artifact stored in GCS", "detail": "Immutable with SHA-256 checksum", "source": "2.0" }
+            { "id": "t17", "name": "Finding to VulnerabilityCase grouping", "detail": "Two-object model per reference report", "source": "Ref", "status": "completed" },
+            { "id": "t18", "name": "Raw artifact stored in GCS", "detail": "Immutable with SHA-256 checksum", "source": "2.0", "status": "completed" }
           ]
         },
         {
@@ -109,7 +109,7 @@
             { "id": "t47", "name": "Terraform (core resources)", "detail": "Infrastructure as code from day 1", "source": "GCP", "status": "completed" },
             { "id": "t48", "name": "Cloud Build CI/CD pipeline", "detail": "Single pipeline: test > build > deploy", "source": "GCP", "status": "completed" },
             { "id": "t49", "name": "Cloud Armor (basic WAF)", "detail": "Basic OWASP rules", "source": "GCP", "status": "completed" },
-            { "id": "t50", "name": "Cloud Logging + basic alerts", "detail": "Error rate, latency alerts", "source": "GCP" }
+            { "id": "t50", "name": "Cloud Logging + basic alerts", "detail": "Error rate, latency alerts", "source": "GCP", "status": "completed" }
           ]
         },
         {
@@ -139,27 +139,27 @@
         {
           "title": "Jira Integration",
           "tasks": [
-            { "id": "t56", "name": "Jira bi-directional sync", "detail": "Create tickets from cases, sync status back", "source": "1.x" },
-            { "id": "t57", "name": "Jira status mapping config", "detail": "Map Jira statuses to CVERiskPilot workflow", "source": "1.x" },
-            { "id": "t58", "name": "Bulk Jira ticket creation", "detail": "Create tickets for multiple cases at once", "source": "2.0" }
+            { "id": "t56", "name": "Jira bi-directional sync", "detail": "Create tickets from cases, sync status back", "source": "1.x", "status": "completed" },
+            { "id": "t57", "name": "Jira status mapping config", "detail": "Map Jira statuses to CVERiskPilot workflow", "source": "1.x", "status": "completed" },
+            { "id": "t58", "name": "Bulk Jira ticket creation", "detail": "Create tickets for multiple cases at once", "source": "2.0", "status": "completed" }
           ]
         },
         {
           "title": "SLA & Accountability",
           "tasks": [
-            { "id": "t59", "name": "SLA policies (per-severity due dates)", "detail": "Critical 7d, High 30d, Medium 90d, Low 180d", "source": "1.x" },
-            { "id": "t60", "name": "SLA breach detection", "detail": "Cron-based check with alerting", "source": "1.x" },
-            { "id": "t61", "name": "Risk exception workflow", "detail": "Request/approve/reject/expiry lifecycle", "source": "1.x" }
+            { "id": "t59", "name": "SLA policies (per-severity due dates)", "detail": "Critical 7d, High 30d, Medium 90d, Low 180d", "source": "1.x", "status": "completed" },
+            { "id": "t60", "name": "SLA breach detection", "detail": "Cron-based check with alerting", "source": "1.x", "status": "completed" },
+            { "id": "t61", "name": "Risk exception workflow", "detail": "Request/approve/reject/expiry lifecycle", "source": "1.x", "status": "completed" }
           ]
         },
         {
           "title": "Collaboration",
           "tasks": [
-            { "id": "t62", "name": "Comments with @mentions", "detail": "Per-case discussion threads", "source": "1.x" },
-            { "id": "t63", "name": "Case assignment with notifications", "detail": "Assign to team member, notify via email", "source": "1.x" },
-            { "id": "t64", "name": "Email notifications", "detail": "Digest batching + per-user preferences", "source": "1.x" },
-            { "id": "t65", "name": "In-app notification center", "detail": "Bell icon with unread count", "source": "1.x" },
-            { "id": "t66", "name": "Webhooks via Svix", "detail": "HMAC-SHA256 signed, retry + DLQ", "source": "2.0" }
+            { "id": "t62", "name": "Comments with @mentions", "detail": "Per-case discussion threads", "source": "1.x", "status": "completed" },
+            { "id": "t63", "name": "Case assignment with notifications", "detail": "Assign to team member, notify via email", "source": "1.x", "status": "completed" },
+            { "id": "t64", "name": "Email notifications", "detail": "Digest batching + per-user preferences", "source": "1.x", "status": "completed" },
+            { "id": "t65", "name": "In-app notification center", "detail": "Bell icon with unread count", "source": "1.x", "status": "completed" },
+            { "id": "t66", "name": "Webhooks via Svix", "detail": "HMAC-SHA256 signed, retry + DLQ", "source": "2.0", "status": "completed" }
           ]
         }
       ]
@@ -179,23 +179,23 @@
         {
           "title": "Multi-Client Model",
           "tasks": [
-            { "id": "t67", "name": "Activate Client model (3-tier hierarchy)", "detail": "Platform > Org > Client fully operational", "source": "New" },
-            { "id": "t68", "name": "Team management with client assignment", "detail": "Teams scoped to specific clients", "source": "New" },
-            { "id": "t69", "name": "Tenant switching workflow", "detail": "Analyst pivots between clients without re-auth (Flight Control pattern)", "source": "MSSP Ref" },
-            { "id": "t70", "name": "Client-scoped dashboard views", "detail": "Each client sees only their data", "source": "New" },
-            { "id": "t71", "name": "Cross-client portfolio dashboard", "detail": "Aggregated risk view across all managed clients", "source": "MSSP Ref" },
-            { "id": "t72", "name": "Feature flags per tenant/tier", "detail": "Control-plane config, not code forks", "source": "MSSP Ref" }
+            { "id": "t67", "name": "Activate Client model (3-tier hierarchy)", "detail": "Platform > Org > Client fully operational", "source": "New", "status": "completed" },
+            { "id": "t68", "name": "Team management with client assignment", "detail": "Teams scoped to specific clients", "source": "New", "status": "completed" },
+            { "id": "t69", "name": "Tenant switching workflow", "detail": "Analyst pivots between clients without re-auth (Flight Control pattern)", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t70", "name": "Client-scoped dashboard views", "detail": "Each client sees only their data", "source": "New", "status": "completed" },
+            { "id": "t71", "name": "Cross-client portfolio dashboard", "detail": "Aggregated risk view across all managed clients", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t72", "name": "Feature flags per tenant/tier", "detail": "Control-plane config, not code forks", "source": "MSSP Ref", "status": "completed" }
           ]
         },
         {
           "title": "Additional Parsers",
           "tasks": [
-            { "id": "t73", "name": "Qualys parser", "detail": "Enterprise VM scanner format", "source": "1.x" },
-            { "id": "t74", "name": "OpenVAS parser", "detail": "Open-source VM scanner", "source": "1.x" },
-            { "id": "t75", "name": "SPDX parser", "detail": "SBOM format", "source": "1.x" },
-            { "id": "t76", "name": "OSV parser", "detail": "Open Source Vulnerabilities format", "source": "1.x" },
-            { "id": "t77", "name": "CSAF parser", "detail": "Common Security Advisory Framework", "source": "1.x" },
-            { "id": "t78", "name": "XLSX parser", "detail": "Excel spreadsheet import", "source": "2.0" }
+            { "id": "t73", "name": "Qualys parser", "detail": "Enterprise VM scanner format", "source": "1.x", "status": "completed" },
+            { "id": "t74", "name": "OpenVAS parser", "detail": "Open-source VM scanner", "source": "1.x", "status": "completed" },
+            { "id": "t75", "name": "SPDX parser", "detail": "SBOM format", "source": "1.x", "status": "completed" },
+            { "id": "t76", "name": "OSV parser", "detail": "Open Source Vulnerabilities format", "source": "1.x", "status": "completed" },
+            { "id": "t77", "name": "CSAF parser", "detail": "Common Security Advisory Framework", "source": "1.x", "status": "completed" },
+            { "id": "t78", "name": "XLSX parser", "detail": "Excel spreadsheet import", "source": "2.0", "status": "completed" }
           ]
         }
       ]
@@ -215,18 +215,18 @@
         {
           "title": "Advanced Reporting",
           "tasks": [
-            { "id": "t79", "name": "Scheduled reports per-client", "detail": "Cron-based PDF/CSV generation + email delivery", "source": "1.x" },
-            { "id": "t80", "name": "Async bulk export API", "detail": "Large dataset export without timeout", "source": "New" },
-            { "id": "t81", "name": "Customer portal (client_viewer role)", "detail": "Client staff see their scoped dashboard", "source": "MSSP Ref" }
+            { "id": "t79", "name": "Scheduled reports per-client", "detail": "Cron-based PDF/CSV generation + email delivery", "source": "1.x", "status": "completed" },
+            { "id": "t80", "name": "Async bulk export API", "detail": "Large dataset export without timeout", "source": "New", "status": "completed" },
+            { "id": "t81", "name": "Customer portal (client_viewer role)", "detail": "Client staff see their scoped dashboard", "source": "MSSP Ref", "status": "completed" }
           ]
         },
         {
           "title": "Compliance",
           "tasks": [
-            { "id": "t82", "name": "POAM tracking (NIST 800-171)", "detail": "Plan of Action and Milestones", "source": "2.0" },
-            { "id": "t83", "name": "Compliance dashboards (SOC 2, SSDF, ASVS)", "detail": "Evidence collection and tracking", "source": "2.0" },
-            { "id": "t84", "name": "Data retention policies", "detail": "Per reference report data classes, configurable", "source": "1.x" },
-            { "id": "t85", "name": "GDPR/CCPA per-client deletion flows", "detail": "Right to deletion with audit trail", "source": "New" }
+            { "id": "t82", "name": "POAM tracking (NIST 800-171)", "detail": "Plan of Action and Milestones", "source": "2.0", "status": "completed" },
+            { "id": "t83", "name": "Compliance dashboards (SOC 2, SSDF, ASVS)", "detail": "Evidence collection and tracking", "source": "2.0", "status": "completed" },
+            { "id": "t84", "name": "Data retention policies", "detail": "Per reference report data classes, configurable", "source": "1.x", "status": "completed" },
+            { "id": "t85", "name": "GDPR/CCPA per-client deletion flows", "detail": "Right to deletion with audit trail", "source": "New", "status": "completed" }
           ]
         }
       ]
@@ -246,23 +246,23 @@
         {
           "title": "Enterprise Auth & Security",
           "tasks": [
-            { "id": "t86", "name": "WorkOS SAML SSO", "detail": "Enterprise single sign-on federation", "source": "1.x" },
-            { "id": "t87", "name": "SCIM provisioning", "detail": "Automated user provisioning/deprovisioning", "source": "Ref" },
-            { "id": "t88", "name": "Per-tenant SSO (each client own IdP)", "detail": "Managed clients connect their own SAML/OIDC", "source": "MSSP Ref" },
-            { "id": "t89", "name": "API key management (crp_* prefix)", "detail": "Scoped to org, with expiry and rotation", "source": "1.x" },
-            { "id": "t90", "name": "Service accounts for CI/CD", "detail": "Non-human auth for scanner automation", "source": "Ref" },
-            { "id": "t91", "name": "Per-tenant encryption (Cloud KMS BYOK)", "detail": "Customer-managed keys for regulated tenants", "source": "Ref" },
-            { "id": "t92", "name": "IP allowlist per org", "detail": "Restrict access by source IP", "source": "1.x" },
-            { "id": "t93", "name": "Cloud Armor full OWASP rules", "detail": "Bot protection + advanced WAF", "source": "GCP" }
+            { "id": "t86", "name": "WorkOS SAML SSO", "detail": "Enterprise single sign-on federation", "source": "1.x", "status": "completed" },
+            { "id": "t87", "name": "SCIM provisioning", "detail": "Automated user provisioning/deprovisioning", "source": "Ref", "status": "completed" },
+            { "id": "t88", "name": "Per-tenant SSO (each client own IdP)", "detail": "Managed clients connect their own SAML/OIDC", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t89", "name": "API key management (crp_* prefix)", "detail": "Scoped to org, with expiry and rotation", "source": "1.x", "status": "completed" },
+            { "id": "t90", "name": "Service accounts for CI/CD", "detail": "Non-human auth for scanner automation", "source": "Ref", "status": "completed" },
+            { "id": "t91", "name": "Per-tenant encryption (Cloud KMS BYOK)", "detail": "Customer-managed keys for regulated tenants", "source": "Ref", "status": "completed" },
+            { "id": "t92", "name": "IP allowlist per org", "detail": "Restrict access by source IP", "source": "1.x", "status": "completed" },
+            { "id": "t93", "name": "Cloud Armor full OWASP rules", "detail": "Bot protection + advanced WAF", "source": "GCP", "status": "completed" }
           ]
         },
         {
           "title": "Billing & Onboarding",
           "tasks": [
-            { "id": "t94", "name": "Enterprise + MSSP billing tiers", "detail": "Usage-based pricing per-client", "source": "New" },
-            { "id": "t95", "name": "Per-client usage metering", "detail": "Metered by assets, findings, AI calls", "source": "MSSP Ref" },
-            { "id": "t96", "name": "Automated tenant onboarding pipeline", "detail": "Identity bootstrap > data-plane > integrations > metering", "source": "MSSP Ref" },
-            { "id": "t97", "name": "Scanner connector system", "detail": "Agent deployment with heartbeat, config, key rotation", "source": "1.x" }
+            { "id": "t94", "name": "Enterprise + MSSP billing tiers", "detail": "Usage-based pricing per-client", "source": "New", "status": "completed" },
+            { "id": "t95", "name": "Per-client usage metering", "detail": "Metered by assets, findings, AI calls", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t96", "name": "Automated tenant onboarding pipeline", "detail": "Identity bootstrap > data-plane > integrations > metering", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t97", "name": "Scanner connector system", "detail": "Agent deployment with heartbeat, config, key rotation", "source": "1.x", "status": "completed" }
           ]
         }
       ]
@@ -282,32 +282,32 @@
         {
           "title": "Infrastructure Scale",
           "tasks": [
-            { "id": "t98", "name": "Deployment stamps (dedicated per enterprise)", "detail": "Dedicated Cloud SQL + GCS + KMS per stamp", "source": "MSSP Ref" },
-            { "id": "t99", "name": "Full streaming pipeline with SSE", "detail": "Real-time progress for large scans", "source": "New" },
-            { "id": "t100", "name": "Materialized views + read replicas + PgBouncer", "detail": "Dashboard query performance at scale", "source": "New" },
-            { "id": "t101", "name": "Cursor-based pagination", "detail": "Replace offset pagination for >100K findings", "source": "New" },
-            { "id": "t102", "name": "Deployment rings (canary > early adopter > GA)", "detail": "Progressive rollout with feature flags", "source": "MSSP Ref" },
-            { "id": "t103", "name": "Data residency controls", "detail": "Regional Cloud SQL instances, tenant placement", "source": "Ref" },
-            { "id": "t104", "name": "Per-tenant backup/restore runbooks", "detail": "PITR per stamp, tenant-scoped export for pooled", "source": "MSSP Ref" }
+            { "id": "t98", "name": "Deployment stamps (dedicated per enterprise)", "detail": "Dedicated Cloud SQL + GCS + KMS per stamp", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t99", "name": "Full streaming pipeline with SSE", "detail": "Real-time progress for large scans", "source": "New", "status": "completed" },
+            { "id": "t100", "name": "Materialized views + read replicas + PgBouncer", "detail": "Dashboard query performance at scale", "source": "New", "status": "completed" },
+            { "id": "t101", "name": "Cursor-based pagination", "detail": "Replace offset pagination for >100K findings", "source": "New", "status": "completed" },
+            { "id": "t102", "name": "Deployment rings (canary > early adopter > GA)", "detail": "Progressive rollout with feature flags", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t103", "name": "Data residency controls", "detail": "Regional Cloud SQL instances, tenant placement", "source": "Ref", "status": "completed" },
+            { "id": "t104", "name": "Per-tenant backup/restore runbooks", "detail": "PITR per stamp, tenant-scoped export for pooled", "source": "MSSP Ref", "status": "completed" }
           ]
         },
         {
           "title": "Advanced Security & Access",
           "tasks": [
-            { "id": "t105", "name": "ABAC policy engine", "detail": "Attribute-based access for tenant boundaries, data classification", "source": "MSSP Ref" },
-            { "id": "t106", "name": "Tenant-aware observability", "detail": "Per-tenant/tier dashboards via OpenTelemetry", "source": "MSSP Ref" },
-            { "id": "t107", "name": "White-labeling (brand per org)", "detail": "UI/brand theming via control-plane config", "source": "MSSP Ref" }
+            { "id": "t105", "name": "ABAC policy engine", "detail": "Attribute-based access for tenant boundaries, data classification", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t106", "name": "Tenant-aware observability", "detail": "Per-tenant/tier dashboards via OpenTelemetry", "source": "MSSP Ref", "status": "completed" },
+            { "id": "t107", "name": "White-labeling (brand per org)", "detail": "UI/brand theming via control-plane config", "source": "MSSP Ref", "status": "completed" }
           ]
         },
         {
           "title": "AI & Integrations",
           "tasks": [
-            { "id": "t108", "name": "AI triage agent", "detail": "Automated CVE triage with HITL approval gates", "source": "2.0" },
-            { "id": "t109", "name": "ServiceNow integration", "detail": "Enterprise ITSM bi-directional sync", "source": "Ref" },
-            { "id": "t110", "name": "SIEM export", "detail": "Splunk, QRadar, Sentinel via CloudEvents", "source": "Both" },
-            { "id": "t111", "name": "Bug bounty ingestion (HackerOne)", "detail": "API integration for bounty findings", "source": "2.0" },
-            { "id": "t112", "name": "Cloud posture (AWS Security Hub, ASFF)", "detail": "Cloud-specific adapter for posture findings", "source": "Ref" },
-            { "id": "t113", "name": "OpenAPI v3.1 interactive docs", "detail": "Developer experience for API consumers", "source": "Ref" }
+            { "id": "t108", "name": "AI triage agent", "detail": "Automated CVE triage with HITL approval gates", "source": "2.0", "status": "completed" },
+            { "id": "t109", "name": "ServiceNow integration", "detail": "Enterprise ITSM bi-directional sync", "source": "Ref", "status": "completed" },
+            { "id": "t110", "name": "SIEM export", "detail": "Splunk, QRadar, Sentinel via CloudEvents", "source": "Both", "status": "completed" },
+            { "id": "t111", "name": "Bug bounty ingestion (HackerOne)", "detail": "API integration for bounty findings", "source": "2.0", "status": "completed" },
+            { "id": "t112", "name": "Cloud posture (AWS Security Hub, ASFF)", "detail": "Cloud-specific adapter for posture findings", "source": "Ref", "status": "completed" },
+            { "id": "t113", "name": "OpenAPI v3.1 interactive docs", "detail": "Developer experience for API consumers", "source": "Ref", "status": "completed" }
           ]
         }
       ]

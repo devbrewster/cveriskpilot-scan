@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import type { CanonicalFinding, ParseResult, ParseError } from '../types.js';
+import type { CanonicalFinding, ParseResult, ParseError } from '../types';
 
 // Map of canonical field names to possible column header variations (lowercase)
 const COLUMN_MAPPINGS: Record<string, string[]> = {

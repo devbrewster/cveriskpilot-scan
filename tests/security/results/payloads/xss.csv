@@ -1,0 +1,3 @@
+title,severity,cve,host,ip,port,description,cvss
+"<script>alert('XSS')</script>",HIGH,CVE-2024-00001,xss-host,10.0.0.1,80,"<img onerror=alert(1) src=x>",7.5
+"<svg/onload=alert('xss')>",CRITICAL,CVE-2024-00002,xss-host2,10.0.0.2,443,"Payload: <iframe src=javascript:alert(1)>",9.0

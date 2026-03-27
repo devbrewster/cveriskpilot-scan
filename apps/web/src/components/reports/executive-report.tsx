@@ -116,13 +116,13 @@ export function ExecutiveReport() {
       openCount,
       closedCount,
       includeSections: {
-        keyMetrics: sections.keyMetrics,
-        severityDistribution: sections.severityDistribution,
-        topCritical: sections.topCritical,
-        kevExposure: sections.kevExposure,
-        epssHighRisk: sections.epssHighRisk,
-        trend: sections.trend,
-        recommendations: sections.recommendations,
+        keyMetrics: sections.keyMetrics ?? true,
+        severityDistribution: sections.severityDistribution ?? true,
+        topCritical: sections.topCritical ?? true,
+        kevExposure: sections.kevExposure ?? true,
+        epssHighRisk: sections.epssHighRisk ?? true,
+        trend: sections.trend ?? true,
+        recommendations: sections.recommendations ?? true,
       },
     };
   }, [orgName, dateFrom, dateTo, severities, sections]);

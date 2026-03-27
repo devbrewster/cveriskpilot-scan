@@ -147,7 +147,7 @@ export async function authenticateWithGoogle(
   // JIT provisioning: create org + user in a transaction
   const result = await (prisma as any).$transaction(async (tx: any) => {
     const orgName = googleUser.hd
-      ? googleUser.hd.split('.')[0]
+      ? (googleUser.hd.split('.')[0] ?? googleUser.hd)
       : `${googleUser.name}'s Org`;
 
     let slug = generateSlug(orgName);

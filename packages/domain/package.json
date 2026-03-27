@@ -16,11 +16,14 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
-    "prisma": "^6.0.0",
-    "@prisma/client": "^6.0.0"
+    "prisma": "^5.22.0",
+    "@prisma/client": "^5.22.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "tsx": "^4.0.0"
+  },
   "prisma": {
-    "schema": "prisma/schema.prisma"
+    "schema": "prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts"
   }
 }

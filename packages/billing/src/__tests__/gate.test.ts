@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { checkFeatureGate, requireFeature } from '../gate.js';
-import { _setRedisForTest } from '../usage.js';
+import { checkFeatureGate, requireFeature } from '../gate';
+import { _setRedisForTest } from '../usage';
 
 function createMockRedis(store: Record<string, string> = {}) {
   return {

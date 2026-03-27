@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@cveriskpilot/domain": "*",
-    "fast-xml-parser": "^4.5.0",
+    "exceljs": "^4.4.0",
+    "fast-xml-parser": "^5.5.9",
     "papaparse": "^5.4.0"
   },
   "devDependencies": {

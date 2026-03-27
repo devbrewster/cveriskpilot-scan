@@ -40,6 +40,15 @@ deploy/terraform/.terraform/
 deploy/terraform/*.tfstate
 deploy/terraform/*.tfstate.backup
 deploy/terraform/.terraform.lock.hcl
+deploy/terraform/terraform.tfvars
+deploy/terraform/tfplan
 
 # docker
 deploy/docker-compose/.env
+
+# local upload fallback
+uploads/
+
+# database dumps
+*.dump
+*.sql.gz

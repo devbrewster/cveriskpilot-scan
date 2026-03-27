@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeRiskScore } from '../scoring/risk-score.js';
+import { computeRiskScore } from '../scoring/risk-score';
 
 describe('computeRiskScore', () => {
   it('computes score for high CVSS + KEV listed', () => {

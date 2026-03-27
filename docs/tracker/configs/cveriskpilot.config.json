@@ -1,0 +1,522 @@
+{
+  "meta": {
+    "id": "cveriskpilot",
+    "name": "CVERiskPilot",
+    "subtitle": "Enterprise Release Tracker",
+    "logoText": "CR",
+    "logoGradient": "linear-gradient(135deg, #58a6ff, #bc8cff)",
+    "rolloutTitle": "Enterprise Phased Rollout (per Reference Report)",
+    "rolloutDescription": "34-54 weeks from kickoff to enterprise-ready production. Each gate requires acceptance criteria before advancing.",
+    "kpiTitle": "SLO / KPI Targets"
+  },
+  "phases": [
+    {
+      "id": "phase1",
+      "title": "Phase 1: MVP",
+      "badge": "MVP",
+      "badgeClass": "mvp",
+      "icon": "&#x1F680;",
+      "iconBg": "linear-gradient(135deg, #3fb950, #2ea043)",
+      "timeline": "Weeks 1-8",
+      "duration": "6-8 weeks",
+      "description": "Core value loop: Upload > Enrich > Triage > Report",
+      "category": "mvp",
+      "milestones": [
+        {
+          "title": "Auth & Onboarding (Week 1-2)",
+          "tasks": [
+            { "id": "t1", "name": "Google OIDC sign-in", "detail": "Primary auth via Google Identity Platform", "source": "2.0+GCP", "status": "completed" },
+            { "id": "t2", "name": "Email/password fallback", "detail": "For users without Google accounts", "source": "2.0", "status": "completed" },
+            { "id": "t3", "name": "TOTP MFA", "detail": "Standard 2FA (passkeys deferred)", "source": "Both", "status": "completed" },
+            { "id": "t4", "name": "Org creation on signup", "detail": "Auto-create org for new user", "source": "Both", "status": "completed" },
+            { "id": "t5", "name": "Invite team members", "detail": "Email invite with role assignment", "source": "1.x", "status": "completed" },
+            { "id": "t6", "name": "3 roles: Owner, Analyst, Viewer", "detail": "Simple RBAC to start", "source": "New", "status": "completed" },
+            { "id": "t7", "name": "Redis server-side sessions", "detail": "Memorystore for Redis basic tier", "source": "2.0", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Upload & Parse (Week 2-4)",
+          "tasks": [
+            { "id": "t8", "name": "Scan upload (drag & drop)", "detail": "Accept files up to 100MB via GCS", "source": "Both" },
+            { "id": "t9", "name": "Nessus XML parser", "detail": "Most common VM scanner format", "source": "1.x", "status": "completed" },
+            { "id": "t10", "name": "SARIF parser", "detail": "SAST/DAST standard format", "source": "1.x", "status": "completed" },
+            { "id": "t11", "name": "CSV parser", "detail": "Universal fallback format", "source": "Both", "status": "completed" },
+            { "id": "t12", "name": "JSON parser", "detail": "Generic JSON ingestion", "source": "Both", "status": "completed" },
+            { "id": "t13", "name": "CycloneDX parser", "detail": "SCA/SBOM standard format", "source": "1.x", "status": "completed" },
+            { "id": "t14", "name": "Streaming parse via Pub/Sub", "detail": "Handles 8K+ CVEs without timeout", "source": "New" },
+            { "id": "t15", "name": "CanonicalFinding normalization", "detail": "All formats to same schema", "source": "2.0", "status": "completed" },
+            { "id": "t16", "name": "Dedup by CVE+asset", "detail": "Idempotent upsert with SHA-256 dedup key", "source": "Both", "status": "completed" },
+            { "id": "t17", "name": "Finding to VulnerabilityCase grouping", "detail": "Two-object model per reference report", "source": "Ref" },
+            { "id": "t18", "name": "Raw artifact stored in GCS", "detail": "Immutable with SHA-256 checksum", "source": "2.0" }
+          ]
+        },
+        {
+          "title": "Enrichment (Week 3-4)",
+          "tasks": [
+            { "id": "t19", "name": "NVD lookup (CVSS v3.x)", "detail": "Batch by unique CVEs, not per-finding", "source": "Both", "status": "completed" },
+            { "id": "t20", "name": "Bulk EPSS scoring", "detail": "Single API call for all unique CVEs", "source": "Both", "status": "completed" },
+            { "id": "t21", "name": "CISA KEV check", "detail": "Download catalog daily, match locally", "source": "Both", "status": "completed" },
+            { "id": "t22", "name": "Redis enrichment cache (24h TTL)", "detail": "Repeat scans hit zero NVD calls", "source": "New", "status": "completed" },
+            { "id": "t23", "name": "Risk score computation", "detail": "CVSS + EPSS + KEV combined score", "source": "Both", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Dashboard & Findings (Week 3-5)",
+          "tasks": [
+            { "id": "t24", "name": "Dashboard: severity, KEV, EPSS top-10, SLA", "detail": "Single page with key metrics", "source": "Both", "status": "completed" },
+            { "id": "t25", "name": "Findings list with filters", "detail": "Severity, status, KEV, EPSS threshold, CVE search", "source": "Both", "status": "completed" },
+            { "id": "t26", "name": "Finding detail view", "detail": "CVSS vector, EPSS, KEV, affected assets, evidence", "source": "Both", "status": "completed" },
+            { "id": "t27", "name": "Vulnerability case detail", "detail": "Aggregated findings, timeline, status", "source": "New", "status": "completed" },
+            { "id": "t28", "name": "Status workflow (simplified)", "detail": "New > Triaged > In Remediation > Fixed > Verified + Accepted/FP", "source": "Ref", "status": "completed" },
+            { "id": "t29", "name": "Bulk status update", "detail": "Select multiple, change status", "source": "1.x", "status": "completed" },
+            { "id": "t30", "name": "Basic text search", "detail": "CVE ID and title search via tsvector", "source": "New", "status": "completed" }
+          ]
+        },
+        {
+          "title": "AI Remediation (Week 4-5)",
+          "tasks": [
+            { "id": "t31", "name": "\"Get Remediation\" button", "detail": "On-demand Claude API call per case", "source": "1.x", "status": "completed" },
+            { "id": "t32", "name": "Host redaction in AI prompts", "detail": "Structured output: risk, actions, fix, verification", "source": "1.x", "status": "completed" },
+            { "id": "t33", "name": "Rate limit: 50/day Free, 500/day Pro", "detail": "Usage counter in Redis", "source": "New", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Reporting (Week 5-6)",
+          "tasks": [
+            { "id": "t34", "name": "CSV export (filtered findings)", "detail": "Download current view as CSV", "source": "1.x", "status": "completed" },
+            { "id": "t35", "name": "Executive summary PDF", "detail": "Severity counts, KEV exposure, top risks, EPSS", "source": "1.x", "status": "completed" },
+            { "id": "t36", "name": "Per-scan comparison", "detail": "What's new since last scan diff view", "source": "1.x", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Billing (Week 5-7)",
+          "tasks": [
+            { "id": "t37", "name": "Free tier (3 uploads, 1 user, 50 AI)", "detail": "Enough to evaluate the product", "source": "New", "status": "completed" },
+            { "id": "t38", "name": "Pro tier ($49/mo)", "detail": "Unlimited uploads, 10 users, 500 AI calls", "source": "New", "status": "completed" },
+            { "id": "t39", "name": "Stripe Checkout + customer portal", "detail": "Self-service upgrade/cancel", "source": "Both", "status": "completed" },
+            { "id": "t40", "name": "Usage counters (uploads, AI calls)", "detail": "Enforce limits at API layer", "source": "2.0", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Infrastructure (Week 1-2, parallel)",
+          "tasks": [
+            { "id": "t41", "name": "Cloud Run (web + 1 worker)", "detail": "Single service + async worker", "source": "GCP", "status": "completed" },
+            { "id": "t42", "name": "Cloud SQL PostgreSQL (single instance)", "detail": "No replica needed at MVP scale", "source": "GCP", "status": "completed" },
+            { "id": "t43", "name": "Memorystore Redis (basic tier)", "detail": "Sessions + enrichment cache", "source": "GCP", "status": "completed" },
+            { "id": "t44", "name": "GCS bucket (org-prefixed)", "detail": "Scan artifact storage", "source": "GCP", "status": "completed" },
+            { "id": "t45", "name": "Cloud Tasks (single queue)", "detail": "Async job processing", "source": "GCP", "status": "completed" },
+            { "id": "t46", "name": "Secret Manager", "detail": "API keys, DB credentials", "source": "GCP", "status": "completed" },
+            { "id": "t47", "name": "Terraform (core resources)", "detail": "Infrastructure as code from day 1", "source": "GCP", "status": "completed" },
+            { "id": "t48", "name": "Cloud Build CI/CD pipeline", "detail": "Single pipeline: test > build > deploy", "source": "GCP", "status": "completed" },
+            { "id": "t49", "name": "Cloud Armor (basic WAF)", "detail": "Basic OWASP rules", "source": "GCP", "status": "completed" },
+            { "id": "t50", "name": "Cloud Logging + basic alerts", "detail": "Error rate, latency alerts", "source": "GCP" }
+          ]
+        },
+        {
+          "title": "Polish & Launch (Week 6-8)",
+          "tasks": [
+            { "id": "t51", "name": "\"Coming Soon\" badges on deferred features", "detail": "Visible but locked UI elements", "source": "New", "status": "completed" },
+            { "id": "t52", "name": "Landing page", "detail": "Marketing page with signup CTA", "source": "New", "status": "completed" },
+            { "id": "t53", "name": "Prisma schema (full 3-tier ready)", "detail": "client_id nullable, defaulting to Default", "source": "New", "status": "completed" },
+            { "id": "t54", "name": "Security hardening pass", "detail": "CSP nonces, CSRF, rate limiting, input validation", "source": "Both", "status": "completed" },
+            { "id": "t55", "name": "E2E tests (Playwright)", "detail": "Critical flows: signup, upload, triage, export", "source": "Both", "status": "completed" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase2",
+      "title": "Phase 2: Collaboration & Integrations",
+      "badge": "Growth",
+      "badgeClass": "growth",
+      "icon": "&#x1F91D;",
+      "iconBg": "linear-gradient(135deg, #58a6ff, #388bfd)",
+      "timeline": "Month 2-3",
+      "duration": "4-8 weeks",
+      "description": "Team workflows, Jira sync, SLA policies, notifications",
+      "category": "growth",
+      "milestones": [
+        {
+          "title": "Jira Integration",
+          "tasks": [
+            { "id": "t56", "name": "Jira bi-directional sync", "detail": "Create tickets from cases, sync status back", "source": "1.x" },
+            { "id": "t57", "name": "Jira status mapping config", "detail": "Map Jira statuses to CVERiskPilot workflow", "source": "1.x" },
+            { "id": "t58", "name": "Bulk Jira ticket creation", "detail": "Create tickets for multiple cases at once", "source": "2.0" }
+          ]
+        },
+        {
+          "title": "SLA & Accountability",
+          "tasks": [
+            { "id": "t59", "name": "SLA policies (per-severity due dates)", "detail": "Critical 7d, High 30d, Medium 90d, Low 180d", "source": "1.x" },
+            { "id": "t60", "name": "SLA breach detection", "detail": "Cron-based check with alerting", "source": "1.x" },
+            { "id": "t61", "name": "Risk exception workflow", "detail": "Request/approve/reject/expiry lifecycle", "source": "1.x" }
+          ]
+        },
+        {
+          "title": "Collaboration",
+          "tasks": [
+            { "id": "t62", "name": "Comments with @mentions", "detail": "Per-case discussion threads", "source": "1.x" },
+            { "id": "t63", "name": "Case assignment with notifications", "detail": "Assign to team member, notify via email", "source": "1.x" },
+            { "id": "t64", "name": "Email notifications", "detail": "Digest batching + per-user preferences", "source": "1.x" },
+            { "id": "t65", "name": "In-app notification center", "detail": "Bell icon with unread count", "source": "1.x" },
+            { "id": "t66", "name": "Webhooks via Svix", "detail": "HMAC-SHA256 signed, retry + DLQ", "source": "2.0" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase3",
+      "title": "Phase 3: MSSP Foundation",
+      "badge": "MSSP",
+      "badgeClass": "mssp",
+      "icon": "&#x1F3E2;",
+      "iconBg": "linear-gradient(135deg, #f778ba, #db61a2)",
+      "timeline": "Month 3-4",
+      "duration": "4-8 weeks",
+      "description": "3-tier hierarchy, client switching, additional parsers, portfolio view",
+      "category": "mssp",
+      "milestones": [
+        {
+          "title": "Multi-Client Model",
+          "tasks": [
+            { "id": "t67", "name": "Activate Client model (3-tier hierarchy)", "detail": "Platform > Org > Client fully operational", "source": "New" },
+            { "id": "t68", "name": "Team management with client assignment", "detail": "Teams scoped to specific clients", "source": "New" },
+            { "id": "t69", "name": "Tenant switching workflow", "detail": "Analyst pivots between clients without re-auth (Flight Control pattern)", "source": "MSSP Ref" },
+            { "id": "t70", "name": "Client-scoped dashboard views", "detail": "Each client sees only their data", "source": "New" },
+            { "id": "t71", "name": "Cross-client portfolio dashboard", "detail": "Aggregated risk view across all managed clients", "source": "MSSP Ref" },
+            { "id": "t72", "name": "Feature flags per tenant/tier", "detail": "Control-plane config, not code forks", "source": "MSSP Ref" }
+          ]
+        },
+        {
+          "title": "Additional Parsers",
+          "tasks": [
+            { "id": "t73", "name": "Qualys parser", "detail": "Enterprise VM scanner format", "source": "1.x" },
+            { "id": "t74", "name": "OpenVAS parser", "detail": "Open-source VM scanner", "source": "1.x" },
+            { "id": "t75", "name": "SPDX parser", "detail": "SBOM format", "source": "1.x" },
+            { "id": "t76", "name": "OSV parser", "detail": "Open Source Vulnerabilities format", "source": "1.x" },
+            { "id": "t77", "name": "CSAF parser", "detail": "Common Security Advisory Framework", "source": "1.x" },
+            { "id": "t78", "name": "XLSX parser", "detail": "Excel spreadsheet import", "source": "2.0" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase4",
+      "title": "Phase 4: Reporting & Compliance",
+      "badge": "Enterprise",
+      "badgeClass": "enterprise",
+      "icon": "&#x1F4CB;",
+      "iconBg": "linear-gradient(135deg, #bc8cff, #8b5cf6)",
+      "timeline": "Month 4-5",
+      "duration": "4-8 weeks",
+      "description": "Scheduled reports, POAM, compliance dashboards, GDPR/CCPA",
+      "category": "enterprise",
+      "milestones": [
+        {
+          "title": "Advanced Reporting",
+          "tasks": [
+            { "id": "t79", "name": "Scheduled reports per-client", "detail": "Cron-based PDF/CSV generation + email delivery", "source": "1.x" },
+            { "id": "t80", "name": "Async bulk export API", "detail": "Large dataset export without timeout", "source": "New" },
+            { "id": "t81", "name": "Customer portal (client_viewer role)", "detail": "Client staff see their scoped dashboard", "source": "MSSP Ref" }
+          ]
+        },
+        {
+          "title": "Compliance",
+          "tasks": [
+            { "id": "t82", "name": "POAM tracking (NIST 800-171)", "detail": "Plan of Action and Milestones", "source": "2.0" },
+            { "id": "t83", "name": "Compliance dashboards (SOC 2, SSDF, ASVS)", "detail": "Evidence collection and tracking", "source": "2.0" },
+            { "id": "t84", "name": "Data retention policies", "detail": "Per reference report data classes, configurable", "source": "1.x" },
+            { "id": "t85", "name": "GDPR/CCPA per-client deletion flows", "detail": "Right to deletion with audit trail", "source": "New" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase5",
+      "title": "Phase 5: Enterprise & MSSP Billing",
+      "badge": "Enterprise",
+      "badgeClass": "enterprise",
+      "icon": "&#x1F512;",
+      "iconBg": "linear-gradient(135deg, #d29922, #bb8009)",
+      "timeline": "Month 5-7",
+      "duration": "4-8 weeks",
+      "description": "Enterprise SSO, SCIM, API keys, per-tenant encryption, MSSP billing",
+      "category": "enterprise",
+      "milestones": [
+        {
+          "title": "Enterprise Auth & Security",
+          "tasks": [
+            { "id": "t86", "name": "WorkOS SAML SSO", "detail": "Enterprise single sign-on federation", "source": "1.x" },
+            { "id": "t87", "name": "SCIM provisioning", "detail": "Automated user provisioning/deprovisioning", "source": "Ref" },
+            { "id": "t88", "name": "Per-tenant SSO (each client own IdP)", "detail": "Managed clients connect their own SAML/OIDC", "source": "MSSP Ref" },
+            { "id": "t89", "name": "API key management (crp_* prefix)", "detail": "Scoped to org, with expiry and rotation", "source": "1.x" },
+            { "id": "t90", "name": "Service accounts for CI/CD", "detail": "Non-human auth for scanner automation", "source": "Ref" },
+            { "id": "t91", "name": "Per-tenant encryption (Cloud KMS BYOK)", "detail": "Customer-managed keys for regulated tenants", "source": "Ref" },
+            { "id": "t92", "name": "IP allowlist per org", "detail": "Restrict access by source IP", "source": "1.x" },
+            { "id": "t93", "name": "Cloud Armor full OWASP rules", "detail": "Bot protection + advanced WAF", "source": "GCP" }
+          ]
+        },
+        {
+          "title": "Billing & Onboarding",
+          "tasks": [
+            { "id": "t94", "name": "Enterprise + MSSP billing tiers", "detail": "Usage-based pricing per-client", "source": "New" },
+            { "id": "t95", "name": "Per-client usage metering", "detail": "Metered by assets, findings, AI calls", "source": "MSSP Ref" },
+            { "id": "t96", "name": "Automated tenant onboarding pipeline", "detail": "Identity bootstrap > data-plane > integrations > metering", "source": "MSSP Ref" },
+            { "id": "t97", "name": "Scanner connector system", "detail": "Agent deployment with heartbeat, config, key rotation", "source": "1.x" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase6",
+      "title": "Phase 6: Scale, Stamps & AI Agents",
+      "badge": "Scale",
+      "badgeClass": "scale",
+      "icon": "&#x26A1;",
+      "iconBg": "linear-gradient(135deg, #db6d28, #bd5616)",
+      "timeline": "Month 6-12",
+      "duration": "12-24 weeks",
+      "description": "Deployment stamps, AI agents, full streaming, materialized views, ABAC",
+      "category": "scale",
+      "milestones": [
+        {
+          "title": "Infrastructure Scale",
+          "tasks": [
+            { "id": "t98", "name": "Deployment stamps (dedicated per enterprise)", "detail": "Dedicated Cloud SQL + GCS + KMS per stamp", "source": "MSSP Ref" },
+            { "id": "t99", "name": "Full streaming pipeline with SSE", "detail": "Real-time progress for large scans", "source": "New" },
+            { "id": "t100", "name": "Materialized views + read replicas + PgBouncer", "detail": "Dashboard query performance at scale", "source": "New" },
+            { "id": "t101", "name": "Cursor-based pagination", "detail": "Replace offset pagination for >100K findings", "source": "New" },
+            { "id": "t102", "name": "Deployment rings (canary > early adopter > GA)", "detail": "Progressive rollout with feature flags", "source": "MSSP Ref" },
+            { "id": "t103", "name": "Data residency controls", "detail": "Regional Cloud SQL instances, tenant placement", "source": "Ref" },
+            { "id": "t104", "name": "Per-tenant backup/restore runbooks", "detail": "PITR per stamp, tenant-scoped export for pooled", "source": "MSSP Ref" }
+          ]
+        },
+        {
+          "title": "Advanced Security & Access",
+          "tasks": [
+            { "id": "t105", "name": "ABAC policy engine", "detail": "Attribute-based access for tenant boundaries, data classification", "source": "MSSP Ref" },
+            { "id": "t106", "name": "Tenant-aware observability", "detail": "Per-tenant/tier dashboards via OpenTelemetry", "source": "MSSP Ref" },
+            { "id": "t107", "name": "White-labeling (brand per org)", "detail": "UI/brand theming via control-plane config", "source": "MSSP Ref" }
+          ]
+        },
+        {
+          "title": "AI & Integrations",
+          "tasks": [
+            { "id": "t108", "name": "AI triage agent", "detail": "Automated CVE triage with HITL approval gates", "source": "2.0" },
+            { "id": "t109", "name": "ServiceNow integration", "detail": "Enterprise ITSM bi-directional sync", "source": "Ref" },
+            { "id": "t110", "name": "SIEM export", "detail": "Splunk, QRadar, Sentinel via CloudEvents", "source": "Both" },
+            { "id": "t111", "name": "Bug bounty ingestion (HackerOne)", "detail": "API integration for bounty findings", "source": "2.0" },
+            { "id": "t112", "name": "Cloud posture (AWS Security Hub, ASFF)", "detail": "Cloud-specific adapter for posture findings", "source": "Ref" },
+            { "id": "t113", "name": "OpenAPI v3.1 interactive docs", "detail": "Developer experience for API consumers", "source": "Ref" }
+          ]
+        }
+      ]
+    }
+  ],
+  "rolloutGates": [
+    {
+      "title": "Development",
+      "cssClass": "dev",
+      "duration": "8-12 weeks",
+      "criteria": [
+        "Canonical schema + ingestion service",
+        "Initial dedup + basic UI",
+        "Baseline RBAC",
+        "1 CI scanner + 1 VM scanner integration",
+        "Audit log MVP",
+        "End-to-end ingest > case > ticket",
+        "Idempotent ingestion verified",
+        "Raw artifacts stored immutably"
+      ],
+      "mapsTo": "Phase 1 (MVP) + Phase 2"
+    },
+    {
+      "title": "Staging",
+      "cssClass": "staging",
+      "duration": "6-10 weeks",
+      "criteria": [
+        "Multi-tenant hardening",
+        "SSO integration + SCIM (optional)",
+        "Retention policies enforced",
+        "Performance / load testing",
+        "Parser fuzzing + security testing",
+        "SLOs defined and measured",
+        "Pentest findings triaged"
+      ],
+      "mapsTo": "Phase 1 hardening + Phase 3"
+    },
+    {
+      "title": "Pilot",
+      "cssClass": "pilot",
+      "duration": "8-12 weeks",
+      "criteria": [
+        "Customer portal MVP",
+        "SLA policy/metrics dashboards",
+        "Bug bounty + SIEM integrations",
+        "Onboarding automation",
+        "Support playbooks created",
+        "Pilot tenants self-serve",
+        "Ticket sync reliability >= threshold"
+      ],
+      "mapsTo": "Phase 3 + Phase 4 + Phase 5"
+    },
+    {
+      "title": "Production Enterprise-Ready",
+      "cssClass": "production",
+      "duration": "12-20 weeks",
+      "criteria": [
+        "Compliance evidence pack",
+        "Dedicated deployment stamps",
+        "Data residency controls",
+        "IR runbooks + tabletop exercises",
+        "Billing/usage metering live",
+        "SSO/SCIM + audit + encryption verified",
+        "Operational on-call in place"
+      ],
+      "mapsTo": "Phase 5 + Phase 6"
+    }
+  ],
+  "kpis": [
+    { "metric": "API Availability", "target": "99.9%", "notes": "Monthly uptime" },
+    { "metric": "P95 Latency (core queries)", "target": "< 500ms", "notes": "Dashboard, findings list" },
+    { "metric": "8K CVE Scan Processing", "target": "< 90s", "notes": "< 30s for cached repeat scans" },
+    { "metric": "Ingestion Freshness", "target": "< 30s", "notes": "Scan complete to case creation (100 findings)" },
+    { "metric": "SLA Breach Rate", "target": "Tracked", "notes": "Per tenant and severity" },
+    { "metric": "Ticket Sync Lag", "target": "< 5 min", "notes": "< 1% error rate" },
+    { "metric": "Connector Health", "target": "> 99%", "notes": "Heartbeat uptime per connector" },
+    { "metric": "Test Coverage", "target": "80%", "notes": "Lines, functions; 65% branches" },
+    { "metric": "Free to Pro Conversion", "target": "> 5%", "notes": "Within 30 days" },
+    { "metric": "Time to First Upload", "target": "< 2 min", "notes": "From signup" }
+  ],
+  "orchestrator": {
+    "title": "Multi-Agent Build Orchestrator",
+    "description": "Orchestrator coordinates subagents across parallel waves. Each wave unlocks the next. Agents work in isolated worktrees and hand results back to the orchestrator for integration.",
+    "agents": [
+      { "id": "orchestrator", "name": "Orchestrator", "role": "Planning, schema design, integration, code review", "color": "#bc8cff", "icon": "&#x1F9E0;" },
+      { "id": "agent-auth", "name": "Auth Agent", "role": "Authentication, sessions, RBAC, middleware", "color": "#58a6ff", "icon": "&#x1F512;" },
+      { "id": "agent-parsers", "name": "Parser Agent", "role": "Scan parsers, normalization, dedup", "color": "#3fb950", "icon": "&#x1F4C4;" },
+      { "id": "agent-enrichment", "name": "Enrichment Agent", "role": "NVD, EPSS, KEV, caching, scoring", "color": "#d29922", "icon": "&#x1F50D;" },
+      { "id": "agent-infra", "name": "Infra Agent", "role": "Terraform, Cloud Run, GCS, Redis, CI/CD", "color": "#db6d28", "icon": "&#x2601;" },
+      { "id": "agent-ui", "name": "UI Agent", "role": "Dashboard, findings list, detail views, layout", "color": "#f778ba", "icon": "&#x1F3A8;" },
+      { "id": "agent-ai", "name": "AI Agent", "role": "Claude integration, remediation, rate limiting", "color": "#39d2c0", "icon": "&#x1F916;" },
+      { "id": "agent-billing", "name": "Billing Agent", "role": "Stripe, usage counters, plan gating", "color": "#f85149", "icon": "&#x1F4B3;" },
+      { "id": "agent-testing", "name": "Test Agent", "role": "Vitest, Playwright, CI validation", "color": "#8b949e", "icon": "&#x1F9EA;" }
+    ],
+    "waves": [
+      {
+        "id": "wave0",
+        "title": "Wave 0: Foundation",
+        "description": "Monorepo scaffold, Prisma schema, shared domain types, package boundaries",
+        "assignee": "orchestrator",
+        "dependsOn": [],
+        "tasks": [
+          { "id": "w0t1", "name": "Initialize monorepo with npm workspaces", "agent": "orchestrator", "status": "completed" },
+          { "id": "w0t2", "name": "Prisma schema (full 3-tier: Org, Client, User, Finding, Case)", "agent": "orchestrator", "status": "completed" },
+          { "id": "w0t3", "name": "Shared domain types (packages/domain)", "agent": "orchestrator", "status": "completed" },
+          { "id": "w0t4", "name": "Package boundary contracts (exports, tsconfig)", "agent": "orchestrator", "status": "completed" },
+          { "id": "w0t5", "name": "ESLint + Prettier + shared config", "agent": "orchestrator", "status": "completed" },
+          { "id": "w0t6", "name": "Base Next.js app shell (apps/web)", "agent": "orchestrator", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave1",
+        "title": "Wave 1: Auth + Parsers + Infra",
+        "description": "Three agents work in parallel on independent packages",
+        "dependsOn": ["wave0"],
+        "tasks": [
+          { "id": "w1t1", "name": "Google OIDC + email/password auth flows", "agent": "agent-auth", "status": "completed" },
+          { "id": "w1t2", "name": "Redis server-side session management", "agent": "agent-auth", "status": "completed" },
+          { "id": "w1t3", "name": "TOTP MFA enrollment + verification", "agent": "agent-auth", "status": "completed" },
+          { "id": "w1t4", "name": "RBAC middleware (Owner, Analyst, Viewer)", "agent": "agent-auth", "status": "completed" },
+          { "id": "w1t5", "name": "Org creation + invite flow", "agent": "agent-auth", "status": "completed" },
+          { "id": "w1t6", "name": "Nessus XML parser + tests", "agent": "agent-parsers", "status": "completed" },
+          { "id": "w1t7", "name": "SARIF parser + tests", "agent": "agent-parsers", "status": "completed" },
+          { "id": "w1t8", "name": "CSV parser + tests", "agent": "agent-parsers", "status": "completed" },
+          { "id": "w1t9", "name": "JSON parser + tests", "agent": "agent-parsers", "status": "completed" },
+          { "id": "w1t10", "name": "CycloneDX parser + tests", "agent": "agent-parsers", "status": "completed" },
+          { "id": "w1t11", "name": "CanonicalFinding normalization layer", "agent": "agent-parsers", "status": "completed" },
+          { "id": "w1t12", "name": "Dedup engine (SHA-256 keys)", "agent": "agent-parsers", "status": "completed" },
+          { "id": "w1t13", "name": "Terraform: Cloud SQL, Memorystore, GCS", "agent": "agent-infra", "status": "completed" },
+          { "id": "w1t14", "name": "Terraform: Cloud Run service + worker", "agent": "agent-infra", "status": "completed" },
+          { "id": "w1t15", "name": "Terraform: Cloud Tasks queue", "agent": "agent-infra", "status": "completed" },
+          { "id": "w1t16", "name": "Terraform: Secret Manager + Cloud Armor", "agent": "agent-infra", "status": "completed" },
+          { "id": "w1t17", "name": "Cloud Build pipeline (test > build > deploy)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w1t18", "name": "Dockerfile + docker-compose.dev.yml", "agent": "agent-infra", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave2",
+        "title": "Wave 2: Enrichment + Storage",
+        "description": "Two agents build the data pipeline backbone",
+        "dependsOn": ["wave0"],
+        "tasks": [
+          { "id": "w2t1", "name": "NVD API client (batch by unique CVEs)", "agent": "agent-enrichment", "status": "completed" },
+          { "id": "w2t2", "name": "Bulk EPSS scoring client", "agent": "agent-enrichment", "status": "completed" },
+          { "id": "w2t3", "name": "CISA KEV catalog sync + local match", "agent": "agent-enrichment", "status": "completed" },
+          { "id": "w2t4", "name": "Redis enrichment cache (24h TTL)", "agent": "agent-enrichment", "status": "completed" },
+          { "id": "w2t5", "name": "Composite risk score calculator", "agent": "agent-enrichment", "status": "completed" },
+          { "id": "w2t6", "name": "GCS upload adapter (resumable, SHA-256)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w2t7", "name": "Scan artifact immutable storage", "agent": "agent-infra", "status": "completed" },
+          { "id": "w2t8", "name": "Cloud Tasks job producer + consumer", "agent": "agent-infra", "status": "completed" },
+          { "id": "w2t9", "name": "4-stage pipeline orchestrator (parse > enrich > build > AI)", "agent": "agent-enrichment", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave3",
+        "title": "Wave 3: UI (Dashboard + Findings + Upload)",
+        "description": "UI agent builds all frontend views consuming the API layer",
+        "dependsOn": ["wave1", "wave2"],
+        "tasks": [
+          { "id": "w3t1", "name": "App layout shell (sidebar, header, org context)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t2", "name": "Dashboard: severity breakdown chart", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t3", "name": "Dashboard: KEV exposure widget", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t4", "name": "Dashboard: EPSS top-10 table", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t5", "name": "Dashboard: recent scans list", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t6", "name": "Findings list with filters + pagination", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t7", "name": "Finding detail view (CVSS, EPSS, KEV, assets)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t8", "name": "Vulnerability case detail (aggregated findings)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t9", "name": "Status workflow buttons + bulk update", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t10", "name": "Upload page (drag & drop + progress)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t11", "name": "\"Coming Soon\" locked feature badges", "agent": "agent-ui", "status": "completed" },
+          { "id": "w3t12", "name": "Empty states + loading skeletons", "agent": "agent-ui", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave4",
+        "title": "Wave 4: AI Remediation + Reporting",
+        "description": "AI and reporting features that depend on findings being visible",
+        "dependsOn": ["wave3"],
+        "tasks": [
+          { "id": "w4t1", "name": "Claude API integration (packages/ai)", "agent": "agent-ai", "status": "completed" },
+          { "id": "w4t2", "name": "Host redaction in AI prompts", "agent": "agent-ai", "status": "completed" },
+          { "id": "w4t3", "name": "Structured remediation output parser", "agent": "agent-ai", "status": "completed" },
+          { "id": "w4t4", "name": "\"Get Remediation\" button + inline display", "agent": "agent-ai", "status": "completed" },
+          { "id": "w4t5", "name": "AI usage counter + rate limiting (Redis)", "agent": "agent-ai", "status": "completed" },
+          { "id": "w4t6", "name": "CSV export (filtered findings)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w4t7", "name": "Executive summary PDF generation", "agent": "agent-ui", "status": "completed" },
+          { "id": "w4t8", "name": "Per-scan comparison (diff view)", "agent": "agent-ui", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave5",
+        "title": "Wave 5: Billing + Polish + E2E",
+        "description": "Monetization, hardening, and launch readiness",
+        "dependsOn": ["wave4"],
+        "tasks": [
+          { "id": "w5t1", "name": "Stripe product/price setup (Free + Pro)", "agent": "agent-billing", "status": "completed" },
+          { "id": "w5t2", "name": "Stripe Checkout redirect flow", "agent": "agent-billing", "status": "completed" },
+          { "id": "w5t3", "name": "Stripe webhook handler (subscription events)", "agent": "agent-billing", "status": "completed" },
+          { "id": "w5t4", "name": "Customer portal (manage/cancel)", "agent": "agent-billing", "status": "completed" },
+          { "id": "w5t5", "name": "Usage counters (uploads, AI calls) + limit enforcement", "agent": "agent-billing", "status": "completed" },
+          { "id": "w5t6", "name": "Plan-gated feature checks in middleware", "agent": "agent-billing", "status": "completed" },
+          { "id": "w5t7", "name": "Security hardening (CSP, CSRF, rate limits)", "agent": "agent-auth", "status": "completed" },
+          { "id": "w5t8", "name": "Landing page / marketing site", "agent": "agent-ui", "status": "completed" },
+          { "id": "w5t9", "name": "E2E tests: signup > upload > triage > export", "agent": "agent-testing", "status": "completed" },
+          { "id": "w5t10", "name": "E2E tests: billing upgrade + limit enforcement", "agent": "agent-testing", "status": "completed" },
+          { "id": "w5t11", "name": "E2E tests: AI remediation flow", "agent": "agent-testing", "status": "completed" },
+          { "id": "w5t12", "name": "Integration review + merge all packages", "agent": "orchestrator", "status": "completed" }
+        ]
+      }
+    ]
+  }
+}

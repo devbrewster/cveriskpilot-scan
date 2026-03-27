@@ -1,0 +1,23 @@
+{
+  "name": "@cveriskpilot/enrichment",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@cveriskpilot/domain": "*",
+    "@cveriskpilot/parsers": "*",
+    "ioredis": "^5.4.0"
+  },
+  "devDependencies": {}
+}

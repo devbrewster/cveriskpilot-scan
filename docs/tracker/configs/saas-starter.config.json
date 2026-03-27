@@ -1,0 +1,463 @@
+{
+  "meta": {
+    "id": "saas-starter",
+    "name": "My SaaS Project",
+    "subtitle": "Release Tracker",
+    "logoText": "SA",
+    "logoGradient": "linear-gradient(135deg, #58a6ff, #3fb950)",
+    "rolloutTitle": "Release Gates",
+    "rolloutDescription": "Each gate has acceptance criteria that must pass before advancing to the next stage.",
+    "kpiTitle": "SLO / KPI Targets"
+  },
+  "phases": [
+    {
+      "id": "foundation",
+      "title": "Phase 0: Foundation & Infrastructure",
+      "badge": "Foundation",
+      "badgeClass": "foundation",
+      "icon": "&#x1F3D7;",
+      "iconBg": "linear-gradient(135deg, #39d2c0, #2ec4b6)",
+      "timeline": "Week 1-2",
+      "duration": "2 weeks",
+      "description": "Project scaffold, CI/CD, database, hosting, IaC",
+      "category": "foundation",
+      "milestones": [
+        {
+          "title": "Project Setup",
+          "tasks": [
+            { "id": "f01", "name": "Initialize monorepo", "detail": "Package manager workspaces, shared tsconfig, linting" },
+            { "id": "f02", "name": "Set up version control", "detail": "Git repo, branch protection, PR templates" },
+            { "id": "f03", "name": "Configure CI/CD pipeline", "detail": "Build, test, lint, deploy stages" },
+            { "id": "f04", "name": "Set up staging + production environments", "detail": "Environment variables, secrets management" },
+            { "id": "f05", "name": "Infrastructure as Code", "detail": "Terraform/Pulumi for all cloud resources" }
+          ]
+        },
+        {
+          "title": "Core Infrastructure",
+          "tasks": [
+            { "id": "f06", "name": "Provision database", "detail": "PostgreSQL/MySQL managed instance, connection pooling" },
+            { "id": "f07", "name": "Set up ORM + migrations", "detail": "Prisma/Drizzle/TypeORM with migration workflow" },
+            { "id": "f08", "name": "Configure cache layer", "detail": "Redis for sessions, rate limiting, app cache" },
+            { "id": "f09", "name": "Set up object storage", "detail": "S3/GCS/R2 for file uploads" },
+            { "id": "f10", "name": "Configure CDN + domain", "detail": "SSL cert, custom domain, CDN for static assets" },
+            { "id": "f11", "name": "Set up monitoring + alerting", "detail": "Error tracking, uptime monitoring, log aggregation" },
+            { "id": "f12", "name": "Configure WAF / DDoS protection", "detail": "Rate limiting at edge, bot protection" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mvp",
+      "title": "Phase 1: MVP Core Product",
+      "badge": "MVP",
+      "badgeClass": "mvp",
+      "icon": "&#x1F680;",
+      "iconBg": "linear-gradient(135deg, #3fb950, #2ea043)",
+      "timeline": "Week 2-8",
+      "duration": "6 weeks",
+      "description": "Core value loop that users pay for",
+      "category": "mvp",
+      "milestones": [
+        {
+          "title": "Authentication",
+          "tasks": [
+            { "id": "m01", "name": "OAuth / social sign-in", "detail": "Google, GitHub, or provider-appropriate SSO" },
+            { "id": "m02", "name": "Email/password auth", "detail": "Signup, login, password reset flow" },
+            { "id": "m03", "name": "MFA (TOTP)", "detail": "Authenticator app support" },
+            { "id": "m04", "name": "Server-side sessions", "detail": "Redis-backed, secure cookies" },
+            { "id": "m05", "name": "Basic RBAC (3 roles)", "detail": "Owner, Member, Viewer" }
+          ]
+        },
+        {
+          "title": "Tenant / Org Model",
+          "tasks": [
+            { "id": "m06", "name": "Organization creation on signup", "detail": "Auto-create org for first user" },
+            { "id": "m07", "name": "Invite team members", "detail": "Email invite with role selection" },
+            { "id": "m08", "name": "Org switcher (if multi-org)", "detail": "User can belong to multiple orgs" },
+            { "id": "m09", "name": "Org-scoped data isolation", "detail": "All queries filtered by org_id" }
+          ]
+        },
+        {
+          "title": "Core Feature 1 (Data Ingestion)",
+          "tasks": [
+            { "id": "m10", "name": "[YOUR FEATURE] Data input / upload", "detail": "Primary way data enters the system" },
+            { "id": "m11", "name": "[YOUR FEATURE] Data parsing / normalization", "detail": "Transform raw input into canonical schema" },
+            { "id": "m12", "name": "[YOUR FEATURE] Data validation + dedup", "detail": "Reject bad data, prevent duplicates" },
+            { "id": "m13", "name": "[YOUR FEATURE] Background processing", "detail": "Async job queue for heavy operations" }
+          ]
+        },
+        {
+          "title": "Core Feature 2 (Value Delivery)",
+          "tasks": [
+            { "id": "m14", "name": "[YOUR FEATURE] Primary dashboard", "detail": "Key metrics at a glance" },
+            { "id": "m15", "name": "[YOUR FEATURE] List / table view", "detail": "Filterable, sortable data table" },
+            { "id": "m16", "name": "[YOUR FEATURE] Detail view", "detail": "Single item with full context" },
+            { "id": "m17", "name": "[YOUR FEATURE] Core action / workflow", "detail": "The primary thing users do with data" },
+            { "id": "m18", "name": "[YOUR FEATURE] Export / output", "detail": "CSV, PDF, or API output of results" }
+          ]
+        },
+        {
+          "title": "UI Shell",
+          "tasks": [
+            { "id": "m19", "name": "App layout (sidebar + header)", "detail": "Navigation, user menu, org context" },
+            { "id": "m20", "name": "Responsive design", "detail": "Mobile-friendly layout" },
+            { "id": "m21", "name": "Loading states + error boundaries", "detail": "Skeleton loaders, error fallbacks" },
+            { "id": "m22", "name": "Empty states", "detail": "Helpful prompts when no data exists" },
+            { "id": "m23", "name": "\"Coming Soon\" badges", "detail": "Visible but locked features signal roadmap" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "billing",
+      "title": "Phase 2: Billing & Monetization",
+      "badge": "MVP",
+      "badgeClass": "mvp",
+      "icon": "&#x1F4B3;",
+      "iconBg": "linear-gradient(135deg, #3fb950, #2ea043)",
+      "timeline": "Week 6-8",
+      "duration": "2-3 weeks",
+      "description": "Stripe integration, free + paid tiers, usage limits",
+      "category": "mvp",
+      "milestones": [
+        {
+          "title": "Stripe Integration",
+          "tasks": [
+            { "id": "b01", "name": "Define pricing tiers (Free + Paid)", "detail": "Feature matrix, usage limits per tier" },
+            { "id": "b02", "name": "Stripe Checkout integration", "detail": "Redirect to Stripe for payment" },
+            { "id": "b03", "name": "Stripe Customer Portal", "detail": "Self-service upgrade, downgrade, cancel" },
+            { "id": "b04", "name": "Webhook handler (payment events)", "detail": "Handle subscription lifecycle events" },
+            { "id": "b05", "name": "Usage counters + limit enforcement", "detail": "Track usage, enforce at API layer" },
+            { "id": "b06", "name": "Plan-gated features", "detail": "Show upgrade prompts for locked features" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collaboration",
+      "title": "Phase 3: Collaboration & Integrations",
+      "badge": "Growth",
+      "badgeClass": "growth",
+      "icon": "&#x1F91D;",
+      "iconBg": "linear-gradient(135deg, #58a6ff, #388bfd)",
+      "timeline": "Month 2-3",
+      "duration": "4-6 weeks",
+      "description": "Team features, notifications, third-party integrations",
+      "category": "growth",
+      "milestones": [
+        {
+          "title": "Team Collaboration",
+          "tasks": [
+            { "id": "c01", "name": "Comments / activity feed", "detail": "Per-item discussion threads" },
+            { "id": "c02", "name": "@mention notifications", "detail": "Mention team members in comments" },
+            { "id": "c03", "name": "Assignment / ownership", "detail": "Assign items to team members" },
+            { "id": "c04", "name": "In-app notification center", "detail": "Bell icon, unread count, mark as read" }
+          ]
+        },
+        {
+          "title": "Notifications",
+          "tasks": [
+            { "id": "c05", "name": "Email notifications", "detail": "Transactional email for key events" },
+            { "id": "c06", "name": "Digest / batching", "detail": "Daily/weekly summary emails" },
+            { "id": "c07", "name": "Notification preferences", "detail": "Per-user opt-in/out per event type" }
+          ]
+        },
+        {
+          "title": "Integrations",
+          "tasks": [
+            { "id": "c08", "name": "[YOUR INTEGRATION] Primary integration", "detail": "Jira, Slack, GitHub, etc." },
+            { "id": "c09", "name": "Webhooks (outgoing)", "detail": "HMAC-signed, retry + DLQ" },
+            { "id": "c10", "name": "API keys for programmatic access", "detail": "Scoped to org, with expiry and rotation" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "multi-tenant",
+      "title": "Phase 4: Multi-Tenant / White-Label",
+      "badge": "Growth",
+      "badgeClass": "growth",
+      "icon": "&#x1F3E2;",
+      "iconBg": "linear-gradient(135deg, #f778ba, #db61a2)",
+      "timeline": "Month 3-5",
+      "duration": "4-8 weeks",
+      "description": "Sub-accounts, client management, tenant switching, portfolio views",
+      "category": "growth",
+      "milestones": [
+        {
+          "title": "Multi-Client Model",
+          "tasks": [
+            { "id": "t01", "name": "Sub-account / client model", "detail": "Org > Client hierarchy for agencies/MSSPs" },
+            { "id": "t02", "name": "Client switching UX", "detail": "Pivot between client contexts without re-auth" },
+            { "id": "t03", "name": "Client-scoped data views", "detail": "Dashboard and lists filtered by client" },
+            { "id": "t04", "name": "Cross-client portfolio view", "detail": "Aggregated metrics across all clients" },
+            { "id": "t05", "name": "Client onboarding flow", "detail": "Self-service or admin-driven client creation" },
+            { "id": "t06", "name": "Feature flags per tenant/tier", "detail": "Control-plane config, not code forks" }
+          ]
+        },
+        {
+          "title": "Customer Portal",
+          "tasks": [
+            { "id": "t07", "name": "Client-viewer role", "detail": "Read-only access for client's own staff" },
+            { "id": "t08", "name": "Client-branded login", "detail": "Custom logo / colors per client (optional)" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compliance",
+      "title": "Phase 5: Reporting & Compliance",
+      "badge": "Enterprise",
+      "badgeClass": "enterprise",
+      "icon": "&#x1F4CB;",
+      "iconBg": "linear-gradient(135deg, #bc8cff, #8b5cf6)",
+      "timeline": "Month 4-6",
+      "duration": "4-8 weeks",
+      "description": "Advanced reporting, scheduled exports, audit logs, compliance",
+      "category": "enterprise",
+      "milestones": [
+        {
+          "title": "Advanced Reporting",
+          "tasks": [
+            { "id": "r01", "name": "Scheduled reports", "detail": "Cron-based generation + email delivery" },
+            { "id": "r02", "name": "Async bulk export", "detail": "Large dataset export without timeout" },
+            { "id": "r03", "name": "Custom report builder", "detail": "User-defined filters, columns, grouping" }
+          ]
+        },
+        {
+          "title": "Audit & Compliance",
+          "tasks": [
+            { "id": "r04", "name": "Comprehensive audit logging", "detail": "Who did what, when, from where" },
+            { "id": "r05", "name": "Configurable data retention", "detail": "Per-entity retention policies with enforcement" },
+            { "id": "r06", "name": "GDPR / CCPA data deletion", "detail": "Right-to-delete with audit trail" },
+            { "id": "r07", "name": "SOC 2 evidence collection", "detail": "Automated evidence for compliance audits" },
+            { "id": "r08", "name": "Data export (portability)", "detail": "Full tenant data export on request" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "enterprise",
+      "title": "Phase 6: Enterprise Security & SSO",
+      "badge": "Enterprise",
+      "badgeClass": "enterprise",
+      "icon": "&#x1F512;",
+      "iconBg": "linear-gradient(135deg, #d29922, #bb8009)",
+      "timeline": "Month 5-8",
+      "duration": "6-10 weeks",
+      "description": "SAML SSO, SCIM, encryption, IP allowlist, enterprise billing",
+      "category": "enterprise",
+      "milestones": [
+        {
+          "title": "Enterprise Auth",
+          "tasks": [
+            { "id": "e01", "name": "SAML SSO", "detail": "Enterprise single sign-on federation (Okta, Azure AD, etc.)" },
+            { "id": "e02", "name": "SCIM provisioning", "detail": "Automated user provisioning / deprovisioning" },
+            { "id": "e03", "name": "Passkeys (WebAuthn)", "detail": "Passwordless authentication" },
+            { "id": "e04", "name": "Service accounts", "detail": "Non-human auth for CI/CD and automation" },
+            { "id": "e05", "name": "IP allowlist", "detail": "Restrict org access by source IP" }
+          ]
+        },
+        {
+          "title": "Enterprise Security",
+          "tasks": [
+            { "id": "e06", "name": "Per-tenant encryption keys", "detail": "KMS-managed, customer-controlled (BYOK)" },
+            { "id": "e07", "name": "Advanced WAF rules", "detail": "Full OWASP Top 10 + bot management" },
+            { "id": "e08", "name": "Security review + pentest", "detail": "Third-party security assessment" }
+          ]
+        },
+        {
+          "title": "Enterprise Billing",
+          "tasks": [
+            { "id": "e09", "name": "Enterprise pricing tier", "detail": "Custom pricing, annual contracts" },
+            { "id": "e10", "name": "Usage-based metering", "detail": "Per-seat, per-resource, or consumption-based" },
+            { "id": "e11", "name": "Invoice billing", "detail": "NET-30/60 payment terms for enterprise" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scale",
+      "title": "Phase 7: Scale & Performance",
+      "badge": "Scale",
+      "badgeClass": "scale",
+      "icon": "&#x26A1;",
+      "iconBg": "linear-gradient(135deg, #db6d28, #bd5616)",
+      "timeline": "Month 6-12",
+      "duration": "Ongoing",
+      "description": "Read replicas, caching, pagination, observability, deployment stamps",
+      "category": "scale",
+      "milestones": [
+        {
+          "title": "Database Scale",
+          "tasks": [
+            { "id": "s01", "name": "Read replicas", "detail": "Offload reporting and analytics queries" },
+            { "id": "s02", "name": "Connection pooling (PgBouncer)", "detail": "Handle high connection concurrency" },
+            { "id": "s03", "name": "Materialized views", "detail": "Pre-computed aggregates for dashboards" },
+            { "id": "s04", "name": "Cursor-based pagination", "detail": "Replace offset pagination for large datasets" },
+            { "id": "s05", "name": "Database partitioning", "detail": "Time-based or tenant-based partitioning" }
+          ]
+        },
+        {
+          "title": "Application Scale",
+          "tasks": [
+            { "id": "s06", "name": "Multi-layer caching strategy", "detail": "In-process, Redis, CDN edge cache" },
+            { "id": "s07", "name": "Streaming / real-time updates", "detail": "SSE or WebSocket for live data" },
+            { "id": "s08", "name": "Priority job queues", "detail": "Separate queues for interactive vs batch" },
+            { "id": "s09", "name": "Rate limiting (tiered)", "detail": "Per-plan, per-user, per-IP rate limits" },
+            { "id": "s10", "name": "Horizontal auto-scaling", "detail": "Scale compute based on load" }
+          ]
+        },
+        {
+          "title": "Observability & Operations",
+          "tasks": [
+            { "id": "s11", "name": "Distributed tracing (OpenTelemetry)", "detail": "End-to-end request tracing" },
+            { "id": "s12", "name": "SLO dashboards", "detail": "Availability, latency, error rate SLIs" },
+            { "id": "s13", "name": "Per-tenant observability", "detail": "Metrics and logs tagged by tenant" },
+            { "id": "s14", "name": "Deployment stamps / dedicated infra", "detail": "Isolated infra for enterprise tenants" },
+            { "id": "s15", "name": "Deployment rings (canary rollout)", "detail": "Progressive rollout to reduce blast radius" },
+            { "id": "s16", "name": "Data residency controls", "detail": "Regional deployment for compliance" },
+            { "id": "s17", "name": "Disaster recovery runbooks", "detail": "Backup/restore, failover procedures" }
+          ]
+        }
+      ]
+    }
+  ],
+  "rolloutGates": [
+    {
+      "title": "Alpha",
+      "cssClass": "alpha",
+      "duration": "4-8 weeks",
+      "criteria": [
+        "Core feature loop works end-to-end",
+        "Auth + basic RBAC functional",
+        "CI/CD deploys to staging",
+        "No P0 bugs in core flows",
+        "Internal team dogfooding"
+      ],
+      "mapsTo": "Phase 0 + Phase 1"
+    },
+    {
+      "title": "Beta (Private)",
+      "cssClass": "beta",
+      "duration": "4-8 weeks",
+      "criteria": [
+        "Billing integration live",
+        "5-10 external beta users",
+        "Error rate < 1%",
+        "P95 latency < 500ms",
+        "Feedback loop established"
+      ],
+      "mapsTo": "Phase 1 + Phase 2"
+    },
+    {
+      "title": "Public Launch",
+      "cssClass": "ga",
+      "duration": "2-4 weeks",
+      "criteria": [
+        "Landing page + docs live",
+        "Monitoring + alerting operational",
+        "Support workflow defined",
+        "Security review passed",
+        "Load tested to 10x expected traffic"
+      ],
+      "mapsTo": "Phase 2 + Phase 3"
+    },
+    {
+      "title": "Enterprise-Ready",
+      "cssClass": "production",
+      "duration": "12-20 weeks",
+      "criteria": [
+        "SSO + SCIM operational",
+        "SOC 2 Type II in progress",
+        "99.9% uptime SLA offered",
+        "Pentest completed + remediated",
+        "IR runbooks + on-call rotation"
+      ],
+      "mapsTo": "Phase 5 + Phase 6 + Phase 7"
+    }
+  ],
+  "kpis": [
+    { "metric": "API Availability", "target": "99.9%", "notes": "Monthly uptime" },
+    { "metric": "P95 Latency", "target": "< 500ms", "notes": "Core API endpoints" },
+    { "metric": "Error Rate", "target": "< 0.1%", "notes": "5xx responses" },
+    { "metric": "Time to Value", "target": "< 5 min", "notes": "Signup to first meaningful action" },
+    { "metric": "Free-to-Paid Conversion", "target": "> 5%", "notes": "Within 30 days" },
+    { "metric": "Churn Rate", "target": "< 5%", "notes": "Monthly" },
+    { "metric": "Test Coverage", "target": "> 80%", "notes": "Lines + functions" },
+    { "metric": "Deploy Frequency", "target": "Daily", "notes": "Automated via CI/CD" },
+    { "metric": "MTTR", "target": "< 1 hour", "notes": "Mean time to recovery for P0 incidents" }
+  ],
+  "orchestrator": {
+    "title": "Multi-Agent Build Orchestrator",
+    "description": "Orchestrator coordinates subagents across parallel waves. Replace agent names and tasks with your project's actual work breakdown. Each wave unlocks the next based on dependency completion.",
+    "agents": [
+      { "id": "orchestrator", "name": "Orchestrator", "role": "Planning, schema design, integration, code review", "color": "#bc8cff", "icon": "&#x1F9E0;" },
+      { "id": "agent-backend", "name": "Backend Agent", "role": "API routes, business logic, database queries", "color": "#58a6ff", "icon": "&#x2699;" },
+      { "id": "agent-frontend", "name": "Frontend Agent", "role": "UI components, pages, client-side logic", "color": "#f778ba", "icon": "&#x1F3A8;" },
+      { "id": "agent-infra", "name": "Infra Agent", "role": "IaC, CI/CD, cloud resources, Docker", "color": "#db6d28", "icon": "&#x2601;" },
+      { "id": "agent-auth", "name": "Auth Agent", "role": "Authentication, authorization, sessions", "color": "#3fb950", "icon": "&#x1F512;" },
+      { "id": "agent-testing", "name": "Test Agent", "role": "Unit tests, integration tests, E2E", "color": "#8b949e", "icon": "&#x1F9EA;" }
+    ],
+    "waves": [
+      {
+        "id": "wave0",
+        "title": "Wave 0: Foundation",
+        "description": "Project scaffold, schema, shared types",
+        "dependsOn": [],
+        "tasks": [
+          { "id": "sw0t1", "name": "[REPLACE] Initialize project structure", "agent": "orchestrator" },
+          { "id": "sw0t2", "name": "[REPLACE] Database schema", "agent": "orchestrator" },
+          { "id": "sw0t3", "name": "[REPLACE] Shared types / domain contracts", "agent": "orchestrator" }
+        ]
+      },
+      {
+        "id": "wave1",
+        "title": "Wave 1: Auth + Infra (parallel)",
+        "description": "Two agents work independently on auth and infrastructure",
+        "dependsOn": ["wave0"],
+        "tasks": [
+          { "id": "sw1t1", "name": "[REPLACE] Auth implementation", "agent": "agent-auth" },
+          { "id": "sw1t2", "name": "[REPLACE] Session management", "agent": "agent-auth" },
+          { "id": "sw1t3", "name": "[REPLACE] Cloud resource provisioning", "agent": "agent-infra" },
+          { "id": "sw1t4", "name": "[REPLACE] CI/CD pipeline", "agent": "agent-infra" }
+        ]
+      },
+      {
+        "id": "wave2",
+        "title": "Wave 2: Core Backend",
+        "description": "API routes and business logic",
+        "dependsOn": ["wave0"],
+        "tasks": [
+          { "id": "sw2t1", "name": "[REPLACE] Core API endpoints", "agent": "agent-backend" },
+          { "id": "sw2t2", "name": "[REPLACE] Data processing pipeline", "agent": "agent-backend" },
+          { "id": "sw2t3", "name": "[REPLACE] Background job processing", "agent": "agent-backend" }
+        ]
+      },
+      {
+        "id": "wave3",
+        "title": "Wave 3: Frontend UI",
+        "description": "All UI views consuming the backend API",
+        "dependsOn": ["wave1", "wave2"],
+        "tasks": [
+          { "id": "sw3t1", "name": "[REPLACE] App layout + navigation", "agent": "agent-frontend" },
+          { "id": "sw3t2", "name": "[REPLACE] Dashboard page", "agent": "agent-frontend" },
+          { "id": "sw3t3", "name": "[REPLACE] Main data list page", "agent": "agent-frontend" },
+          { "id": "sw3t4", "name": "[REPLACE] Detail / edit views", "agent": "agent-frontend" }
+        ]
+      },
+      {
+        "id": "wave4",
+        "title": "Wave 4: Polish + Testing",
+        "description": "Billing, hardening, E2E tests, launch prep",
+        "dependsOn": ["wave3"],
+        "tasks": [
+          { "id": "sw4t1", "name": "[REPLACE] Billing integration", "agent": "agent-backend" },
+          { "id": "sw4t2", "name": "[REPLACE] Security hardening", "agent": "agent-auth" },
+          { "id": "sw4t3", "name": "[REPLACE] E2E test suite", "agent": "agent-testing" },
+          { "id": "sw4t4", "name": "[REPLACE] Integration review + merge", "agent": "orchestrator" }
+        ]
+      }
+    ]
+  }
+}

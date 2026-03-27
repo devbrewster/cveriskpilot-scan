@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Release Tracker - Project Launcher</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .launcher { max-width: 900px; margin: 0 auto; padding: 48px 32px; }
+  .launcher-header { text-align: center; margin-bottom: 48px; }
+  .launcher-header h1 { font-size: 32px; margin-bottom: 8px; }
+  .launcher-header p { color: var(--text-muted); font-size: 16px; }
+  .launcher-logo {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 800; color: #fff;
+    margin: 0 auto 16px;
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .project-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    cursor: pointer;
+    transition: all .2s;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .project-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  }
+  .project-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .project-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .project-card-logo {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px; color: #fff;
+    flex-shrink: 0;
+  }
+  .project-card-title { font-size: 16px; font-weight: 600; }
+  .project-card-subtitle { font-size: 12px; color: var(--text-muted); }
+  .project-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+  .project-card-stats {
+    display: flex; gap: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: auto;
+  }
+  .project-card-stats strong { color: var(--text); }
+
+  .project-card.create-new {
+    border-style: dashed;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 200px;
+  }
+  .project-card.create-new:hover { border-color: var(--green); }
+  .create-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(63,185,80,.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: var(--green);
+  }
+  .create-label { font-size: 15px; font-weight: 600; color: var(--green); }
+  .create-sublabel { font-size: 12px; color: var(--text-muted); }
+
+  /* How It Works */
+  .how-it-works {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-top: 32px;
+  }
+  .how-it-works h2 { font-size: 18px; margin-bottom: 20px; }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .step {
+    display: flex; gap: 12px;
+  }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(88,166,255,.15);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .step-content h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .step-content p { font-size: 13px; color: var(--text-muted); }
+
+  .code-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    margin-top: 20px;
+    font-family: 'SF Mono', SFMono-Regular, Consolas, monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    overflow-x: auto;
+    white-space: pre;
+    line-height: 1.6;
+  }
+  .code-block .comment { color: #6e7681; }
+  .code-block .key { color: var(--accent); }
+  .code-block .string { color: var(--green); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 { font-size: 18px; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+  .form-actions {
+    display: flex; gap: 8px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+  .btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all .2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { opacity: .9; }
+  .btn-ghost { background: none; color: var(--text-muted); }
+  .btn-ghost:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<div class="launcher">
+  <div class="launcher-header">
+    <div class="launcher-logo">RT</div>
+    <h1>Release Tracker</h1>
+    <p>Config-driven release planning for any SaaS or software project</p>
+  </div>
+
+  <div class="project-grid" id="projectGrid">
+    <!-- Filled by JS -->
+  </div>
+
+  <div class="how-it-works">
+    <h2>How It Works</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Copy the starter config</h3>
+          <p>Fork <code>saas-starter.config.json</code> and rename it for your project</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Define your phases</h3>
+          <p>Edit the JSON to add your phases, milestones, tasks, KPIs, and release gates</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Track progress</h3>
+          <p>Click checkboxes to cycle: pending &rarr; in progress &rarr; completed. Progress saves to localStorage</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Export & share</h3>
+          <p>Export progress as JSON, import on another machine, or share the config with your team</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block"><span class="comment">// configs/my-project.config.json</span>
+{
+  <span class="key">"meta"</span>: {
+    <span class="key">"id"</span>: <span class="string">"my-project"</span>,
+    <span class="key">"name"</span>: <span class="string">"My SaaS"</span>,
+    <span class="key">"subtitle"</span>: <span class="string">"Release Tracker"</span>,
+    <span class="key">"logoText"</span>: <span class="string">"MS"</span>
+  },
+  <span class="key">"phases"</span>: [
+    {
+      <span class="key">"id"</span>: <span class="string">"mvp"</span>,
+      <span class="key">"title"</span>: <span class="string">"Phase 1: MVP"</span>,
+      <span class="key">"milestones"</span>: [
+        {
+          <span class="key">"title"</span>: <span class="string">"Core Features"</span>,
+          <span class="key">"tasks"</span>: [
+            { <span class="key">"id"</span>: <span class="string">"t1"</span>, <span class="key">"name"</span>: <span class="string">"Your first task"</span> }
+          ]
+        }
+      ]
+    }
+  ]
+}</div>
+  </div>
+</div>
+
+<!-- Create Project Modal -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <h2>Create New Project Tracker</h2>
+    <div class="form-group">
+      <label>Project Name</label>
+      <input type="text" id="newName" placeholder="My SaaS Project">
+    </div>
+    <div class="form-group">
+      <label>Project ID (lowercase, no spaces)</label>
+      <input type="text" id="newId" placeholder="my-saas-project">
+    </div>
+    <div class="form-group">
+      <label>Logo Text (2-3 chars)</label>
+      <input type="text" id="newLogo" placeholder="MS" maxlength="3">
+    </div>
+    <div class="form-group">
+      <label>Start From</label>
+      <select id="newTemplate">
+        <option value="saas-starter">SaaS Starter Template (8 phases, 70+ tasks)</option>
+        <option value="empty">Empty (blank config)</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createProject()">Create & Download Config</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Registry of available project configs
+const PROJECTS = [
+  {
+    configFile: 'configs/cveriskpilot.config.json',
+    name: 'CVERiskPilot',
+    subtitle: 'Enterprise Release Tracker',
+    description: 'Vulnerability management SaaS combining 1.x + 2.0 repos. 6 phases, 113 tasks, MVP through enterprise production.',
+    logoText: 'CR',
+    logoGradient: 'linear-gradient(135deg, #58a6ff, #bc8cff)',
+    accentColor: '#bc8cff',
+    phases: 6,
+    tasks: 113,
+    storageKey: 'rt_cveriskpilot_v1',
+  },
+  {
+    configFile: 'configs/saas-starter.config.json',
+    name: 'SaaS Starter Template',
+    subtitle: 'Universal Template',
+    description: 'Generic SaaS release template. Foundation through Scale. Fork this config to start any new project.',
+    logoText: 'SA',
+    logoGradient: 'linear-gradient(135deg, #58a6ff, #3fb950)',
+    accentColor: '#3fb950',
+    phases: 8,
+    tasks: 72,
+    storageKey: 'rt_saas-starter_v1',
+  },
+];
+
+function getStoredProgress(key) {
+  try {
+    const data = JSON.parse(localStorage.getItem(key) || '{}');
+    const total = Object.keys(data).length;
+    const completed = Object.values(data).filter(v => v === 'completed').length;
+    const inProgress = Object.values(data).filter(v => v === 'in_progress').length;
+    return { total: total || 0, completed, inProgress };
+  } catch { return { total: 0, completed: 0, inProgress: 0 }; }
+}
+
+function renderProjects() {
+  const grid = document.getElementById('projectGrid');
+  grid.innerHTML = PROJECTS.map(p => {
+    const progress = getStoredProgress(p.storageKey);
+    const pct = p.tasks > 0 ? Math.round((progress.completed / p.tasks) * 100) : 0;
+    return `
+      <a href="tracker.html?config=${p.configFile}" class="project-card" style="--card-accent:${p.accentColor}">
+        <div class="project-card-header">
+          <div class="project-card-logo" style="background:${p.logoGradient}">${p.logoText}</div>
+          <div>
+            <div class="project-card-title">${p.name}</div>
+            <div class="project-card-subtitle">${p.subtitle}</div>
+          </div>
+        </div>
+        <div class="project-card-desc">${p.description}</div>
+        <div class="project-card-stats">
+          <span><strong>${p.phases}</strong> phases</span>
+          <span><strong>${p.tasks}</strong> tasks</span>
+          <span><strong>${pct}%</strong> complete</span>
+          ${progress.inProgress > 0 ? `<span style="color:var(--yellow)"><strong>${progress.inProgress}</strong> active</span>` : ''}
+        </div>
+      </a>`;
+  }).join('') + `
+    <div class="project-card create-new" onclick="openModal()">
+      <div class="create-icon">+</div>
+      <div class="create-label">New Project</div>
+      <div class="create-sublabel">Create from SaaS starter template</div>
+    </div>`;
+}
+
+function openModal() { document.getElementById('createModal').classList.add('active'); }
+function closeModal() { document.getElementById('createModal').classList.remove('active'); }
+
+document.getElementById('newName').addEventListener('input', function() {
+  const id = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  document.getElementById('newId').value = id;
+  const logo = this.value.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 3);
+  document.getElementById('newLogo').value = logo || '';
+});
+
+async function createProject() {
+  const name = document.getElementById('newName').value.trim();
+  const id = document.getElementById('newId').value.trim();
+  const logo = document.getElementById('newLogo').value.trim();
+  const template = document.getElementById('newTemplate').value;
+
+  if (!name || !id) { alert('Name and ID are required'); return; }
+
+  let config;
+  if (template === 'saas-starter') {
+    try {
+      const res = await fetch('configs/saas-starter.config.json');
+      config = await res.json();
+    } catch {
+      alert('Failed to load starter template');
+      return;
+    }
+  } else {
+    config = {
+      meta: {},
+      phases: [
+        {
+          id: 'phase1',
+          title: 'Phase 1: Getting Started',
+          badge: 'MVP',
+          badgeClass: 'mvp',
+          icon: '&#x1F680;',
+          iconBg: 'linear-gradient(135deg, #3fb950, #2ea043)',
+          timeline: 'Week 1-4',
+          duration: '4 weeks',
+          category: 'mvp',
+          milestones: [
+            {
+              title: 'First Milestone',
+              tasks: [
+                { id: 't1', name: 'Your first task', detail: 'Replace this with your actual task' }
+              ]
+            }
+          ]
+        }
+      ],
+      rolloutGates: [],
+      kpis: []
+    };
+  }
+
+  // Apply user's customizations
+  config.meta.id = id;
+  config.meta.name = name;
+  config.meta.subtitle = 'Release Tracker';
+  config.meta.logoText = logo || id.slice(0, 2).toUpperCase();
+
+  // Re-prefix all task IDs to avoid collision
+  let counter = 1;
+  config.phases.forEach(phase => {
+    phase.milestones?.forEach(m => {
+      m.tasks?.forEach(t => { t.id = `${id}_t${counter++}`; });
+    });
+  });
+
+  // Download config file
+  const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${id}.config.json`;
+  a.click();
+
+  closeModal();
+  alert(`Config downloaded as ${id}.config.json\n\nTo use it:\n1. Save it to the configs/ folder\n2. Add an entry to the PROJECTS array in index.html\n3. Open tracker.html?config=configs/${id}.config.json`);
+}
+
+// Clicking outside modal closes it
+document.getElementById('createModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+renderProjects();
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@cveriskpilot/domain": ["packages/domain/src"],
+      "@cveriskpilot/domain/*": ["packages/domain/src/*"],
+      "@cveriskpilot/parsers": ["packages/parsers/src"],
+      "@cveriskpilot/parsers/*": ["packages/parsers/src/*"],
+      "@cveriskpilot/enrichment": ["packages/enrichment/src"],
+      "@cveriskpilot/enrichment/*": ["packages/enrichment/src/*"],
+      "@cveriskpilot/ai": ["packages/ai/src"],
+      "@cveriskpilot/ai/*": ["packages/ai/src/*"],
+      "@cveriskpilot/auth": ["packages/auth/src"],
+      "@cveriskpilot/auth/*": ["packages/auth/src/*"],
+      "@cveriskpilot/storage": ["packages/storage/src"],
+      "@cveriskpilot/storage/*": ["packages/storage/src/*"],
+      "@cveriskpilot/billing": ["packages/billing/src"],
+      "@cveriskpilot/billing/*": ["packages/billing/src/*"],
+      "@cveriskpilot/notifications": ["packages/notifications/src"],
+      "@cveriskpilot/notifications/*": ["packages/notifications/src/*"],
+      "@cveriskpilot/compliance": ["packages/compliance/src"],
+      "@cveriskpilot/compliance/*": ["packages/compliance/src/*"],
+      "@cveriskpilot/shared": ["packages/shared/src"],
+      "@cveriskpilot/shared/*": ["packages/shared/src/*"]
+    }
+  },
+  "references": [
+    { "path": "packages/domain" },
+    { "path": "packages/shared" },
+    { "path": "apps/web" }
+  ]
+}

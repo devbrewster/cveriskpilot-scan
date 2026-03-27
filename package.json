@@ -1,0 +1,41 @@
+{
+  "name": "cveriskpilot",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate --schema=packages/domain/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=packages/domain/prisma/schema.prisma",
+    "db:push": "prisma db push --schema=packages/domain/prisma/schema.prisma",
+    "db:studio": "prisma studio --schema=packages/domain/prisma/schema.prisma",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^22.0.0",
+    "autoprefixer": "10.4.27",
+    "eslint": "^9.0.0",
+    "postcss": "8.5.8",
+    "prettier": "^3.4.0",
+    "tailwindcss": "4.2.2",
+    "typescript": "^5.9.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.8.0"
+}

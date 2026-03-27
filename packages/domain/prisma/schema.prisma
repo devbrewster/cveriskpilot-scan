@@ -1,0 +1,639 @@
+// CVERiskPilot - Vulnerability Management SaaS Platform
+// Prisma Schema - PostgreSQL with ULID-style CUID IDs
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  PLATFORM_ADMIN
+  PLATFORM_SUPPORT
+  ORG_OWNER
+  SECURITY_ADMIN
+  ANALYST
+  DEVELOPER
+  VIEWER
+  SERVICE_ACCOUNT
+  CLIENT_ADMIN
+  CLIENT_VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  DEACTIVATED
+  PENDING_INVITE
+}
+
+enum Tier {
+  FREE
+  PRO
+  ENTERPRISE
+  MSSP
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+  INFO
+}
+
+enum CaseStatus {
+  NEW
+  TRIAGE
+  IN_REMEDIATION
+  FIXED_PENDING_VERIFICATION
+  VERIFIED_CLOSED
+  REOPENED
+  ACCEPTED_RISK
+  FALSE_POSITIVE
+  NOT_APPLICABLE
+  DUPLICATE
+}
+
+enum UploadJobStatus {
+  QUEUED
+  PARSING
+  ENRICHING
+  BUILDING_CASES
+  COMPLETED
+  FAILED
+}
+
+enum AssetType {
+  HOST
+  REPOSITORY
+  CONTAINER_IMAGE
+  CLOUD_ACCOUNT
+  APPLICATION
+}
+
+enum Environment {
+  PRODUCTION
+  STAGING
+  DEVELOPMENT
+}
+
+enum Criticality {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ScannerType {
+  SCA
+  SAST
+  DAST
+  IAC
+  CONTAINER
+  VM
+  BUG_BOUNTY
+}
+
+enum ParserFormat {
+  NESSUS
+  SARIF
+  CSV
+  JSON_FORMAT
+  CYCLONEDX
+  OSV
+  SPDX
+  CSAF
+  QUALYS
+  OPENVAS
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATE_CHANGE
+  RISK_EXCEPTION
+  EXPORT
+  LOGIN
+  LOGOUT
+}
+
+enum TeamRole {
+  OWNER
+  MEMBER
+}
+
+enum ExceptionType {
+  ACCEPTED_RISK
+  FALSE_POSITIVE
+  NOT_APPLICABLE
+}
+
+// ---------------------------------------------------------------------------
+// Tenant Models
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id                     String    @id @default(cuid()) @map("id")
+  name                   String    @map("name")
+  slug                   String    @unique @map("slug")
+  tier                   Tier      @default(FREE) @map("tier")
+  stripeCustomerId       String?   @map("stripe_customer_id")
+  stripeSubscriptionId   String?   @map("stripe_subscription_id")
+  entitlements           Json?     @map("entitlements")
+  logoUrl                String?   @map("logo_url")
+  domain                 String?   @map("domain")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+  deletedAt              DateTime? @map("deleted_at")
+
+  users                  User[]
+  clients                Client[]
+  teams                  Team[]
+  assets                 Asset[]
+  slaPolicies            SlaPolicy[]
+  apiKeys                ApiKey[]
+  auditLogs              AuditLog[]
+  findings               Finding[]
+  vulnerabilityCases     VulnerabilityCase[]
+  scanArtifacts          ScanArtifact[]
+  uploadJobs             UploadJob[]
+
+  @@map("organizations")
+}
+
+model Client {
+  id                     String    @id @default(cuid()) @map("id")
+  organizationId         String    @map("organization_id")
+  name                   String    @map("name")
+  slug                   String    @map("slug")
+  isActive               Boolean   @default(true) @map("is_active")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+  deletedAt              DateTime? @map("deleted_at")
+
+  organization           Organization @relation(fields: [organizationId], references: [id])
+  findings               Finding[]
+  vulnerabilityCases     VulnerabilityCase[]
+  assets                 Asset[]
+  uploadJobs             UploadJob[]
+  scanArtifacts          ScanArtifact[]
+  clientTeamAssignments  ClientTeamAssignment[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@map("clients")
+}
+
+model User {
+  id                     String      @id @default(cuid()) @map("id")
+  organizationId         String      @map("organization_id")
+  email                  String      @map("email")
+  name                   String      @map("name")
+  passwordHash           String?     @map("password_hash")
+  googleId               String?     @map("google_id")
+  githubId               String?     @map("github_id")
+  mfaEnabled             Boolean     @default(false) @map("mfa_enabled")
+  mfaSecret              String?     @map("mfa_secret")
+  role                   UserRole    @default(VIEWER) @map("role")
+  status                 UserStatus  @default(PENDING_INVITE) @map("status")
+  lastLoginAt            DateTime?   @map("last_login_at")
+  failedLoginCount       Int         @default(0) @map("failed_login_count")
+  accountLockedUntil     DateTime?   @map("account_locked_until")
+  createdAt              DateTime    @default(now()) @map("created_at")
+  updatedAt              DateTime    @updatedAt @map("updated_at")
+  deletedAt              DateTime?   @map("deleted_at")
+
+  organization           Organization      @relation(fields: [organizationId], references: [id])
+  teamMemberships        TeamMembership[]
+  comments               Comment[]
+  notifications          Notification[]
+  assignedCases          VulnerabilityCase[] @relation("AssignedCases")
+  scanArtifacts          ScanArtifact[]
+  workflowChanges        WorkflowLineage[]
+  riskExceptionsDecided  RiskException[]     @relation("ExceptionDecidedBy")
+  riskExceptionsApproved RiskException[]     @relation("ExceptionApprovedBy")
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@map("users")
+}
+
+model Team {
+  id                     String    @id @default(cuid()) @map("id")
+  organizationId         String    @map("organization_id")
+  name                   String    @map("name")
+  description            String?   @map("description")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  organization           Organization           @relation(fields: [organizationId], references: [id])
+  memberships            TeamMembership[]
+  clientAssignments      ClientTeamAssignment[]
+
+  @@index([organizationId])
+  @@map("teams")
+}
+
+model TeamMembership {
+  id                     String    @id @default(cuid()) @map("id")
+  userId                 String    @map("user_id")
+  teamId                 String    @map("team_id")
+  role                   TeamRole  @default(MEMBER) @map("role")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  user                   User      @relation(fields: [userId], references: [id])
+  team                   Team      @relation(fields: [teamId], references: [id])
+
+  @@unique([userId, teamId])
+  @@map("team_memberships")
+}
+
+model ClientTeamAssignment {
+  id                     String    @id @default(cuid()) @map("id")
+  teamId                 String    @map("team_id")
+  clientId               String    @map("client_id")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  team                   Team      @relation(fields: [teamId], references: [id])
+  client                 Client    @relation(fields: [clientId], references: [id])
+
+  @@unique([teamId, clientId])
+  @@map("client_team_assignments")
+}
+
+// ---------------------------------------------------------------------------
+// Core Domain Models
+// ---------------------------------------------------------------------------
+
+model Asset {
+  id                     String       @id @default(cuid()) @map("id")
+  organizationId         String       @map("organization_id")
+  clientId               String       @map("client_id")
+  name                   String       @map("name")
+  type                   AssetType    @map("type")
+  environment            Environment  @default(PRODUCTION) @map("environment")
+  criticality            Criticality  @default(MEDIUM) @map("criticality")
+  internetExposed        Boolean      @default(false) @map("internet_exposed")
+  tags                   String[]     @map("tags")
+  deploymentRefs         Json?        @map("deployment_refs")
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+  deletedAt              DateTime?    @map("deleted_at")
+
+  organization           Organization @relation(fields: [organizationId], references: [id])
+  client                 Client       @relation(fields: [clientId], references: [id])
+  findings               Finding[]
+
+  @@index([organizationId, clientId])
+  @@map("assets")
+}
+
+model Finding {
+  id                     String       @id @default(cuid()) @map("id")
+  organizationId         String       @map("organization_id")
+  clientId               String       @map("client_id")
+  assetId                String       @map("asset_id")
+  scannerType            ScannerType  @map("scanner_type")
+  scannerName            String       @map("scanner_name")
+  runId                  String?      @map("run_id")
+  observations           Json         @map("observations")
+  dedupKey               String       @map("dedup_key")
+  vulnerabilityCaseId    String?      @map("vulnerability_case_id")
+  artifactId             String?      @map("artifact_id")
+  discoveredAt           DateTime     @map("discovered_at")
+  createdAt              DateTime     @default(now()) @map("created_at")
+  updatedAt              DateTime     @updatedAt @map("updated_at")
+
+  organization           Organization      @relation(fields: [organizationId], references: [id])
+  client                 Client            @relation(fields: [clientId], references: [id])
+  asset                  Asset             @relation(fields: [assetId], references: [id])
+  vulnerabilityCase      VulnerabilityCase? @relation(fields: [vulnerabilityCaseId], references: [id])
+  artifact               ScanArtifact?     @relation(fields: [artifactId], references: [id])
+
+  @@index([organizationId, clientId, createdAt])
+  @@index([dedupKey])
+  @@index([vulnerabilityCaseId])
+  @@index([artifactId])
+  @@map("findings")
+}
+
+model VulnerabilityCase {
+  id                     String      @id @default(cuid()) @map("id")
+  organizationId         String      @map("organization_id")
+  clientId               String      @map("client_id")
+  title                  String      @map("title")
+  description            String?     @map("description")
+  cveIds                 String[]    @map("cve_ids")
+  cweIds                 String[]    @map("cwe_ids")
+  severity               Severity    @map("severity")
+  cvssScore              Float?      @map("cvss_score")
+  cvssVector             String?     @map("cvss_vector")
+  cvssVersion            String?     @map("cvss_version")
+  epssScore              Float?      @map("epss_score")
+  epssPercentile         Float?      @map("epss_percentile")
+  kevListed              Boolean     @default(false) @map("kev_listed")
+  kevDueDate             DateTime?   @map("kev_due_date")
+  status                 CaseStatus  @default(NEW) @map("status")
+  assignedToId           String?     @map("assigned_to_id")
+  slaPolicyId            String?     @map("sla_policy_id")
+  dueAt                  DateTime?   @map("due_at")
+  aiAdvisory             Json?       @map("ai_advisory")
+  remediationNotes       String?     @map("remediation_notes")
+  findingCount           Int         @default(0) @map("finding_count")
+  firstSeenAt            DateTime    @map("first_seen_at")
+  lastSeenAt             DateTime    @map("last_seen_at")
+  createdAt              DateTime    @default(now()) @map("created_at")
+  updatedAt              DateTime    @updatedAt @map("updated_at")
+
+  organization           Organization      @relation(fields: [organizationId], references: [id])
+  client                 Client            @relation(fields: [clientId], references: [id])
+  assignedTo             User?             @relation("AssignedCases", fields: [assignedToId], references: [id])
+  slaPolicy              SlaPolicy?        @relation(fields: [slaPolicyId], references: [id])
+  findings               Finding[]
+  comments               Comment[]
+  workflowLineages       WorkflowLineage[]
+  riskExceptions         RiskException[]
+  tickets                Ticket[]
+
+  @@index([organizationId, clientId])
+  @@index([organizationId, clientId, status])
+  @@index([assignedToId])
+  @@index([slaPolicyId])
+  @@map("vulnerability_cases")
+}
+
+// ---------------------------------------------------------------------------
+// Scan Pipeline Models
+// ---------------------------------------------------------------------------
+
+model ScanArtifact {
+  id                     String       @id @default(cuid()) @map("id")
+  organizationId         String       @map("organization_id")
+  clientId               String       @map("client_id")
+  filename               String       @map("filename")
+  mimeType               String       @map("mime_type")
+  sizeBytes              Int          @map("size_bytes")
+  gcsBucket              String       @map("gcs_bucket")
+  gcsPath                String       @map("gcs_path")
+  checksumSha256         String       @map("checksum_sha256")
+  parserFormat           ParserFormat @map("parser_format")
+  uploadedById           String       @map("uploaded_by_id")
+  createdAt              DateTime     @default(now()) @map("created_at")
+
+  organization           Organization @relation(fields: [organizationId], references: [id])
+  client                 Client       @relation(fields: [clientId], references: [id])
+  uploadedBy             User         @relation(fields: [uploadedById], references: [id])
+  findings               Finding[]
+  uploadJobs             UploadJob[]
+
+  @@index([organizationId, clientId])
+  @@map("scan_artifacts")
+}
+
+model UploadJob {
+  id                     String          @id @default(cuid()) @map("id")
+  organizationId         String          @map("organization_id")
+  clientId               String          @map("client_id")
+  artifactId             String          @map("artifact_id")
+  status                 UploadJobStatus @default(QUEUED) @map("status")
+  totalFindings          Int             @default(0) @map("total_findings")
+  parsedFindings         Int             @default(0) @map("parsed_findings")
+  uniqueCvesFound        Int             @default(0) @map("unique_cves_found")
+  uniqueCvesEnriched     Int             @default(0) @map("unique_cves_enriched")
+  findingsCreated        Int             @default(0) @map("findings_created")
+  casesCreated           Int             @default(0) @map("cases_created")
+  errorMessage           String?         @map("error_message")
+  createdAt              DateTime        @default(now()) @map("created_at")
+  updatedAt              DateTime        @updatedAt @map("updated_at")
+  completedAt            DateTime?       @map("completed_at")
+
+  organization           Organization    @relation(fields: [organizationId], references: [id])
+  client                 Client          @relation(fields: [clientId], references: [id])
+  artifact               ScanArtifact    @relation(fields: [artifactId], references: [id])
+
+  @@index([organizationId, clientId])
+  @@index([artifactId])
+  @@map("upload_jobs")
+}
+
+// ---------------------------------------------------------------------------
+// Collaboration & Workflow Models
+// ---------------------------------------------------------------------------
+
+model Comment {
+  id                     String            @id @default(cuid()) @map("id")
+  vulnerabilityCaseId    String            @map("vulnerability_case_id")
+  userId                 String            @map("user_id")
+  content                String            @map("content")
+  mentions               String[]          @map("mentions")
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+  deletedAt              DateTime?         @map("deleted_at")
+
+  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  user                   User              @relation(fields: [userId], references: [id])
+
+  @@index([vulnerabilityCaseId])
+  @@map("comments")
+}
+
+model WorkflowLineage {
+  id                     String            @id @default(cuid()) @map("id")
+  vulnerabilityCaseId    String            @map("vulnerability_case_id")
+  fromStatus             CaseStatus        @map("from_status")
+  toStatus               CaseStatus        @map("to_status")
+  changedById            String?           @map("changed_by_id")
+  reason                 String?           @map("reason")
+  metadata               Json?             @map("metadata")
+  createdAt              DateTime          @default(now()) @map("created_at")
+
+  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  changedBy              User?             @relation(fields: [changedById], references: [id])
+
+  @@index([vulnerabilityCaseId])
+  @@map("workflow_lineages")
+}
+
+model RiskException {
+  id                     String            @id @default(cuid()) @map("id")
+  vulnerabilityCaseId    String            @map("vulnerability_case_id")
+  type                   ExceptionType     @map("type")
+  decidedById            String            @map("decided_by_id")
+  reason                 String            @map("reason")
+  evidence               Json?             @map("evidence")
+  approvedById           String?           @map("approved_by_id")
+  expiresAt              DateTime?         @map("expires_at")
+  vexRationale           String?           @map("vex_rationale")
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+
+  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  decidedBy              User              @relation("ExceptionDecidedBy", fields: [decidedById], references: [id])
+  approvedBy             User?             @relation("ExceptionApprovedBy", fields: [approvedById], references: [id])
+
+  @@index([vulnerabilityCaseId])
+  @@map("risk_exceptions")
+}
+
+model Ticket {
+  id                     String            @id @default(cuid()) @map("id")
+  vulnerabilityCaseId    String            @map("vulnerability_case_id")
+  system                 String            @map("system")
+  ticketKey              String            @map("ticket_key")
+  ticketUrl              String            @map("ticket_url")
+  status                 String            @map("status")
+  assignee               String?           @map("assignee")
+  dueDate                DateTime?         @map("due_date")
+  syncedAt               DateTime          @map("synced_at")
+  lastSyncError          String?           @map("last_sync_error")
+  createdAt              DateTime          @default(now()) @map("created_at")
+  updatedAt              DateTime          @updatedAt @map("updated_at")
+
+  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+
+  @@index([vulnerabilityCaseId])
+  @@map("tickets")
+}
+
+// ---------------------------------------------------------------------------
+// Policy & Configuration Models
+// ---------------------------------------------------------------------------
+
+model SlaPolicy {
+  id                     String              @id @default(cuid()) @map("id")
+  organizationId         String              @map("organization_id")
+  name                   String              @map("name")
+  description            String?             @map("description")
+  criticalDays           Int                 @map("critical_days")
+  highDays               Int                 @map("high_days")
+  mediumDays             Int                 @map("medium_days")
+  lowDays                Int                 @map("low_days")
+  kevCriticalDays        Int                 @map("kev_critical_days")
+  isDefault              Boolean             @default(false) @map("is_default")
+  createdAt              DateTime            @default(now()) @map("created_at")
+  updatedAt              DateTime            @updatedAt @map("updated_at")
+
+  organization           Organization        @relation(fields: [organizationId], references: [id])
+  vulnerabilityCases     VulnerabilityCase[]
+
+  @@index([organizationId])
+  @@map("sla_policies")
+}
+
+model ApiKey {
+  id                     String       @id @default(cuid()) @map("id")
+  organizationId         String       @map("organization_id")
+  name                   String       @map("name")
+  keyHash                String       @map("key_hash")
+  scope                  String       @map("scope")
+  assignedClients        String[]     @map("assigned_clients")
+  expiresAt              DateTime?    @map("expires_at")
+  lastUsedAt             DateTime?    @map("last_used_at")
+  createdAt              DateTime     @default(now()) @map("created_at")
+
+  organization           Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+// ---------------------------------------------------------------------------
+// Audit & Notification Models
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id                     String       @id @default(cuid()) @map("id")
+  organizationId         String       @map("organization_id")
+  entityType             String       @map("entity_type")
+  entityId               String       @map("entity_id")
+  action                 AuditAction  @map("action")
+  actorId                String       @map("actor_id")
+  actorIp                String?      @map("actor_ip")
+  details                Json         @map("details")
+  hash                   String       @map("hash")
+  previousHash           String?      @map("previous_hash")
+  createdAt              DateTime     @default(now()) @map("created_at")
+
+  organization           Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, entityType, entityId])
+  @@index([organizationId, createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id                     String    @id @default(cuid()) @map("id")
+  userId                 String    @map("user_id")
+  type                   String    @map("type")
+  title                  String    @map("title")
+  message                String    @map("message")
+  relatedEntityType      String?   @map("related_entity_type")
+  relatedEntityId        String?   @map("related_entity_id")
+  isRead                 Boolean   @default(false) @map("is_read")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  readAt                 DateTime? @map("read_at")
+
+  user                   User      @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+// ---------------------------------------------------------------------------
+// Global Reference Data (no org scoping)
+// ---------------------------------------------------------------------------
+
+model GlobalCveRecord {
+  id                     String    @id @default(cuid()) @map("id")
+  cveId                  String    @unique @map("cve_id")
+  title                  String    @map("title")
+  description            String?   @map("description")
+  cweIds                 String[]  @map("cwe_ids")
+  cvssV2                 Json?     @map("cvss_v2")
+  cvssV3                 Json?     @map("cvss_v3")
+  cvssV4                 Json?     @map("cvss_v4")
+  publishedDate          DateTime  @map("published_date")
+  lastModified           DateTime  @map("last_modified")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  @@index([cveId])
+  @@map("global_cve_records")
+}
+
+model GlobalEpssScore {
+  id                     String    @id @default(cuid()) @map("id")
+  cveId                  String    @map("cve_id")
+  score                  Float     @map("score")
+  percentile             Float     @map("percentile")
+  asOfDate               DateTime  @map("as_of_date")
+  createdAt              DateTime  @default(now()) @map("created_at")
+
+  @@index([cveId])
+  @@index([cveId, asOfDate])
+  @@map("global_epss_scores")
+}
+
+model GlobalKevRecord {
+  id                             String    @id @default(cuid()) @map("id")
+  cveId                          String    @unique @map("cve_id")
+  knownRansomwareCampaign        Boolean   @map("known_ransomware_campaign")
+  description                    String    @map("description")
+  dueDate                        DateTime  @map("due_date")
+  createdAt                      DateTime  @default(now()) @map("created_at")
+  updatedAt                      DateTime  @updatedAt @map("updated_at")
+
+  @@index([cveId])
+  @@map("global_kev_records")
+}

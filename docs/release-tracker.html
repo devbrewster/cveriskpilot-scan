@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CVERiskPilot - Enterprise Release Tracker</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #161b22;
+    --surface-hover: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --orange: #db6d28;
+    --purple: #bc8cff;
+    --cyan: #39d2c0;
+    --pink: #f778ba;
+    --radius: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px; color: #fff;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; }
+  .header h1 span { color: var(--text-muted); font-weight: 400; font-size: 14px; margin-left: 8px; }
+
+  /* Overall Stats */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  /* Main */
+  .main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 32px;
+  }
+
+  /* Overall Progress */
+  .overall-progress {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .overall-progress h2 {
+    font-size: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .progress-bar-container {
+    background: var(--bg);
+    border-radius: 6px;
+    height: 12px;
+    overflow: hidden;
+    display: flex;
+  }
+  .progress-bar-segment {
+    height: 100%;
+    transition: width .4s ease;
+  }
+  .progress-legend {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .progress-legend span::before {
+    content: '';
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .legend-completed::before { background: var(--green) !important; }
+  .legend-in-progress::before { background: var(--yellow) !important; }
+  .legend-pending::before { background: #30363d !important; }
+
+  /* View Toggle */
+  .view-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .view-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all .2s;
+  }
+  .view-btn:hover { border-color: var(--accent); color: var(--text); }
+  .view-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .filter-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-right: 4px;
+    margin-left: 12px;
+  }
+
+  /* Timeline View */
+  .timeline {
+    position: relative;
+    padding-left: 32px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  /* Phase Cards */
+  .phase-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color .2s;
+    position: relative;
+  }
+  .phase-card::before {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 28px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--bg);
+    z-index: 1;
+  }
+  .phase-card.status-completed::before { background: var(--green); border-color: var(--green); }
+  .phase-card.status-in-progress::before { background: var(--yellow); border-color: var(--yellow); }
+  .phase-card:hover { border-color: #444c56; }
+
+  .phase-header {
+    padding: 20px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    user-select: none;
+  }
+  .phase-header:hover { background: var(--surface-hover); }
+
+  .phase-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .phase-info { flex: 1; min-width: 0; }
+  .phase-title {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .phase-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+  .badge-mvp { background: rgba(63,185,80,.15); color: var(--green); }
+  .badge-growth { background: rgba(88,166,255,.15); color: var(--accent); }
+  .badge-enterprise { background: rgba(188,140,255,.15); color: var(--purple); }
+  .badge-scale { background: rgba(219,109,40,.15); color: var(--orange); }
+  .badge-mssp { background: rgba(247,120,186,.15); color: var(--pink); }
+
+  .phase-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .phase-progress {
+    width: 140px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .phase-progress-pct {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .phase-progress-bar {
+    height: 6px;
+    background: var(--bg);
+    border-radius: 3px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .phase-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .4s ease;
+  }
+
+  .phase-chevron {
+    font-size: 18px;
+    color: var(--text-muted);
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .phase-card.expanded .phase-chevron { transform: rotate(90deg); }
+
+  /* Phase Body */
+  .phase-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+  .phase-card.expanded .phase-body { display: block; }
+
+  /* Milestone Groups */
+  .milestone-group {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .milestone-group:last-child { border-bottom: none; }
+  .milestone-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  /* Task Items */
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+  }
+  .task-item:last-child { border-bottom: none; }
+
+  .task-checkbox {
+    appearance: none;
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+    position: relative;
+    transition: all .2s;
+  }
+  .task-checkbox:hover { border-color: var(--accent); }
+  .task-checkbox:checked {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .task-checkbox:checked::after {
+    content: '\2713';
+    position: absolute;
+    top: -1px; left: 2px;
+    font-size: 14px;
+    color: #fff;
+    font-weight: 700;
+  }
+  .task-checkbox.in-progress {
+    border-color: var(--yellow);
+    background: rgba(210,153,34,.2);
+  }
+  .task-checkbox.in-progress::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px;
+    width: 8px; height: 8px;
+    background: var(--yellow);
+    border-radius: 50%;
+  }
+
+  .task-content { flex: 1; }
+  .task-name {
+    color: var(--text);
+    transition: color .2s;
+  }
+  .task-item.completed .task-name {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+  .task-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .task-source {
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: rgba(48,54,61,.8);
+    color: var(--text-muted);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .task-status-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all .15s;
+  }
+  .task-status-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+  .task-status-btn.active { border-color: var(--yellow); color: var(--yellow); background: rgba(210,153,34,.1); }
+
+  /* Enterprise Rollout Section */
+  .enterprise-rollout {
+    margin-top: 32px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: var(--purple);
+    border-radius: 2px;
+  }
+
+  .rollout-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .rollout-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .rollout-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .rollout-card.dev::after { background: var(--accent); }
+  .rollout-card.staging::after { background: var(--yellow); }
+  .rollout-card.pilot::after { background: var(--orange); }
+  .rollout-card.production::after { background: var(--green); }
+
+  .rollout-card h3 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .rollout-duration {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .rollout-criteria {
+    list-style: none;
+    font-size: 13px;
+  }
+  .rollout-criteria li {
+    padding: 4px 0;
+    padding-left: 18px;
+    position: relative;
+    color: var(--text-muted);
+  }
+  .rollout-criteria li::before {
+    content: '\25CB';
+    position: absolute;
+    left: 0;
+    color: var(--border);
+  }
+  .rollout-card .maps-to {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .rollout-card .maps-to strong { color: var(--accent); }
+
+  /* SLO Table */
+  .slo-section {
+    margin-top: 32px;
+  }
+  .slo-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 13px;
+  }
+  .slo-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: rgba(48,54,61,.3);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .slo-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(48,54,61,.5);
+    color: var(--text-muted);
+  }
+  .slo-table tr:last-child td { border-bottom: none; }
+  .slo-table td:first-child { color: var(--text); font-weight: 500; }
+  .slo-target { color: var(--green) !important; font-family: 'SF Mono', monospace; }
+
+  /* Reset Button */
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all .2s;
+  }
+  .reset-btn:hover { background: rgba(248,81,73,.1); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header { padding: 16px; }
+    .main { padding: 16px; }
+    .stats-bar { gap: 16px; }
+    .phase-header { padding: 16px; flex-wrap: wrap; }
+    .phase-progress { width: 100%; text-align: left; display: flex; align-items: center; gap: 12px; }
+    .phase-progress-bar { flex: 1; }
+    .milestone-group { padding: 12px 16px; }
+    .timeline { padding-left: 0; }
+    .timeline::before { display: none; }
+    .phase-card::before { display: none; }
+    .rollout-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Print */
+  @media print {
+    .header { position: static; }
+    .phase-card.expanded .phase-body { display: block !important; }
+    .view-controls, .reset-btn, .task-status-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-left">
+      <div class="logo">CR</div>
+      <h1>CVERiskPilot <span>Enterprise Release Tracker</span></h1>
+    </div>
+    <div class="stats-bar" id="statsBar">
+      <!-- filled by JS -->
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- Overall Progress -->
+  <div class="overall-progress">
+    <h2>
+      Overall Release Progress
+      <button class="reset-btn" onclick="resetAll()">Reset All Progress</button>
+    </h2>
+    <div class="progress-bar-container" id="overallBar"></div>
+    <div class="progress-legend">
+      <span class="legend-completed">Completed</span>
+      <span class="legend-in-progress">In Progress</span>
+      <span class="legend-pending">Pending</span>
+    </div>
+  </div>
+
+  <!-- Filter Controls -->
+  <div class="view-controls">
+    <span class="filter-label">Filter:</span>
+    <button class="view-btn active" data-filter="all" onclick="setFilter('all',this)">All Phases</button>
+    <button class="view-btn" data-filter="mvp" onclick="setFilter('mvp',this)">MVP</button>
+    <button class="view-btn" data-filter="growth" onclick="setFilter('growth',this)">Growth</button>
+    <button class="view-btn" data-filter="mssp" onclick="setFilter('mssp',this)">MSSP</button>
+    <button class="view-btn" data-filter="enterprise" onclick="setFilter('enterprise',this)">Enterprise</button>
+    <button class="view-btn" data-filter="scale" onclick="setFilter('scale',this)">Scale</button>
+    <span class="filter-label" style="margin-left:auto;">Expand:</span>
+    <button class="view-btn" onclick="expandAll()">All</button>
+    <button class="view-btn" onclick="collapseAll()">None</button>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline" id="timeline"></div>
+
+  <!-- Enterprise Rollout -->
+  <div class="enterprise-rollout">
+    <div class="section-title">Enterprise Phased Rollout (per Reference Report)</div>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px;">34-54 weeks from kickoff to enterprise-ready production. Each gate requires acceptance criteria before advancing.</p>
+    <div class="rollout-grid">
+      <div class="rollout-card dev">
+        <h3>Development</h3>
+        <div class="rollout-duration">8-12 weeks</div>
+        <ul class="rollout-criteria">
+          <li>Canonical schema + ingestion service</li>
+          <li>Initial dedup + basic UI</li>
+          <li>Baseline RBAC</li>
+          <li>1 CI scanner + 1 VM scanner integration</li>
+          <li>Audit log MVP</li>
+          <li>End-to-end ingest -> case -> ticket</li>
+          <li>Idempotent ingestion verified</li>
+          <li>Raw artifacts stored immutably</li>
+        </ul>
+        <div class="maps-to">Maps to: <strong>Phase 1 (MVP) + Phase 2</strong></div>
+      </div>
+      <div class="rollout-card staging">
+        <h3>Staging</h3>
+        <div class="rollout-duration">6-10 weeks</div>
+        <ul class="rollout-criteria">
+          <li>Multi-tenant hardening</li>
+          <li>SSO integration + SCIM (optional)</li>
+          <li>Retention policies enforced</li>
+          <li>Performance / load testing</li>
+          <li>Parser fuzzing + security testing</li>
+          <li>SLOs defined and measured</li>
+          <li>Pentest findings triaged</li>
+        </ul>
+        <div class="maps-to">Maps to: <strong>Phase 1 hardening + Phase 3</strong></div>
+      </div>
+      <div class="rollout-card pilot">
+        <h3>Pilot</h3>
+        <div class="rollout-duration">8-12 weeks</div>
+        <ul class="rollout-criteria">
+          <li>Customer portal MVP</li>
+          <li>SLA policy/metrics dashboards</li>
+          <li>Bug bounty + SIEM integrations</li>
+          <li>Onboarding automation</li>
+          <li>Support playbooks created</li>
+          <li>Pilot tenants self-serve</li>
+          <li>Ticket sync reliability >= threshold</li>
+        </ul>
+        <div class="maps-to">Maps to: <strong>Phase 3 + Phase 4 + Phase 5</strong></div>
+      </div>
+      <div class="rollout-card production">
+        <h3>Production Enterprise-Ready</h3>
+        <div class="rollout-duration">12-20 weeks</div>
+        <ul class="rollout-criteria">
+          <li>Compliance evidence pack</li>
+          <li>Dedicated deployment stamps</li>
+          <li>Data residency controls</li>
+          <li>IR runbooks + tabletop exercises</li>
+          <li>Billing/usage metering live</li>
+          <li>SSO/SCIM + audit + encryption verified</li>
+          <li>Operational on-call in place</li>
+        </ul>
+        <div class="maps-to">Maps to: <strong>Phase 5 + Phase 6</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLO/KPI Targets -->
+  <div class="slo-section">
+    <div class="section-title">SLO / KPI Targets</div>
+    <table class="slo-table">
+      <thead>
+        <tr><th>Metric</th><th>Target</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>API Availability</td><td class="slo-target">99.9%</td><td>Monthly uptime</td></tr>
+        <tr><td>P95 Latency (core queries)</td><td class="slo-target">&lt; 500ms</td><td>Dashboard, findings list</td></tr>
+        <tr><td>8K CVE Scan Processing</td><td class="slo-target">&lt; 90s</td><td>&lt; 30s for cached repeat scans</td></tr>
+        <tr><td>Ingestion Freshness</td><td class="slo-target">&lt; 30s</td><td>Scan complete to case creation (100 findings)</td></tr>
+        <tr><td>SLA Breach Rate</td><td class="slo-target">Tracked</td><td>Per tenant and severity</td></tr>
+        <tr><td>Ticket Sync Lag</td><td class="slo-target">&lt; 5 min</td><td>&lt; 1% error rate</td></tr>
+        <tr><td>Connector Health</td><td class="slo-target">&gt; 99%</td><td>Heartbeat uptime per connector</td></tr>
+        <tr><td>Test Coverage</td><td class="slo-target">80%</td><td>Lines, functions; 65% branches</td></tr>
+        <tr><td>Free to Pro Conversion</td><td class="slo-target">&gt; 5%</td><td>Within 30 days</td></tr>
+        <tr><td>Time to First Upload</td><td class="slo-target">&lt; 2 min</td><td>From signup</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:12px;">
+    CVERiskPilot Enterprise Release Tracker &middot; Progress saved to browser localStorage
+  </div>
+</div>
+
+<script>
+// ── Phase & Task Data ──
+const PHASES = [
+  {
+    id: 'phase1',
+    title: 'Phase 1: MVP',
+    badge: 'MVP',
+    badgeClass: 'badge-mvp',
+    icon: '&#x1F680;',
+    iconBg: 'linear-gradient(135deg, #3fb950, #2ea043)',
+    timeline: 'Weeks 1-8',
+    duration: '6-8 weeks',
+    description: 'Core value loop: Upload -> Enrich -> Triage -> Report',
+    category: 'mvp',
+    milestones: [
+      {
+        title: 'Auth & Onboarding (Week 1-2)',
+        tasks: [
+          { id: 't1', name: 'Google OIDC sign-in', detail: 'Primary auth via Google Identity Platform', source: '2.0+GCP' },
+          { id: 't2', name: 'Email/password fallback', detail: 'For users without Google accounts', source: '2.0' },
+          { id: 't3', name: 'TOTP MFA', detail: 'Standard 2FA (passkeys deferred)', source: 'Both' },
+          { id: 't4', name: 'Org creation on signup', detail: 'Auto-create org for new user', source: 'Both' },
+          { id: 't5', name: 'Invite team members', detail: 'Email invite with role assignment', source: '1.x' },
+          { id: 't6', name: '3 roles: Owner, Analyst, Viewer', detail: 'Simple RBAC to start', source: 'New' },
+          { id: 't7', name: 'Redis server-side sessions', detail: 'Memorystore for Redis basic tier', source: '2.0' },
+        ]
+      },
+      {
+        title: 'Upload & Parse (Week 2-4)',
+        tasks: [
+          { id: 't8', name: 'Scan upload (drag & drop)', detail: 'Accept files up to 100MB via GCS', source: 'Both' },
+          { id: 't9', name: 'Nessus XML parser', detail: 'Most common VM scanner format', source: '1.x' },
+          { id: 't10', name: 'SARIF parser', detail: 'SAST/DAST standard format', source: '1.x' },
+          { id: 't11', name: 'CSV parser', detail: 'Universal fallback format', source: 'Both' },
+          { id: 't12', name: 'JSON parser', detail: 'Generic JSON ingestion', source: 'Both' },
+          { id: 't13', name: 'CycloneDX parser', detail: 'SCA/SBOM standard format', source: '1.x' },
+          { id: 't14', name: 'Streaming parse via Pub/Sub', detail: 'Handles 8K+ CVEs without timeout', source: 'New' },
+          { id: 't15', name: 'CanonicalFinding normalization', detail: 'All formats to same schema', source: '2.0' },
+          { id: 't16', name: 'Dedup by CVE+asset', detail: 'Idempotent upsert with SHA-256 dedup key', source: 'Both' },
+          { id: 't17', name: 'Finding to VulnerabilityCase grouping', detail: 'Two-object model per reference report', source: 'Ref' },
+          { id: 't18', name: 'Raw artifact stored in GCS', detail: 'Immutable with SHA-256 checksum', source: '2.0' },
+        ]
+      },
+      {
+        title: 'Enrichment (Week 3-4)',
+        tasks: [
+          { id: 't19', name: 'NVD lookup (CVSS v3.x)', detail: 'Batch by unique CVEs, not per-finding', source: 'Both' },
+          { id: 't20', name: 'Bulk EPSS scoring', detail: 'Single API call for all unique CVEs', source: 'Both' },
+          { id: 't21', name: 'CISA KEV check', detail: 'Download catalog daily, match locally', source: 'Both' },
+          { id: 't22', name: 'Redis enrichment cache (24h TTL)', detail: 'Repeat scans hit zero NVD calls', source: 'New' },
+          { id: 't23', name: 'Risk score computation', detail: 'CVSS + EPSS + KEV combined score', source: 'Both' },
+        ]
+      },
+      {
+        title: 'Dashboard & Findings (Week 3-5)',
+        tasks: [
+          { id: 't24', name: 'Dashboard: severity, KEV, EPSS top-10, SLA', detail: 'Single page with key metrics', source: 'Both' },
+          { id: 't25', name: 'Findings list with filters', detail: 'Severity, status, KEV, EPSS threshold, CVE search', source: 'Both' },
+          { id: 't26', name: 'Finding detail view', detail: 'CVSS vector, EPSS, KEV, affected assets, evidence', source: 'Both' },
+          { id: 't27', name: 'Vulnerability case detail', detail: 'Aggregated findings, timeline, status', source: 'New' },
+          { id: 't28', name: 'Status workflow (simplified)', detail: 'New > Triaged > In Remediation > Fixed > Verified + Accepted/FP', source: 'Ref' },
+          { id: 't29', name: 'Bulk status update', detail: 'Select multiple, change status', source: '1.x' },
+          { id: 't30', name: 'Basic text search', detail: 'CVE ID and title search via tsvector', source: 'New' },
+        ]
+      },
+      {
+        title: 'AI Remediation (Week 4-5)',
+        tasks: [
+          { id: 't31', name: '"Get Remediation" button', detail: 'On-demand Claude API call per case', source: '1.x' },
+          { id: 't32', name: 'Host redaction in AI prompts', detail: 'Structured output: risk, actions, fix, verification', source: '1.x' },
+          { id: 't33', name: 'Rate limit: 50/day Free, 500/day Pro', detail: 'Usage counter in Redis', source: 'New' },
+        ]
+      },
+      {
+        title: 'Reporting (Week 5-6)',
+        tasks: [
+          { id: 't34', name: 'CSV export (filtered findings)', detail: 'Download current view as CSV', source: '1.x' },
+          { id: 't35', name: 'Executive summary PDF', detail: 'Severity counts, KEV exposure, top risks, EPSS', source: '1.x' },
+          { id: 't36', name: 'Per-scan comparison', detail: '"What\'s new since last scan" diff view', source: '1.x' },
+        ]
+      },
+      {
+        title: 'Billing (Week 5-7)',
+        tasks: [
+          { id: 't37', name: 'Free tier (3 uploads, 1 user, 50 AI)', detail: 'Enough to evaluate the product', source: 'New' },
+          { id: 't38', name: 'Pro tier ($49/mo)', detail: 'Unlimited uploads, 10 users, 500 AI calls', source: 'New' },
+          { id: 't39', name: 'Stripe Checkout + customer portal', detail: 'Self-service upgrade/cancel', source: 'Both' },
+          { id: 't40', name: 'Usage counters (uploads, AI calls)', detail: 'Enforce limits at API layer', source: '2.0' },
+        ]
+      },
+      {
+        title: 'Infrastructure (Week 1-2, parallel)',
+        tasks: [
+          { id: 't41', name: 'Cloud Run (web + 1 worker)', detail: 'Single service + async worker', source: 'GCP' },
+          { id: 't42', name: 'Cloud SQL PostgreSQL (single instance)', detail: 'No replica needed at MVP scale', source: 'GCP' },
+          { id: 't43', name: 'Memorystore Redis (basic tier)', detail: 'Sessions + enrichment cache', source: 'GCP' },
+          { id: 't44', name: 'GCS bucket (org-prefixed)', detail: 'Scan artifact storage', source: 'GCP' },
+          { id: 't45', name: 'Cloud Tasks (single queue)', detail: 'Async job processing', source: 'GCP' },
+          { id: 't46', name: 'Secret Manager', detail: 'API keys, DB credentials', source: 'GCP' },
+          { id: 't47', name: 'Terraform (core resources)', detail: 'Infrastructure as code from day 1', source: 'GCP' },
+          { id: 't48', name: 'Cloud Build CI/CD pipeline', detail: 'Single pipeline: test > build > deploy', source: 'GCP' },
+          { id: 't49', name: 'Cloud Armor (basic WAF)', detail: 'Basic OWASP rules', source: 'GCP' },
+          { id: 't50', name: 'Cloud Logging + basic alerts', detail: 'Error rate, latency alerts', source: 'GCP' },
+        ]
+      },
+      {
+        title: 'Polish & Launch (Week 6-8)',
+        tasks: [
+          { id: 't51', name: '"Coming Soon" badges on deferred features', detail: 'Visible but locked UI elements', source: 'New' },
+          { id: 't52', name: 'Landing page', detail: 'Marketing page with signup CTA', source: 'New' },
+          { id: 't53', name: 'Prisma schema (full 3-tier ready)', detail: 'client_id nullable, defaulting to "Default"', source: 'New' },
+          { id: 't54', name: 'Security hardening pass', detail: 'CSP nonces, CSRF, rate limiting, input validation', source: 'Both' },
+          { id: 't55', name: 'E2E tests (Playwright)', detail: 'Critical flows: signup, upload, triage, export', source: 'Both' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase2',
+    title: 'Phase 2: Collaboration & Integrations',
+    badge: 'Growth',
+    badgeClass: 'badge-growth',
+    icon: '&#x1F91D;',
+    iconBg: 'linear-gradient(135deg, #58a6ff, #388bfd)',
+    timeline: 'Month 2-3',
+    duration: '4-8 weeks',
+    description: 'Team workflows, Jira sync, SLA policies, notifications',
+    category: 'growth',
+    milestones: [
+      {
+        title: 'Jira Integration',
+        tasks: [
+          { id: 't56', name: 'Jira bi-directional sync', detail: 'Create tickets from cases, sync status back', source: '1.x' },
+          { id: 't57', name: 'Jira status mapping config', detail: 'Map Jira statuses to CVERiskPilot workflow', source: '1.x' },
+          { id: 't58', name: 'Bulk Jira ticket creation', detail: 'Create tickets for multiple cases at once', source: '2.0' },
+        ]
+      },
+      {
+        title: 'SLA & Accountability',
+        tasks: [
+          { id: 't59', name: 'SLA policies (per-severity due dates)', detail: 'Critical 7d, High 30d, Medium 90d, Low 180d', source: '1.x' },
+          { id: 't60', name: 'SLA breach detection', detail: 'Cron-based check with alerting', source: '1.x' },
+          { id: 't61', name: 'Risk exception workflow', detail: 'Request/approve/reject/expiry lifecycle', source: '1.x' },
+        ]
+      },
+      {
+        title: 'Collaboration',
+        tasks: [
+          { id: 't62', name: 'Comments with @mentions', detail: 'Per-case discussion threads', source: '1.x' },
+          { id: 't63', name: 'Case assignment with notifications', detail: 'Assign to team member, notify via email', source: '1.x' },
+          { id: 't64', name: 'Email notifications', detail: 'Digest batching + per-user preferences', source: '1.x' },
+          { id: 't65', name: 'In-app notification center', detail: 'Bell icon with unread count', source: '1.x' },
+          { id: 't66', name: 'Webhooks via Svix', detail: 'HMAC-SHA256 signed, retry + DLQ', source: '2.0' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase3',
+    title: 'Phase 3: MSSP Foundation',
+    badge: 'MSSP',
+    badgeClass: 'badge-mssp',
+    icon: '&#x1F3E2;',
+    iconBg: 'linear-gradient(135deg, #f778ba, #db61a2)',
+    timeline: 'Month 3-4',
+    duration: '4-8 weeks',
+    description: '3-tier hierarchy, client switching, additional parsers, portfolio view',
+    category: 'mssp',
+    milestones: [
+      {
+        title: 'Multi-Client Model',
+        tasks: [
+          { id: 't67', name: 'Activate Client model (3-tier hierarchy)', detail: 'Platform > Org > Client fully operational', source: 'New' },
+          { id: 't68', name: 'Team management with client assignment', detail: 'Teams scoped to specific clients', source: 'New' },
+          { id: 't69', name: 'Tenant switching workflow', detail: 'Analyst pivots between clients without re-auth (Flight Control pattern)', source: 'MSSP Ref' },
+          { id: 't70', name: 'Client-scoped dashboard views', detail: 'Each client sees only their data', source: 'New' },
+          { id: 't71', name: 'Cross-client portfolio dashboard', detail: 'Aggregated risk view across all managed clients', source: 'MSSP Ref' },
+          { id: 't72', name: 'Feature flags per tenant/tier', detail: 'Control-plane config, not code forks', source: 'MSSP Ref' },
+        ]
+      },
+      {
+        title: 'Additional Parsers',
+        tasks: [
+          { id: 't73', name: 'Qualys parser', detail: 'Enterprise VM scanner format', source: '1.x' },
+          { id: 't74', name: 'OpenVAS parser', detail: 'Open-source VM scanner', source: '1.x' },
+          { id: 't75', name: 'SPDX parser', detail: 'SBOM format', source: '1.x' },
+          { id: 't76', name: 'OSV parser', detail: 'Open Source Vulnerabilities format', source: '1.x' },
+          { id: 't77', name: 'CSAF parser', detail: 'Common Security Advisory Framework', source: '1.x' },
+          { id: 't78', name: 'XLSX parser', detail: 'Excel spreadsheet import', source: '2.0' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase4',
+    title: 'Phase 4: Reporting & Compliance',
+    badge: 'Enterprise',
+    badgeClass: 'badge-enterprise',
+    icon: '&#x1F4CB;',
+    iconBg: 'linear-gradient(135deg, #bc8cff, #8b5cf6)',
+    timeline: 'Month 4-5',
+    duration: '4-8 weeks',
+    description: 'Scheduled reports, POAM, compliance dashboards, GDPR/CCPA',
+    category: 'enterprise',
+    milestones: [
+      {
+        title: 'Advanced Reporting',
+        tasks: [
+          { id: 't79', name: 'Scheduled reports per-client', detail: 'Cron-based PDF/CSV generation + email delivery', source: '1.x' },
+          { id: 't80', name: 'Async bulk export API', detail: 'Large dataset export without timeout', source: 'New' },
+          { id: 't81', name: 'Customer portal (client_viewer role)', detail: 'Client staff see their scoped dashboard', source: 'MSSP Ref' },
+        ]
+      },
+      {
+        title: 'Compliance',
+        tasks: [
+          { id: 't82', name: 'POAM tracking (NIST 800-171)', detail: 'Plan of Action & Milestones', source: '2.0' },
+          { id: 't83', name: 'Compliance dashboards (SOC 2, SSDF, ASVS)', detail: 'Evidence collection and tracking', source: '2.0' },
+          { id: 't84', name: 'Data retention policies', detail: 'Per reference report data classes, configurable', source: '1.x' },
+          { id: 't85', name: 'GDPR/CCPA per-client deletion flows', detail: 'Right to deletion with audit trail', source: 'New' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase5',
+    title: 'Phase 5: Enterprise & MSSP Billing',
+    badge: 'Enterprise',
+    badgeClass: 'badge-enterprise',
+    icon: '&#x1F512;',
+    iconBg: 'linear-gradient(135deg, #d29922, #bb8009)',
+    timeline: 'Month 5-7',
+    duration: '4-8 weeks',
+    description: 'Enterprise SSO, SCIM, API keys, per-tenant encryption, MSSP billing',
+    category: 'enterprise',
+    milestones: [
+      {
+        title: 'Enterprise Auth & Security',
+        tasks: [
+          { id: 't86', name: 'WorkOS SAML SSO', detail: 'Enterprise single sign-on federation', source: '1.x' },
+          { id: 't87', name: 'SCIM provisioning', detail: 'Automated user provisioning/deprovisioning', source: 'Ref' },
+          { id: 't88', name: 'Per-tenant SSO (each client own IdP)', detail: 'Managed clients connect their own SAML/OIDC', source: 'MSSP Ref' },
+          { id: 't89', name: 'API key management (crp_* prefix)', detail: 'Scoped to org, with expiry and rotation', source: '1.x' },
+          { id: 't90', name: 'Service accounts for CI/CD', detail: 'Non-human auth for scanner automation', source: 'Ref' },
+          { id: 't91', name: 'Per-tenant encryption (Cloud KMS BYOK)', detail: 'Customer-managed keys for regulated tenants', source: 'Ref' },
+          { id: 't92', name: 'IP allowlist per org', detail: 'Restrict access by source IP', source: '1.x' },
+          { id: 't93', name: 'Cloud Armor full OWASP rules', detail: 'Bot protection + advanced WAF', source: 'GCP' },
+        ]
+      },
+      {
+        title: 'Billing & Onboarding',
+        tasks: [
+          { id: 't94', name: 'Enterprise + MSSP billing tiers', detail: 'Usage-based pricing per-client', source: 'New' },
+          { id: 't95', name: 'Per-client usage metering', detail: 'Metered by assets, findings, AI calls', source: 'MSSP Ref' },
+          { id: 't96', name: 'Automated tenant onboarding pipeline', detail: 'Identity bootstrap > data-plane > integrations > metering', source: 'MSSP Ref' },
+          { id: 't97', name: 'Scanner connector system', detail: 'Agent deployment with heartbeat, config, key rotation', source: '1.x' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase6',
+    title: 'Phase 6: Scale, Stamps & AI Agents',
+    badge: 'Scale',
+    badgeClass: 'badge-scale',
+    icon: '&#x26A1;',
+    iconBg: 'linear-gradient(135deg, #db6d28, #bd5616)',
+    timeline: 'Month 6-12',
+    duration: '12-24 weeks',
+    description: 'Deployment stamps, AI agents, full streaming, materialized views, ABAC',
+    category: 'scale',
+    milestones: [
+      {
+        title: 'Infrastructure Scale',
+        tasks: [
+          { id: 't98', name: 'Deployment stamps (dedicated per enterprise)', detail: 'Dedicated Cloud SQL + GCS + KMS per stamp', source: 'MSSP Ref' },
+          { id: 't99', name: 'Full streaming pipeline with SSE', detail: 'Real-time progress for large scans', source: 'New' },
+          { id: 't100', name: 'Materialized views + read replicas + PgBouncer', detail: 'Dashboard query performance at scale', source: 'New' },
+          { id: 't101', name: 'Cursor-based pagination', detail: 'Replace offset pagination for >100K findings', source: 'New' },
+          { id: 't102', name: 'Deployment rings (canary > early adopter > GA)', detail: 'Progressive rollout with feature flags', source: 'MSSP Ref' },
+          { id: 't103', name: 'Data residency controls', detail: 'Regional Cloud SQL instances, tenant placement', source: 'Ref' },
+          { id: 't104', name: 'Per-tenant backup/restore runbooks', detail: 'PITR per stamp, tenant-scoped export for pooled', source: 'MSSP Ref' },
+        ]
+      },
+      {
+        title: 'Advanced Security & Access',
+        tasks: [
+          { id: 't105', name: 'ABAC policy engine', detail: 'Attribute-based access for tenant boundaries, data classification', source: 'MSSP Ref' },
+          { id: 't106', name: 'Tenant-aware observability', detail: 'Per-tenant/tier dashboards via OpenTelemetry', source: 'MSSP Ref' },
+          { id: 't107', name: 'White-labeling (brand per org)', detail: 'UI/brand theming via control-plane config', source: 'MSSP Ref' },
+        ]
+      },
+      {
+        title: 'AI & Integrations',
+        tasks: [
+          { id: 't108', name: 'AI triage agent', detail: 'Automated CVE triage with HITL approval gates', source: '2.0' },
+          { id: 't109', name: 'ServiceNow integration', detail: 'Enterprise ITSM bi-directional sync', source: 'Ref' },
+          { id: 't110', name: 'SIEM export', detail: 'Splunk, QRadar, Sentinel via CloudEvents', source: 'Both' },
+          { id: 't111', name: 'Bug bounty ingestion (HackerOne)', detail: 'API integration for bounty findings', source: '2.0' },
+          { id: 't112', name: 'Cloud posture (AWS Security Hub, ASFF)', detail: 'Cloud-specific adapter for posture findings', source: 'Ref' },
+          { id: 't113', name: 'OpenAPI v3.1 interactive docs', detail: 'Developer experience for API consumers', source: 'Ref' },
+        ]
+      },
+    ]
+  },
+];
+
+// ── State Management ──
+const STORAGE_KEY = 'cveriskpilot_tracker_v1';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function getTaskState(id) {
+  const state = loadState();
+  return state[id] || 'pending'; // pending | in_progress | completed
+}
+
+function setTaskState(id, status) {
+  const state = loadState();
+  state[id] = status;
+  saveState(state);
+}
+
+function resetAll() {
+  if (confirm('Reset all progress? This cannot be undone.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    render();
+  }
+}
+
+// ── Rendering ──
+let currentFilter = 'all';
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.view-btn[data-filter]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTimeline();
+}
+
+function expandAll() {
+  document.querySelectorAll('.phase-card').forEach(c => c.classList.add('expanded'));
+}
+function collapseAll() {
+  document.querySelectorAll('.phase-card').forEach(c => c.classList.remove('expanded'));
+}
+
+function cycleTaskState(id) {
+  const current = getTaskState(id);
+  const next = current === 'pending' ? 'in_progress' : current === 'in_progress' ? 'completed' : 'pending';
+  setTaskState(id, next);
+  render();
+}
+
+function getPhaseStats(phase) {
+  let total = 0, completed = 0, inProgress = 0;
+  phase.milestones.forEach(m => {
+    m.tasks.forEach(t => {
+      total++;
+      const s = getTaskState(t.id);
+      if (s === 'completed') completed++;
+      else if (s === 'in_progress') inProgress++;
+    });
+  });
+  return { total, completed, inProgress, pending: total - completed - inProgress };
+}
+
+function getOverallStats() {
+  let total = 0, completed = 0, inProgress = 0;
+  PHASES.forEach(p => {
+    const s = getPhaseStats(p);
+    total += s.total;
+    completed += s.completed;
+    inProgress += s.inProgress;
+  });
+  return { total, completed, inProgress, pending: total - completed - inProgress };
+}
+
+function renderStatsBar() {
+  const stats = getOverallStats();
+  const pct = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat">
+      <div class="stat-value" style="color:var(--green)">${stats.completed}</div>
+      <div class="stat-label">Done</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--yellow)">${stats.inProgress}</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">${stats.pending}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">${stats.total}</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--accent)">${pct}%</div>
+      <div class="stat-label">Complete</div>
+    </div>
+  `;
+}
+
+function renderOverallBar() {
+  const stats = getOverallStats();
+  const cPct = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0;
+  const iPct = stats.total > 0 ? (stats.inProgress / stats.total) * 100 : 0;
+  document.getElementById('overallBar').innerHTML = `
+    <div class="progress-bar-segment" style="width:${cPct}%;background:var(--green)"></div>
+    <div class="progress-bar-segment" style="width:${iPct}%;background:var(--yellow)"></div>
+  `;
+}
+
+function renderTimeline() {
+  const container = document.getElementById('timeline');
+  const filtered = currentFilter === 'all' ? PHASES : PHASES.filter(p => p.category === currentFilter);
+
+  container.innerHTML = filtered.map(phase => {
+    const stats = getPhaseStats(phase);
+    const pct = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+    const phaseStatus = stats.completed === stats.total ? 'completed' :
+                        stats.inProgress > 0 || stats.completed > 0 ? 'in-progress' : 'pending';
+
+    const progressColor = pct === 100 ? 'var(--green)' : pct > 0 ? 'var(--yellow)' : 'var(--border)';
+
+    return `
+      <div class="phase-card status-${phaseStatus}" id="${phase.id}">
+        <div class="phase-header" onclick="togglePhase('${phase.id}')">
+          <div class="phase-icon" style="background:${phase.iconBg}">${phase.icon}</div>
+          <div class="phase-info">
+            <div class="phase-title">
+              ${phase.title}
+              <span class="phase-badge ${phase.badgeClass}">${phase.badge}</span>
+            </div>
+            <div class="phase-meta">
+              <span>${phase.timeline}</span>
+              <span>${phase.duration}</span>
+              <span>${stats.completed}/${stats.total} tasks</span>
+            </div>
+          </div>
+          <div class="phase-progress">
+            <div class="phase-progress-pct" style="color:${progressColor}">${pct}%</div>
+            <div class="phase-progress-bar">
+              <div class="phase-progress-fill" style="width:${pct}%;background:${progressColor}"></div>
+            </div>
+          </div>
+          <div class="phase-chevron">&#x25B6;</div>
+        </div>
+        <div class="phase-body">
+          ${phase.milestones.map(m => `
+            <div class="milestone-group">
+              <div class="milestone-title">${m.title}</div>
+              ${m.tasks.map(t => {
+                const ts = getTaskState(t.id);
+                const checkClass = ts === 'completed' ? 'checked' : ts === 'in_progress' ? '' : '';
+                const cbExtra = ts === 'in_progress' ? 'in-progress' : '';
+                return `
+                  <div class="task-item ${ts === 'completed' ? 'completed' : ''}">
+                    <input type="checkbox" class="task-checkbox ${cbExtra}"
+                      ${ts === 'completed' ? 'checked' : ''}
+                      onclick="cycleTaskState('${t.id}')"
+                      title="Click to cycle: pending > in progress > completed">
+                    <div class="task-content">
+                      <div class="task-name">${t.name}</div>
+                      <div class="task-detail">${t.detail}</div>
+                    </div>
+                    <span class="task-source">${t.source}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function togglePhase(id) {
+  document.getElementById(id).classList.toggle('expanded');
+}
+
+function render() {
+  renderStatsBar();
+  renderOverallBar();
+  renderTimeline();
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>

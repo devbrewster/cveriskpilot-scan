@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Release Tracker</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="header" id="trackerHeader"></div>
+
+<div class="main">
+  <div class="overall-progress">
+    <h2>
+      Overall Release Progress
+      <div class="header-actions">
+        <button class="action-btn" onclick="ReleaseTracker.exportProgress()">Export</button>
+        <button class="action-btn" onclick="ReleaseTracker.importProgress()">Import</button>
+        <button class="action-btn reset-btn" onclick="ReleaseTracker.resetAll()">Reset</button>
+      </div>
+    </h2>
+    <div class="progress-bar-container" id="overallBar"></div>
+    <div class="progress-legend">
+      <span class="legend-completed">Completed</span>
+      <span class="legend-in-progress">In Progress</span>
+      <span class="legend-pending">Pending</span>
+    </div>
+  </div>
+
+  <div class="view-controls" id="viewControls"></div>
+  <div id="phasesView">
+    <div class="timeline" id="timeline"></div>
+  </div>
+  <div id="orchestratorView" style="display:none;"></div>
+  <div id="rolloutSection" style="margin-top:32px;"></div>
+  <div id="kpiSection" style="margin-top:32px;"></div>
+  <div class="tracker-footer" id="trackerFooter"></div>
+</div>
+
+<script src="engine.js"></script>
+<script>ReleaseTracker.init();</script>
+</body>
+</html>

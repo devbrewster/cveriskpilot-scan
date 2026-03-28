@@ -4,6 +4,27 @@ Pipeline Compliance Scanner — scan your codebase for vulnerable dependencies, 
 
 **Zero config. Offline-first. Compliance mapping built in.**
 
+## Quick Start
+
+### Install from GitHub
+
+```bash
+# Clone and build
+git clone https://github.com/devbrewster/cveriskpilot-scan.git
+cd cveriskpilot-scan
+npm install
+npm run build
+
+# Scan any project
+node dist/cli.js /path/to/your/project
+
+# Or install globally so you can run from anywhere
+npm link
+cveriskpilot-scan /path/to/your/project
+```
+
+### Install from npm (coming soon)
+
 ```bash
 npx @cveriskpilot/scan
 ```
@@ -47,40 +68,47 @@ npx @cveriskpilot/scan
 
 ## Usage
 
+After installing (see [Quick Start](#quick-start)), use `cveriskpilot-scan` (if linked) or `node dist/cli.js`:
+
 ```bash
 # Scan current directory — all frameworks, colored table output
-npx @cveriskpilot/scan
+cveriskpilot-scan
+
+# Scan a specific project
+cveriskpilot-scan /path/to/your/project
 
 # SOC 2 + ASVS only (startup preset)
-npx @cveriskpilot/scan --preset startup
+cveriskpilot-scan --preset startup
 
 # CMMC + FedRAMP only (using aliases)
-npx @cveriskpilot/scan --frameworks CMMC,FEDRAMP
+cveriskpilot-scan --frameworks CMMC,FEDRAMP
 
 # Only HIGH and CRITICAL findings
-npx @cveriskpilot/scan --severity HIGH
+cveriskpilot-scan --severity HIGH
 
 # Dependencies only, JSON output
-npx @cveriskpilot/scan --deps-only --format json
+cveriskpilot-scan --deps-only --format json
 
 # Exclude test files and specific CWEs
-npx @cveriskpilot/scan --exclude test/** --exclude-cwe CWE-79,CWE-89
+cveriskpilot-scan --exclude test/** --exclude-cwe CWE-79,CWE-89
 
 # CI/CD mode (JSON output, exit code 1 on critical findings)
-npx @cveriskpilot/scan --ci
+cveriskpilot-scan --ci
 
 # SARIF output for GitHub/GitLab integration
-npx @cveriskpilot/scan --format sarif > results.sarif
+cveriskpilot-scan --format sarif > results.sarif
 
 # Upload results to CVERiskPilot dashboard
-npx @cveriskpilot/scan --api-key $CRP_API_KEY
+cveriskpilot-scan --api-key $CRP_API_KEY
 
 # List all frameworks, presets, and aliases
-npx @cveriskpilot/scan --list-frameworks
+cveriskpilot-scan --list-frameworks
 
 # Defense contractor full scan
-npx @cveriskpilot/scan --preset defense --fail-on high --verbose
+cveriskpilot-scan --preset defense --fail-on high --verbose
 ```
+
+> **Tip:** Replace `cveriskpilot-scan` with `node dist/cli.js` if you haven't run `npm link`.
 
 ## CLI Flags
 

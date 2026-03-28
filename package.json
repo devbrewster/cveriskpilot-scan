@@ -1,0 +1,60 @@
+{
+  "name": "@cveriskpilot/scan",
+  "version": "0.1.0",
+  "description": "Pipeline Compliance Scanner — scan dependencies, secrets, and IaC for vulnerabilities and map to 6 compliance frameworks",
+  "type": "module",
+  "bin": {
+    "cveriskpilot-scan": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "security",
+    "vulnerability",
+    "scanner",
+    "compliance",
+    "nist",
+    "soc2",
+    "cmmc",
+    "fedramp",
+    "asvs",
+    "ssdf",
+    "sbom",
+    "secrets",
+    "iac",
+    "devsecops",
+    "poam",
+    "cwe",
+    "cve"
+  ],
+  "author": "CVERiskPilot LLC",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devbrewster/cveriskpilot-scan"
+  },
+  "homepage": "https://cveriskpilot.com",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.15",
+    "typescript": "5.9"
+  }
+}

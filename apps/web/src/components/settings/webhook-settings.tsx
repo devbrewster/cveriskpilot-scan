@@ -21,8 +21,8 @@ interface WebhookEndpoint {
   id: string;
   url: string;
   events: WebhookEvent[];
-  active: boolean;
-  secret?: string;
+  isActive: boolean;
+  secretLast4: string | null;
   lastDeliveryAt: string | null;
   lastDeliveryStatus: 'success' | 'failed' | null;
   createdAt: string;
@@ -64,10 +64,12 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
   const fetchWebhooks = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/webhooks?organizationId=${organizationId}`);
+      const res = await fetch(`/api/webhooks/config?organizationId=${organizationId}`);
       if (!res.ok) throw new Error('Failed to load webhooks');
       const data = await res.json();
-      setWebhooks(data.webhooks ?? []);
+      // Config route returns a flat array
+      const list = Array.isArray(data) ? data : (data.webhooks ?? []);
+      setWebhooks(list);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load webhooks');
@@ -90,7 +92,7 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
     setForm({
       url: webhook.url,
       events: [...webhook.events],
-      active: webhook.active,
+      active: webhook.isActive ?? true,
       autoGenerateSecret: false,
       secret: '',
     });
@@ -135,11 +137,12 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
       }
 
       const isEdit = editingId !== null;
-      const url = isEdit ? `/api/webhooks/${editingId}` : '/api/webhooks';
-      const method = isEdit ? 'PUT' : 'POST';
+      if (isEdit) {
+        payload.endpointId = editingId;
+      }
 
-      const res = await fetch(url, {
-        method,
+      const res = await fetch('/api/webhooks/config', {
+        method: isEdit ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
@@ -164,7 +167,11 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
     }
 
     try {
-      const res = await fetch(`/api/webhooks/${id}`, { method: 'DELETE' });
+      const res = await fetch('/api/webhooks/config', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId, endpointId: id }),
+      });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? 'Failed to delete webhook');
@@ -181,7 +188,11 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
     setTestResult(null);
 
     try {
-      const res = await fetch(`/api/webhooks/${id}/test`, { method: 'POST' });
+      const res = await fetch('/api/webhooks/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organizationId, endpointId: id }),
+      });
       const data = await res.json();
 
       if (!res.ok) {
@@ -266,7 +277,7 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="rounded-lg border border-gray-200 bg-white p-6 space-y-5"
+          className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 space-y-5"
         >
           <h3 className="text-md font-semibold text-gray-900">
             {editingId ? 'Edit Webhook' : 'New Webhook Endpoint'}
@@ -382,7 +393,7 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
               aria-checked={form.active}
             >
               <span
-                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-900 shadow ring-0 transition duration-200 ease-in-out ${
                   form.active ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
@@ -407,7 +418,7 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -443,14 +454,14 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
           {webhooks.map((webhook) => (
             <div
               key={webhook.id}
-              className="rounded-lg border border-gray-200 bg-white p-4 space-y-3"
+              className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 space-y-3"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span
                       className={`inline-block h-2 w-2 rounded-full flex-shrink-0 ${
-                        webhook.active ? 'bg-green-500' : 'bg-gray-300'
+                        webhook.isActive ? 'bg-green-500' : 'bg-gray-300'
                       }`}
                     />
                     <code className="text-sm font-mono text-gray-900 truncate" title={webhook.url}>
@@ -458,12 +469,12 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
                     </code>
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        webhook.active
+                        webhook.isActive
                           ? 'bg-green-100 text-green-800'
                           : 'bg-gray-100 text-gray-600'
                       }`}
                     >
-                      {webhook.active ? 'Active' : 'Inactive'}
+                      {webhook.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
 
@@ -508,8 +519,8 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
                   <button
                     type="button"
                     onClick={() => handleTest(webhook.id)}
-                    disabled={testing === webhook.id || !webhook.active}
-                    className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={testing === webhook.id || !webhook.isActive}
+                    className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {testing === webhook.id ? 'Sending...' : 'Test'}
                   </button>

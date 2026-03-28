@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import {
   getConnectorStatus,
@@ -8,20 +9,15 @@ import {
 /**
  * GET /api/connectors
  * List all connectors for an organization.
- * Query: organizationId
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const organizationId = session.organizationId;
     const connectors = await getConnectorStatus(prisma, organizationId);
 
     return NextResponse.json({ connectors });
@@ -37,16 +33,22 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/connectors
  * Register a new scanner connector.
- * Body: { organizationId, name, type, endpoint, authConfig, schedule? }
+ * Body: { name, type, endpoint, authConfig, schedule? }
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { organizationId, name, type, endpoint, authConfig, schedule, metadata } = body;
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!organizationId || !name || !type || !endpoint) {
+    const body = await request.json();
+    const { name, type, endpoint, authConfig, schedule, metadata } = body;
+    const organizationId = session.organizationId;
+
+    if (!name || !type || !endpoint) {
       return NextResponse.json(
-        { error: 'organizationId, name, type, and endpoint are required' },
+        { error: 'name, type, and endpoint are required' },
         { status: 400 },
       );
     }
@@ -68,6 +70,19 @@ export async function POST(request: NextRequest) {
       schedule,
       status: 'pending',
       metadata,
+    });
+
+    // Audit log for connector registration
+    await prisma.auditLog.create({
+      data: {
+        organizationId,
+        actorId: session.userId,
+        action: 'CREATE',
+        entityType: 'Connector',
+        entityId: connector.id,
+        details: { name, type, endpoint },
+        hash: `create-connector-${connector.id}-${Date.now()}`,
+      },
     });
 
     return NextResponse.json(

@@ -127,6 +127,25 @@ export type {
 export { HackerOneIngestion } from './hackerone/ingestion';
 export type { IngestionResult, DedupConfig } from './hackerone/ingestion';
 
+// Slack
+export { SlackNotifier, isValidSlackWebhookUrl } from './slack/index';
+
+// Microsoft Teams
+export { TeamsNotifier, isValidTeamsWebhookUrl } from './teams/index';
+
+// Pipeline Notifications
+export { PipelineNotificationDispatcher } from './notifications/index';
+export type {
+  DispatchResult,
+  PipelineScanResult,
+  ComplianceAlert,
+  NotificationChannel,
+  NotificationChannelConfig,
+  PipelineVerdict,
+  SeverityCounts,
+  ComplianceControlResult,
+} from './notifications/index';
+
 // Cloud Posture (AWS Security Hub, GCP SCC)
 export { SecurityHubClient } from './cloud-posture/security-hub';
 export { GCPSecurityCommandCenter } from './cloud-posture/gcp-scc';

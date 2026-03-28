@@ -43,6 +43,11 @@ export async function POST(request: NextRequest) {
 
     const tier = targetTier.toUpperCase();
 
+    const VALID_TIERS = new Set(['FREE', 'FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
+    if (!VALID_TIERS.has(tier)) {
+      return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
+    }
+
     // Downgrade to FREE — cancel subscription
     if (tier === 'FREE') {
       if (org.stripeSubscriptionId) {

@@ -94,8 +94,8 @@ Already existed in new repo (no port needed):
 - [x] E2E test suites → e2e/*.spec.ts
 
 Remaining (lower priority):
-- [ ] PDF export (react-pdf templates) from 1.x → apps/web
-- [ ] Passkey/WebAuthn support from 2.0 → packages/auth
+- [x] PDF export (react-pdf templates) from 1.x → apps/web/src/lib/export/pdf-export.tsx + apps/web/app/api/export/pdf/route.ts
+- [x] Passkey/WebAuthn support from 2.0 → packages/auth/src/security/webauthn.ts + API routes
 - [ ] Marketing public pages from 2.0 → apps/web
 
 ## Development

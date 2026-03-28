@@ -1,0 +1,240 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "payment-service:2.14.1",
+  "ArtifactType": "container_image",
+  "Metadata": {
+    "OS": { "Family": "debian", "Name": "11.9" },
+    "ImageID": "sha256:7f3d9c1a2b4e5f6a8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+    "DiffIDs": [
+      "sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+      "sha256:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3"
+    ],
+    "ImageConfig": {
+      "Cmd": ["/bin/sh", "-c", "python app.py"],
+      "User": "",
+      "ExposedPorts": { "8080/tcp": {}, "22/tcp": {} }
+    }
+  },
+  "Results": [
+    {
+      "Target": "payment-service:2.14.1 (debian 11.9)",
+      "Class": "os-pkgs",
+      "Type": "debian",
+      "Misconfigurations": null,
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2024-6387",
+          "PkgName": "openssh-server",
+          "InstalledVersion": "1:8.9p1-3ubuntu0.6",
+          "FixedVersion": "1:9.8p1-1",
+          "Layer": { "DiffID": "sha256:a1b2c3d4e5f6" },
+          "SeveritySource": "nvd",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-6387",
+          "Title": "openssh: regreSSHion - Race Condition in signal handler",
+          "Description": "A signal handler race condition was found in OpenSSH's server (sshd). If a client does not authenticate within LoginGraceTime seconds, sshd's SIGALRM handler is called asynchronously — but this signal handler calls various functions that are not async-signal-safe.",
+          "Severity": "CRITICAL",
+          "CVSS": {
+            "nvd": { "V3Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H", "V3Score": 8.1 }
+          },
+          "References": ["https://nvd.nist.gov/vuln/detail/CVE-2024-6387"],
+          "PublishedDate": "2024-07-01T13:15:00Z",
+          "LastModifiedDate": "2024-09-18T00:00:00Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2024-2961",
+          "PkgName": "libc6",
+          "InstalledVersion": "2.31-13+deb11u7",
+          "FixedVersion": "2.31-13+deb11u10",
+          "Layer": { "DiffID": "sha256:a1b2c3d4e5f6" },
+          "SeveritySource": "nvd",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-2961",
+          "Title": "glibc: out-of-bounds write in iconv may lead to RCE",
+          "Description": "The iconv() function in the GNU C Library versions 2.39 and older may overflow the output buffer passed to it by up to 4 bytes when converting strings to the ISO-2022-CN-EXT character set.",
+          "Severity": "HIGH",
+          "CVSS": {
+            "nvd": { "V3Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H", "V3Score": 8.1 }
+          },
+          "References": ["https://nvd.nist.gov/vuln/detail/CVE-2024-2961"]
+        },
+        {
+          "VulnerabilityID": "CVE-2024-33599",
+          "PkgName": "libc6",
+          "InstalledVersion": "2.31-13+deb11u7",
+          "FixedVersion": "2.31-13+deb11u10",
+          "SeveritySource": "nvd",
+          "Title": "glibc: stack-based buffer overflow in netgroup cache",
+          "Severity": "HIGH",
+          "CVSS": {
+            "nvd": { "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "V3Score": 7.5 }
+          }
+        }
+      ]
+    },
+    {
+      "Target": "Python",
+      "Class": "lang-pkgs",
+      "Type": "python-pkg",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2025-22457",
+          "PkgName": "cryptography",
+          "InstalledVersion": "3.4.7",
+          "FixedVersion": "42.0.4",
+          "Layer": { "DiffID": "sha256:c3d4e5f6a7b8" },
+          "SeveritySource": "ghsa",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2025-22457",
+          "Title": "cryptography: NULL pointer dereference in PKCS12 parsing",
+          "Severity": "CRITICAL",
+          "CVSS": {
+            "ghsa": { "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "V3Score": 9.8 }
+          }
+        },
+        {
+          "VulnerabilityID": "CVE-2024-26130",
+          "PkgName": "cryptography",
+          "InstalledVersion": "3.4.7",
+          "FixedVersion": "42.0.4",
+          "SeveritySource": "ghsa",
+          "Title": "cryptography: NULL dereference preparing a PKCS#12 key and certificate",
+          "Severity": "HIGH",
+          "CVSS": {
+            "ghsa": { "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H", "V3Score": 7.5 }
+          }
+        },
+        {
+          "VulnerabilityID": "CVE-2024-12797",
+          "PkgName": "cryptography",
+          "InstalledVersion": "3.4.7",
+          "FixedVersion": "44.0.1",
+          "SeveritySource": "ghsa",
+          "Title": "OpenSSL: RFC7250 handshakes with unauthenticated servers — clients may skip server verification",
+          "Severity": "HIGH",
+          "CVSS": {
+            "ghsa": { "V3Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N", "V3Score": 7.4 }
+          }
+        },
+        {
+          "VulnerabilityID": "CVE-2024-0727",
+          "PkgName": "cryptography",
+          "InstalledVersion": "3.4.7",
+          "FixedVersion": "42.0.4",
+          "SeveritySource": "ghsa",
+          "Title": "openssl: denial of service via null dereference",
+          "Severity": "MEDIUM",
+          "CVSS": {
+            "ghsa": { "V3Vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H", "V3Score": 5.5 }
+          }
+        }
+      ]
+    },
+    {
+      "Target": "Dockerfile",
+      "Class": "config",
+      "Type": "dockerfile",
+      "Misconfigurations": [
+        {
+          "Type": "Dockerfile Security Check",
+          "ID": "DS002",
+          "AVDID": "AVD-DS-0002",
+          "Title": "Image user should not be 'root'",
+          "Description": "Running containers as root is a significant security risk. If code execution happens in the container, an attacker has root level access.",
+          "Message": "Specify a user in the Dockerfile: USER <non-root-user>",
+          "Namespace": "builtin.dockerfile.DS002",
+          "Query": "data.builtin.dockerfile.DS002.deny",
+          "Resolution": "Add 'USER <non root user name>' to the Dockerfile",
+          "Severity": "HIGH",
+          "Status": "FAIL",
+          "Layer": { "DiffID": "" },
+          "CauseMetadata": { "StartLine": 1, "EndLine": 34, "Code": { "Lines": [{ "Number": 1, "Content": "FROM python:3.8", "IsCause": true }] } }
+        },
+        {
+          "Type": "Dockerfile Security Check",
+          "ID": "DS001",
+          "AVDID": "AVD-DS-0001",
+          "Title": "Add no new privileges",
+          "Description": "Docker best practice is to set the no-new-privileges flag to prevent the container from gaining new privileges during execution.",
+          "Message": "Set '--security-opt=no-new-privileges:true' or use securityContext.allowPrivilegeEscalation: false",
+          "Severity": "MEDIUM",
+          "Status": "FAIL"
+        },
+        {
+          "Type": "Dockerfile Security Check",
+          "ID": "DS026",
+          "AVDID": "AVD-DS-0026",
+          "Title": "No HEALTHCHECK defined",
+          "Description": "You should add a HEALTHCHECK instruction to your Dockerfile to allow container orchestration to determine container status.",
+          "Severity": "LOW",
+          "Status": "FAIL"
+        },
+        {
+          "Type": "Dockerfile Security Check",
+          "ID": "DS013",
+          "AVDID": "AVD-DS-0013",
+          "Title": "RUN using 'sudo' is not allowed",
+          "Message": "RUN sudo apt-get install -y curl",
+          "Description": "Use of sudo is not allowed in a Dockerfile. Use the USER instruction instead.",
+          "Severity": "HIGH",
+          "Status": "FAIL",
+          "CauseMetadata": { "StartLine": 12, "EndLine": 12, "Code": { "Lines": [{ "Number": 12, "Content": "RUN sudo apt-get install -y curl wget netcat", "IsCause": true }] } }
+        }
+      ]
+    },
+    {
+      "Target": "k8s/payment-service-deployment.yaml",
+      "Class": "config",
+      "Type": "kubernetes",
+      "Misconfigurations": [
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV001",
+          "AVDID": "AVD-KSV-0001",
+          "Title": "Process can elevate its own privileges",
+          "Description": "A program inside the container can elevate its own privileges and run as root, which might give the program control over the container and node.",
+          "Message": "Container 'payment-api' of Deployment 'payment-service' should set 'securityContext.allowPrivilegeEscalation' to false",
+          "Severity": "MEDIUM",
+          "Status": "FAIL"
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV003",
+          "AVDID": "AVD-KSV-0003",
+          "Title": "Default capabilities not dropped",
+          "Description": "The container should drop all default capabilities and add only those that are needed for its execution.",
+          "Message": "Container 'payment-api' of Deployment 'payment-service' should add 'ALL' to 'securityContext.capabilities.drop'",
+          "Severity": "LOW",
+          "Status": "FAIL"
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV011",
+          "AVDID": "AVD-KSV-0011",
+          "Title": "CPU not limited",
+          "Description": "Enforcing CPU limits prevents DoS via resource exhaustion.",
+          "Message": "Container 'payment-api' of Deployment 'payment-service' should set 'resources.limits.cpu'",
+          "Severity": "LOW",
+          "Status": "FAIL"
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV014",
+          "AVDID": "AVD-KSV-0014",
+          "Title": "Root filesystem is not read-only",
+          "Description": "An immutable root filesystem can prevent malicious binaries being added to PATH and increase attack cost.",
+          "Message": "Container 'payment-api' of Deployment 'payment-service' should set 'securityContext.readOnlyRootFilesystem' to true",
+          "Severity": "LOW",
+          "Status": "FAIL"
+        },
+        {
+          "Type": "Kubernetes Security Check",
+          "ID": "KSV020",
+          "AVDID": "AVD-KSV-0020",
+          "Title": "Runs with low user ID",
+          "Description": "Force the container to run with user ID > 10000 to avoid conflicts with the host's user table.",
+          "Message": "Container 'payment-api' of Deployment 'payment-service' should set 'securityContext.runAsUser' > 10000",
+          "Severity": "LOW",
+          "Status": "FAIL"
+        }
+      ]
+    }
+  ]
+}

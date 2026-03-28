@@ -66,7 +66,7 @@ export default function CompliancePage() {
           <Link
             key={mod.href}
             href={mod.href}
-            className="group rounded-lg border border-gray-200 bg-white p-6 transition-shadow hover:shadow-md"
+            className="group rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 transition-shadow hover:shadow-md"
           >
             <div className="flex items-start gap-4">
               {mod.icon}

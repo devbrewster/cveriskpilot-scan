@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+    <linearGradient id="purple" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bg2)"/>
+
+  <!-- Hex logo mark -->
+  <g transform="translate(80, 40)">
+    <polygon points="22,0 44,12 44,36 22,48 0,36 0,12" fill="none" stroke="#0ee6f6" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="22,8 36,16 36,32 22,40 8,32 8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2" opacity="0.8"/>
+    <line x1="22" y1="4" x2="22" y2="18" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="22" y1="30" x2="22" y2="44" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="4" y1="24" x2="18" y2="24" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="26" y1="24" x2="40" y2="24" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <circle cx="22" cy="24" r="3" fill="#0ee6f6"/>
+    <path d="M12,10 L8,12 L8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M32,10 L36,12 L36,16" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M12,38 L8,36 L8,32" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M32,38 L36,36 L36,32" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+  </g>
+  <text x="140" y="68" font-family="system-ui, sans-serif" font-size="20" font-weight="700">
+    <tspan fill="#94a3b8">CVE</tspan><tspan fill="#0ee6f6">RiskPilot</tspan>
+  </text>
+
+  <!-- Title -->
+  <text x="600" y="135" text-anchor="middle" font-family="system-ui, sans-serif" font-size="40" font-weight="800" fill="white">How It Works</text>
+  <text x="600" y="170" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" fill="#64748b">From raw scan to prioritized action in minutes</text>
+
+  <!-- Pipeline steps -->
+  <!-- Step 1: Upload -->
+  <g transform="translate(65, 220)">
+    <rect width="200" height="240" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <circle cx="100" cy="50" r="28" fill="url(#blue)" opacity="0.15"/>
+    <text x="100" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24">&#x2B06;</text>
+    <text x="100" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="url(#blue)">STEP 1</text>
+    <text x="100" y="124" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="700" fill="white">Upload</text>
+    <text x="100" y="150" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">Import scan results</text>
+    <text x="100" y="168" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">from any scanner</text>
+    <!-- Scanner badges -->
+    <rect x="16" y="185" width="55" height="20" rx="4" fill="#0f172a"/>
+    <text x="43" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#64748b">Nessus</text>
+    <rect x="77" y="185" width="50" height="20" rx="4" fill="#0f172a"/>
+    <text x="102" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#64748b">SARIF</text>
+    <rect x="133" y="185" width="50" height="20" rx="4" fill="#0f172a"/>
+    <text x="158" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#64748b">Qualys</text>
+    <rect x="16" y="210" width="73" height="20" rx="4" fill="#0f172a"/>
+    <text x="52" y="224" text-anchor="middle" font-family="monospace" font-size="9" fill="#64748b">CycloneDX</text>
+    <rect x="95" y="210" width="88" height="20" rx="4" fill="#0f172a"/>
+    <text x="139" y="224" text-anchor="middle" font-family="monospace" font-size="9" fill="#64748b">+7 more</text>
+  </g>
+
+  <!-- Arrow 1 -->
+  <g transform="translate(275, 330)">
+    <line x1="0" y1="0" x2="40" y2="0" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4,4" filter="url(#glow2)"/>
+    <polygon points="40,-5 50,0 40,5" fill="#3b82f6"/>
+  </g>
+
+  <!-- Step 2: Enrich -->
+  <g transform="translate(335, 220)">
+    <rect width="200" height="240" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <circle cx="100" cy="50" r="28" fill="url(#orange)" opacity="0.15"/>
+    <text x="100" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24">&#x1F50D;</text>
+    <text x="100" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="url(#orange)">STEP 2</text>
+    <text x="100" y="124" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="700" fill="white">Enrich</text>
+    <text x="100" y="150" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">Cross-reference with</text>
+    <text x="100" y="168" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">threat intelligence</text>
+    <rect x="16" y="185" width="55" height="20" rx="4" fill="#0f172a"/>
+    <text x="43" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#f59e0b">NVD</text>
+    <rect x="77" y="185" width="50" height="20" rx="4" fill="#0f172a"/>
+    <text x="102" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#f59e0b">EPSS</text>
+    <rect x="133" y="185" width="50" height="20" rx="4" fill="#0f172a"/>
+    <text x="158" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#f59e0b">KEV</text>
+    <rect x="35" y="210" width="130" height="20" rx="4" fill="#0f172a"/>
+    <text x="100" y="224" text-anchor="middle" font-family="monospace" font-size="9" fill="#f59e0b">Exploit DB</text>
+  </g>
+
+  <!-- Arrow 2 -->
+  <g transform="translate(545, 330)">
+    <line x1="0" y1="0" x2="40" y2="0" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="4,4" filter="url(#glow2)"/>
+    <polygon points="40,-5 50,0 40,5" fill="#8b5cf6"/>
+  </g>
+
+  <!-- Step 3: AI Triage -->
+  <g transform="translate(605, 220)">
+    <rect width="200" height="240" rx="16" fill="#1e293b" stroke="#8b5cf6" stroke-width="1" stroke-opacity="0.4"/>
+    <circle cx="100" cy="50" r="28" fill="url(#purple)" opacity="0.15"/>
+    <text x="100" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24">&#x1F916;</text>
+    <text x="100" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="url(#purple)">STEP 3</text>
+    <text x="100" y="124" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="700" fill="white">AI Triage</text>
+    <text x="100" y="150" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">Claude AI analyzes</text>
+    <text x="100" y="168" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">context + exploitability</text>
+    <rect x="16" y="185" width="168" height="20" rx="4" fill="#0f172a"/>
+    <text x="100" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#a78bfa">Risk Score Calculation</text>
+    <rect x="16" y="210" width="168" height="20" rx="4" fill="#0f172a"/>
+    <text x="100" y="224" text-anchor="middle" font-family="monospace" font-size="9" fill="#a78bfa">Remediation Plans</text>
+  </g>
+
+  <!-- Arrow 3 -->
+  <g transform="translate(815, 330)">
+    <line x1="0" y1="0" x2="40" y2="0" stroke="#22c55e" stroke-width="2" stroke-dasharray="4,4" filter="url(#glow2)"/>
+    <polygon points="40,-5 50,0 40,5" fill="#22c55e"/>
+  </g>
+
+  <!-- Step 4: Act -->
+  <g transform="translate(875, 220)">
+    <rect width="260" height="240" rx="16" fill="#1e293b" stroke="#22c55e" stroke-width="1" stroke-opacity="0.3"/>
+    <circle cx="130" cy="50" r="28" fill="url(#green)" opacity="0.15"/>
+    <text x="130" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24">&#x2705;</text>
+    <text x="130" y="100" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="url(#green)">STEP 4</text>
+    <text x="130" y="124" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="700" fill="white">Remediate</text>
+    <text x="130" y="150" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">Track, assign, and</text>
+    <text x="130" y="168" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">close with confidence</text>
+    <rect x="16" y="185" width="100" height="20" rx="4" fill="#0f172a"/>
+    <text x="66" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#4ade80">Jira Tickets</text>
+    <rect x="122" y="185" width="120" height="20" rx="4" fill="#0f172a"/>
+    <text x="182" y="199" text-anchor="middle" font-family="monospace" font-size="9" fill="#4ade80">POAM Export</text>
+    <rect x="16" y="210" width="100" height="20" rx="4" fill="#0f172a"/>
+    <text x="66" y="224" text-anchor="middle" font-family="monospace" font-size="9" fill="#4ade80">SLA Tracking</text>
+    <rect x="122" y="210" width="120" height="20" rx="4" fill="#0f172a"/>
+    <text x="182" y="224" text-anchor="middle" font-family="monospace" font-size="9" fill="#4ade80">Exec Reports</text>
+  </g>
+
+  <!-- Bottom stats -->
+  <g transform="translate(0, 520)">
+    <rect x="65" y="0" width="1070" height="80" rx="12" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+    <line x1="332" y1="16" x2="332" y2="64" stroke="#334155" stroke-width="0.5"/>
+    <line x1="600" y1="16" x2="600" y2="64" stroke="#334155" stroke-width="0.5"/>
+    <line x1="867" y1="16" x2="867" y2="64" stroke="#334155" stroke-width="0.5"/>
+
+    <text x="198" y="35" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="url(#blue)">11</text>
+    <text x="198" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#64748b">Scanner Formats</text>
+
+    <text x="466" y="35" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="url(#orange)">3</text>
+    <text x="466" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#64748b">Intel Sources</text>
+
+    <text x="733" y="35" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="url(#purple)">4</text>
+    <text x="733" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#64748b">AI Agents</text>
+
+    <text x="1000" y="35" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="url(#green)">5</text>
+    <text x="1000" y="56" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#64748b">Compliance Frameworks</text>
+  </g>
+
+  <!-- Footer line -->
+  <text x="600" y="645" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#475569">cveriskpilot.com | 100% Veteran Owned</text>
+  <rect x="0" y="670" width="1200" height="5" fill="url(#blue)"/>
+</svg>

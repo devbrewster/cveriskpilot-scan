@@ -16,7 +16,7 @@ interface ApiKeysProps {
   organizationId: string;
 }
 
-export function ApiKeys({ organizationId }: ApiKeysProps) {
+export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
   const [keys, setKeys] = useState<ApiKeyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -203,7 +203,7 @@ export function ApiKeys({ organizationId }: ApiKeysProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded bg-white px-3 py-2 text-sm font-mono text-gray-900 border border-amber-200 select-all">
+            <code className="flex-1 rounded bg-white dark:bg-gray-900 px-3 py-2 text-sm font-mono text-gray-900 border border-amber-200 select-all">
               {newKeyResult.key}
             </code>
             <button
@@ -228,7 +228,7 @@ export function ApiKeys({ organizationId }: ApiKeysProps) {
       {showCreateModal && (
         <form
           onSubmit={handleCreate}
-          className="rounded-lg border border-gray-200 bg-white p-6 space-y-4"
+          className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 space-y-4"
         >
           <h3 className="text-md font-semibold text-gray-900">Create New API Key</h3>
 
@@ -292,7 +292,7 @@ export function ApiKeys({ organizationId }: ApiKeysProps) {
             <button
               type="button"
               onClick={() => setShowCreateModal(false)}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>

@@ -1,7 +1,7 @@
 const stats = [
   { value: "8,000+", label: "CVEs processed per scan", sublabel: "in under 90 seconds" },
   { value: "11", label: "Scanner formats supported", sublabel: "Nessus, SARIF, CycloneDX, and more" },
-  { value: "50%", label: "Faster remediation", sublabel: "with AI-powered fix guidance" },
+  { value: "6", label: "Compliance frameworks", sublabel: "NIST, SOC 2, CMMC, FedRAMP, ASVS, SSDF" },
 ];
 
 export function SocialProof() {

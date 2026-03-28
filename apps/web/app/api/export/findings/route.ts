@@ -1,6 +1,7 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/export/findings — Export findings as CSV
@@ -8,6 +9,11 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
 
     const severity = searchParams.get('severity');
@@ -16,14 +22,11 @@ export async function GET(request: NextRequest) {
     const kevOnly = searchParams.get('kevOnly');
     const epssMin = searchParams.get('epssMin');
     const search = searchParams.get('search');
-    const organizationId = searchParams.get('organizationId');
 
     // Build where clause (same logic as findings list route)
-    const where: Prisma.FindingWhereInput = {};
-
-    if (organizationId) {
-      where.organizationId = organizationId;
-    }
+    const where: Prisma.FindingWhereInput = {
+      organizationId: session.organizationId,
+    };
 
     if (scannerType) {
       where.scannerType = scannerType as any;

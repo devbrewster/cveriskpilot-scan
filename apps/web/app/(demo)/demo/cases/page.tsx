@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { demoCases } from '@/lib/demo-data';
-import type { Severity, CaseStatus } from '@/lib/types';
+import { SeverityBadge, StatusBadge, KevBadge } from '@/components/ui/badges';
 
 /* ------------------------------------------------------------------ */
 /* Constants                                                          */
@@ -27,45 +28,12 @@ const STATUS_OPTIONS = [
   { value: 'FALSE_POSITIVE', label: 'False Positive' },
 ];
 
-const statusColors: Record<string, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  TRIAGE: 'bg-purple-100 text-purple-800',
-  IN_REMEDIATION: 'bg-yellow-100 text-yellow-800',
-  ACCEPTED_RISK: 'bg-orange-100 text-orange-800',
-  VERIFIED_CLOSED: 'bg-green-100 text-green-800',
-  FALSE_POSITIVE: 'bg-gray-100 text-gray-600',
-};
-
-const statusLabels: Record<string, string> = {
-  NEW: 'New',
-  TRIAGE: 'Triage',
-  IN_REMEDIATION: 'In Remediation',
-  ACCEPTED_RISK: 'Accepted Risk',
-  VERIFIED_CLOSED: 'Verified & Closed',
-  FALSE_POSITIVE: 'False Positive',
-};
-
-const severityStyles: Record<Severity, string> = {
-  CRITICAL: 'bg-red-100 text-red-800 ring-red-600/20',
-  HIGH: 'bg-orange-100 text-orange-800 ring-orange-600/20',
-  MEDIUM: 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
-  LOW: 'bg-blue-100 text-blue-800 ring-blue-600/20',
-  INFO: 'bg-gray-100 text-gray-700 ring-gray-600/20',
-};
-
-const severityDots: Record<Severity, string> = {
-  CRITICAL: 'bg-red-500',
-  HIGH: 'bg-orange-500',
-  MEDIUM: 'bg-yellow-500',
-  LOW: 'bg-blue-500',
-  INFO: 'bg-gray-400',
-};
-
 /* ------------------------------------------------------------------ */
 /* Page                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function DemoCasesPage() {
+  const router = useRouter();
   const [severityFilter, setSeverityFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -175,7 +143,7 @@ export default function DemoCasesPage() {
               </tr>
             ) : (
               filteredCases.map((c) => (
-                <tr key={c.id} className="transition-colors hover:bg-gray-50">
+                <tr key={c.id} className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/demo/cases/${c.id}`)}>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-mono text-gray-600">
                     {c.id}
                   </td>
@@ -183,12 +151,7 @@ export default function DemoCasesPage() {
                     {c.title}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${severityStyles[c.severity]}`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${severityDots[c.severity]}`} />
-                      {c.severity}
-                    </span>
+                    <SeverityBadge severity={c.severity} />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-mono text-gray-700">
                     {c.cvssScore.toFixed(1)}
@@ -197,23 +160,10 @@ export default function DemoCasesPage() {
                     {(c.epssScore * 100).toFixed(1)}%
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    {c.kevListed ? (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
-                        <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        KEV
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400">--</span>
-                    )}
+                    <KevBadge listed={c.kevListed} />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${statusColors[c.status] ?? 'bg-gray-100 text-gray-600'}`}
-                    >
-                      {statusLabels[c.status] ?? c.status}
-                    </span>
+                    <StatusBadge status={c.status} />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                     {c.assignedTo}

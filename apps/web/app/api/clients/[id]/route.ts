@@ -15,6 +15,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const { id } = await context.params;
 
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const client = await prisma.client.findUnique({
       where: { id },
       include: {
@@ -62,6 +66,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { name, isActive } = body;
 
@@ -121,6 +130,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
 
     const existing = await prisma.client.findUnique({ where: { id } });
     if (!existing || existing.deletedAt) {

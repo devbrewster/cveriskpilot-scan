@@ -1,6 +1,5 @@
 'use client';
 
-import { useAuth } from '@/lib/auth-context';
 import { RoleGuard } from '@/components/auth/role-guard';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card } from '@/components/ui/card';
@@ -19,8 +18,6 @@ const SYSTEM_ACTIONS = [
 ];
 
 export default function AdminPage() {
-  const { role } = useAuth();
-
   return (
     <RoleGuard permission="platform:admin">
       <div className="space-y-8">
@@ -37,7 +34,7 @@ export default function AdminPage() {
           <StatCard label="Total Organizations" value="—" />
           <StatCard label="Active Sessions" value="—" />
           <StatCard label="Total Users" value="—" />
-          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 shadow-sm">
             <p className="text-sm font-medium text-gray-500">System Health</p>
             <div className="mt-2 flex items-center gap-2">
               <span className="inline-block h-3 w-3 rounded-full bg-green-500" />
@@ -93,7 +90,7 @@ export default function AdminPage() {
                   aria-label={`${flag.name} toggle (visual only)`}
                 >
                   <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-900 shadow ring-0 transition-transform ${
                       flag.enabled ? 'translate-x-5' : 'translate-x-0'
                     }`}
                   />

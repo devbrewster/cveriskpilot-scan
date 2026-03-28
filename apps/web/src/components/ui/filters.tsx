@@ -19,8 +19,8 @@ export function FilterPill({ label, active = false, onToggle, onRemove }: Filter
       onClick={onToggle}
       className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
         active
-          ? 'bg-primary-100 text-primary-800 ring-1 ring-primary-300'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ? 'bg-primary-100 text-primary-800 ring-1 ring-primary-300 dark:bg-primary-900/30 dark:text-primary-400 dark:ring-primary-700'
+          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
       }`}
     >
       {label}
@@ -31,7 +31,7 @@ export function FilterPill({ label, active = false, onToggle, onRemove }: Filter
             e.stopPropagation();
             onRemove();
           }}
-          className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-primary-200"
+          className="ml-0.5 inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-primary-200 dark:hover:bg-primary-800"
         >
           <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -54,11 +54,11 @@ interface FilterDropdownProps {
 export function FilterDropdown({ label, options, value, onChange }: FilterDropdownProps) {
   return (
     <div className="flex items-center gap-2">
-      <label className="text-xs font-medium text-gray-500 whitespace-nowrap">{label}</label>
+      <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -99,7 +99,7 @@ export function FilterSearch({ value, onChange, placeholder = 'Search...' }: Fil
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-md border border-gray-300 bg-white py-1.5 pl-9 pr-3 text-sm text-gray-700 placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 py-1.5 pl-9 pr-3 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
       />
     </div>
   );
@@ -116,18 +116,18 @@ interface FilterToggleProps {
 export function FilterToggle({ label, checked, onChange }: FilterToggleProps) {
   return (
     <label className="inline-flex cursor-pointer items-center gap-2">
-      <span className="text-xs font-medium text-gray-500 whitespace-nowrap">{label}</span>
+      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">{label}</span>
       <button
         type="button"
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${
-          checked ? 'bg-primary-600' : 'bg-gray-200'
+          checked ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
         }`}
       >
         <span
-          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition-transform ${
+          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-900 shadow-sm ring-0 transition-transform ${
             checked ? 'translate-x-4' : 'translate-x-0'
           }`}
         />
@@ -166,7 +166,7 @@ export function FilterSlider({
 
   return (
     <div className="flex items-center gap-2">
-      <label className="text-xs font-medium text-gray-500 whitespace-nowrap">{label}</label>
+      <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">{label}</label>
       <input
         ref={inputRef}
         type="range"
@@ -179,9 +179,9 @@ export function FilterSlider({
           _setLocalValue(v);
           onChange(v);
         }}
-        className="h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-gray-200 accent-primary-600"
+        className="h-1.5 w-24 cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 accent-primary-600"
       />
-      <span className="min-w-[3rem] text-xs font-medium text-gray-700">{formatValue(_localValue)}</span>
+      <span className="min-w-[3rem] text-xs font-medium text-gray-700 dark:text-gray-300">{formatValue(_localValue)}</span>
     </div>
   );
 }

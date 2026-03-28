@@ -13,6 +13,7 @@ describe('config', () => {
         max_assets: 50,
         max_monthly_uploads: 3,
         max_ai_calls: 50,
+        features: ['api_access'],
       });
     });
 
@@ -22,6 +23,7 @@ describe('config', () => {
         max_assets: 500,
         max_monthly_uploads: 'unlimited',
         max_ai_calls: 500,
+        features: ['api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view', 'scheduled_reports'],
       });
     });
 
@@ -31,16 +33,29 @@ describe('config', () => {
         max_assets: 5000,
         max_monthly_uploads: 'unlimited',
         max_ai_calls: 5000,
+        features: [
+          'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',
+          'scheduled_reports', 'sso', 'custom_parsers', 'multi_client',
+        ],
       });
     });
 
     it('has correct MSSP entitlements', () => {
       expect(TIER_ENTITLEMENTS.MSSP).toEqual({
-        max_users: 200,
+        max_users: 'unlimited',
         max_assets: 'unlimited',
         max_monthly_uploads: 'unlimited',
-        max_ai_calls: 10000,
+        max_ai_calls: 'unlimited',
+        features: [
+          'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',
+          'scheduled_reports', 'sso', 'custom_parsers', 'multi_client', 'white_label',
+        ],
       });
+    });
+
+    it('has FOUNDERS_BETA tier', () => {
+      expect(TIER_ENTITLEMENTS.FOUNDERS_BETA.max_users).toBe(5);
+      expect(TIER_ENTITLEMENTS.FOUNDERS_BETA.max_ai_calls).toBe(250);
     });
   });
 

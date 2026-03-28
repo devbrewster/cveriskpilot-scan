@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import {
   authenticateWithCredentials,
@@ -65,11 +66,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Look up the user's role and email for session data
+    // Look up the user's role, email, and MFA status for session data
     const user = await (prisma as any).user.findUnique({
       where: { id: result.userId },
-      select: { role: true, email: true },
+      select: { role: true, email: true, mfaEnabled: true },
     });
+
+    // If MFA is enabled, return a challenge instead of a full session
+    if (user?.mfaEnabled) {
+      // Generate a cryptographically random temp session ID
+      const nonce = crypto.randomBytes(16).toString('hex');
+      const tempSessionId = `mfa:${result.userId}:${nonce}`;
+
+      return NextResponse.json({
+        mfaRequired: true,
+        tempSessionId,
+      });
+    }
 
     // Create session in Redis (graceful fallback if unavailable)
     let sessionId: string | null = null;
@@ -84,25 +97,21 @@ export async function POST(request: NextRequest) {
       // Redis not available — session will not be persisted server-side
     }
 
+    // Session creation is required — no insecure fallback
+    if (!sessionId) {
+      console.error('[API] POST /api/auth/login: Redis unavailable, cannot create session');
+      return NextResponse.json(
+        { error: 'Session service unavailable. Please try again.' },
+        { status: 503 },
+      );
+    }
+
     const response = NextResponse.json({
       success: true,
       userId: result.userId,
-      organizationId: result.organizationId,
     });
 
-    // Set session cookie
-    if (sessionId) {
-      setSessionCookie(response, sessionId);
-    } else {
-      // Fallback: set a basic cookie so the client knows auth succeeded
-      response.cookies.set('crp_session', result.userId!, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 86400,
-      });
-    }
+    setSessionCookie(response, sessionId);
 
     return response;
   } catch (error) {

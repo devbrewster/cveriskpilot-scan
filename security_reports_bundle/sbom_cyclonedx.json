@@ -1,0 +1,236 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:8f14e45f-ceea-367f-a027-d4e4c3d3e4f5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-03-11T09:30:00Z",
+    "tools": [
+      {
+        "vendor": "Anchore",
+        "name": "Syft",
+        "version": "1.3.0"
+      }
+    ],
+    "authors": [{ "name": "DevSecOps Pipeline", "email": "devsecops@corp.internal" }],
+    "component": {
+      "type": "container",
+      "bom-ref": "pkg:oci/payment-service@sha256:7f3d9c1a2b4e5f6a8c9d0e1f2a3b4c5d6e7f",
+      "name": "payment-service",
+      "version": "2.14.1",
+      "purl": "pkg:oci/payment-service@sha256:7f3d9c1a2b4e5f6a8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b"
+    },
+    "properties": [
+      { "name": "syft:distro:name", "value": "debian" },
+      { "name": "syft:distro:version", "value": "11" },
+      { "name": "syft:distro:id-like", "value": "debian" },
+      { "name": "build:pipeline", "value": "github-actions" },
+      { "name": "build:commit", "value": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0" },
+      { "name": "build:branch", "value": "main" },
+      { "name": "environment", "value": "production" }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/debian/openssl@1.1.1n-0+deb11u4",
+      "name": "openssl",
+      "version": "1.1.1n-0+deb11u4",
+      "purl": "pkg:deb/debian/openssl@1.1.1n-0+deb11u4?arch=amd64&distro=debian-11",
+      "licenses": [{ "license": { "id": "OpenSSL" } }],
+      "hashes": [
+        { "alg": "SHA-256", "content": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2" }
+      ],
+      "supplier": { "name": "Debian" },
+      "properties": [{ "name": "syft:package:type", "value": "deb" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/debian/openssh-server@1:8.9p1-3ubuntu0.6",
+      "name": "openssh-server",
+      "version": "1:8.9p1-3ubuntu0.6",
+      "purl": "pkg:deb/debian/openssh-server@1:8.9p1-3ubuntu0.6?arch=amd64&distro=debian-11",
+      "licenses": [{ "license": { "name": "OpenSSH" } }],
+      "hashes": [
+        { "alg": "SHA-256", "content": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3" }
+      ],
+      "properties": [{ "name": "syft:package:type", "value": "deb" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/debian/curl@7.74.0-1.3+deb11u11",
+      "name": "curl",
+      "version": "7.74.0-1.3+deb11u11",
+      "purl": "pkg:deb/debian/curl@7.74.0-1.3+deb11u11?arch=amd64&distro=debian-11",
+      "licenses": [{ "license": { "id": "curl" } }],
+      "properties": [{ "name": "syft:package:type", "value": "deb" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/cryptography@3.4.7",
+      "name": "cryptography",
+      "version": "3.4.7",
+      "purl": "pkg:pypi/cryptography@3.4.7",
+      "licenses": [
+        { "license": { "id": "Apache-2.0" } },
+        { "license": { "id": "BSD-3-Clause" } }
+      ],
+      "hashes": [
+        { "alg": "SHA-256", "content": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4" }
+      ],
+      "externalReferences": [
+        { "type": "website", "url": "https://cryptography.io" },
+        { "type": "vcs", "url": "https://github.com/pyca/cryptography" }
+      ],
+      "properties": [{ "name": "syft:package:type", "value": "python" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/requests@2.28.2",
+      "name": "requests",
+      "version": "2.28.2",
+      "purl": "pkg:pypi/requests@2.28.2",
+      "licenses": [{ "license": { "id": "Apache-2.0" } }],
+      "properties": [{ "name": "syft:package:type", "value": "python" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pydantic@1.10.12",
+      "name": "pydantic",
+      "version": "1.10.12",
+      "purl": "pkg:pypi/pydantic@1.10.12",
+      "licenses": [{ "license": { "id": "MIT" } }],
+      "properties": [{ "name": "syft:package:type", "value": "python" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/express@4.18.2",
+      "name": "express",
+      "version": "4.18.2",
+      "purl": "pkg:npm/express@4.18.2",
+      "licenses": [{ "license": { "id": "MIT" } }],
+      "hashes": [
+        { "alg": "SHA-512", "content": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6" }
+      ],
+      "properties": [{ "name": "syft:package:type", "value": "npm" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/ws@8.16.0",
+      "name": "ws",
+      "version": "8.16.0",
+      "purl": "pkg:npm/ws@8.16.0",
+      "licenses": [{ "license": { "id": "MIT" } }],
+      "properties": [{ "name": "syft:package:type", "value": "npm" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/follow-redirects@1.15.4",
+      "name": "follow-redirects",
+      "version": "1.15.4",
+      "purl": "pkg:npm/follow-redirects@1.15.4",
+      "licenses": [{ "license": { "id": "MIT" } }],
+      "properties": [{ "name": "syft:package:type", "value": "npm" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:golang/golang.org/x/net@0.10.0",
+      "name": "golang.org/x/net",
+      "version": "0.10.0",
+      "purl": "pkg:golang/golang.org/x/net@0.10.0",
+      "licenses": [{ "license": { "id": "BSD-3-Clause" } }],
+      "properties": [{ "name": "syft:package:type", "value": "go-module" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:golang/golang.org/x/crypto@0.18.0",
+      "name": "golang.org/x/crypto",
+      "version": "0.18.0",
+      "purl": "pkg:golang/golang.org/x/crypto@0.18.0",
+      "licenses": [{ "license": { "id": "BSD-3-Clause" } }],
+      "properties": [{ "name": "syft:package:type", "value": "go-module" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:golang/github.com/opencontainers/runc@1.1.9",
+      "name": "github.com/opencontainers/runc",
+      "version": "1.1.9",
+      "purl": "pkg:golang/github.com/opencontainers/runc@1.1.9",
+      "licenses": [{ "license": { "id": "Apache-2.0" } }],
+      "properties": [{ "name": "syft:package:type", "value": "go-module" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1",
+      "group": "org.apache.logging.log4j",
+      "name": "log4j-core",
+      "version": "2.14.1",
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1",
+      "licenses": [{ "license": { "id": "Apache-2.0" } }],
+      "hashes": [
+        { "alg": "SHA-256", "content": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6" }
+      ],
+      "properties": [{ "name": "syft:package:type", "value": "java-archive" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:maven/org.springframework.security/spring-security-core@5.7.9",
+      "group": "org.springframework.security",
+      "name": "spring-security-core",
+      "version": "5.7.9",
+      "purl": "pkg:maven/org.springframework.security/spring-security-core@5.7.9",
+      "licenses": [{ "license": { "id": "Apache-2.0" } }],
+      "properties": [{ "name": "syft:package:type", "value": "java-archive" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/django@3.2.20",
+      "name": "Django",
+      "version": "3.2.20",
+      "purl": "pkg:pypi/django@3.2.20",
+      "licenses": [{ "license": { "id": "BSD-3-Clause" } }],
+      "properties": [{ "name": "syft:package:type", "value": "python" }]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pillow@9.3.0",
+      "name": "Pillow",
+      "version": "9.3.0",
+      "purl": "pkg:pypi/pillow@9.3.0",
+      "licenses": [{ "license": { "id": "HPND" } }],
+      "properties": [{ "name": "syft:package:type", "value": "python" }]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:oci/payment-service@sha256:7f3d9c1a2b4e5f6a",
+      "dependsOn": [
+        "pkg:pypi/cryptography@3.4.7",
+        "pkg:pypi/requests@2.28.2",
+        "pkg:pypi/pydantic@1.10.12",
+        "pkg:pypi/django@3.2.20",
+        "pkg:npm/express@4.18.2",
+        "pkg:golang/golang.org/x/net@0.10.0",
+        "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+      ]
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": "CVE-2021-44228",
+      "bom-ref": "vuln-CVE-2021-44228",
+      "ratings": [{ "score": 10.0, "severity": "critical", "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H" }],
+      "description": "Log4Shell — JNDI injection via log message. Remote code execution without authentication.",
+      "detail": "log4j-core 2.14.1 is vulnerable to Log4Shell (CVE-2021-44228). The JndiLookup class allows attackers to trigger JNDI lookups from log messages. Fix: upgrade to 2.17.2+.",
+      "affects": [{ "ref": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1" }],
+      "published": "2021-12-10T00:00:00Z",
+      "updated": "2024-01-15T00:00:00Z"
+    }
+  ],
+  "compositions": [
+    {
+      "aggregate": "incomplete",
+      "assemblies": ["pkg:oci/payment-service@sha256:7f3d9c1a2b4e5f6a"]
+    }
+  ]
+}

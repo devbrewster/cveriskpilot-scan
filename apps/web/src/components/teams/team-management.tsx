@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/lib/auth-context';
 
 interface TeamMember {
   id: string;
@@ -25,6 +26,7 @@ interface Team {
 }
 
 export function TeamManagement() {
+  const { organizationId } = useAuth();
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +51,7 @@ export function TeamManagement() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/teams?organizationId=demo-org');
+      const res = await fetch(`/api/teams?organizationId=${organizationId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load');
       setTeams(data.teams || []);
@@ -58,11 +60,11 @@ export function TeamManagement() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [organizationId]);
 
   const fetchClients = useCallback(async () => {
     try {
-      const res = await fetch('/api/clients?organizationId=demo-org');
+      const res = await fetch(`/api/clients?organizationId=${organizationId}`);
       const data = await res.json();
       if (data.clients) {
         setAvailableClients(data.clients.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name })));
@@ -70,7 +72,7 @@ export function TeamManagement() {
     } catch {
       // Silent fail for client list
     }
-  }, []);
+  }, [organizationId]);
 
   useEffect(() => {
     fetchTeams();
@@ -86,7 +88,7 @@ export function TeamManagement() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          organizationId: 'demo-org',
+          organizationId,
           name: newName.trim(),
           description: newDescription.trim() || null,
         }),
@@ -213,7 +215,7 @@ export function TeamManagement() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => setShowCreate(false)} />
-          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900">Create New Team</h3>
             <form onSubmit={handleCreate} className="mt-4 space-y-4">
               <div>
@@ -242,7 +244,7 @@ export function TeamManagement() {
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -263,7 +265,7 @@ export function TeamManagement() {
       {addMemberTeamId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => setAddMemberTeamId(null)} />
-          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900">Add Team Member</h3>
             <form onSubmit={handleAddMember} className="mt-4 space-y-4">
               <div>
@@ -282,7 +284,7 @@ export function TeamManagement() {
                 <button
                   type="button"
                   onClick={() => setAddMemberTeamId(null)}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -303,7 +305,7 @@ export function TeamManagement() {
       {assignClientTeamId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => setAssignClientTeamId(null)} />
-          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900">Assign Client to Team</h3>
             <form onSubmit={handleAssignClient} className="mt-4 space-y-4">
               <div>
@@ -324,7 +326,7 @@ export function TeamManagement() {
                 <button
                   type="button"
                   onClick={() => setAssignClientTeamId(null)}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -371,7 +373,7 @@ export function TeamManagement() {
           {teams.map((team) => {
             const isExpanded = expandedTeam === team.id;
             return (
-              <div key={team.id} className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+              <div key={team.id} className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
                 {/* Team header */}
                 <div
                   className="flex cursor-pointer items-center justify-between px-5 py-4 transition-colors hover:bg-gray-50"
@@ -445,7 +447,7 @@ export function TeamManagement() {
                         ) : (
                           <ul className="space-y-2">
                             {team.members.map((m) => (
-                              <li key={m.id} className="flex items-center justify-between rounded-md bg-white px-3 py-2">
+                              <li key={m.id} className="flex items-center justify-between rounded-md bg-white dark:bg-gray-900 px-3 py-2">
                                 <div className="flex items-center gap-2">
                                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-700">
                                     {m.name.charAt(0).toUpperCase()}
@@ -486,7 +488,7 @@ export function TeamManagement() {
                         ) : (
                           <ul className="space-y-2">
                             {team.clients.map((c) => (
-                              <li key={c.id} className="flex items-center justify-between rounded-md bg-white px-3 py-2">
+                              <li key={c.id} className="flex items-center justify-between rounded-md bg-white dark:bg-gray-900 px-3 py-2">
                                 <div className="flex items-center gap-2">
                                   <span className="flex h-6 w-6 items-center justify-center rounded bg-green-100 text-xs font-medium text-green-700">
                                     {c.name.charAt(0).toUpperCase()}

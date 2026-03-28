@@ -61,3 +61,27 @@ variable "blocked_countries" {
   type        = list(string)
   default     = []
 }
+
+variable "vertex_project_id" {
+  description = "GCP project ID for Vertex AI (Claude via Vertex). Defaults to the main project_id if not set."
+  type        = string
+  default     = ""
+}
+
+variable "vertex_region" {
+  description = "GCP region for Vertex AI endpoint"
+  type        = string
+  default     = "us-central1"
+}
+
+variable "github_owner" {
+  description = "GitHub repository owner"
+  type        = string
+  default     = "cveriskpilot"
+}
+
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+  default     = "cveriskpilot"
+}

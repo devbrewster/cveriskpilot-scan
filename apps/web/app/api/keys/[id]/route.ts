@@ -18,6 +18,10 @@ export async function PUT(
 
     const { id } = await params;
 
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     // Verify the key belongs to the user's org
     const existing = await (prisma as any).apiKey.findFirst({
       where: { id, organizationId: session.organizationId },
@@ -74,6 +78,10 @@ export async function DELETE(
     }
 
     const { id } = await params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
 
     // Verify the key belongs to the user's org
     const existing = await (prisma as any).apiKey.findFirst({

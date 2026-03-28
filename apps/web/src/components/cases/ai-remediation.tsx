@@ -46,75 +46,6 @@ interface AiRemediationProps {
 }
 
 // ---------------------------------------------------------------------------
-// Mock data for development
-// ---------------------------------------------------------------------------
-
-function generateMockRemediation(caseData: CaseData): RemediationResult {
-  const cveLabel =
-    caseData.cveIds.length > 0 ? caseData.cveIds.join(', ') : 'this vulnerability';
-
-  return {
-    riskAssessment: `${caseData.severity} severity vulnerability (${cveLabel}) poses significant risk. ${
-      caseData.kevListed
-        ? 'This vulnerability is listed in CISA KEV, indicating active exploitation in the wild. '
-        : ''
-    }${
-      caseData.cvssScore && caseData.cvssScore >= 9.0
-        ? 'The CVSS score indicates maximum impact across confidentiality, integrity, and availability. '
-        : ''
-    }${
-      caseData.epssScore && caseData.epssScore > 0.5
-        ? `With an EPSS score of ${(caseData.epssScore * 100).toFixed(1)}%, there is a high probability of exploitation within the next 30 days. `
-        : ''
-    }Immediate remediation is strongly recommended.`,
-    immediateActions: [
-      'Apply vendor-provided security patches or upgrade to the latest stable version',
-      'If patching is not immediately possible, implement recommended workarounds or mitigations',
-      'Review access logs for indicators of compromise or exploitation attempts',
-      'Restrict network access to affected systems where possible',
-      'Enable enhanced monitoring and alerting on affected assets',
-    ],
-    permanentFix: {
-      description:
-        'Upgrade the affected component to the latest patched version. Ensure all instances across the environment are updated consistently.',
-      codeExample:
-        caseData.cveIds.includes('CVE-2021-44228')
-          ? '# For Log4j (CVE-2021-44228):\n# Upgrade to Log4j 2.17.1+\nmvn versions:use-latest-versions -Dincludes=org.apache.logging.log4j\n\n# Or set mitigation flag:\n-Dlog4j2.formatMsgNoLookups=true'
-          : undefined,
-      configChange:
-        'Review and harden the configuration of affected services. Disable unnecessary features that expand the attack surface.',
-    },
-    verificationSteps: [
-      'Run a vulnerability scan to confirm the issue is resolved',
-      'Verify the patched version is deployed across all affected assets',
-      'Check application logs to ensure normal operation after patching',
-      'Confirm no regression in functionality after the fix',
-    ],
-    references: [
-      ...(caseData.cveIds.length > 0
-        ? caseData.cveIds.map(
-            (cve) => `https://nvd.nist.gov/vuln/detail/${cve}`,
-          )
-        : []),
-      'https://www.cisa.gov/known-exploited-vulnerabilities-catalog',
-    ],
-    estimatedEffort:
-      caseData.severity === 'CRITICAL' || caseData.severity === 'HIGH'
-        ? 'medium'
-        : 'low',
-    priority:
-      caseData.kevListed || caseData.severity === 'CRITICAL'
-        ? 'immediate'
-        : caseData.severity === 'HIGH'
-          ? 'short-term'
-          : 'long-term',
-    raw: '(mock response)',
-    model: 'claude-sonnet-4-20250514 (simulated)',
-    generatedAt: new Date().toISOString(),
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
 
@@ -196,7 +127,7 @@ function Spinner() {
 // ---------------------------------------------------------------------------
 
 export function AiRemediation({
-  caseId: _caseId,
+  caseId,
   caseData,
   existingAdvisory,
 }: AiRemediationProps) {
@@ -210,29 +141,25 @@ export function AiRemediation({
     setError(null);
 
     try {
-      // Simulate API call with 3-second delay (replace with real call later)
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const mockResult = generateMockRemediation(caseData);
+      const res = await fetch('/api/ai/remediation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caseId, caseData }),
+      });
 
-      // When the API is live, use this instead:
-      // const res = await fetch('/api/ai/remediation', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ caseId, caseData }),
-      // });
-      // if (!res.ok) {
-      //   const err = await res.json();
-      //   throw new Error(err.error ?? `Request failed (${res.status})`);
-      // }
-      // const mockResult = await res.json();
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: `Request failed (${res.status})` }));
+        throw new Error(body.error ?? `Request failed (${res.status})`);
+      }
 
-      setResult(mockResult);
+      const data: RemediationResult = await res.json();
+      setResult(data);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to generate remediation');
     } finally {
       setLoading(false);
     }
-  }, [caseData]);
+  }, [caseId, caseData]);
 
   const handleCopyToClipboard = useCallback(async () => {
     if (!result) return;
@@ -357,7 +284,7 @@ export function AiRemediation({
 
       {/* Immediate Actions */}
       {result.immediateActions.length > 0 && (
-        <div className="rounded-md border border-gray-200 bg-white p-4">
+        <div className="rounded-md border border-gray-200 bg-white dark:bg-gray-900 p-4">
           <h4 className="text-sm font-semibold text-gray-900">
             Immediate Actions
           </h4>
@@ -372,7 +299,7 @@ export function AiRemediation({
       )}
 
       {/* Permanent Fix */}
-      <div className="rounded-md border border-gray-200 bg-white p-4">
+      <div className="rounded-md border border-gray-200 bg-white dark:bg-gray-900 p-4">
         <h4 className="text-sm font-semibold text-gray-900">Permanent Fix</h4>
         <p className="mt-1 text-sm text-gray-700">
           {result.permanentFix.description}
@@ -396,7 +323,7 @@ export function AiRemediation({
 
       {/* Verification Steps */}
       {result.verificationSteps.length > 0 && (
-        <div className="rounded-md border border-gray-200 bg-white p-4">
+        <div className="rounded-md border border-gray-200 bg-white dark:bg-gray-900 p-4">
           <h4 className="text-sm font-semibold text-gray-900">
             Verification Steps
           </h4>
@@ -412,7 +339,7 @@ export function AiRemediation({
 
       {/* References */}
       {result.references.length > 0 && (
-        <div className="rounded-md border border-gray-200 bg-white p-4">
+        <div className="rounded-md border border-gray-200 bg-white dark:bg-gray-900 p-4">
           <h4 className="text-sm font-semibold text-gray-900">References</h4>
           <ul className="mt-2 list-inside list-disc space-y-1">
             {result.references.map((ref, idx) => (
@@ -437,7 +364,7 @@ export function AiRemediation({
           type="button"
           onClick={fetchRemediation}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-md border border-purple-300 bg-white px-3 py-1.5 text-sm font-medium text-purple-700 hover:bg-purple-50"
+          className="inline-flex items-center gap-2 rounded-md border border-purple-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-purple-700 hover:bg-purple-50"
         >
           <SparkleIcon className="h-4 w-4" />
           Regenerate
@@ -445,7 +372,7 @@ export function AiRemediation({
         <button
           type="button"
           onClick={handleCopyToClipboard}
-          className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           <svg
             className="h-4 w-4"

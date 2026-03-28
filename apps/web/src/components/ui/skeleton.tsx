@@ -32,9 +32,9 @@ interface SkeletonCardProps {
 
 export function SkeletonCard({ className = '', hasHeader = true, lines = 2 }: SkeletonCardProps) {
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white shadow-sm ${className}`}>
+    <div className={`rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm ${className}`}>
       {hasHeader && (
-        <div className="border-b border-gray-100 px-6 py-4">
+        <div className="border-b border-gray-100 dark:border-gray-800 px-6 py-4">
           <div className="h-5 w-1/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
           <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
         </div>
@@ -54,9 +54,9 @@ interface SkeletonTableProps {
 
 export function SkeletonTable({ rows = 5, columns = 4, className = '' }: SkeletonTableProps) {
   return (
-    <div className={`overflow-hidden rounded-lg border border-gray-200 bg-white ${className}`}>
+    <div className={`overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 ${className}`}>
       {/* Header */}
-      <div className="flex gap-4 border-b border-gray-200 bg-gray-50 px-6 py-3">
+      <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-6 py-3">
         {Array.from({ length: columns }).map((_, i) => (
           <div
             key={i}
@@ -68,7 +68,7 @@ export function SkeletonTable({ rows = 5, columns = 4, className = '' }: Skeleto
       {Array.from({ length: rows }).map((_, rowIdx) => (
         <div
           key={rowIdx}
-          className="flex gap-4 border-b border-gray-100 px-6 py-4 last:border-b-0"
+          className="flex gap-4 border-b border-gray-100 dark:border-gray-800 px-6 py-4 last:border-b-0"
         >
           {Array.from({ length: columns }).map((_, colIdx) => (
             <div
@@ -91,9 +91,9 @@ interface SkeletonChartProps {
 export function SkeletonChart({ className = '', height = 'h-64' }: SkeletonChartProps) {
   return (
     <div
-      className={`flex items-end gap-2 rounded-lg border border-gray-200 bg-white p-6 ${height} ${className}`}
+      className={`flex items-end gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 ${height} ${className}`}
     >
-      {[40, 65, 45, 80, 55, 70, 50, 75, 60, 85, 45, 70].map((h, i) => (
+      {[40, 65, 45, 80, 55, 70, 50, 75, 60, 85, 45, 70].map((h: number, i: number) => (
         <div
           key={i}
           className="flex-1 animate-pulse rounded-t bg-gray-200 dark:bg-gray-700"
@@ -110,7 +110,7 @@ export function SkeletonDashboard() {
       {/* Stat cards row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div key={i} className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-sm">
             <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
             <div className="mt-3 h-8 w-1/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
             <div className="mt-2 h-3 w-2/3 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />

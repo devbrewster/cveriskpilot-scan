@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useClientContext } from '@/lib/client-context';
+import { useAuth } from '@/lib/auth-context';
 
 interface PortfolioClient {
   clientId: string;
@@ -33,6 +34,7 @@ type SortField = 'clientName' | 'riskScore' | 'criticalCount' | 'highCount' | 'o
 
 export function PortfolioDashboard() {
   const { setActiveClient } = useClientContext();
+  const { organizationId } = useAuth();
   const [portfolio, setPortfolio] = useState<PortfolioClient[]>([]);
   const [totals, setTotals] = useState<PortfolioTotals | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export function PortfolioDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/portfolio?organizationId=demo-org');
+      const res = await fetch(`/api/portfolio?organizationId=${organizationId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load');
       setPortfolio(data.portfolio || []);
@@ -54,7 +56,7 @@ export function PortfolioDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [organizationId]);
 
   useEffect(() => {
     fetchPortfolio();
@@ -145,27 +147,27 @@ export function PortfolioDashboard() {
       {/* Summary cards */}
       {totals && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">Total Clients</p>
             <p className="mt-1 text-2xl font-bold text-gray-900">{totals.totalClients}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">Total Findings</p>
             <p className="mt-1 text-2xl font-bold text-gray-900">{totals.totalFindings}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">Total Cases</p>
             <p className="mt-1 text-2xl font-bold text-gray-900">{totals.totalCases}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <p className="text-xs font-medium text-red-600">Critical</p>
             <p className="mt-1 text-2xl font-bold text-red-700">{totals.totalCritical}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">Open Cases</p>
             <p className="mt-1 text-2xl font-bold text-gray-900">{totals.totalOpenCases}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-500">SLA Breaches</p>
             <p className={`mt-1 text-2xl font-bold ${totals.totalSlaBreaches > 0 ? 'text-red-700' : 'text-green-700'}`}>
               {totals.totalSlaBreaches}
@@ -199,7 +201,7 @@ export function PortfolioDashboard() {
 
       {/* Portfolio table */}
       {!loading && portfolio.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

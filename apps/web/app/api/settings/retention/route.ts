@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // In-memory retention policy store (per org)
@@ -30,8 +31,12 @@ const retentionPolicies: Record<string, RetentionPolicy> = {};
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') ?? 'org-default';
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const organizationId = session.organizationId;
 
     const policy = retentionPolicies[organizationId] ?? DEFAULT_POLICY;
 
@@ -51,8 +56,12 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') ?? 'org-default';
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const organizationId = session.organizationId;
 
     const body = await request.json();
 

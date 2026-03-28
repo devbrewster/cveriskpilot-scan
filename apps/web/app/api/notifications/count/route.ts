@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/notifications/count — unread notification count for a user
@@ -7,12 +8,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Always use the authenticated user's ID — ignore any query param
+    const userId = session.userId;
 
     const count = await prisma.notification.count({
       where: { userId, isRead: false },

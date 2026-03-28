@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useCallback, useMemo } from 'react';
+import { createContext, useContext } from 'react';
 
 export interface ClientContextValue {
   /** Current active client ID, or null for "All Clients" org-wide view */

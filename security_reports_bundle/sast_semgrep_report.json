@@ -1,0 +1,273 @@
+{
+  "version": "1.70.0",
+  "results": [
+    {
+      "check_id": "python.django.security.injection.sql.django-rawsql-injection.django-rawsql-injection",
+      "path": "app/api/payments.py",
+      "start": { "line": 147, "col": 20, "offset": 5823 },
+      "end": { "line": 147, "col": 82, "offset": 5885 },
+      "extra": {
+        "message": "Potential SQL injection vulnerability via raw SQL query. User-controlled data passed directly into cursor.execute() or RawSQL without parameterization.",
+        "metadata": {
+          "owasp": ["A03:2021 - Injection"],
+          "cwe": ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"],
+          "confidence": "HIGH",
+          "likelihood": "MEDIUM",
+          "impact": "HIGH",
+          "subcategory": ["vuln"],
+          "category": "security",
+          "technology": ["django", "python"],
+          "references": ["https://docs.djangoproject.com/en/4.2/topics/security/#sql-injection-protection"]
+        },
+        "severity": "ERROR",
+        "lines": "        results = cursor.execute(f\"SELECT * FROM payments WHERE user_id = {user_id} AND status = '{status}'\")",
+        "fix": "Use parameterized queries: cursor.execute(\"SELECT * FROM payments WHERE user_id = %s AND status = %s\", [user_id, status])",
+        "is_ignored": false,
+        "fingerprint": "a1b2c3d4e5f6a7b8c9d0e1f2",
+        "dataflow_trace": {
+          "taint_source": { "location": { "path": "app/api/payments.py", "start": { "line": 141 } }, "content": "user_id = request.GET.get('user_id')" },
+          "taint_sink": { "location": { "path": "app/api/payments.py", "start": { "line": 147 } }, "content": "cursor.execute(f\"SELECT * FROM payments WHERE user_id = {user_id}\")" }
+        }
+      }
+    },
+    {
+      "check_id": "python.lang.security.audit.hardcoded-password.hardcoded-password",
+      "path": "app/config/database.py",
+      "start": { "line": 24, "col": 1, "offset": 441 },
+      "end": { "line": 24, "col": 52, "offset": 492 },
+      "extra": {
+        "message": "Hardcoded password found in database configuration. Password 'Pr0d_P@ssw0rd_2024!' stored in plaintext in source code.",
+        "metadata": {
+          "owasp": ["A07:2021 - Identification and Authentication Failures"],
+          "cwe": ["CWE-798: Use of Hard-coded Credentials"],
+          "confidence": "HIGH",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "subcategory": ["vuln"],
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "DB_PASSWORD = \"Pr0d_P@ssw0rd_2024!\"  # TODO: move to env vars",
+        "fix": "Use environment variables: DB_PASSWORD = os.environ.get('DB_PASSWORD'). Never commit credentials to source control.",
+        "is_ignored": false,
+        "fingerprint": "b2c3d4e5f6a7b8c9d0e1f2a3"
+      }
+    },
+    {
+      "check_id": "javascript.express.security.express-no-rate-limiting.express-no-rate-limiting",
+      "path": "src/routes/auth.js",
+      "start": { "line": 12, "col": 1, "offset": 334 },
+      "end": { "line": 12, "col": 65, "offset": 398 },
+      "extra": {
+        "message": "No rate limiting on authentication endpoint. Brute-force attacks possible on /api/auth/login.",
+        "metadata": {
+          "owasp": ["A07:2021 - Identification and Authentication Failures"],
+          "cwe": ["CWE-307: Improper Restriction of Excessive Authentication Attempts"],
+          "confidence": "HIGH",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "subcategory": ["vuln"],
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "router.post('/login', async (req, res) => {",
+        "fix": "Add rate limiting middleware: const rateLimit = require('express-rate-limit'); router.post('/login', rateLimit({windowMs: 15*60*1000, max: 5}), ...)",
+        "is_ignored": false,
+        "fingerprint": "c3d4e5f6a7b8c9d0e1f2a3b4"
+      }
+    },
+    {
+      "check_id": "python.flask.security.xss.reflected-xss.reflected-xss",
+      "path": "app/api/search.py",
+      "start": { "line": 89, "col": 12, "offset": 3241 },
+      "end": { "line": 89, "col": 78, "offset": 3307 },
+      "extra": {
+        "message": "Reflected XSS: user input rendered in template without escaping via Markup(). Allows script injection.",
+        "metadata": {
+          "owasp": ["A03:2021 - Injection"],
+          "cwe": ["CWE-79: Improper Neutralization of Input During Web Page Generation"],
+          "confidence": "HIGH",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "subcategory": ["vuln"],
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "        return render_template('search.html', query=Markup(request.args.get('q', '')))",
+        "fix": "Remove Markup() wrapper. Flask auto-escapes template variables. Use: return render_template('search.html', query=request.args.get('q', ''))",
+        "is_ignored": false,
+        "fingerprint": "d4e5f6a7b8c9d0e1f2a3b4c5",
+        "dataflow_trace": {
+          "taint_source": { "location": { "path": "app/api/search.py", "start": { "line": 89 } }, "content": "request.args.get('q', '')" },
+          "taint_sink": { "location": { "path": "app/api/search.py", "start": { "line": 89 } }, "content": "Markup(request.args.get('q', ''))" }
+        }
+      }
+    },
+    {
+      "check_id": "python.requests.security.no-auth-over-http.no-auth-over-http",
+      "path": "app/integrations/payment_processor.py",
+      "start": { "line": 55, "col": 9, "offset": 1882 },
+      "end": { "line": 55, "col": 91, "offset": 1964 },
+      "extra": {
+        "message": "Authentication credentials sent over HTTP (not HTTPS). API key transmitted in clear text.",
+        "metadata": {
+          "owasp": ["A02:2021 - Cryptographic Failures"],
+          "cwe": ["CWE-319: Cleartext Transmission of Sensitive Information"],
+          "confidence": "HIGH",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "subcategory": ["vuln"],
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "        response = requests.post('http://payment-gateway.internal/charge', headers={'X-API-Key': api_key}, json=payload)",
+        "fix": "Change to https://. Even on internal networks, use TLS. Enforce verify=True for certificate validation.",
+        "is_ignored": false,
+        "fingerprint": "e5f6a7b8c9d0e1f2a3b4c5d6"
+      }
+    },
+    {
+      "check_id": "javascript.crypto.security.md5-used-for-password.md5-used-for-password",
+      "path": "src/utils/auth.js",
+      "start": { "line": 34, "col": 20, "offset": 889 },
+      "end": { "line": 34, "col": 63, "offset": 932 },
+      "extra": {
+        "message": "MD5 used for password hashing. MD5 is cryptographically broken and unsuitable for passwords. Trivially cracked with GPU acceleration.",
+        "metadata": {
+          "owasp": ["A02:2021 - Cryptographic Failures"],
+          "cwe": ["CWE-327: Use of a Broken or Risky Cryptographic Algorithm", "CWE-916: Use of Password Hash With Insufficient Computational Effort"],
+          "confidence": "HIGH",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "  const passwordHash = crypto.createHash('md5').update(password).digest('hex');",
+        "fix": "Use bcrypt, argon2, or scrypt: const bcrypt = require('bcrypt'); const hash = await bcrypt.hash(password, 12);",
+        "is_ignored": false,
+        "fingerprint": "f6a7b8c9d0e1f2a3b4c5d6e7"
+      }
+    },
+    {
+      "check_id": "python.lang.security.audit.dangerous-subprocess-use.dangerous-subprocess-use",
+      "path": "app/utils/file_processor.py",
+      "start": { "line": 73, "col": 9, "offset": 2334 },
+      "end": { "line": 73, "col": 77, "offset": 2402 },
+      "extra": {
+        "message": "Subprocess called with shell=True and user-controlled input. Command injection vulnerability.",
+        "metadata": {
+          "owasp": ["A03:2021 - Injection"],
+          "cwe": ["CWE-78: Improper Neutralization of Special Elements used in an OS Command"],
+          "confidence": "HIGH",
+          "likelihood": "MEDIUM",
+          "impact": "HIGH",
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "        subprocess.run(f'convert {filename} -resize 200x200 output.jpg', shell=True)",
+        "fix": "Use a list of arguments without shell=True: subprocess.run(['convert', filename, '-resize', '200x200', 'output.jpg'], shell=False). Validate filename input.",
+        "is_ignored": false,
+        "fingerprint": "a7b8c9d0e1f2a3b4c5d6e7f8",
+        "dataflow_trace": {
+          "taint_source": { "location": { "path": "app/utils/file_processor.py", "start": { "line": 66 } }, "content": "filename = request.form['filename']" },
+          "taint_sink": { "location": { "path": "app/utils/file_processor.py", "start": { "line": 73 } }, "content": "subprocess.run(f'convert {filename}...')" }
+        }
+      }
+    },
+    {
+      "check_id": "javascript.jwt.security.jwt-none-algorithm.jwt-none-algorithm",
+      "path": "src/middleware/authMiddleware.js",
+      "start": { "line": 18, "col": 5, "offset": 447 },
+      "end": { "line": 18, "col": 75, "offset": 517 },
+      "extra": {
+        "message": "JWT verify() called without specifying allowed algorithms. 'none' algorithm attack possible — attacker can forge tokens.",
+        "metadata": {
+          "owasp": ["A02:2021 - Cryptographic Failures"],
+          "cwe": ["CWE-347: Improper Verification of Cryptographic Signature"],
+          "confidence": "HIGH",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "  const decoded = jwt.verify(token, process.env.JWT_SECRET);",
+        "fix": "Specify algorithm explicitly: jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] })",
+        "is_ignored": false,
+        "fingerprint": "b8c9d0e1f2a3b4c5d6e7f8a9"
+      }
+    },
+    {
+      "check_id": "python.django.security.injection.path-traversal.path-traversal",
+      "path": "app/api/documents.py",
+      "start": { "line": 112, "col": 16, "offset": 4091 },
+      "end": { "line": 112, "col": 80, "offset": 4155 },
+      "extra": {
+        "message": "Path traversal vulnerability. User-controlled filename concatenated with base path. Attacker can access arbitrary files.",
+        "metadata": {
+          "owasp": ["A01:2021 - Broken Access Control"],
+          "cwe": ["CWE-22: Improper Limitation of a Pathname to a Restricted Directory"],
+          "confidence": "HIGH",
+          "likelihood": "HIGH",
+          "impact": "HIGH",
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "        file_path = os.path.join('/var/app/documents/', request.GET.get('filename'))",
+        "fix": "Validate and sanitize path: safe_name = os.path.basename(filename). Use pathlib.Path.resolve() and verify path starts with expected base.",
+        "is_ignored": false,
+        "fingerprint": "c9d0e1f2a3b4c5d6e7f8a9b0"
+      }
+    },
+    {
+      "check_id": "python.lang.security.audit.insecure-pickle.insecure-pickle-deserialize",
+      "path": "app/cache/session_cache.py",
+      "start": { "line": 48, "col": 18, "offset": 1623 },
+      "end": { "line": 48, "col": 55, "offset": 1660 },
+      "extra": {
+        "message": "Deserialization of untrusted data via pickle.loads(). Arbitrary code execution if attacker controls input.",
+        "metadata": {
+          "owasp": ["A08:2021 - Software and Data Integrity Failures"],
+          "cwe": ["CWE-502: Deserialization of Untrusted Data"],
+          "confidence": "HIGH",
+          "likelihood": "MEDIUM",
+          "impact": "HIGH",
+          "category": "security"
+        },
+        "severity": "ERROR",
+        "lines": "        session_data = pickle.loads(redis_client.get(session_id))",
+        "fix": "Replace pickle with json.loads() for safe deserialization. If complex objects required, use a safe serialization library.",
+        "is_ignored": false,
+        "fingerprint": "d0e1f2a3b4c5d6e7f8a9b0c1"
+      }
+    }
+  ],
+  "errors": [],
+  "paths": {
+    "scanned": [
+      "app/",
+      "src/",
+      "tests/"
+    ],
+    "skipped": []
+  },
+  "stats": {
+    "findings": 10,
+    "errors": 0,
+    "warnings": 3,
+    "by_severity": {
+      "ERROR": 10,
+      "WARNING": 3,
+      "INFO": 7
+    },
+    "by_check": {
+      "injection": 4,
+      "hardcoded_credentials": 1,
+      "broken_crypto": 2,
+      "access_control": 1,
+      "insecure_deserialization": 1,
+      "authentication": 1
+    },
+    "total_time": 12.441,
+    "files_scanned": 183
+  }
+}

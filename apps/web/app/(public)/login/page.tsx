@@ -1,20 +1,66 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+type LoginState = 'idle' | 'submitting' | 'mfa_challenge' | 'mfa_verifying' | 'success';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<LoginState>('idle');
+  const [tempSessionId, setTempSessionId] = useState("");
+  const [mfaCode, setMfaCode] = useState<string[]>(Array(6).fill(""));
+  const mfaInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const loading = state === 'submitting' || state === 'mfa_verifying';
+
+  // Handle MFA digit input
+  const handleMfaInput = useCallback((index: number, value: string) => {
+    // Only allow single digit
+    const digit = value.replace(/\D/g, '').slice(-1);
+    setMfaCode(prev => {
+      const next = [...prev];
+      next[index] = digit;
+      return next;
+    });
+
+    // Auto-advance to next input
+    if (digit && index < 5) {
+      mfaInputRefs.current[index + 1]?.focus();
+    }
+  }, []);
+
+  // Handle backspace in MFA inputs
+  const handleMfaKeyDown = useCallback((index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !mfaCode[index] && index > 0) {
+      mfaInputRefs.current[index - 1]?.focus();
+    }
+  }, [mfaCode]);
+
+  // Handle paste into MFA inputs
+  const handleMfaPaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted.length === 0) return;
+    const digits = pasted.split('');
+    setMfaCode(prev => {
+      const next = [...prev];
+      digits.forEach((d, i) => { next[i] = d; });
+      return next;
+    });
+    // Focus last filled input or the next empty one
+    const focusIndex = Math.min(digits.length, 5);
+    mfaInputRefs.current[focusIndex]?.focus();
+  }, []);
+
+  async function handleLoginSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setState('submitting');
 
     try {
       const res = await fetch("/api/auth/login", {
@@ -23,19 +69,139 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
+        // Check if MFA is required
+        if (data.mfaRequired) {
+          setTempSessionId(data.tempSessionId || '');
+          setState('mfa_challenge');
+          // Focus first MFA input after render
+          setTimeout(() => mfaInputRefs.current[0]?.focus(), 50);
+          return;
+        }
+        // No MFA — login complete
+        setState('success');
         router.push("/dashboard");
       } else {
-        const data = await res.json();
         setError(data.error || "Login failed. Please try again.");
+        setState('idle');
       }
     } catch {
       setError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
+      setState('idle');
     }
   }
 
+  async function handleMfaSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const token = mfaCode.join('');
+
+    if (token.length !== 6 || !/^\d{6}$/.test(token)) {
+      setError("Please enter a valid 6-digit code.");
+      return;
+    }
+
+    setError("");
+    setState('mfa_verifying');
+
+    try {
+      const res = await fetch("/api/auth/mfa/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, tempSessionId }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setState('success');
+        router.push("/dashboard");
+      } else {
+        setError(data.error || "Invalid code. Please try again.");
+        setState('mfa_challenge');
+        // Clear code and refocus
+        setMfaCode(Array(6).fill(""));
+        setTimeout(() => mfaInputRefs.current[0]?.focus(), 50);
+      }
+    } catch {
+      setError("Network error. Please try again.");
+      setState('mfa_challenge');
+    }
+  }
+
+  // -- MFA Challenge Step --
+  if (state === 'mfa_challenge' || state === 'mfa_verifying') {
+    return (
+      <>
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/30">
+            <svg className="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Two-Factor Authentication
+          </h1>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Enter the 6-digit code from your authenticator app
+          </p>
+        </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleMfaSubmit} className="mt-6">
+          {/* 6-digit input boxes */}
+          <div className="flex justify-center gap-2" onPaste={handleMfaPaste}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <input
+                key={i}
+                ref={el => { mfaInputRefs.current[i] = el; }}
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={1}
+                value={mfaCode[i]}
+                onChange={e => handleMfaInput(i, e.target.value)}
+                onKeyDown={e => handleMfaKeyDown(i, e)}
+                className="h-12 w-12 rounded-lg border border-gray-300 text-center text-lg font-semibold text-gray-900 shadow-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                disabled={state === 'mfa_verifying'}
+              />
+            ))}
+          </div>
+
+          <button
+            type="submit"
+            disabled={state === 'mfa_verifying'}
+            className="mt-6 w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {state === 'mfa_verifying' ? "Verifying..." : "Verify"}
+          </button>
+        </form>
+
+        {/* Back to login */}
+        <button
+          type="button"
+          onClick={() => {
+            setState('idle');
+            setError('');
+            setMfaCode(Array(6).fill(""));
+            setTempSessionId('');
+          }}
+          className="mt-4 w-full text-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+        >
+          Back to login
+        </button>
+      </>
+    );
+  }
+
+  // -- Login Step (email/password) --
   return (
     <>
       <h1 className="text-center text-2xl font-bold text-gray-900 dark:text-white">
@@ -89,7 +255,7 @@ export default function LoginPage() {
       )}
 
       {/* Email Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleLoginSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="login-email"
@@ -139,7 +305,7 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {loading ? "Signing in..." : "Sign In"}
+          {state === 'submitting' ? "Signing in..." : "Sign In"}
         </button>
       </form>
 

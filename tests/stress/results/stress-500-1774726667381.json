@@ -1,0 +1,254 @@
+{
+  "runId": 1774726667381,
+  "timestamp": "2026-03-28T19:58:03.627Z",
+  "baseUrl": "http://localhost:3000",
+  "analystCount": 500,
+  "batchSize": 50,
+  "waveDealyMs": 300,
+  "totalTestMs": 1279200,
+  "totalRequests": 15000,
+  "passedAnalysts": 86,
+  "failedAnalysts": 414,
+  "stepSummaries": {
+    "01-signup": {
+      "method": "POST",
+      "avg": 8530,
+      "p50": 5650,
+      "p95": 16619,
+      "p99": 18812,
+      "errors": 370
+    },
+    "02-login": {
+      "method": "POST",
+      "avg": 6945,
+      "p50": 6101,
+      "p95": 12028,
+      "p99": 14614,
+      "errors": 355
+    },
+    "03-session": {
+      "method": "GET",
+      "avg": 7292,
+      "p50": 6425,
+      "p95": 14322,
+      "p99": 19397,
+      "errors": 400
+    },
+    "04-create-client": {
+      "method": "POST",
+      "avg": 5793,
+      "p50": 5736,
+      "p95": 9030,
+      "p99": 9505,
+      "errors": 400
+    },
+    "05-create-team": {
+      "method": "POST",
+      "avg": 5991,
+      "p50": 5732,
+      "p95": 13136,
+      "p99": 13327,
+      "errors": 400
+    },
+    "06-add-team-member": {
+      "method": "POST",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "07-create-api-key": {
+      "method": "POST",
+      "avg": 5670,
+      "p50": 5775,
+      "p95": 9279,
+      "p99": 9434,
+      "errors": 400
+    },
+    "08-create-webhook": {
+      "method": "POST",
+      "avg": 5609,
+      "p50": 5769,
+      "p95": 9447,
+      "p99": 9828,
+      "errors": 400
+    },
+    "09-upload-scan": {
+      "method": "POST",
+      "avg": 6205,
+      "p50": 5952,
+      "p95": 9834,
+      "p99": 10413,
+      "errors": 400
+    },
+    "10-poll-job": {
+      "method": "GET",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "11-dashboard": {
+      "method": "GET",
+      "avg": 5917,
+      "p50": 5896,
+      "p95": 10471,
+      "p99": 10632,
+      "errors": 400
+    },
+    "12-findings-list": {
+      "method": "GET",
+      "avg": 5694,
+      "p50": 5776,
+      "p95": 9547,
+      "p99": 9694,
+      "errors": 400
+    },
+    "13-findings-critical": {
+      "method": "GET",
+      "avg": 5768,
+      "p50": 5873,
+      "p95": 9559,
+      "p99": 10003,
+      "errors": 400
+    },
+    "14-findings-by-host": {
+      "method": "GET",
+      "avg": 5615,
+      "p50": 5689,
+      "p95": 10057,
+      "p99": 10442,
+      "errors": 400
+    },
+    "15-finding-detail": {
+      "method": "GET",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "16-cases-list": {
+      "method": "GET",
+      "avg": 5594,
+      "p50": 5739,
+      "p95": 9271,
+      "p99": 9603,
+      "errors": 400
+    },
+    "17-case-detail": {
+      "method": "GET",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "18-triage-case": {
+      "method": "PATCH",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "19-assign-case": {
+      "method": "PUT",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "20-case-comment": {
+      "method": "POST",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "21-bulk-update-cases": {
+      "method": "PATCH",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "errors": 0
+    },
+    "22-ai-remediation": {
+      "method": "POST",
+      "avg": 5690,
+      "p50": 5743,
+      "p95": 9552,
+      "p99": 10026,
+      "errors": 400
+    },
+    "23-create-exception": {
+      "method": "POST",
+      "avg": 5642,
+      "p50": 5676,
+      "p95": 9618,
+      "p99": 10283,
+      "errors": 400
+    },
+    "24-compliance-frameworks": {
+      "method": "GET",
+      "avg": 5545,
+      "p50": 5497,
+      "p95": 8799,
+      "p99": 9121,
+      "errors": 400
+    },
+    "25-framework-assessment": {
+      "method": "GET",
+      "avg": 3528,
+      "p50": 3645,
+      "p95": 3788,
+      "p99": 3889,
+      "errors": 0
+    },
+    "26-poam": {
+      "method": "GET",
+      "avg": 5603,
+      "p50": 5856,
+      "p95": 9112,
+      "p99": 9334,
+      "errors": 400
+    },
+    "27-export-csv": {
+      "method": "GET",
+      "avg": 5926,
+      "p50": 5725,
+      "p95": 9346,
+      "p99": 13216,
+      "errors": 400
+    },
+    "28-generate-report": {
+      "method": "POST",
+      "avg": 6117,
+      "p50": 5837,
+      "p95": 12953,
+      "p99": 13078,
+      "errors": 400
+    },
+    "29-notification-count": {
+      "method": "GET",
+      "avg": 5493,
+      "p50": 5612,
+      "p95": 9216,
+      "p99": 9310,
+      "errors": 400
+    },
+    "30-logout": {
+      "method": "POST",
+      "avg": 5456,
+      "p50": 5655,
+      "p95": 7362,
+      "p99": 7768,
+      "errors": 400
+    }
+  }
+}

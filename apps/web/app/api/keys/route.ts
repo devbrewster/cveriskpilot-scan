@@ -3,8 +3,6 @@ import { prisma } from '@/lib/prisma';
 import {
   getServerSession,
   generateApiKey,
-  hashApiKey,
-  maskApiKey,
 } from '@cveriskpilot/auth';
 
 /**

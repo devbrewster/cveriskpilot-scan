@@ -136,7 +136,7 @@ export function ClientList() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => setShowCreate(false)} />
-          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+          <div className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900">Create New Client</h3>
             <form onSubmit={handleCreate} className="mt-4 space-y-4">
               <div>
@@ -146,7 +146,7 @@ export function ClientList() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g., Acme Corporation"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   autoFocus
                   required
                 />
@@ -158,7 +158,7 @@ export function ClientList() {
                   value={newContactName}
                   onChange={(e) => setNewContactName(e.target.value)}
                   placeholder="e.g., Jane Smith"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -168,7 +168,7 @@ export function ClientList() {
                   value={newContactEmail}
                   onChange={(e) => setNewContactEmail(e.target.value)}
                   placeholder="e.g., jane@example.com"
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -176,7 +176,7 @@ export function ClientList() {
                 <select
                   value={newIndustry}
                   onChange={(e) => setNewIndustry(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">Select an industry...</option>
                   <option value="Technology">Technology</option>
@@ -193,7 +193,7 @@ export function ClientList() {
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -239,7 +239,7 @@ export function ClientList() {
 
       {/* Table */}
       {!loading && clients.length > 0 && (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

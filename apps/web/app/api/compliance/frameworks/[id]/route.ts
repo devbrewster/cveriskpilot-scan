@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import {
   SOC2_FRAMEWORK,
   SSDF_FRAMEWORK,
@@ -31,9 +32,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId') ?? 'org-default';
+    const organizationId = session.organizationId;
 
     const framework = FRAMEWORKS[id];
     const assessor = ASSESSORS[id];

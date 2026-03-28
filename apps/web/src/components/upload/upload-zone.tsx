@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { UploadProgress, type PipelineStage } from './upload-progress';
 import { MAX_UPLOAD_SIZE_BYTES, MAX_UPLOAD_SIZE_LABEL, ACCEPTED_FILE_TYPES } from '@/lib/constants';
 import { formatFileSize } from '@/lib/format';
+import { useClientContext } from '@/lib/client-context';
 
 /* ------------------------------------------------------------------ */
 /* Inline Icons                                                       */
@@ -72,6 +73,7 @@ export function UploadZone() {
   const [state, setState] = useState<UploadState>({ kind: 'idle' });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef(false);
+  const { activeClientId } = useClientContext();
 
   const reset = useCallback(() => {
     abortRef.current = true;
@@ -86,6 +88,7 @@ export function UploadZone() {
     if (lower.endsWith('.sarif')) return 'SARIF';
     if (lower.endsWith('.cdx.json')) return 'CYCLONEDX';
     if (lower.endsWith('.csv')) return 'CSV';
+    if (lower.endsWith('.xlsx')) return 'XLSX';
     if (lower.endsWith('.xml')) return 'NESSUS'; // default XML to Nessus
     if (lower.endsWith('.json')) return 'JSON_FORMAT';
     return 'JSON_FORMAT';
@@ -94,6 +97,12 @@ export function UploadZone() {
   /* Upload file to /api/upload via XHR for progress tracking */
   const uploadFile = useCallback((file: File) => {
     abortRef.current = false;
+
+    // Require a client to be selected before uploading
+    if (!activeClientId) {
+      setState({ kind: 'error', filename: file.name, message: 'Please select a client from the sidebar before uploading. Uploads must be associated with a client.' });
+      return;
+    }
 
     // Validate extension
     if (!isAcceptedFile(file.name)) {
@@ -112,9 +121,7 @@ export function UploadZone() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('organizationId', 'default-org');
-    formData.append('clientId', 'default-client');
-    formData.append('uploadedById', 'default-user');
+    formData.append('clientId', activeClientId);
     formData.append('parserFormat', detectParserFormat(file.name));
 
     const xhr = new XMLHttpRequest();
@@ -182,7 +189,7 @@ export function UploadZone() {
 
     xhr.open('POST', '/api/upload');
     xhr.send(formData);
-  }, [detectParserFormat]);
+  }, [detectParserFormat, activeClientId]);
 
   /* Poll /api/upload/[jobId] for processing progress */
   const pollJobStatus = useCallback((jobId: string, filename: string) => {
@@ -356,7 +363,7 @@ export function UploadZone() {
         className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-16 text-center transition-colors ${
           isDragover
             ? 'border-primary-500 bg-primary-50'
-            : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
+            : 'border-gray-300 bg-white dark:bg-gray-900 hover:border-gray-400 hover:bg-gray-50'
         }`}
       >
         <CloudUploadIcon
@@ -368,6 +375,11 @@ export function UploadZone() {
         <p className="mt-2 text-sm text-gray-500">
           Supports {ACCEPTED_FILE_TYPES.join(', ')} &middot; Max {MAX_UPLOAD_SIZE_LABEL}
         </p>
+        {!activeClientId && (
+          <p className="mt-3 text-sm font-medium text-amber-600 dark:text-amber-400">
+            Select a client from the sidebar before uploading
+          </p>
+        )}
         <input
           ref={fileInputRef}
           type="file"
@@ -382,7 +394,7 @@ export function UploadZone() {
   // Uploading state
   if (state.kind === 'uploading') {
     return (
-      <div className="flex flex-col items-center rounded-xl border border-gray-200 bg-white px-6 py-12">
+      <div className="flex flex-col items-center rounded-xl border border-gray-200 bg-white dark:bg-gray-900 px-6 py-12">
         <p className="mb-4 text-sm font-medium text-gray-700">
           Uploading <span className="font-semibold">{state.filename}</span>
         </p>
@@ -405,7 +417,7 @@ export function UploadZone() {
   // Processing state
   if (state.kind === 'processing') {
     return (
-      <div className="flex flex-col items-center rounded-xl border border-gray-200 bg-white px-6 py-12">
+      <div className="flex flex-col items-center rounded-xl border border-gray-200 bg-white dark:bg-gray-900 px-6 py-12">
         <p className="mb-6 text-sm font-medium text-gray-700">
           Processing <span className="font-semibold">{state.filename}</span>
         </p>
@@ -439,7 +451,7 @@ export function UploadZone() {
           </Link>
           <button
             onClick={reset}
-            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center rounded-lg border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
           >
             Upload Another
           </button>

@@ -13,8 +13,34 @@ async function getPortalSession() {
   if (!sessionCookie?.value) return null;
 
   try {
+    // Cookie format: <base64-payload>.<hmac-signature>
+    const raw = sessionCookie.value;
+    const dotIndex = raw.lastIndexOf('.');
+    if (dotIndex === -1) return null;
+
+    const payload = raw.slice(0, dotIndex);
+    const signature = raw.slice(dotIndex + 1);
+
+    // Verify HMAC signature to prevent forgery
+    const crypto = await import('node:crypto');
+    const secret = process.env.AUTH_SECRET;
+    if (!secret) return null;
+
+    const expected = crypto
+      .createHmac('sha256', secret)
+      .update(payload)
+      .digest('hex');
+
+    // Constant-time comparison
+    if (
+      signature.length !== expected.length ||
+      !crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'))
+    ) {
+      return null;
+    }
+
     const session = JSON.parse(
-      Buffer.from(sessionCookie.value, 'base64').toString('utf-8'),
+      Buffer.from(payload, 'base64').toString('utf-8'),
     );
     if (!session?.user?.id || !session?.clientId) return null;
     return session;

@@ -1,0 +1,207 @@
+# =============================================================================
+# CVERiskPilot Compliance Scan — GitLab CI Include Template
+# =============================================================================
+# Include this template in your .gitlab-ci.yml to run vulnerability scans
+# and map findings to compliance frameworks on every merge request.
+#
+# Usage:
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/cveriskpilot/ci-templates/main/deploy/gitlab/.cveriskpilot-scan.yml'
+# =============================================================================
+
+variables:
+  CRP_API_URL: 'https://app.cveriskpilot.com'
+  CRP_FRAMEWORKS: 'nist-800-53,cmmc,soc2'
+  CRP_FAIL_ON_VIOLATION: 'true'
+  CRP_SCAN_TOOLS: 'semgrep,trivy'
+
+.crp_compliance_scan:
+  stage: compliance-scan
+  image: python:3.12-slim
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  cache:
+    paths:
+      - .cache/pip
+    key: crp-scan-tools
+  artifacts:
+    paths:
+      - .crp-results/
+    reports:
+      sast: .crp-results/semgrep.sarif
+    when: always
+    expire_in: 30 days
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl jq > /dev/null 2>&1
+    - mkdir -p .crp-results
+    # ── Install Semgrep ──────────────────────────────────────────────────
+    - |
+      if echo "${CRP_SCAN_TOOLS}" | grep -q "semgrep"; then
+        echo "Installing Semgrep..."
+        pip install --quiet semgrep
+        semgrep --version
+      fi
+    # ── Install Trivy ────────────────────────────────────────────────────
+    - |
+      if echo "${CRP_SCAN_TOOLS}" | grep -q "trivy"; then
+        echo "Installing Trivy..."
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+        trivy --version
+      fi
+  script:
+    # ── Run Semgrep ──────────────────────────────────────────────────────
+    - |
+      if echo "${CRP_SCAN_TOOLS}" | grep -q "semgrep"; then
+        echo "Running Semgrep SAST scan..."
+        semgrep scan \
+          --config auto \
+          --sarif \
+          --output .crp-results/semgrep.sarif \
+          --no-error \
+          . || true
+      fi
+
+    # ── Run Trivy ────────────────────────────────────────────────────────
+    - |
+      if echo "${CRP_SCAN_TOOLS}" | grep -q "trivy"; then
+        echo "Running Trivy vulnerability scan..."
+        trivy fs \
+          --format sarif \
+          --output .crp-results/trivy.sarif \
+          --severity CRITICAL,HIGH,MEDIUM,LOW \
+          . || true
+
+        echo "Generating SBOM..."
+        trivy fs \
+          --format cyclonedx \
+          --output .crp-results/sbom.cdx.json \
+          . || true
+      fi
+
+    # ── Resolve SARIF path ───────────────────────────────────────────────
+    - |
+      SARIF_FILE=""
+      if [ -f ".crp-results/semgrep.sarif" ]; then
+        SARIF_FILE=".crp-results/semgrep.sarif"
+      elif [ -f ".crp-results/trivy.sarif" ]; then
+        SARIF_FILE=".crp-results/trivy.sarif"
+      fi
+
+    # ── Upload to CVERiskPilot ───────────────────────────────────────────
+    - |
+      echo "Uploading scan results to CVERiskPilot..."
+
+      CURL_ARGS="-s -w \n%{http_code}"
+      CURL_ARGS="${CURL_ARGS} -X POST ${CRP_API_URL}/api/pipeline/scan"
+      CURL_ARGS="${CURL_ARGS} -H \"Authorization: Bearer ${CRP_API_KEY}\""
+      CURL_ARGS="${CURL_ARGS} -H \"X-CRP-Source: gitlab-ci\""
+
+      CURL_CMD="curl -s -w '\n%{http_code}' \
+        -X POST '${CRP_API_URL}/api/pipeline/scan' \
+        -H 'Authorization: Bearer ${CRP_API_KEY}' \
+        -H 'X-CRP-Source: gitlab-ci' \
+        -F 'frameworks=${CRP_FRAMEWORKS}' \
+        -F 'repository=${CI_PROJECT_PATH}' \
+        -F 'commit=${CI_COMMIT_SHA}' \
+        -F 'ref=${CI_COMMIT_REF_NAME}' \
+        -F 'mr=${CI_MERGE_REQUEST_IID:-}'"
+
+      if [ -n "${SARIF_FILE}" ] && [ -f "${SARIF_FILE}" ]; then
+        CURL_CMD="${CURL_CMD} -F 'sarif=@${SARIF_FILE}'"
+      fi
+
+      if [ -f ".crp-results/trivy.sarif" ] && [ "${SARIF_FILE}" != ".crp-results/trivy.sarif" ]; then
+        CURL_CMD="${CURL_CMD} -F 'trivy_sarif=@.crp-results/trivy.sarif'"
+      fi
+
+      if [ -f ".crp-results/sbom.cdx.json" ]; then
+        CURL_CMD="${CURL_CMD} -F 'sbom=@.crp-results/sbom.cdx.json'"
+      fi
+
+      RESPONSE=$(eval "${CURL_CMD}")
+      HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+      BODY=$(echo "$RESPONSE" | sed '$d')
+
+      echo "$BODY" > .crp-results/scan-result.json
+
+      if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+        echo "ERROR: CVERiskPilot API returned HTTP ${HTTP_CODE}"
+        echo "$BODY"
+        exit 1
+      fi
+
+      echo "Upload successful (HTTP ${HTTP_CODE})"
+
+    # ── Parse result ─────────────────────────────────────────────────────
+    - |
+      VERDICT=$(jq -r '.verdict // "UNKNOWN"' .crp-results/scan-result.json)
+      SCAN_ID=$(jq -r '.scanId // "unknown"' .crp-results/scan-result.json)
+      DASHBOARD_URL=$(jq -r '.dashboardUrl // ""' .crp-results/scan-result.json)
+      FINDINGS_COUNT=$(jq -r '.summary.totalFindings // 0' .crp-results/scan-result.json)
+
+      echo "Verdict: ${VERDICT}"
+      echo "Scan ID: ${SCAN_ID}"
+      echo "Findings: ${FINDINGS_COUNT}"
+      echo "Dashboard: ${DASHBOARD_URL}"
+
+    # ── Post MR note ─────────────────────────────────────────────────────
+    - |
+      if [ -n "${CI_MERGE_REQUEST_IID}" ] && [ -n "${GITLAB_TOKEN}" ]; then
+        echo "Posting compliance summary to MR..."
+
+        COMMENT_BODY=$(jq -r '.comment // empty' .crp-results/scan-result.json)
+
+        if [ -z "${COMMENT_BODY}" ]; then
+          ICON="✅"
+          if [ "${VERDICT}" = "FAIL" ]; then ICON="❌"; fi
+          if [ "${VERDICT}" = "WARN" ]; then ICON="⚠️"; fi
+
+          COMMENT_BODY="## 🛡️ CVERiskPilot Compliance Scan
+
+      **Verdict**: ${ICON} ${VERDICT}
+      **Findings**: ${FINDINGS_COUNT}
+      **Scan ID**: \`${SCAN_ID}\`
+
+      [📊 View Full Results on Dashboard](${DASHBOARD_URL})
+
+      ---
+      *Generated by [CVERiskPilot](https://cveriskpilot.com) — Veteran-Owned Vulnerability Management*"
+        fi
+
+        # URL-encode the comment body for the API
+        ENCODED_BODY=$(echo "${COMMENT_BODY}" | jq -Rsa .)
+
+        # Check for existing note to update
+        EXISTING_NOTE_ID=$(curl -s \
+          -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+          "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/notes" \
+          | jq -r '.[] | select(.body | startswith("## 🛡️ CVERiskPilot")) | .id' | head -1)
+
+        if [ -n "${EXISTING_NOTE_ID}" ] && [ "${EXISTING_NOTE_ID}" != "null" ]; then
+          curl -s -X PUT \
+            -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": ${ENCODED_BODY}}" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/notes/${EXISTING_NOTE_ID}" > /dev/null
+          echo "Updated existing MR note ${EXISTING_NOTE_ID}"
+        else
+          curl -s -X POST \
+            -H "PRIVATE-TOKEN: ${GITLAB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": ${ENCODED_BODY}}" \
+            "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/merge_requests/${CI_MERGE_REQUEST_IID}/notes" > /dev/null
+          echo "Created new MR note"
+        fi
+      else
+        echo "Skipping MR note (no CI_MERGE_REQUEST_IID or GITLAB_TOKEN)"
+      fi
+
+    # ── Enforce verdict ──────────────────────────────────────────────────
+    - |
+      if [ "${CRP_FAIL_ON_VIOLATION}" = "true" ] && [ "${VERDICT}" = "FAIL" ]; then
+        echo "ERROR: Compliance scan failed — critical or high violations found"
+        exit 1
+      fi
+      echo "Compliance scan complete: ${VERDICT}"

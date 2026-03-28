@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="blue-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+    <linearGradient id="cyan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ee6f6"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+    <linearGradient id="green-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <linearGradient id="purple-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.3" opacity="0.3"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+
+  <!-- Logo -->
+  <g transform="translate(80, 30)">
+    <polygon points="22,0 44,12 44,36 22,48 0,36 0,12" fill="none" stroke="#0ee6f6" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="22,8 36,16 36,32 22,40 8,32 8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2" opacity="0.8"/>
+    <circle cx="22" cy="24" r="3" fill="#0ee6f6"/>
+  </g>
+  <text x="140" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700">
+    <tspan fill="#94a3b8">CVE</tspan><tspan fill="#0ee6f6">RiskPilot</tspan>
+  </text>
+
+  <!-- Title -->
+  <text x="600" y="105" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="800" fill="white">CWE-to-Compliance Control Mapping</text>
+  <text x="600" y="132" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#64748b">Automatic mapping from vulnerability to audit-ready controls</text>
+
+  <!-- Table header -->
+  <g transform="translate(40, 160)">
+    <!-- Header row -->
+    <rect width="1120" height="40" rx="8" fill="#0f172a"/>
+    <text x="80" y="26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#3b82f6" letter-spacing="1">CWE</text>
+    <text x="210" y="26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#64748b" letter-spacing="1">SEVERITY</text>
+    <text x="370" y="26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#0ee6f6" letter-spacing="1">NIST 800-53</text>
+    <text x="550" y="26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#22c55e" letter-spacing="1">SOC2</text>
+    <text x="720" y="26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#a78bfa" letter-spacing="1">CMMC</text>
+    <text x="920" y="26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#f59e0b" letter-spacing="1">FedRAMP</text>
+    <text x="1060" y="26" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" fill="#64748b" letter-spacing="1">ASVS</text>
+
+    <!-- Row 1: CWE-89 -->
+    <g transform="translate(0, 50)">
+      <rect width="1120" height="80" rx="10" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+      <!-- Severity indicator -->
+      <rect x="0" y="0" width="4" height="80" rx="2" fill="#ef4444"/>
+      <!-- CWE -->
+      <text x="80" y="35" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#60a5fa">CWE-89</text>
+      <text x="80" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">SQL Injection</text>
+      <!-- Severity -->
+      <rect x="170" y="25" width="80" height="24" rx="12" fill="#ef4444" opacity="0.15"/>
+      <text x="210" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#ef4444">CRITICAL</text>
+      <!-- Arrow -->
+      <text x="285" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#475569">&#x2192;</text>
+      <!-- NIST -->
+      <rect x="310" y="22" width="120" height="30" rx="6" fill="#0ee6f6" opacity="0.1" stroke="#0ee6f6" stroke-width="0.5"/>
+      <text x="370" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#0ee6f6">SI-10</text>
+      <!-- Arrow -->
+      <text x="460" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#475569">&#x2192;</text>
+      <!-- SOC2 -->
+      <rect x="490" y="22" width="120" height="30" rx="6" fill="#22c55e" opacity="0.1" stroke="#22c55e" stroke-width="0.5"/>
+      <text x="550" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#22c55e">CC6.1</text>
+      <!-- CMMC -->
+      <rect x="640" y="22" width="160" height="30" rx="6" fill="#a78bfa" opacity="0.1" stroke="#a78bfa" stroke-width="0.5"/>
+      <text x="720" y="42" text-anchor="middle" font-family="monospace" font-size="11" font-weight="600" fill="#a78bfa">SI.L2-3.14.2</text>
+      <!-- FedRAMP -->
+      <rect x="860" y="22" width="120" height="30" rx="6" fill="#f59e0b" opacity="0.1" stroke="#f59e0b" stroke-width="0.5"/>
+      <text x="920" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#f59e0b">SI-10</text>
+      <!-- ASVS -->
+      <rect x="1000" y="22" width="100" height="30" rx="6" fill="#64748b" opacity="0.1" stroke="#64748b" stroke-width="0.5"/>
+      <text x="1050" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#94a3b8">5.3.4</text>
+    </g>
+
+    <!-- Row 2: CWE-79 -->
+    <g transform="translate(0, 140)">
+      <rect width="1120" height="80" rx="10" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+      <rect x="0" y="0" width="4" height="80" rx="2" fill="#f97316"/>
+      <text x="80" y="35" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#60a5fa">CWE-79</text>
+      <text x="80" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Cross-Site Scripting</text>
+      <rect x="170" y="25" width="80" height="24" rx="12" fill="#f97316" opacity="0.15"/>
+      <text x="210" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#f97316">HIGH</text>
+      <text x="285" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#475569">&#x2192;</text>
+      <rect x="310" y="22" width="120" height="30" rx="6" fill="#0ee6f6" opacity="0.1" stroke="#0ee6f6" stroke-width="0.5"/>
+      <text x="370" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#0ee6f6">SI-2</text>
+      <text x="460" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#475569">&#x2192;</text>
+      <rect x="490" y="22" width="120" height="30" rx="6" fill="#22c55e" opacity="0.1" stroke="#22c55e" stroke-width="0.5"/>
+      <text x="550" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#22c55e">CC6.1</text>
+      <rect x="640" y="22" width="160" height="30" rx="6" fill="#a78bfa" opacity="0.1" stroke="#a78bfa" stroke-width="0.5"/>
+      <text x="720" y="42" text-anchor="middle" font-family="monospace" font-size="11" font-weight="600" fill="#a78bfa">SI.L2-3.14.1</text>
+      <rect x="860" y="22" width="120" height="30" rx="6" fill="#f59e0b" opacity="0.1" stroke="#f59e0b" stroke-width="0.5"/>
+      <text x="920" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#f59e0b">SI-2</text>
+      <rect x="1000" y="22" width="100" height="30" rx="6" fill="#64748b" opacity="0.1" stroke="#64748b" stroke-width="0.5"/>
+      <text x="1050" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#94a3b8">5.2.1</text>
+    </g>
+
+    <!-- Row 3: CWE-798 -->
+    <g transform="translate(0, 230)">
+      <rect width="1120" height="80" rx="10" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+      <rect x="0" y="0" width="4" height="80" rx="2" fill="#ef4444"/>
+      <text x="80" y="35" text-anchor="middle" font-family="monospace" font-size="16" font-weight="700" fill="#60a5fa">CWE-798</text>
+      <text x="80" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#64748b">Hardcoded Creds</text>
+      <rect x="170" y="25" width="80" height="24" rx="12" fill="#ef4444" opacity="0.15"/>
+      <text x="210" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#ef4444">CRITICAL</text>
+      <text x="285" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#475569">&#x2192;</text>
+      <rect x="310" y="22" width="120" height="30" rx="6" fill="#0ee6f6" opacity="0.1" stroke="#0ee6f6" stroke-width="0.5"/>
+      <text x="370" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#0ee6f6">IA-5</text>
+      <text x="460" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#475569">&#x2192;</text>
+      <rect x="490" y="22" width="120" height="30" rx="6" fill="#22c55e" opacity="0.1" stroke="#22c55e" stroke-width="0.5"/>
+      <text x="550" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#22c55e">CC6.1</text>
+      <rect x="640" y="22" width="160" height="30" rx="6" fill="#a78bfa" opacity="0.1" stroke="#a78bfa" stroke-width="0.5"/>
+      <text x="720" y="42" text-anchor="middle" font-family="monospace" font-size="11" font-weight="600" fill="#a78bfa">IA.L2-3.5.10</text>
+      <rect x="860" y="22" width="120" height="30" rx="6" fill="#f59e0b" opacity="0.1" stroke="#f59e0b" stroke-width="0.5"/>
+      <text x="920" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#f59e0b">IA-5</text>
+      <rect x="1000" y="22" width="100" height="30" rx="6" fill="#64748b" opacity="0.1" stroke="#64748b" stroke-width="0.5"/>
+      <text x="1050" y="42" text-anchor="middle" font-family="monospace" font-size="13" font-weight="600" fill="#94a3b8">2.10.4</text>
+    </g>
+  </g>
+
+  <!-- Bottom banner -->
+  <g transform="translate(60, 560)">
+    <rect width="1080" height="50" rx="10" fill="#0ee6f6" opacity="0.08" stroke="#0ee6f6" stroke-width="0.5"/>
+    <text x="540" y="22" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="white">150+ CWE mappings across 6 frameworks</text>
+    <text x="540" y="42" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#64748b">NIST 800-53 | SOC2 | CMMC | FedRAMP | ASVS | SSDF</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="645" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#475569">cveriskpilot.com | 100% Veteran Owned</text>
+  <rect x="0" y="670" width="1200" height="5" fill="url(#cyan-grad)"/>
+</svg>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import { exportJobStore } from '../route';
 
 // ---------------------------------------------------------------------------
@@ -10,10 +11,15 @@ export async function GET(
   { params }: { params: Promise<{ jobId: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { jobId } = await params;
     const job = exportJobStore.get(jobId);
 
-    if (!job) {
+    if (!job || job.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Export job not found' }, { status: 404 });
     }
 

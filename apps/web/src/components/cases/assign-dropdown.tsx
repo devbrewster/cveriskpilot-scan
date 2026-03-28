@@ -95,7 +95,7 @@ export function AssignDropdown({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+        className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
       >
         {currentAssignee ? (
           <>
@@ -140,7 +140,7 @@ export function AssignDropdown({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 z-20 mt-1 w-72 rounded-md border border-gray-200 bg-white shadow-lg">
+        <div className="absolute right-0 z-20 mt-1 w-72 rounded-md border border-gray-200 bg-white dark:bg-gray-900 shadow-lg">
           {/* Search */}
           <div className="border-b border-gray-100 p-2">
             <input

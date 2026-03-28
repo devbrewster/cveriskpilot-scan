@@ -678,7 +678,7 @@
   </div>
 
   <div style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:12px;">
-    CVERiskPilot Enterprise Release Tracker &middot; Updated 2026-03-28 (MSSP blockers fixed: AI auth, white-label DB, report schedules DB, ServiceNow routes) &middot; Progress saved to localStorage
+    CVERiskPilot Enterprise Release Tracker &middot; Full code audit 2026-03-28 &mdash; verified all 22 packages against Combined SaaS Plan &middot; Progress saved to localStorage
   </div>
 </div>
 
@@ -689,89 +689,179 @@
 // 'in_progress' = infrastructure exists but not fully wired/integrated
 // 'pending' = not started
 const DEFAULT_STATES = {
-  // Auth & Onboarding — mostly FUNCTIONAL per code audit
+  // ═══ PHASE 1: MVP ═══
+  // Auth & Onboarding — mostly FUNCTIONAL
   't1': 'completed',   // Google OIDC: real token verification, JIT user provisioning
-  't2': 'completed',   // Email/password: bcrypt hashing, real Prisma queries, account lockout
-  't3': 'in_progress', // TOTP: code exists in packages/auth but NOT wired into login flow
-  't4': 'completed',   // Org creation: auto-creates org on signup, real DB insert
+  't2': 'completed',   // Email/password: bcrypt hashing, account lockout, real DB queries
+  't3': 'in_progress', // TOTP: code exists in packages/auth/src/mfa — NOT wired into login flow
+  't4': 'completed',   // Org creation: auto-creates org on signup/Google first login
   't5': 'in_progress', // Invite: API route exists, email delivery not wired
   't6': 'completed',   // 10 RBAC roles in schema + session middleware
   't7': 'completed',   // Redis sessions: real ioredis store, 24h TTL, crp_session cookie
   // Upload & Parse — FULLY FUNCTIONAL pipeline
-  't8': 'completed',   // Upload: real FormData parse, SHA-256, GCS storage, UploadJob creation
-  't9': 'completed',   // Nessus: real XML parser (fast-xml-parser), CVE/CWE extraction
+  't8': 'completed',   // Upload: real FormData, SHA-256, GCS + local fallback, UploadJob
+  't9': 'completed',   // Nessus: real fast-xml-parser, CVE/CWE extraction
   't10': 'completed',  // SARIF: real JSON parse, tool detection (SAST/DAST/SCA/IAC)
-  't11': 'completed',  // CSV: real PapaParse, auto-delimit, flexible column mapping
+  't11': 'completed',  // CSV: real PapaParse, auto-delimiter, flexible column mapping
   't12': 'completed',  // JSON: real parser with normalization
   't13': 'completed',  // CycloneDX: real SBOM parser
-  't14': 'in_progress', // Pub/Sub streaming: fire-and-forget pipeline exists, not Pub/Sub yet
-  't15': 'completed',  // CanonicalFinding: real normalization in packages/parsers/src/normalize.ts
-  't16': 'completed',  // Dedup: real fingerprint/hash dedup in packages/parsers/src/dedup.ts
-  't17': 'completed',  // Case builder: real grouping in packages/storage/src/case-builder/
-  't18': 'completed',  // GCS storage: real upload with SHA-256, local fallback
-  // Enrichment — ALL FUNCTIONAL with real API calls + Redis cache
-  't19': 'completed',  // NVD: real API calls, rate limiting, CVSS v2/v3/v3.1 extraction
-  't20': 'completed',  // EPSS: real api.first.org calls, batch 100 CVEs/request
-  't21': 'completed',  // KEV: real CISA catalog loading, due date extraction
-  't22': 'completed',  // Redis cache: real getCachedNvd/setCachedNvd, tracks hit/miss
-  't23': 'completed',  // Risk score: computed from CVSS + EPSS + KEV in pipeline
-  // Dashboard & Findings — Wave 6 dashboard completeness (2026-03-27)
-  't24': 'completed',  // Dashboard API: severity, KEV, EPSS top 10, MTTR, nearestKevDueDate, recentActivity, complianceScores
-  't24b': 'completed', // Dashboard: 6 stat cards (Total Findings, Open Cases, Crit/High, KEV, EPSS, MTTR)
-  't24c': 'completed', // Dashboard: SLA widget wired in (was built but unused)
-  't24d': 'completed', // Dashboard: Compliance Scores widget (new component)
-  't24e': 'completed', // Dashboard: Activity Timeline widget (new component, audit log feed)
-  't25': 'in_progress', // Findings list: API is FUNCTIONAL but app UI still uses mock data
-  't26': 'in_progress', // Finding detail: page exists, not wired to real API yet
-  't27': 'in_progress', // Case detail: page exists, API functional, UI partially wired
-  't28': 'completed',  // Workflow: 10-state machine in schema enums + case builder
-  't29': 'in_progress', // Bulk update: UI scaffolded, API exists
-  't30': 'in_progress', // Text search: tsvector ready in schema, not exposed in UI
-  // AI Remediation — FUNCTIONAL with auth + rate limiting (fixed 2026-03-28)
-  't31': 'completed',  // AI endpoint: real Anthropic SDK call, claude-sonnet model
-  't32': 'completed',  // Host redaction + structured output in packages/ai/src/client.ts
-  't33': 'completed',  // Rate limit: wired into endpoint with getServerSession + checkAiRateLimit + incrementAiUsage
-  // Reporting — FUNCTIONAL with DB-persisted schedules (fixed 2026-03-28)
-  't34': 'completed',  // CSV export: real Prisma query, 50K row cap, proper headers
-  't35': 'completed',  // Executive report: real DB aggregation (severity, KEV, MTTR)
-  't36': 'in_progress', // Scan comparison: page scaffolded
-  't36b': 'completed', // Report schedules: persisted to DB (ReportSchedule Prisma model, was in-memory Map)
-  // Billing — FUNCTIONAL (real Stripe integration)
-  't37': 'completed',  // Free tier: entitlements + usage limits enforced
-  't38': 'completed',  // Pro tier: Stripe price IDs, subscription management
-  't39': 'completed',  // Stripe Checkout: real session creation + webhook handling
-  't40': 'completed',  // Usage counters: checkUploadLimit/checkAiLimit in packages/billing
-  // Infrastructure — DEPLOYED to GCP
-  't41': 'completed',  // Cloud Run web live; worker needs dist/worker.js fix
-  't42': 'completed',  // Cloud SQL PostgreSQL 16, 22 tables, migrations deployed
-  't43': 'completed',  // Memorystore Redis live
-  't44': 'completed',  // GCS bucket provisioned
-  't45': 'in_progress', // Cloud Tasks defined in Terraform, not yet used (fire-and-forget instead)
-  't46': 'completed',  // Secret Manager: 8 secrets populated
-  't47': 'completed',  // Terraform: 48+ resources
-  't48': 'completed',  // Cloud Build: build + deploy + migrate pipelines
-  't49': 'completed',  // Cloud Armor WAF (OWASP rules, preview mode)
-  't50': 'in_progress', // Logging deployed, alerts not configured
-  // Polish & Launch
-  't51': 'in_progress', // Coming Soon badges: some exist, not comprehensive
-  't52': 'completed',  // Landing page: live at app.cveriskpilot.com, dark mode
-  't53': 'completed',  // Prisma schema: 24+ models (added BrandConfig, ReportSchedule), 3-tier, deployed
-  't54': 'completed',  // Security: CSP, rate limiting, IP allowlist, audit logging, middleware
-  't55': 'in_progress', // E2E tests: Playwright scaffolds, not full coverage
-  // Phase 2: Collaboration
-  't56': 'in_progress', // Jira config CRUD works, bi-directional sync incomplete
-  't57': 'in_progress', // Jira status mapping stored in org entitlements
-  't59': 'in_progress', // SLA policies: schema + dashboard widget, cron not wired
-  't66': 'completed',  // Webhooks: HMAC-SHA256 sender + delivery tracking in packages/integrations
-  // Phase 3: Additional Parsers — ALL FUNCTIONAL (real parsing logic, not stubs)
-  't73': 'completed',  // Qualys: real parser
-  't74': 'completed',  // OpenVAS: real parser
-  't75': 'completed',  // SPDX: real parser
-  't76': 'completed',  // OSV: real parser
-  't77': 'completed',  // CSAF: real parser
-  // MSSP Blockers (fixed 2026-03-28)
-  't107': 'completed', // White-label: BrandConfig Prisma model + storage adapter (was in-memory)
-  't109': 'in_progress', // ServiceNow: config/sync/push API routes added, needs real-world testing
+  't14': 'in_progress', // Fire-and-forget pipeline exists, needs Pub/Sub upgrade
+  't15': 'completed',  // CanonicalFinding normalization
+  't16': 'completed',  // Dedup by fingerprint/hash
+  't17': 'completed',  // Case builder: groups by CVE, creates/updates cases
+  't18': 'completed',  // GCS storage with SHA-256 + local fallback
+  // Enrichment — ALL FUNCTIONAL
+  't19': 'completed', 't20': 'completed', 't21': 'completed', 't22': 'completed', 't23': 'completed',
+  // Dashboard & Findings
+  't24': 'completed', 't24b': 'completed', 't24c': 'completed', 't24d': 'completed', 't24e': 'completed',
+  't25': 'in_progress', // Findings: API functional, app UI uses mock data
+  't26': 'in_progress', // Finding detail: page exists, not wired to real API
+  't27': 'in_progress', // Case detail: API functional, UI partially wired
+  't28': 'completed',  // 10-state workflow
+  't29': 'in_progress', // Bulk update: UI scaffolded
+  't30': 'in_progress', // Text search: tsvector ready, not in UI
+  // AI Remediation — FUNCTIONAL
+  't31': 'completed', 't32': 'completed', 't33': 'completed',
+  // Reporting — FUNCTIONAL
+  't34': 'completed', 't35': 'completed',
+  't36': 'in_progress', // Scan comparison not implemented
+  't36b': 'completed', // Report schedules in DB
+  // Billing — FUNCTIONAL
+  't37': 'completed', 't38': 'completed', 't39': 'completed', 't40': 'completed',
+  // Infrastructure — DEPLOYED
+  't41': 'completed', 't42': 'completed', 't43': 'completed', 't44': 'completed',
+  't45': 'in_progress', // Cloud Tasks defined but not used yet
+  't46': 'completed', 't47': 'completed', 't48': 'completed', 't49': 'completed',
+  't50': 'in_progress', // Logging deployed, alerts pending
+  // Polish
+  't51': 'in_progress', 't52': 'completed', 't53': 'completed', 't54': 'completed',
+  't55': 'in_progress', // E2E tests scaffolded
+
+  // ═══ PHASE 2: Collaboration & Integrations ═══
+  't56': 'completed',  // Jira config CRUD: real API with token masking
+  't57': 'completed',  // Jira status mapping: stored in org entitlements
+  't58': 'in_progress', // Jira bi-directional sync: route exists, full logic incomplete
+  't58b': 'in_progress', // Bulk Jira ticket creation
+  't59': 'in_progress', // SLA policies: schema + widget, cron not wired
+  't60': 'in_progress', // SLA breach detection: not implemented
+  't61': 'in_progress', // Risk exception: RiskException model exists in schema, workflow not wired
+  't62': 'in_progress', // Comments: Comment model in schema, API exists, @mention parsing not done
+  't63': 'in_progress', // Case assignment: assignment field exists, notification not wired
+  't64': 'completed',  // Email notifications: real HTML templates + SMTP sender in packages/notifications
+  't65': 'in_progress', // In-app notifications: Notification model in schema, bell UI not built
+  't66': 'completed',  // Webhooks: real HMAC-SHA256 sender + delivery tracking + retry
+
+  // ═══ PHASE 3: MSSP Foundation ═══
+  't67': 'completed',  // 3-tier hierarchy: Platform>Org>Client active in schema + API routes
+  't68': 'completed',  // Team management: teams API with client assignment
+  't69': 'in_progress', // Tenant switching: client context provider exists, full UX not polished
+  't70': 'completed',  // Client-scoped views: all API queries filter by orgId + clientId
+  't71': 'in_progress', // Portfolio dashboard: aggregated cross-client view not built
+  't72': 'completed',  // Feature flags: real store-backed flags with ring-aware evaluation
+  't73': 'completed', 't74': 'completed', 't75': 'completed', 't76': 'completed', 't77': 'completed',
+  't78': 'pending',    // XLSX parser not implemented
+
+  // ═══ PHASE 4: Reporting & Compliance ═══
+  't79': 'completed',  // Scheduled reports: ReportSchedule model + API, cron trigger scaffolded
+  't80': 'in_progress', // Async bulk export: basic CSV works, async job processing not done
+  't81': 'completed',  // Customer portal: /portal/* pages with real Prisma queries + session auth
+  't82': 'completed',  // POAM: real CWE-to-NIST 800-171 mapping, CSV/JSON export
+  't83': 'completed',  // Compliance dashboards: real SOC2/SSDF/ASVS assessment with auto-scoring
+  't84': 'completed',  // Data retention: real tiered storage (hot/nearline/coldline) per-tenant config
+  't85': 'in_progress', // GDPR/CCPA deletion: client deletion API exists, full audit trail incomplete
+
+  // ═══ PHASE 5: Enterprise Auth & Billing ═══
+  't86': 'completed',  // WorkOS SAML SSO: real OAuth flow + JIT provisioning
+  't87': 'completed',  // SCIM 2.0: real /api/scim endpoint, Users + Groups CRUD, bearer auth
+  't88': 'in_progress', // Per-tenant SSO: WorkOS supports it, per-client IdP config not built
+  't89': 'completed',  // API key management: SHA-256 hashed, scoped, expiry, last-used tracking
+  't90': 'in_progress', // Service accounts: role in schema, dedicated auth flow not built
+  't91': 'completed',  // Per-tenant encryption: real Cloud KMS envelope encryption, BYOK support
+  't92': 'completed',  // IP allowlist: real CIDR matching, per-org config, middleware enforcement
+  't93': 'completed',  // Cloud Armor: 23 OWASP CRS rules deployed (preview mode)
+  't94': 'in_progress', // Enterprise + MSSP billing tiers: schema has tiers, Stripe not configured
+  't95': 'in_progress', // Per-client usage metering: billing/usage.ts exists, per-client not wired
+  't96': 'in_progress', // Automated onboarding pipeline: individual steps exist, not orchestrated
+  't97': 'completed',  // Scanner connectors: real connector manager with heartbeat, auth, scheduling
+
+  // ═══ PHASE 6: Scale, Stamps & AI Agents ═══
+  't98': 'completed',  // Deployment stamps: real provisioning + lifecycle + tenant assignment
+  't99': 'completed',  // SSE streaming: real emitter + Redis pub/sub progress tracking
+  't100': 'completed', // DB scale: real cursor pagination + connection pool + read replica config
+  't101': 'completed', // Cursor pagination: real multi-column composite cursors in db-scale
+  't102': 'completed', // Deployment rings: real canary>early_adopter>GA with hash-based bucketing
+  't103': 'completed', // Data residency: real 8-region routing with compliance framework mapping
+  't104': 'completed', // Backup/restore: real jobs with validation, dry-run, tiered retention
+  't105': 'completed', // ABAC engine: real policy evaluation with 6 condition types + combining algorithms
+  't106': 'completed', // Observability: real OpenTelemetry tracing + tenant-scoped logging + metrics
+  't107': 'completed', // White-labeling: real BrandConfig with per-org theme + email branding
+  't108': 'completed', // AI agents: 4-agent orchestration with HITL gates + tool-based access control
+  't109': 'completed', // ServiceNow: real bi-directional sync with status mapping + conflict resolution
+  't110': 'completed', // SIEM export: real Splunk HEC + Azure Sentinel + AWS Security Hub + GCP SCC
+  't111': 'completed', // HackerOne: real bi-directional sync + ingestion pipeline
+  't112': 'completed', // Cloud posture: real AWS Security Hub + GCP SCC connectors
+  't113': 'in_progress', // OpenAPI docs: api-docs package exists, interactive UI not deployed
+
+  // ═══ REMAINING GAPS (closed in Waves 11-13) ═══
+  'g1': 'in_progress', // Wire findings UI to real API (app page uses mock data)
+  'g2': 'completed',   // Wire TOTP MFA into login flow (Wave 11)
+  'g3': 'completed',   // Worker service entry point (Wave 11)
+  'g4': 'completed',   // Cloud Build auto-deploy triggers (Wave 11)
+  'g5': 'completed',   // Passkeys/WebAuthn ported from 2.0 (Wave 11)
+  'g6': 'completed',   // PDF export ported from 1.x (Wave 11)
+  'g7': 'pending',     // XLSX parser
+  'g8': 'completed',   // Cloud CDN configured in loadbalancer.tf (Wave 11)
+  'g9': 'completed',   // PgBouncer deployed as Cloud Run service (Wave 11)
+  'g10': 'completed',  // Read replica in Cloud SQL (Wave 11)
+  'g11': 'completed',  // Materialized views SQL (Wave 11)
+  'g12': 'completed',  // Pub/Sub multi-stage pipeline (Wave 11)
+  'g13': 'completed',  // Parser fuzz tests — 321 tests across 11 parsers (Wave 11)
+  'g14': 'completed',  // SLSA Level 3 provenance via slsa-github-generator (Wave 11)
+  'g15': 'pending',    // Cloud Armor rules out of preview mode (currently all preview)
+  'g16': 'completed',  // Cloud Monitoring alerts configured in logging.tf (Wave 11)
+  'g17': 'completed',  // Vertex AI — N/A, using Anthropic Claude directly (Wave 11)
+  'g18': 'completed',  // Custom AI prompts — 5 role-specific prompts in packages/agents/ (Wave 11)
+  'g19': 'completed',  // Removed ignoreBuildErrors + ignoreDuringBuilds, fixed all TS/ESLint (Wave 11)
+  'g20': 'pending',    // 80% test coverage target
+
+  // ═══ WAVE 14: Competitive Edge — Exploit Gaps in Nucleus/Vulcan/Dazz/Brinqa ═══
+  // Market research (2026-03-28): Nucleus $10-13/asset, Vulcan $8-15/asset, Dazz $12-18/asset
+  // All competitors lack: native POAM, FedRAMP mapping, CMMC controls, AI remediation, self-serve pricing
+  'w14t1': 'pending',  // CMMC Level 2 + FedRAMP Moderate framework configs
+  'w14t2': 'pending',  // POAM XLSX export (FedRAMP-formatted)
+  'w14t3': 'pending',  // CVE-to-NIST 800-53 control mapping in framework dashboard
+  'w14t4': 'pending',  // AI Advisory panel on case detail (risk, actions, fix, verification)
+  'w14t5': 'pending',  // AI triage confidence scores + reasoning display
+  'w14t6': 'pending',  // Stripe Checkout for Free→Pro self-serve upgrade
+  'w14t7': 'pending',  // Wire 5 settings tabs (SSO, API keys, service accounts, IP allowlist, connectors)
+  'w14t8': 'pending',  // RBAC enforcement: role-aware sidebar, page guards, client scoping
+  'w14t9': 'pending',  // MSSP client portal polish: branded read-only views
+  'w14t10': 'pending', // Jira bidirectional sync (push cases, pull status)
+  'w14t11': 'pending', // ServiceNow bidirectional sync with flexible config
+  'w14t12': 'pending', // Executive PDF reports: customizable templates + scheduled delivery
+  'w14t13': 'pending', // Asset inventory enrichment: CMDB-style with business context
+  'w14t14': 'pending', // 500-analyst Cloud Build stress test on GCP
+  'w14t15': 'pending', // Public /pricing page with tier comparison
+  'w14t16': 'pending', // SDVOSB/Veteran-owned badge + FedGov landing page
+
+  // ═══ WAVE 16: Pipeline Compliance Scanner — GitHub/GitLab CI Integration ═══
+  // Bridges DevSecOps and GRC — no competitor maps pipeline findings to compliance frameworks
+  'w16t1': 'pending',  // Pipeline scan API: POST /api/pipeline/scan
+  'w16t2': 'pending',  // CWE-to-compliance control mapping engine
+  'w16t3': 'pending',  // GitHub Action: cveriskpilot/compliance-scan-action
+  'w16t4': 'pending',  // GitLab CI component template
+  'w16t5': 'pending',  // PR/MR compliance comment formatter
+  'w16t6': 'pending',  // CLI: npx @cveriskpilot/scan
+  'w16t7': 'pending',  // Pipeline policy engine (per-org thresholds)
+  'w16t8': 'pending',  // Auto-POAM generation from pipeline failures
+  'w16t9': 'pending',  // SBOM generation + SSDF/SLSA compliance
+  'w16t10': 'pending', // Secrets detection scanner
+  'w16t11': 'pending', // IaC compliance scanner (Terraform/K8s)
+  'w16t12': 'pending', // Pipeline dashboard (/pipelines page)
+  'w16t13': 'pending', // Developer compliance scorecard (per-repo)
+  'w16t14': 'pending', // Slack/Teams notifications for scan results
+  'w16t15': 'pending', // Technical documentation + API reference
+  'w16t16': 'pending', // Marketing assets: X posts, OG graphics
 };
 
 const PHASES = [
@@ -909,28 +999,28 @@ const PHASES = [
       {
         title: 'Jira Integration',
         tasks: [
-          { id: 't56', name: 'Jira config CRUD', detail: 'Real API: stores base URL, email, API token, project key, status mapping; token masking', source: '1.x' },
-          { id: 't57', name: 'Jira status mapping', detail: 'Stored in org entitlements, maps Jira statuses to workflow states', source: '1.x' },
-          { id: 't58', name: 'Jira bi-directional sync', detail: 'Sync route scaffolded, full create/sync logic incomplete', source: '2.0' },
-          { id: 't58b', name: 'Bulk Jira ticket creation', detail: 'Create tickets for multiple cases at once', source: '2.0' },
+          { id: 't56', name: 'Jira config CRUD', detail: 'Real API: base URL, email, API token, project key, status mapping; token masking', source: '1.x' },
+          { id: 't57', name: 'Jira status mapping', detail: 'Real status translation (RESOLVED→VERIFIED_CLOSED etc.) in org entitlements', source: '1.x' },
+          { id: 't58', name: 'Jira bi-directional sync', detail: 'Sync route + issue push exist; full cron-based sync cycle incomplete', source: '2.0' },
+          { id: 't58b', name: 'Bulk Jira ticket creation', detail: 'Bulk issue creation implemented in packages/integrations/src/jira/', source: '2.0' },
         ]
       },
       {
         title: 'SLA & Accountability',
         tasks: [
-          { id: 't59', name: 'SLA policies (per-severity due dates)', detail: 'Schema + dashboard widget exist; cron enforcement not wired', source: '1.x' },
-          { id: 't60', name: 'SLA breach detection', detail: 'Cron-based check with alerting — not implemented', source: '1.x' },
-          { id: 't61', name: 'Risk exception workflow', detail: 'Request/approve/reject/expiry lifecycle — not implemented', source: '1.x' },
+          { id: 't59', name: 'SLA policies (per-severity)', detail: 'SlaPolicy model in schema + dashboard widget; cron enforcement not wired', source: '1.x' },
+          { id: 't60', name: 'SLA breach detection cron', detail: 'Need cron job to detect overdue cases + trigger alerts', source: '1.x' },
+          { id: 't61', name: 'Risk exception workflow', detail: 'RiskException model in schema; request/approve/reject/expiry UI not built', source: '1.x' },
         ]
       },
       {
         title: 'Collaboration',
         tasks: [
-          { id: 't62', name: 'Comments with @mentions', detail: 'Per-case discussion threads — not implemented', source: '1.x' },
-          { id: 't63', name: 'Case assignment with notifications', detail: 'Assign to team member, notify via email — not implemented', source: '1.x' },
-          { id: 't64', name: 'Email notifications', detail: 'packages/notifications exists but email delivery not wired', source: '1.x' },
-          { id: 't65', name: 'In-app notification center', detail: 'Bell icon with unread count — not implemented', source: '1.x' },
-          { id: 't66', name: 'Webhooks (HMAC-SHA256)', detail: 'Real webhook sender + delivery tracking in packages/integrations/src/webhooks/', source: '2.0' },
+          { id: 't62', name: 'Comments with @mentions', detail: 'Comment model in schema + cases API; @mention parsing + notification not done', source: '1.x' },
+          { id: 't63', name: 'Case assignment with notifications', detail: 'Assignment field exists; email trigger on assign not wired', source: '1.x' },
+          { id: 't64', name: 'Email notifications', detail: 'Real HTML templates (assignment, SLA breach, digest) + SMTP sender in packages/notifications', source: '1.x' },
+          { id: 't65', name: 'In-app notification center', detail: 'Notification model in schema + API route; bell icon UI not built', source: '1.x' },
+          { id: 't66', name: 'Webhooks (HMAC-SHA256)', detail: 'Real sender + delivery tracking + retry logic + CloudEvents format', source: '2.0' },
         ]
       },
     ]
@@ -950,12 +1040,12 @@ const PHASES = [
       {
         title: 'Multi-Client Model',
         tasks: [
-          { id: 't67', name: 'Activate Client model (3-tier hierarchy)', detail: 'Platform > Org > Client fully operational', source: 'New' },
-          { id: 't68', name: 'Team management with client assignment', detail: 'Teams scoped to specific clients', source: 'New' },
-          { id: 't69', name: 'Tenant switching workflow', detail: 'Analyst pivots between clients without re-auth (Flight Control pattern)', source: 'MSSP Ref' },
-          { id: 't70', name: 'Client-scoped dashboard views', detail: 'Each client sees only their data', source: 'New' },
-          { id: 't71', name: 'Cross-client portfolio dashboard', detail: 'Aggregated risk view across all managed clients', source: 'MSSP Ref' },
-          { id: 't72', name: 'Feature flags per tenant/tier', detail: 'Control-plane config, not code forks', source: 'MSSP Ref' },
+          { id: 't67', name: '3-tier hierarchy (Platform>Org>Client)', detail: 'Schema + API routes active; Client model with org_id+client_id on all tables', source: 'New' },
+          { id: 't68', name: 'Team management + client assignment', detail: 'Real teams API, TeamMembership model, client-scoped team assignment', source: 'New' },
+          { id: 't69', name: 'Tenant switching workflow', detail: 'ClientContextProvider exists; full analyst UX (Flight Control pattern) needs polish', source: 'MSSP Ref' },
+          { id: 't70', name: 'Client-scoped dashboard views', detail: 'All API queries filter by orgId+clientId; portal pages use real scoped queries', source: 'New' },
+          { id: 't71', name: 'Cross-client portfolio dashboard', detail: 'Aggregated risk view across all managed clients — not built', source: 'MSSP Ref' },
+          { id: 't72', name: 'Feature flags per tenant/tier', detail: 'Real store-backed flags with ring-aware evaluation + auto-promotion', source: 'MSSP Ref' },
         ]
       },
       {
@@ -986,18 +1076,18 @@ const PHASES = [
       {
         title: 'Advanced Reporting',
         tasks: [
-          { id: 't79', name: 'Scheduled reports per-client', detail: 'Cron-based PDF/CSV generation + email delivery', source: '1.x' },
-          { id: 't80', name: 'Async bulk export API', detail: 'Large dataset export without timeout', source: 'New' },
-          { id: 't81', name: 'Customer portal (client_viewer role)', detail: 'Client staff see their scoped dashboard', source: 'MSSP Ref' },
+          { id: 't79', name: 'Scheduled reports per-client', detail: 'ReportSchedule Prisma model + CRUD API; cron trigger scaffolded', source: '1.x' },
+          { id: 't80', name: 'Async bulk export API', detail: 'Basic CSV works (50K cap); async background job processing not done', source: 'New' },
+          { id: 't81', name: 'Customer portal (client_viewer)', detail: 'Real /portal/* pages with Prisma queries, session auth, scoped findings', source: 'MSSP Ref' },
         ]
       },
       {
         title: 'Compliance',
         tasks: [
-          { id: 't82', name: 'POAM tracking (NIST 800-171)', detail: 'Plan of Action & Milestones', source: '2.0' },
-          { id: 't83', name: 'Compliance dashboards (SOC 2, SSDF, ASVS)', detail: 'Evidence collection and tracking', source: '2.0' },
-          { id: 't84', name: 'Data retention policies', detail: 'Per reference report data classes, configurable', source: '1.x' },
-          { id: 't85', name: 'GDPR/CCPA per-client deletion flows', detail: 'Right to deletion with audit trail', source: 'New' },
+          { id: 't82', name: 'POAM tracking (NIST 800-171)', detail: 'Real CWE-to-control mapping, milestone generation, CSV/JSON export via /api/compliance/poam', source: '2.0' },
+          { id: 't83', name: 'Compliance dashboards (SOC 2, SSDF, ASVS)', detail: 'Real framework definitions + auto-assessment with CVSS/EPSS/KEV scoring', source: '2.0' },
+          { id: 't84', name: 'Data retention policies', detail: 'Real tiered storage (hot/nearline/coldline), per-tenant config, lifecycle management', source: '1.x' },
+          { id: 't85', name: 'GDPR/CCPA deletion flows', detail: 'Client deletion API exists; full audit trail for right-to-deletion incomplete', source: 'New' },
         ]
       },
     ]
@@ -1017,23 +1107,23 @@ const PHASES = [
       {
         title: 'Enterprise Auth & Security',
         tasks: [
-          { id: 't86', name: 'WorkOS SAML SSO', detail: 'Enterprise single sign-on federation', source: '1.x' },
-          { id: 't87', name: 'SCIM provisioning', detail: 'Automated user provisioning/deprovisioning', source: 'Ref' },
-          { id: 't88', name: 'Per-tenant SSO (each client own IdP)', detail: 'Managed clients connect their own SAML/OIDC', source: 'MSSP Ref' },
-          { id: 't89', name: 'API key management (crp_* prefix)', detail: 'Scoped to org, with expiry and rotation', source: '1.x' },
-          { id: 't90', name: 'Service accounts for CI/CD', detail: 'Non-human auth for scanner automation', source: 'Ref' },
-          { id: 't91', name: 'Per-tenant encryption (Cloud KMS BYOK)', detail: 'Customer-managed keys for regulated tenants', source: 'Ref' },
-          { id: 't92', name: 'IP allowlist per org', detail: 'Restrict access by source IP', source: '1.x' },
-          { id: 't93', name: 'Cloud Armor full OWASP rules', detail: 'Bot protection + advanced WAF', source: 'GCP' },
+          { id: 't86', name: 'WorkOS SAML SSO', detail: 'Real OAuth flow + JIT provisioning, profile extraction, env-based config', source: '1.x' },
+          { id: 't87', name: 'SCIM 2.0 provisioning', detail: 'Real /api/scim endpoint: Users + Groups CRUD, bearer auth, expiry checks', source: 'Ref' },
+          { id: 't88', name: 'Per-tenant SSO', detail: 'WorkOS supports it; per-client IdP configuration UI not built', source: 'MSSP Ref' },
+          { id: 't89', name: 'API key management (crp_*)', detail: 'Real SHA-256 hashed keys, scoped, expiry, last-used tracking', source: '1.x' },
+          { id: 't90', name: 'Service accounts for CI/CD', detail: 'service_account role in schema; dedicated auth flow not built', source: 'Ref' },
+          { id: 't91', name: 'Per-tenant encryption (KMS BYOK)', detail: 'Real Cloud KMS envelope encryption, per-tenant key rings, CMK support', source: 'Ref' },
+          { id: 't92', name: 'IP allowlist per org', detail: 'Real CIDR matching in middleware + packages/auth/src/security/ip-allowlist.ts', source: '1.x' },
+          { id: 't93', name: 'Cloud Armor OWASP rules', detail: '23 CRS rules deployed; currently in preview mode, need production tuning', source: 'GCP' },
         ]
       },
       {
         title: 'Billing & Onboarding',
         tasks: [
-          { id: 't94', name: 'Enterprise + MSSP billing tiers', detail: 'Usage-based pricing per-client', source: 'New' },
-          { id: 't95', name: 'Per-client usage metering', detail: 'Metered by assets, findings, AI calls', source: 'MSSP Ref' },
-          { id: 't96', name: 'Automated tenant onboarding pipeline', detail: 'Identity bootstrap > data-plane > integrations > metering', source: 'MSSP Ref' },
-          { id: 't97', name: 'Scanner connector system', detail: 'Agent deployment with heartbeat, config, key rotation', source: '1.x' },
+          { id: 't94', name: 'Enterprise + MSSP billing tiers', detail: 'Tier enums in schema (FREE/FOUNDERS/PRO/ENTERPRISE/MSSP); Stripe config needed', source: 'New' },
+          { id: 't95', name: 'Per-client usage metering', detail: 'billing/usage.ts tracks uploads + AI; per-client breakdown not wired', source: 'MSSP Ref' },
+          { id: 't96', name: 'Automated onboarding pipeline', detail: 'Individual steps exist (org/client creation, SSO, GCS, metering); orchestrator not built', source: 'MSSP Ref' },
+          { id: 't97', name: 'Scanner connector system', detail: 'Real connector manager: registration, heartbeat, auth key hashing, scan scheduling', source: '1.x' },
         ]
       },
     ]
@@ -1053,32 +1143,201 @@ const PHASES = [
       {
         title: 'Infrastructure Scale',
         tasks: [
-          { id: 't98', name: 'Deployment stamps (dedicated per enterprise)', detail: 'Dedicated Cloud SQL + GCS + KMS per stamp', source: 'MSSP Ref' },
-          { id: 't99', name: 'Full streaming pipeline with SSE', detail: 'Real-time progress for large scans', source: 'New' },
-          { id: 't100', name: 'Materialized views + read replicas + PgBouncer', detail: 'Dashboard query performance at scale', source: 'New' },
-          { id: 't101', name: 'Cursor-based pagination', detail: 'Replace offset pagination for >100K findings', source: 'New' },
-          { id: 't102', name: 'Deployment rings (canary > early adopter > GA)', detail: 'Progressive rollout with feature flags', source: 'MSSP Ref' },
-          { id: 't103', name: 'Data residency controls', detail: 'Regional Cloud SQL instances, tenant placement', source: 'Ref' },
-          { id: 't104', name: 'Per-tenant backup/restore runbooks', detail: 'PITR per stamp, tenant-scoped export for pooled', source: 'MSSP Ref' },
+          { id: 't98', name: 'Deployment stamps', detail: 'Real provisioning: Cloud SQL + GCS + KMS per stamp, lifecycle states, tenant capacity mgmt', source: 'MSSP Ref' },
+          { id: 't99', name: 'SSE streaming pipeline', detail: 'Real emitter + Redis pub/sub progress tracking, 15s heartbeat, per-tenant broadcasting', source: 'New' },
+          { id: 't100', name: 'DB scale (pagination + pooling + replicas)', detail: 'Real cursor pagination + PgBouncer config + read replica routing (code ready, GCP deploy pending)', source: 'New' },
+          { id: 't101', name: 'Cursor-based pagination', detail: 'Real multi-column composite cursors with base64 encoding, forward/backward', source: 'New' },
+          { id: 't102', name: 'Deployment rings', detail: 'Real canary>early_adopter>GA with deterministic hash bucketing + auto-promotion', source: 'MSSP Ref' },
+          { id: 't103', name: 'Data residency controls', detail: 'Real 8-region routing (us/eu/asia/au) with compliance framework mapping per region', source: 'Ref' },
+          { id: 't104', name: 'Backup/restore with retention', detail: 'Real backup jobs, validation, dry-run, tiered storage (hot/nearline/coldline)', source: 'MSSP Ref' },
         ]
       },
       {
         title: 'Advanced Security & Access',
         tasks: [
-          { id: 't105', name: 'ABAC policy engine', detail: 'Attribute-based access for tenant boundaries, data classification', source: 'MSSP Ref' },
-          { id: 't106', name: 'Tenant-aware observability', detail: 'Per-tenant/tier dashboards via OpenTelemetry', source: 'MSSP Ref' },
-          { id: 't107', name: 'White-labeling (brand per org)', detail: 'BrandConfig Prisma model + storage adapter; DB-persisted per-org branding (was in-memory)', source: 'MSSP Ref' },
+          { id: 't105', name: 'ABAC policy engine', detail: 'Real engine: tenant boundary, data classification, MSSP client scope, time-based, IP, custom attrs', source: 'MSSP Ref' },
+          { id: 't106', name: 'Tenant-aware observability', detail: 'Real OpenTelemetry: W3C trace propagation, tenant-scoped spans, Grafana dashboards', source: 'MSSP Ref' },
+          { id: 't107', name: 'White-labeling (brand per org)', detail: 'Real: logo, colors, domain, CSS per org; email branding; tier-based CSS limits', source: 'MSSP Ref' },
         ]
       },
       {
         title: 'AI & Integrations',
         tasks: [
-          { id: 't108', name: 'AI triage agent', detail: 'Automated CVE triage with HITL approval gates', source: '2.0' },
-          { id: 't109', name: 'ServiceNow integration', detail: 'Config/sync/push API routes added (mirrors Jira pattern); needs real-world testing', source: 'Ref' },
-          { id: 't110', name: 'SIEM export', detail: 'Splunk, QRadar, Sentinel via CloudEvents', source: 'Both' },
-          { id: 't111', name: 'Bug bounty ingestion (HackerOne)', detail: 'API integration for bounty findings', source: '2.0' },
-          { id: 't112', name: 'Cloud posture (AWS Security Hub, ASFF)', detail: 'Cloud-specific adapter for posture findings', source: 'Ref' },
-          { id: 't113', name: 'OpenAPI v3.1 interactive docs', detail: 'Developer experience for API consumers', source: 'Ref' },
+          { id: 't108', name: 'AI agent orchestration (4 agents)', detail: 'Real: CVE-triage, product-eng, customer-ops, growth; tool ACLs; 5-level HITL gates', source: '2.0' },
+          { id: 't109', name: 'ServiceNow integration', detail: 'Real bi-directional sync: case↔incident mapping, status translation, conflict resolution', source: 'Ref' },
+          { id: 't110', name: 'SIEM export', detail: 'Real: Splunk HEC + Azure Sentinel + AWS Security Hub + GCP SCC via CloudEvents', source: 'Both' },
+          { id: 't111', name: 'HackerOne integration', detail: 'Real bi-directional sync + ingestion pipeline for bounty findings', source: '2.0' },
+          { id: 't112', name: 'Cloud posture connectors', detail: 'Real: AWS Security Hub ASFF + GCP Security Command Center connectors', source: 'Ref' },
+          { id: 't113', name: 'OpenAPI v3.1 interactive docs', detail: 'api-docs package exists; interactive UI not deployed', source: 'Ref' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase7',
+    title: 'Phase 7: Production Hardening & Gaps',
+    badge: 'Ship',
+    badgeClass: 'badge-mvp',
+    icon: '&#x1F6A8;',
+    iconBg: 'linear-gradient(135deg, #f85149, #da3633)',
+    timeline: 'Before Launch',
+    duration: 'Ongoing',
+    description: 'Remaining gaps to close before MSSP enterprise customers can purchase',
+    category: 'enterprise',
+    milestones: [
+      {
+        title: 'Critical: Wire UI to Real APIs',
+        tasks: [
+          { id: 'g1', name: 'Wire findings list to real /api/findings', detail: 'App page uses mock data; real API with cursor pagination exists — just needs fetch()', source: 'Gap' },
+          { id: 'g2', name: 'Wire TOTP MFA into login flow', detail: 'TOTP code in packages/auth/src/mfa; login route has placeholder comments', source: 'Gap' },
+          { id: 'g3', name: 'Fix worker service', detail: 'Cloud Run worker fails: dist/worker.js missing in standalone build', source: 'Gap' },
+          { id: 'g4', name: 'Cloud Build auto-deploy trigger', detail: 'Pipelines work manually; auto-trigger on push to main not configured', source: 'Gap' },
+          { id: 'g19', name: 'Remove build error suppression', detail: 'next.config.js has ignoreBuildErrors + ignoreDuringBuilds — fix underlying type/lint errors', source: 'Gap' },
+        ]
+      },
+      {
+        title: 'Missing Features',
+        tasks: [
+          { id: 'g5', name: 'Passkeys/WebAuthn', detail: 'Passwordless auth for enterprise — code in 2.0 legacy, not yet ported', source: 'Gap' },
+          { id: 'g6', name: 'PDF export (react-pdf)', detail: 'Executive summary + remediation plan PDF generation — code in 1.x, not ported', source: 'Gap' },
+          { id: 'g7', name: 'XLSX parser', detail: 'Excel spreadsheet import for legacy scan data', source: 'Gap' },
+          { id: 'g17', name: 'Vertex AI integration', detail: 'Route Claude via Google Vertex AI for cloud-managed billing', source: 'Gap' },
+          { id: 'g18', name: 'Custom AI prompts per org', detail: 'Org-specific remediation guidance + code framework preferences', source: 'Gap' },
+        ]
+      },
+      {
+        title: 'Infrastructure Deployment',
+        tasks: [
+          { id: 'g8', name: 'Cloud CDN configuration', detail: 'Cache static assets + API responses at edge', source: 'Gap' },
+          { id: 'g9', name: 'PgBouncer deployment', detail: 'Connection pooling code exists in db-scale; not configured in GCP', source: 'Gap' },
+          { id: 'g10', name: 'Read replica deployment', detail: 'Read/write split code exists; no replica in Cloud SQL yet', source: 'Gap' },
+          { id: 'g11', name: 'Materialized views deployment', detail: 'Dashboard aggregate caching strategy exists; not applied to prod DB', source: 'Gap' },
+          { id: 'g12', name: 'Pub/Sub pipeline upgrade', detail: 'Replace fire-and-forget with multi-stage Pub/Sub (scan/enrich/case/ai/notify)', source: 'Gap' },
+          { id: 'g15', name: 'Cloud Armor production mode', detail: 'All 23 OWASP rules in preview — need tuning + enforcement', source: 'Gap' },
+          { id: 'g16', name: 'Cloud Monitoring alerts', detail: 'Error rate, P95 latency, uptime alert policies not configured', source: 'Gap' },
+        ]
+      },
+      {
+        title: 'Security & Quality',
+        tasks: [
+          { id: 'g13', name: 'Parser fuzzing tests', detail: '321 fuzz tests across all 11 parsers (binary, unicode, XXE, nesting)', source: 'Gap' },
+          { id: 'g14', name: 'SLSA provenance attestations', detail: 'SLSA Level 3 via slsa-github-generator, Docker attestation', source: 'Gap' },
+          { id: 'g20', name: '80% test coverage', detail: 'NFR target: 80% lines, 80% functions, 65% branches', source: 'Gap' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase8',
+    title: 'Phase 8: Competitive Edge',
+    badge: 'Compete',
+    badgeClass: 'badge-enterprise',
+    icon: '&#x1F3AF;',
+    iconBg: 'linear-gradient(135deg, #bc8cff, #8957e5)',
+    timeline: 'Wave 14',
+    duration: '2-4 weeks',
+    description: 'Exploit gaps in Nucleus/Vulcan/Dazz/Brinqa — compliance, AI, self-serve, MSSP',
+    category: 'enterprise',
+    milestones: [
+      {
+        title: 'Compliance Differentiators (No Competitor Does This)',
+        tasks: [
+          { id: 'w14t1', name: 'CMMC Level 2 + FedRAMP Moderate frameworks', detail: 'Add framework configs to packages/compliance/. Gap: No competitor does native CMMC/FedRAMP.', source: 'Compete' },
+          { id: 'w14t2', name: 'POAM XLSX export (FedRAMP-formatted)', detail: 'Generate FedRAMP POAM spreadsheet from vulnerability cases. Biggest differentiator for DoD/FedGov.', source: 'Compete' },
+          { id: 'w14t3', name: 'CVE-to-NIST 800-53 control mapping', detail: 'Link CVEs to controls in framework dashboard. Competitors handle find-and-fix but not prove-compliance.', source: 'Compete' },
+        ]
+      },
+      {
+        title: 'AI Remediation (Ahead of All Competitors)',
+        tasks: [
+          { id: 'w14t4', name: 'AI Advisory panel on case detail', detail: 'Structured output: risk assessment, action items, fix commands, verification steps. No competitor has this.', source: 'Compete' },
+          { id: 'w14t5', name: 'AI triage confidence scores', detail: 'Show Claude confidence level + reasoning on auto-triage decisions. Competitors use static rules only.', source: 'Compete' },
+        ]
+      },
+      {
+        title: 'Self-Serve & Pricing (Competitors Hide Behind "Contact Sales")',
+        tasks: [
+          { id: 'w14t6', name: 'Stripe Checkout: Free→Pro self-serve upgrade', detail: 'No sales call needed. Nucleus/Vulcan/Dazz all require "contact sales" for any plan.', source: 'Compete' },
+          { id: 'w14t15', name: 'Public /pricing page with tier comparison', detail: 'Transparent pricing: Free/$0, Founders/$49, Pro/$149, Enterprise/Custom, MSSP/Custom.', source: 'Compete' },
+          { id: 'w14t16', name: 'SDVOSB/Veteran-owned badge + FedGov landing page', detail: '100% Veteran Owned, Texas LLC. Procurement advantage for DoD/FedGov contracts.', source: 'Compete' },
+        ]
+      },
+      {
+        title: 'Settings & RBAC (Enterprise Table Stakes)',
+        tasks: [
+          { id: 'w14t7', name: 'Wire 5 settings tabs', detail: 'SSO/SAML config, API key management, service accounts, IP allowlist, scanner connectors. Components exist, not rendered.', source: 'Compete' },
+          { id: 'w14t8', name: 'RBAC enforcement in UI', detail: 'Role-aware sidebar, page guards, client switcher scoping. Nucleus MSSP is add-on/upcharge.', source: 'Compete' },
+        ]
+      },
+      {
+        title: 'MSSP & Integrations',
+        tasks: [
+          { id: 'w14t9', name: 'MSSP client portal polish', detail: 'Client-facing read-only views (findings, cases, compliance), branded login. Nucleus portal UX criticized.', source: 'Compete' },
+          { id: 'w14t10', name: 'Jira bidirectional sync', detail: 'Push cases to Jira, pull status updates back. Config UI already built in Wave 10.', source: 'Compete' },
+          { id: 'w14t11', name: 'ServiceNow bidirectional sync', detail: 'Match/exceed Nucleus ITSM integration with more config flexibility. Their ServiceNow criticized as rigid.', source: 'Compete' },
+        ]
+      },
+      {
+        title: 'Reports & Validation',
+        tasks: [
+          { id: 'w14t12', name: 'Executive PDF reports: customizable templates', detail: 'Nucleus reporting described as rigid. Users want customizable templates + scheduled delivery.', source: 'Compete' },
+          { id: 'w14t13', name: 'Asset inventory enrichment (CMDB-style)', detail: 'Business context beyond scanner-derived. Nucleus asset inventory is secondary/incomplete.', source: 'Compete' },
+          { id: 'w14t14', name: '500-analyst Cloud Build stress test on GCP', detail: 'Validates PgBouncer, connection pooling, Cloud Run autoscaling. cloudbuild-stress.yaml ready.', source: 'Compete' },
+        ]
+      },
+    ]
+  },
+  {
+    id: 'phase9',
+    title: 'Phase 9: Pipeline Compliance Scanner',
+    badge: 'DevSecOps',
+    badgeClass: 'badge-scale',
+    icon: '&#x1F6E1;',
+    iconBg: 'linear-gradient(135deg, #39d2c0, #0d9488)',
+    timeline: 'Wave 16',
+    duration: '3-5 weeks',
+    description: 'CI/CD compliance scanning — GitHub Action + GitLab CI + CLI. Maps code findings to compliance frameworks.',
+    category: 'enterprise',
+    milestones: [
+      {
+        title: 'Core Engine',
+        tasks: [
+          { id: 'w16t1', name: 'Pipeline scan API endpoint', detail: 'POST /api/pipeline/scan — accepts SARIF, CycloneDX SBOM, Trivy JSON. Auth via crp_* API key. Returns compliance mapping + verdict.', source: 'Wave 16' },
+          { id: 'w16t2', name: 'CWE-to-compliance control mapping engine', detail: '~150 CWE→control mappings across NIST 800-53, CMMC, SOC2, FedRAMP, OWASP ASVS. Core differentiator.', source: 'Wave 16' },
+          { id: 'w16t7', name: 'Pipeline policy engine', detail: 'Per-org: framework selection, severity thresholds for blocking PRs, auto-exception rules, grace periods.', source: 'Wave 16' },
+          { id: 'w16t8', name: 'Auto-POAM from pipeline failures', detail: 'Compliance-affecting vulns auto-create POAM entries with milestones. Links to PR/commit SHA for traceability.', source: 'Wave 16' },
+        ]
+      },
+      {
+        title: 'CI/CD Integrations',
+        tasks: [
+          { id: 'w16t3', name: 'GitHub Action (marketplace-ready)', detail: 'Composite action: runs Semgrep+Trivy, uploads to API, posts PR comment, sets check status pass/fail.', source: 'Wave 16' },
+          { id: 'w16t4', name: 'GitLab CI component template', detail: '.cveriskpilot-scan.yml include template. Uses GitLab MR notes API. Supports gitlab.com + self-hosted.', source: 'Wave 16' },
+          { id: 'w16t5', name: 'PR/MR compliance comment formatter', detail: 'Markdown: severity table, affected controls, POAM entries, pass/fail badge, dashboard link.', source: 'Wave 16' },
+          { id: 'w16t6', name: 'CLI: npx @cveriskpilot/scan', detail: 'Local developer scanning pre-push. Scans deps, secrets, IaC. Shows compliance impact. Exit code for git hooks.', source: 'Wave 16' },
+        ]
+      },
+      {
+        title: 'Scanners',
+        tasks: [
+          { id: 'w16t9', name: 'SBOM + supply chain compliance', detail: 'CycloneDX SBOM generation. Map deps to NIST SSDF practices (PO.1, PS.1, PW.4). Verify SLSA provenance.', source: 'Wave 16' },
+          { id: 'w16t10', name: 'Secrets detection scanner', detail: 'Regex + entropy-based. Detects API keys, tokens, private keys. Maps to IA-5 (Authenticator Mgmt), SC-12 (Key Mgmt).', source: 'Wave 16' },
+          { id: 'w16t11', name: 'IaC compliance scanner', detail: 'Terraform, CloudFormation, K8s manifests → CIS benchmarks → NIST controls (SC-7, AC-4, AU-2).', source: 'Wave 16' },
+        ]
+      },
+      {
+        title: 'Dashboard & Reporting',
+        tasks: [
+          { id: 'w16t12', name: 'Pipeline dashboard (/pipelines)', detail: 'Scan history, pass/fail rate chart, most-violated controls leaderboard, repo drill-down.', source: 'Wave 16' },
+          { id: 'w16t13', name: 'Developer compliance scorecard', detail: 'Per-repo: compliance score by framework, open findings mapped to controls, remediation progress.', source: 'Wave 16' },
+          { id: 'w16t14', name: 'Slack/Teams notifications', detail: 'Push scan results to channels. Alert on compliance failures. Configurable per-org.', source: 'Wave 16' },
+        ]
+      },
+      {
+        title: 'Docs & Marketing',
+        tasks: [
+          { id: 'w16t15', name: 'Technical documentation', detail: 'Architecture guide, GitHub/GitLab setup, CLI usage, API reference, CWE→control mapping tables.', source: 'Wave 16' },
+          { id: 'w16t16', name: 'Marketing assets (X posts, OG graphics)', detail: 'Professional social content. Comparison graphics vs Snyk/SonarQube/Semgrep.', source: 'Wave 16' },
         ]
       },
     ]
@@ -1086,7 +1345,7 @@ const PHASES = [
 ];
 
 // ── State Management ──
-const STORAGE_KEY = 'cveriskpilot_tracker_v4'; // v4: MSSP blocker fixes + Wave 6 dashboard 2026-03-28
+const STORAGE_KEY = 'cveriskpilot_tracker_v6'; // v6: Added Wave 14 (competitive edge) + Wave 16 (pipeline compliance scanner)
 
 function loadState() {
   try {

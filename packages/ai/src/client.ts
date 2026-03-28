@@ -5,6 +5,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { RemediationRequest, RemediationResponse } from './types';
 import { buildRemediationPrompt } from './prompt';
+import { isVertexEnabled, generateRemediationVertex } from './vertex-client';
 
 const MODEL = 'claude-sonnet-4-20250514';
 const MAX_TOKENS = 2048;
@@ -68,10 +69,16 @@ function isRetryable(error: unknown): boolean {
 
 /**
  * Generate AI-powered remediation guidance for a vulnerability case.
+ * Routes through Vertex AI when VERTEX_ENABLED=true, otherwise uses direct Anthropic API.
  */
 export async function generateRemediation(
   params: RemediationRequest,
 ): Promise<RemediationResponse> {
+  // Route to Vertex AI if enabled
+  if (isVertexEnabled()) {
+    return generateRemediationVertex(params);
+  }
+
   const client = getClient();
   const { system, userMessage } = buildRemediationPrompt(params);
 

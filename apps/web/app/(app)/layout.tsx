@@ -9,7 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <ToastProvider>
       <AuthContextProvider>
           <ClientContextProvider>
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
               <Sidebar />
               <div className="pl-64">
                 <Header />

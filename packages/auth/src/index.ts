@@ -19,3 +19,4 @@ export * from './security/audit';
 export * from './security/headers';
 export * from './security/api-key-auth';
 export * from './security/encryption';
+export * from './security/webauthn';

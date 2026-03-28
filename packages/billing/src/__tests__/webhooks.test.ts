@@ -32,6 +32,8 @@ describe('webhooks', () => {
     process.env = { ...originalEnv };
     process.env.STRIPE_PRICE_PRO_MONTHLY = 'price_monthly_test';
     process.env.STRIPE_PRICE_PRO_ANNUAL = 'price_annual_test';
+    process.env.STRIPE_PRICE_MSSP_MONTHLY = 'price_mssp_monthly';
+    process.env.STRIPE_PRICE_MSSP_METERED = 'price_mssp_metered';
   });
 
   afterEach(() => {
@@ -89,6 +91,30 @@ describe('webhooks', () => {
         where: { id: 'org_123' },
         data: expect.objectContaining({
           tier: 'PRO',
+          stripeMeteredItemId: null, // no metered item for PRO
+        }),
+      });
+    });
+
+    it('handles customer.subscription.updated — persists metered item ID for MSSP', async () => {
+      const prisma = createMockPrisma();
+      const event = makeEvent('customer.subscription.updated', {
+        metadata: { organizationId: 'org_mssp' },
+        items: {
+          data: [
+            { id: 'si_base', price: { id: 'price_mssp_monthly' } },
+            { id: 'si_metered_abc', price: { id: 'price_mssp_metered' } },
+          ],
+        },
+      });
+
+      await handleWebhookEvent(event, prisma);
+
+      expect(prisma.organization.update).toHaveBeenCalledWith({
+        where: { id: 'org_mssp' },
+        data: expect.objectContaining({
+          tier: 'MSSP',
+          stripeMeteredItemId: 'si_metered_abc',
         }),
       });
     });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import { getDeliveryTracker } from '@cveriskpilot/integrations';
 
 // ---------------------------------------------------------------------------
@@ -6,7 +7,6 @@ import { getDeliveryTracker } from '@cveriskpilot/integrations';
 // ---------------------------------------------------------------------------
 //
 // Query params:
-//   organizationId (required) — the org to list deliveries for
 //   limit          (optional) — max records to return, default 50
 //   offset         (optional) — pagination offset, default 0
 //   event          (optional) — filter by event type (e.g. "case.created")
@@ -15,15 +15,13 @@ import { getDeliveryTracker } from '@cveriskpilot/integrations';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId query parameter is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const organizationId = session.organizationId;
+    const { searchParams } = new URL(request.url);
 
     const limit = Math.min(Number(searchParams.get('limit') ?? 50), 200);
     const offset = Number(searchParams.get('offset') ?? 0);

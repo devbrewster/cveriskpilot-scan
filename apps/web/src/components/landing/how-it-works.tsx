@@ -68,7 +68,7 @@ export function HowItWorks() {
               )}
 
               {/* Icon */}
-              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-primary-600 shadow-md ring-1 ring-gray-100 transition-shadow hover:shadow-lg dark:bg-gray-800 dark:text-primary-400 dark:ring-gray-700">
+              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-white dark:bg-gray-900 text-primary-600 shadow-md ring-1 ring-gray-100 transition-shadow hover:shadow-lg dark:bg-gray-800 dark:text-primary-400 dark:ring-gray-700">
                 {step.icon}
                 <span className="absolute -top-2.5 -right-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white shadow-sm">
                   {index + 1}

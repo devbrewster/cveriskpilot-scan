@@ -38,12 +38,12 @@ interface ReportSchedule {
 // Schedule Evaluation
 // ---------------------------------------------------------------------------
 
-function isDue(schedule: ReportSchedule, now: Date): boolean {
+export function isDue(schedule: ReportSchedule, now: Date): boolean {
   if (!schedule.enabled) return false;
   return schedule.nextRunAt <= now;
 }
 
-function computeNextRun(schedule: ReportSchedule, from: Date): Date {
+export function computeNextRun(schedule: ReportSchedule, from: Date): Date {
   const next = new Date(from);
   next.setUTCMinutes(0, 0, 0);
   next.setUTCHours(schedule.hourUtc);

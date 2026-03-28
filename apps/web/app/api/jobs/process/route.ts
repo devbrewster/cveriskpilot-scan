@@ -12,8 +12,19 @@ export const maxDuration = 300;
  * The request body is JSON with { jobId, artifactId, organizationId, clientId }.
  */
 export async function POST(request: NextRequest) {
-  // Cloud Tasks sends an OIDC token — in the future, validate it.
-  // For now, ensure the request has the expected shape.
+  // Verify the request comes from Cloud Tasks or an authenticated PLATFORM_ADMIN
+  const taskHeader = request.headers.get('x-cloudtasks-taskname');
+  const queueHeader = request.headers.get('x-cloudtasks-queuename');
+
+  if (!taskHeader || !queueHeader) {
+    // Not a Cloud Tasks request — require PLATFORM_ADMIN session
+    const { getServerSession } = await import('@cveriskpilot/auth');
+    const session = await getServerSession(request);
+    if (!session || session.role !== 'PLATFORM_ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
   try {
     const payload = await request.json();
     const { jobId } = payload;

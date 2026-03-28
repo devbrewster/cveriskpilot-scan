@@ -2,7 +2,6 @@
 // AI Package — Triage Agent (t108)
 // ---------------------------------------------------------------------------
 
-import Anthropic from '@anthropic-ai/sdk';
 import { getClient } from './client';
 import type { Severity, AssetContext } from './types';
 

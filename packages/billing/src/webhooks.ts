@@ -1,7 +1,7 @@
 // @cveriskpilot/billing — Stripe webhook handling
 
 import Stripe from 'stripe';
-import { getEntitlements, getTierFromPriceId } from './config';
+import { getEntitlements, getTierFromPriceId, STRIPE_PRICES } from './config';
 
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -55,6 +55,8 @@ async function handleCheckoutCompleted(
 
   // Resolve tier from the subscription's price ID instead of hardcoding
   let tier = 'PRO'; // fallback
+  let meteredItemId: string | null = null;
+
   if (subscriptionId) {
     try {
       const stripe = getStripe();
@@ -62,6 +64,15 @@ async function handleCheckoutCompleted(
       const priceId = subscription.items.data[0]?.price?.id;
       if (priceId) {
         tier = getTierFromPriceId(priceId) ?? 'PRO';
+      }
+
+      // Persist the metered subscription item ID for MSSP usage reporting
+      const meteredPriceId = STRIPE_PRICES.MSSP_METERED();
+      if (meteredPriceId) {
+        const meteredItem = subscription.items.data.find(
+          (item) => item.price.id === meteredPriceId,
+        );
+        meteredItemId = meteredItem?.id ?? null;
       }
     } catch {
       // If retrieval fails, fall back to PRO
@@ -79,6 +90,7 @@ async function handleCheckoutCompleted(
     data: {
       stripeCustomerId: customerId ?? null,
       stripeSubscriptionId: subscriptionId ?? null,
+      stripeMeteredItemId: meteredItemId,
       tier,
       entitlements: getEntitlements(tier),
     },
@@ -105,6 +117,16 @@ async function handleSubscriptionUpdated(
     return;
   }
 
+  // Resolve metered item ID for MSSP usage reporting
+  const meteredPriceId = STRIPE_PRICES.MSSP_METERED();
+  let meteredItemId: string | null = null;
+  if (meteredPriceId) {
+    const meteredItem = subscription.items.data.find(
+      (item) => item.price.id === meteredPriceId,
+    );
+    meteredItemId = meteredItem?.id ?? null;
+  }
+
   const db = prisma as {
     organization: {
       update: (args: Record<string, unknown>) => Promise<unknown>;
@@ -116,6 +138,7 @@ async function handleSubscriptionUpdated(
     data: {
       tier,
       entitlements: getEntitlements(tier),
+      stripeMeteredItemId: meteredItemId,
     },
   });
 }

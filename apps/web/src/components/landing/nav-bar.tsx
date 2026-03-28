@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 
 export function NavBar() {
@@ -18,19 +19,29 @@ export function NavBar() {
     <nav
       className={`fixed top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? "border-b border-gray-200/60 bg-white/90 shadow-sm backdrop-blur-xl dark:border-gray-800/60 dark:bg-gray-950/90"
+          ? "border-b border-gray-200/60 bg-white dark:bg-gray-900/90 shadow-sm backdrop-blur-xl dark:border-gray-800/60 dark:bg-gray-950/80"
           : "border-b border-transparent bg-transparent"
       }`}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-bold text-white shadow-md shadow-primary-600/20">
-            CR
-          </div>
-          <span className={`text-lg font-bold transition-colors ${scrolled ? "text-gray-900 dark:text-white" : "text-white"}`}>
-            CVERiskPilot
-          </span>
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo-dark.png"
+            alt="CVERiskPilot"
+            width={220}
+            height={48}
+            className="h-9 w-auto dark:block hidden"
+            priority
+          />
+          <Image
+            src="/logo-light.png"
+            alt="CVERiskPilot"
+            width={220}
+            height={48}
+            className="h-9 w-auto dark:hidden block"
+            priority
+          />
         </Link>
 
         {/* Desktop Links */}
@@ -44,6 +55,16 @@ export function NavBar() {
             }`}
           >
             Features
+          </a>
+          <a
+            href="#pipeline"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Pipeline
           </a>
           <a
             href="#how-it-works"
@@ -65,6 +86,26 @@ export function NavBar() {
           >
             Pricing
           </a>
+          <Link
+            href="/demo"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Live Demo
+          </Link>
+          <Link
+            href="/government"
+            className={`text-sm font-medium transition-colors ${
+              scrolled
+                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Government
+          </Link>
           <Link
             href="/login"
             className={`text-sm font-medium transition-colors ${
@@ -118,6 +159,13 @@ export function NavBar() {
               Features
             </a>
             <a
+              href="#pipeline"
+              className="text-sm font-medium text-gray-600 dark:text-gray-400"
+              onClick={() => setMobileOpen(false)}
+            >
+              Pipeline
+            </a>
+            <a
               href="#how-it-works"
               className="text-sm font-medium text-gray-600 dark:text-gray-400"
               onClick={() => setMobileOpen(false)}
@@ -131,6 +179,20 @@ export function NavBar() {
             >
               Pricing
             </a>
+            <Link
+              href="/demo"
+              className="text-sm font-medium text-gray-600 dark:text-gray-400"
+              onClick={() => setMobileOpen(false)}
+            >
+              Live Demo
+            </Link>
+            <Link
+              href="/government"
+              className="text-sm font-medium text-gray-600 dark:text-gray-400"
+              onClick={() => setMobileOpen(false)}
+            >
+              Government
+            </Link>
             <Link href="/login" className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Log In
             </Link>

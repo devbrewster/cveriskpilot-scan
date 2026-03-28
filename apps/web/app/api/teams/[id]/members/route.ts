@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -7,6 +8,11 @@ interface RouteContext {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id: teamId } = await context.params;
     const body = await request.json();
     const { userId, role } = body;
@@ -60,6 +66,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id: teamId } = await context.params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ExecutiveReport } from './executive-report';
 import { ExportButton } from './export-button';
 import { ScheduleManager } from './schedule-manager';
 import { BulkExport } from './bulk-export';
-import { mockCases } from '@/lib/mock-data';
+import type { ApiCase, CasesApiResponse } from '@/lib/types';
 
 type ActiveView = 'hub' | 'executive' | 'schedules' | 'bulk-export';
 
@@ -29,7 +29,7 @@ function ReportCard({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-start gap-4 rounded-lg border bg-white p-6 text-left shadow-sm transition-all ${
+      className={`flex w-full items-start gap-4 rounded-lg border bg-white dark:bg-gray-900 p-6 text-left shadow-sm transition-all ${
         disabled
           ? 'cursor-not-allowed border-gray-100 opacity-60'
           : 'border-gray-200 hover:border-blue-300 hover:shadow-md'
@@ -56,17 +56,44 @@ function ReportCard({
 
 export function ReportsHub() {
   const [view, setView] = useState<ActiveView>('hub');
+  const [cases, setCases] = useState<ApiCase[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Prepare mock data for export button
-  const casesForExport = mockCases.map((c) => ({ ...c } as Record<string, unknown>));
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCases() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/cases?limit=100');
+        if (!res.ok) {
+          throw new Error(`Failed to fetch cases: ${res.status}`);
+        }
+        const data: CasesApiResponse = await res.json();
+        if (!cancelled) {
+          setCases(data.cases ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load cases');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchCases();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Prepare cases for the export button
+  const casesForExport = cases.map((c) => ({ ...c } as Record<string, unknown>));
 
   if (view !== 'hub') {
-    const viewTitles: Record<string, string> = {
-      executive: 'Executive Summary',
-      schedules: 'Scheduled Reports',
-      'bulk-export': 'Bulk Export',
-    };
-
     return (
       <div className="space-y-4">
         <button
@@ -80,8 +107,8 @@ export function ReportsHub() {
           Back to Reports
         </button>
         {view === 'executive' && <ExecutiveReport />}
-        {view === 'schedules' && <ScheduleManager organizationId="demo-org-id" />}
-        {view === 'bulk-export' && <BulkExport organizationId="demo-org-id" />}
+        {view === 'schedules' && <ScheduleManager />}
+        {view === 'bulk-export' && <BulkExport />}
       </div>
     );
   }
@@ -140,7 +167,7 @@ export function ReportsHub() {
       </div>
 
       {/* Quick Export Section */}
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div>
             <h3 className="text-base font-semibold text-gray-900">Quick Export</h3>
@@ -149,30 +176,42 @@ export function ReportsHub() {
           <ExportButton cases={casesForExport} findings={[]} />
         </div>
         <div className="px-6 py-4">
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4">
-            <div>
-              <span className="text-gray-500">Total Cases:</span>{' '}
-              <span className="font-medium text-gray-900">{mockCases.length}</span>
+          {loading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <svg className="h-4 w-4 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Loading case stats...
             </div>
-            <div>
-              <span className="text-gray-500">Critical:</span>{' '}
-              <span className="font-medium text-red-700">
-                {mockCases.filter((c) => c.severity === 'CRITICAL').length}
-              </span>
+          ) : error ? (
+            <p className="text-sm text-red-600">{error}</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4">
+              <div>
+                <span className="text-gray-500">Total Cases:</span>{' '}
+                <span className="font-medium text-gray-900">{cases.length}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Critical:</span>{' '}
+                <span className="font-medium text-red-700">
+                  {cases.filter((c) => c.severity === 'CRITICAL').length}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">High:</span>{' '}
+                <span className="font-medium text-orange-700">
+                  {cases.filter((c) => c.severity === 'HIGH').length}
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">KEV Listed:</span>{' '}
+                <span className="font-medium text-orange-700">
+                  {cases.filter((c) => c.kevListed).length}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-gray-500">High:</span>{' '}
-              <span className="font-medium text-orange-700">
-                {mockCases.filter((c) => c.severity === 'HIGH').length}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">KEV Listed:</span>{' '}
-              <span className="font-medium text-orange-700">
-                {mockCases.filter((c) => c.kevListed).length}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

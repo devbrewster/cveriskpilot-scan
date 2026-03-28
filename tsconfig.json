@@ -24,7 +24,9 @@
       "@cveriskpilot/shared": ["packages/shared/src"],
       "@cveriskpilot/shared/*": ["packages/shared/src/*"],
       "@cveriskpilot/integrations": ["packages/integrations/src"],
-      "@cveriskpilot/integrations/*": ["packages/integrations/src/*"]
+      "@cveriskpilot/integrations/*": ["packages/integrations/src/*"],
+      "@cveriskpilot/connectors": ["packages/connectors/src"],
+      "@cveriskpilot/connectors/*": ["packages/connectors/src/*"]
     }
   },
   "references": [

@@ -4,17 +4,17 @@ import Link from "next/link";
 
 export function CtaSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-700 py-20 sm:py-28">
+    <section className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-950 py-20 sm:py-28">
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-indigo-400/10 blur-3xl" />
+        <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-primary-400/10 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Start securing your stack in 60 seconds
+            Start securing your stack in under 90 seconds
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-primary-100">
             Upload your first scan and see AI-powered remediation in action.
@@ -34,7 +34,7 @@ export function CtaSection() {
             </Link>
             <a
               href="mailto:sales@cveriskpilot.com"
-              className="inline-flex items-center justify-center rounded-xl border border-white/25 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all hover:border-white/40 hover:bg-white/10"
+              className="inline-flex items-center justify-center rounded-xl border border-white/25 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all hover:border-white/40 hover:bg-white dark:bg-gray-900/10"
             >
               Talk to Sales
             </a>

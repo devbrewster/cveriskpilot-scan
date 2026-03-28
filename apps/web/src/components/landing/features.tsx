@@ -61,11 +61,22 @@ const features = [
   },
 ];
 
+const highlightFeature = {
+  title: "Pipeline Compliance Scanner",
+  description:
+    "Map CI/CD vulnerability findings to NIST 800-53, SOC 2, CMMC, and more. Auto-generate POAM entries on every pull request.",
+  icon: (
+    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+    </svg>
+  ),
+};
+
 export function Features() {
   return (
     <section
       id="features"
-      className="bg-white py-20 sm:py-28 dark:bg-gray-950"
+      className="bg-white dark:bg-gray-900 py-20 sm:py-28 dark:bg-gray-950"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -87,7 +98,7 @@ export function Features() {
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="group relative rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-100/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-primary-800 dark:hover:shadow-primary-900/20"
+              className="group relative rounded-2xl border border-gray-200 bg-white dark:bg-gray-900 p-7 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-lg hover:shadow-primary-100/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-primary-800 dark:hover:shadow-primary-900/20"
             >
               <div className="mb-4 inline-flex rounded-xl bg-primary-50 p-3 text-primary-600 transition-colors group-hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-400 dark:group-hover:bg-primary-500/15">
                 {feature.icon}
@@ -101,6 +112,40 @@ export function Features() {
             </div>
           ))}
         </div>
+
+        {/* Highlight Feature — Pipeline Compliance Scanner */}
+        <a
+          href="#pipeline"
+          className="group relative mt-6 block rounded-2xl border border-primary-500/30 bg-gradient-to-r from-primary-500/10 via-primary-600/5 to-transparent p-7 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-400/50 hover:shadow-lg hover:shadow-primary-500/10 dark:border-primary-500/20 dark:hover:border-primary-400/40 dark:hover:shadow-primary-900/20"
+        >
+          <div className="flex items-start gap-5">
+            <div className="inline-flex shrink-0 rounded-xl bg-primary-50 p-3 text-primary-600 transition-colors group-hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-400 dark:group-hover:bg-primary-500/15">
+              {highlightFeature.icon}
+            </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {highlightFeature.title}
+                </h3>
+                <span className="rounded-full bg-primary-500/10 px-2.5 py-0.5 text-xs font-semibold text-primary-400">
+                  NEW
+                </span>
+              </div>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                {highlightFeature.description}
+              </p>
+            </div>
+            <svg
+              className="ml-auto mt-1 hidden h-5 w-5 shrink-0 text-primary-400 transition-transform group-hover:translate-x-1 sm:block"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </div>
+        </a>
       </div>
     </section>
   );

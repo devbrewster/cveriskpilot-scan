@@ -1,7 +1,7 @@
 'use client';
 
-import type { UploadJob, UploadJobStatus } from '@/lib/mock-data';
-import { mockUploadJobs } from '@/lib/mock-data';
+import { useEffect, useState, useCallback } from 'react';
+import type { UploadJob, UploadJobStatus } from '@/lib/types';
 import { formatRelativeTime, formatNumber } from '@/lib/format';
 
 /* ------------------------------------------------------------------ */
@@ -40,57 +40,51 @@ const formatBadgeColors: Record<string, string> = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Extended mock data for history                                     */
-/* ------------------------------------------------------------------ */
-
-const extendedMockUploads: UploadJob[] = [
-  ...mockUploadJobs,
-  {
-    id: 'job-006',
-    filename: 'snyk-dependencies.json',
-    parserFormat: 'JSON_FORMAT',
-    status: 'COMPLETED',
-    totalFindings: 67,
-    findingsCreated: 52,
-    casesCreated: 5,
-    createdAt: '2026-03-24T09:00:00Z',
-    completedAt: '2026-03-24T09:03:00Z',
-    errorMessage: null,
-  },
-  {
-    id: 'job-007',
-    filename: 'trivy-scan-results.cdx.json',
-    parserFormat: 'CYCLONEDX',
-    status: 'COMPLETED',
-    totalFindings: 215,
-    findingsCreated: 198,
-    casesCreated: 11,
-    createdAt: '2026-03-23T14:20:00Z',
-    completedAt: '2026-03-23T14:26:00Z',
-    errorMessage: null,
-  },
-  {
-    id: 'job-008',
-    filename: 'nessus-dev-scan.nessus',
-    parserFormat: 'NESSUS',
-    status: 'BUILDING_CASES',
-    totalFindings: 128,
-    findingsCreated: 128,
-    casesCreated: 0,
-    createdAt: '2026-03-26T17:10:00Z',
-    completedAt: null,
-    errorMessage: null,
-  },
-];
-
-/* ------------------------------------------------------------------ */
 /* Component                                                          */
 /* ------------------------------------------------------------------ */
 
 export function UploadHistory() {
+  const [uploads, setUploads] = useState<UploadJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUploads = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch('/api/uploads?limit=50');
+      if (!res.ok) {
+        throw new Error(`Failed to fetch uploads (${res.status})`);
+      }
+      const data = await res.json();
+      setUploads(data.uploads ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load upload history');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUploads();
+  }, [fetchUploads]);
+
   return (
     <div className="mt-8">
       <h2 className="mb-4 text-lg font-semibold text-gray-900">Upload History</h2>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+          <button
+            onClick={fetchUploads}
+            className="ml-2 font-medium underline hover:text-red-900"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -116,7 +110,21 @@ export function UploadHistory() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {extendedMockUploads.map((job) => (
+            {loading && (
+              <tr>
+                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                  Loading upload history...
+                </td>
+              </tr>
+            )}
+            {!loading && uploads.length === 0 && !error && (
+              <tr>
+                <td colSpan={6} className="px-6 py-8 text-center text-sm text-gray-500">
+                  No uploads yet. Upload a scan file to get started.
+                </td>
+              </tr>
+            )}
+            {!loading && uploads.map((job) => (
               <tr key={job.id} className="hover:bg-gray-50 transition-colors">
                 <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                   {job.filename}

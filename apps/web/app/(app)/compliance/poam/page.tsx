@@ -1,15 +1,21 @@
+'use client';
+
+import { useAuth } from '@/lib/auth-context';
 import { POAMView } from '@/components/compliance/poam-view';
 
-export const dynamic = 'force-dynamic';
-
-export const metadata = {
-  title: 'POAM Tracking | CVERiskPilot',
-};
-
 export default function POAMPage() {
-  // In production, clientId comes from the active client context / URL params.
-  const clientId = 'client-default';
-  const organizationId = 'org-default';
+  const { loaded, organizationId, clientId } = useAuth();
+
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  const orgId = organizationId ?? 'org-default';
+  const cId = clientId ?? 'client-default';
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
@@ -22,8 +28,8 @@ export default function POAMPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <POAMView clientId={clientId} organizationId={organizationId} />
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
+        <POAMView clientId={cId} organizationId={orgId} />
       </div>
     </div>
   );

@@ -5,7 +5,7 @@
 export async function seedDevData(prisma: any): Promise<void> {
   // Skip if data already exists
   const existingOrg = await prisma.organization.findFirst({
-    where: { slug: 'demo-corp' },
+    where: { slug: 'cveriskpilot' },
   });
   if (existingOrg) {
     console.log('Seed data already exists, skipping.');
@@ -15,14 +15,14 @@ export async function seedDevData(prisma: any): Promise<void> {
   console.log('Seeding development data...');
 
   // -------------------------------------------------------------------------
-  // Organization
+  // Organization — CVERiskPilot LLC (primary)
   // -------------------------------------------------------------------------
   const org = await prisma.organization.create({
     data: {
-      name: 'Demo Corp',
-      slug: 'demo-corp',
-      tier: 'FREE',
-      domain: 'democorp.dev',
+      name: 'CVERiskPilot LLC',
+      slug: 'cveriskpilot',
+      tier: 'MSSP',
+      domain: 'cveriskpilot.com',
     },
   });
 
@@ -41,21 +41,25 @@ export async function seedDevData(prisma: any): Promise<void> {
   // -------------------------------------------------------------------------
   // Users
   // -------------------------------------------------------------------------
-  const owner = await prisma.user.create({
+  // Founder / Platform Admin
+  const founder = await prisma.user.create({
     data: {
       organizationId: org.id,
-      email: 'owner@democorp.dev',
-      name: 'Alice Owner',
-      role: 'ORG_OWNER',
+      email: 'george.ontiveros@cveriskpilot.com',
+      name: 'George Ontiveros',
+      role: 'PLATFORM_ADMIN',
       status: 'ACTIVE',
     },
   });
 
+  // Alias for backward-compatible references in seed
+  const owner = founder;
+
   const analyst = await prisma.user.create({
     data: {
       organizationId: org.id,
-      email: 'analyst@democorp.dev',
-      name: 'Bob Analyst',
+      email: 'analyst@cveriskpilot.com',
+      name: 'Demo Analyst',
       role: 'ANALYST',
       status: 'ACTIVE',
     },

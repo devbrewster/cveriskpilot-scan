@@ -28,16 +28,24 @@ const SESSION_KEY_PREFIX = 'crp:session:';
 
 let redisInstance: Redis | null = null;
 
+/** In-memory session store for local dev when Redis is unavailable */
+const memoryStore = new Map<string, { value: string; expiresAt: number }>();
+
+/** Whether we're using the in-memory fallback */
+let usingMemoryFallback = false;
+
 /**
  * Get or create a Redis client singleton.
- * Uses REDIS_URL from environment.
+ * Uses REDIS_URL from environment. Falls back to in-memory store if unavailable.
  */
 export function getRedisClient(): Redis {
   if (redisInstance) return redisInstance;
 
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
-    throw new Error('Missing REDIS_URL environment variable');
+    usingMemoryFallback = true;
+    // Return a minimal Redis-compatible interface backed by Map
+    return createMemoryRedisProxy();
   }
 
   redisInstance = new Redis(redisUrl, {
@@ -46,6 +54,36 @@ export function getRedisClient(): Redis {
   });
 
   return redisInstance;
+}
+
+/**
+ * Creates a proxy object that implements the subset of Redis methods
+ * used by the session store, backed by an in-memory Map.
+ */
+function createMemoryRedisProxy(): Redis {
+  const proxy = {
+    async set(key: string, value: string, _mode?: string, ttl?: number) {
+      const expiresAt = ttl ? Date.now() + ttl * 1000 : Date.now() + 86400000;
+      memoryStore.set(key, { value, expiresAt });
+      return 'OK';
+    },
+    async get(key: string) {
+      const entry = memoryStore.get(key);
+      if (!entry) return null;
+      if (entry.expiresAt <= Date.now()) {
+        memoryStore.delete(key);
+        return null;
+      }
+      return entry.value;
+    },
+    async del(key: string) {
+      memoryStore.delete(key);
+      return 1;
+    },
+  } as unknown as Redis;
+
+  redisInstance = proxy;
+  return proxy;
 }
 
 /**

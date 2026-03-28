@@ -49,7 +49,7 @@ export function POAMView({
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [filterControlFamily, setFilterControlFamily] = useState<string>('ALL');
 
-  const orgId = organizationId ?? 'org-default';
+  const orgId = organizationId ?? '';
 
   const fetchPOAM = useCallback(async () => {
     setLoading(true);
@@ -83,6 +83,28 @@ export function POAMView({
     a.download = `poam-${clientId}-${new Date().toISOString().slice(0, 10)}.${ext}`;
     a.click();
     URL.revokeObjectURL(a.href);
+  };
+
+  const [xlsxExporting, setXlsxExporting] = useState(false);
+
+  const handleExportXlsx = async () => {
+    setXlsxExporting(true);
+    try {
+      const params = new URLSearchParams({ clientId });
+      if (filterSeverity !== 'ALL') params.set('severity', filterSeverity);
+      if (filterStatus !== 'ALL') params.set('status', filterStatus);
+      const url = `/api/export/poam?${params.toString()}`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `FedRAMP-POAM-${clientId}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } finally {
+      setXlsxExporting(false);
+    }
   };
 
   // Derive filter options
@@ -131,15 +153,22 @@ export function POAMView({
         <div className="flex gap-2">
           <button
             onClick={() => handleExport('csv')}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             Export CSV
           </button>
           <button
             onClick={() => handleExport('json-download')}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             Export JSON
+          </button>
+          <button
+            onClick={handleExportXlsx}
+            disabled={xlsxExporting}
+            className="rounded-md border border-blue-600 bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {xlsxExporting ? 'Exporting...' : 'Export XLSX (FedRAMP)'}
           </button>
         </div>
       </div>
@@ -184,7 +213,7 @@ export function POAMView({
 
       {/* Table */}
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+        <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-8 text-center text-sm text-gray-500">
           {items.length === 0
             ? 'No open vulnerability cases found for POAM generation.'
             : 'No items match the current filters.'}

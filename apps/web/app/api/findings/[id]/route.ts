@@ -14,6 +14,10 @@ export async function GET(
 
     const { id } = await params;
 
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const finding = await prisma.finding.findUnique({
       where: { id },
       include: {

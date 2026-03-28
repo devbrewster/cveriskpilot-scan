@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // POST /api/privacy/delete — GDPR right to erasure for a user
@@ -8,6 +9,11 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { userId, confirmationText, reason } = body;
 
@@ -30,6 +36,11 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Only allow users to delete their own account, or PLATFORM_ADMIN to delete any
+    if (user.email !== session.email && session.role !== 'PLATFORM_ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Validate confirmation

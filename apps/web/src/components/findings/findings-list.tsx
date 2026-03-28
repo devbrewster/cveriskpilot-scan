@@ -1,21 +1,13 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Table, type SortState, type ColumnDef } from '@/components/ui/table';
 import { Pagination } from '@/components/ui/pagination';
 import { FilterPill, FilterDropdown, FilterSearch, FilterToggle, FilterSlider } from '@/components/ui/filters';
 import { SeverityBadge, StatusBadge, ScannerBadge } from '@/components/ui/badges';
 import { BulkActions } from '@/components/findings/bulk-actions';
-import {
-  mockFindings,
-  type Finding,
-  type Severity,
-  type CaseStatus,
-  type ScannerType,
-  getCaseForFinding,
-  getAssetById,
-} from '@/lib/mock-findings';
+import type { ApiFinding, FindingsApiResponse, Severity, CaseStatus, ScannerType } from '@/lib/types';
 
 const SEVERITY_OPTIONS: Severity[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
 const STATUS_OPTIONS: { value: string; label: string }[] = [
@@ -45,7 +37,7 @@ const PAGE_SIZE = 25;
 
 interface FindingRow {
   id: string;
-  finding: Finding;
+  finding: ApiFinding;
   severity: Severity;
   cveIds: string[];
   title: string;
@@ -54,36 +46,43 @@ interface FindingRow {
   scannerName: string;
   status: CaseStatus;
   epssScore: number | null;
-  epssPercentile: number | null;
   kevListed: boolean;
   discoveredAt: string;
 }
 
-function buildRows(): FindingRow[] {
-  return mockFindings.map((f) => {
-    const vulnCase = getCaseForFinding(f);
-    const asset = getAssetById(f.assetId);
-    return {
-      id: f.id,
-      finding: f,
-      severity: vulnCase?.severity ?? 'INFO',
-      cveIds: vulnCase?.cveIds ?? [],
-      title: vulnCase?.title ?? 'Uncategorized Finding',
-      assetName: asset?.name ?? 'Unknown Asset',
-      scannerType: f.scannerType,
-      scannerName: f.scannerName,
-      status: vulnCase?.status ?? 'NEW',
-      epssScore: vulnCase?.epssScore ?? null,
-      epssPercentile: vulnCase?.epssPercentile ?? null,
-      kevListed: vulnCase?.kevListed ?? false,
-      discoveredAt: f.discoveredAt,
-    };
-  });
+function apiFindingToRow(f: ApiFinding): FindingRow {
+  return {
+    id: f.id,
+    finding: f,
+    severity: f.vulnerabilityCase?.severity ?? 'INFO',
+    cveIds: f.vulnerabilityCase?.cveIds ?? [],
+    title: f.vulnerabilityCase?.title ?? 'Uncategorized Finding',
+    assetName: f.asset?.name ?? 'Unknown Asset',
+    scannerType: f.scannerType,
+    scannerName: f.scannerName,
+    status: f.vulnerabilityCase?.status ?? 'NEW',
+    epssScore: f.vulnerabilityCase?.epssScore ?? null,
+    kevListed: f.vulnerabilityCase?.kevListed ?? false,
+    discoveredAt: f.discoveredAt,
+  };
 }
+
+/** Map the client-side sort key to the API sortBy param */
+const SORT_KEY_MAP: Record<string, string> = {
+  discoveredAt: 'discoveredAt',
+  createdAt: 'createdAt',
+  scannerType: 'scannerType',
+};
 
 export function FindingsList() {
   const router = useRouter();
-  const allRows = useMemo(buildRows, []);
+
+  // Data state
+  const [findings, setFindings] = useState<ApiFinding[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter state
   const [selectedSeverities, setSelectedSeverities] = useState<Set<Severity>>(new Set());
@@ -100,6 +99,81 @@ export function FindingsList() {
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  // Debounced search value so we don't fire on every keystroke
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchText), 300);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  // Fetch findings from API whenever filters/sort/page change
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function fetchFindings() {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams();
+      params.set('page', String(currentPage));
+      params.set('limit', String(PAGE_SIZE));
+
+      // Severity — the API takes a single severity; send the first selected
+      // If multiple severities are selected, we pass them comma-separated
+      // and let client-side handle the rest since the API only supports one.
+      // For now, send single severity if exactly one is selected.
+      if (selectedSeverities.size === 1) {
+        params.set('severity', [...selectedSeverities][0]);
+      }
+
+      if (statusFilter) {
+        params.set('status', statusFilter);
+      }
+      if (scannerFilter) {
+        params.set('scannerType', scannerFilter);
+      }
+      if (kevOnly) {
+        params.set('kevOnly', 'true');
+      }
+      if (epssThreshold > 0) {
+        // API expects a decimal (0-1), convert from percentage
+        params.set('epssMin', String(epssThreshold / 100));
+      }
+      if (debouncedSearch.trim()) {
+        params.set('search', debouncedSearch.trim());
+      }
+
+      // Sort
+      const apiSortBy = SORT_KEY_MAP[sortState.key] ?? 'createdAt';
+      params.set('sortBy', apiSortBy);
+      if (sortState.direction) {
+        params.set('sortOrder', sortState.direction);
+      }
+
+      try {
+        const res = await fetch(`/api/findings?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error ?? `HTTP ${res.status}`);
+        }
+        const data: FindingsApiResponse = await res.json();
+        setFindings(data.findings);
+        setTotal(data.total);
+        setTotalPages(data.totalPages || 1);
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        setError(err.message ?? 'Failed to load findings');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchFindings();
+    return () => controller.abort();
+  }, [currentPage, selectedSeverities, statusFilter, scannerFilter, kevOnly, epssThreshold, debouncedSearch, sortState]);
+
   const toggleSeverity = useCallback((s: Severity) => {
     setSelectedSeverities((prev) => {
       const next = new Set(prev);
@@ -110,59 +184,20 @@ export function FindingsList() {
     setCurrentPage(1);
   }, []);
 
-  // Filtered + sorted data
-  const filteredRows = useMemo(() => {
-    let rows = allRows;
+  // Convert API findings to table rows
+  // If multiple severities are selected (API only supports one), filter client-side
+  const rows = useMemo(() => {
+    let mapped = findings.map(apiFindingToRow);
 
-    if (selectedSeverities.size > 0) {
-      rows = rows.filter((r) => selectedSeverities.has(r.severity));
-    }
-    if (statusFilter) {
-      rows = rows.filter((r) => r.status === statusFilter);
-    }
-    if (scannerFilter) {
-      rows = rows.filter((r) => r.scannerType === scannerFilter);
-    }
-    if (kevOnly) {
-      rows = rows.filter((r) => r.kevListed);
-    }
-    if (epssThreshold > 0) {
-      rows = rows.filter((r) => r.epssScore !== null && r.epssScore * 100 >= epssThreshold);
-    }
-    if (searchText.trim()) {
-      const q = searchText.toLowerCase();
-      rows = rows.filter(
-        (r) =>
-          r.title.toLowerCase().includes(q) ||
-          r.cveIds.some((cve) => cve.toLowerCase().includes(q)) ||
-          r.assetName.toLowerCase().includes(q),
-      );
+    // Client-side multi-severity filter (when more than 1 selected, API gets no severity param)
+    if (selectedSeverities.size > 1) {
+      mapped = mapped.filter((r) => selectedSeverities.has(r.severity));
     }
 
-    // Sort
-    if (sortState.direction) {
-      const dir = sortState.direction === 'asc' ? 1 : -1;
-      rows = [...rows].sort((a, b) => {
-        const key = sortState.key as keyof FindingRow;
-        const aVal = a[key];
-        const bVal = b[key];
-        if (aVal === null || aVal === undefined) return 1;
-        if (bVal === null || bVal === undefined) return -1;
-        if (typeof aVal === 'string' && typeof bVal === 'string') {
-          return aVal.localeCompare(bVal) * dir;
-        }
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
-          return (aVal - bVal) * dir;
-        }
-        return 0;
-      });
-    }
+    return mapped;
+  }, [findings, selectedSeverities]);
 
-    return rows;
-  }, [allRows, selectedSeverities, statusFilter, scannerFilter, kevOnly, epssThreshold, searchText, sortState]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
-  const pageRows = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = rows;
 
   const columns: ColumnDef<FindingRow>[] = useMemo(
     () => [
@@ -250,7 +285,7 @@ export function FindingsList() {
 
   const handleBulkStatusChange = useCallback(
     (_status: CaseStatus) => {
-      // In a real app, this would call an API
+      // TODO: call bulk-update API
       setSelectedIds(new Set());
     },
     [],
@@ -259,7 +294,7 @@ export function FindingsList() {
   return (
     <div className="space-y-4">
       {/* Filter Bar */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="w-64">
@@ -334,30 +369,52 @@ export function FindingsList() {
         </div>
       </div>
 
+      {/* Error state */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Failed to load findings: {error}
+        </div>
+      )}
+
       {/* Results count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">
-          Showing <span className="font-medium text-gray-700">{filteredRows.length}</span> finding
-          {filteredRows.length !== 1 ? 's' : ''}
-          {selectedIds.size > 0 && (
-            <span className="ml-2 text-primary-600">({selectedIds.size} selected)</span>
+          {loading ? (
+            <span className="text-gray-400">Loading findings...</span>
+          ) : (
+            <>
+              Showing <span className="font-medium text-gray-700">{total}</span> finding
+              {total !== 1 ? 's' : ''}
+              {selectedIds.size > 0 && (
+                <span className="ml-2 text-primary-600">({selectedIds.size} selected)</span>
+              )}
+            </>
           )}
         </p>
       </div>
 
       {/* Table */}
-      <Table
-        columns={columns}
-        data={pageRows}
-        onSort={setSortState}
-        sortState={sortState}
-        onRowClick={handleRowClick}
-        selectable
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        getRowId={(row) => row.id}
-        emptyMessage="No findings match the current filters. Try adjusting your search criteria."
-      />
+      {loading && findings.length === 0 ? (
+        <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-white dark:bg-gray-900 py-16">
+          <div className="text-center">
+            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary-600" />
+            <p className="text-sm text-gray-500">Loading findings...</p>
+          </div>
+        </div>
+      ) : (
+        <Table
+          columns={columns}
+          data={pageRows}
+          onSort={setSortState}
+          sortState={sortState}
+          onRowClick={handleRowClick}
+          selectable
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          getRowId={(row) => row.id}
+          emptyMessage="No findings match the current filters. Try adjusting your search criteria."
+        />
+      )}
 
       {/* Pagination */}
       <div className="flex items-center justify-between">

@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/upload/[jobId] — Poll job status
 // ---------------------------------------------------------------------------
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { jobId } = await params;
 
-    const job = await prisma.uploadJob.findUnique({
-      where: { id: jobId },
+    const job = await prisma.uploadJob.findFirst({
+      where: { id: jobId, organizationId: session.organizationId },
     });
 
     if (!job) {

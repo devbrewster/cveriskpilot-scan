@@ -4,6 +4,23 @@ import { getGoogleOIDCConfig } from '@cveriskpilot/auth';
 
 export const dynamic = 'force-dynamic';
 
+/** Allowlist of valid origins to prevent host header poisoning. */
+const ALLOWED_ORIGINS = [
+  process.env.APP_BASE_URL,
+  'http://localhost:3000',
+].filter(Boolean) as string[];
+
+function getSafeOrigin(request: NextRequest): string {
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const candidate = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : request.nextUrl.origin;
+
+  if (ALLOWED_ORIGINS.includes(candidate)) return candidate;
+  return ALLOWED_ORIGINS[0] || request.nextUrl.origin;
+}
+
 /**
  * GET /api/auth/google
  * Initiates Google OAuth2 authorization code flow.
@@ -16,12 +33,7 @@ export async function GET(request: NextRequest) {
     // Generate CSRF state token
     const state = crypto.randomBytes(32).toString('hex');
 
-    // Determine callback URL — use APP_URL env or derive from request headers
-    const forwardedHost = request.headers.get('x-forwarded-host');
-    const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
-    const origin = forwardedHost
-      ? `${forwardedProto}://${forwardedHost}`
-      : process.env.APP_BASE_URL || request.nextUrl.origin;
+    const origin = getSafeOrigin(request);
     const redirectUri = `${origin}/api/auth/google/callback`;
 
     // Build Google authorization URL
@@ -50,7 +62,7 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('[API] GET /api/auth/google error:', error);
-    const fallbackOrigin = process.env.APP_BASE_URL || request.nextUrl.origin;
+    const fallbackOrigin = getSafeOrigin(request);
     return NextResponse.redirect(
       new URL('/login?error=google_config', fallbackOrigin),
     );

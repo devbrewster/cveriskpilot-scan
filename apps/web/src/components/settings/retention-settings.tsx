@@ -205,7 +205,7 @@ export function RetentionSettings({
         </button>
         <button
           onClick={handleReset}
-          className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
           Reset to Defaults
         </button>

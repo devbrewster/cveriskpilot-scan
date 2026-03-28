@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-gray-950 via-primary-950 to-indigo-950 pt-32 pb-20 sm:pt-40 sm:pb-28">
+    <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-32 pb-20 sm:pt-40 sm:pb-28">
       {/* Background grid pattern */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.03]"
         style={{
@@ -13,7 +13,7 @@ export function Hero() {
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/4 -left-48 h-[500px] w-[500px] rounded-full bg-primary-600/8 blur-3xl" />
-        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-indigo-600/8 blur-3xl" />
+        <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-primary-800/10 blur-3xl" />
         <div className="absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-500/5 blur-2xl" />
       </div>
 
@@ -31,7 +31,7 @@ export function Hero() {
           {/* Headline */}
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl lg:leading-[1.1]">
             Know Which{" "}
-            <span className="bg-gradient-to-r from-primary-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary-400 to-primary-300 bg-clip-text text-transparent">
               50 CVEs
             </span>{" "}
             Matter This Week
@@ -55,12 +55,15 @@ export function Hero() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
             </Link>
-            <a
-              href="#how-it-works"
-              className="inline-flex w-full items-center justify-center rounded-xl border border-gray-600/50 px-8 py-4 text-base font-semibold text-gray-300 backdrop-blur-sm transition-all hover:border-gray-500 hover:bg-white/5 hover:text-white sm:w-auto"
+            <Link
+              href="/demo"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-primary-500/30 bg-primary-500/10 px-8 py-4 text-base font-semibold text-primary-300 backdrop-blur-sm transition-all hover:border-primary-400/50 hover:bg-primary-500/20 hover:text-primary-200 sm:w-auto"
             >
-              See How It Works
-            </a>
+              <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z" />
+              </svg>
+              Live Demo
+            </Link>
           </div>
 
           {/* Trust line */}

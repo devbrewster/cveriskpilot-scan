@@ -1,0 +1,263 @@
+{
+  "report": {
+    "program_name": "OWASP ZAP",
+    "program_version": "2.14.0",
+    "scan_date": "2026-03-11T07:00:00Z",
+    "scan_duration_seconds": 5413,
+    "spider_mode": "ajax",
+    "target": {
+      "url": "https://payment.internal.corp",
+      "name": "Payment Service Production",
+      "environment": "staging"
+    },
+    "scan_config": {
+      "active_scan": true,
+      "passive_scan": true,
+      "ajax_spider": true,
+      "authentication": {
+        "type": "form_based",
+        "login_url": "https://payment.internal.corp/api/auth/login",
+        "authenticated": true
+      },
+      "policies": ["Default Policy", "API Scan Policy"],
+      "attack_strength": "HIGH",
+      "alert_threshold": "LOW"
+    }
+  },
+  "summary": {
+    "urls_scanned": 312,
+    "alerts_total": 38,
+    "critical": 2,
+    "high": 8,
+    "medium": 16,
+    "low": 12,
+    "informational": 7
+  },
+  "alerts": [
+    {
+      "pluginid": "40018",
+      "alertRef": "40018",
+      "alert": "SQL Injection",
+      "name": "SQL Injection",
+      "riskcode": "3",
+      "confidence": "2",
+      "riskdesc": "High (Medium)",
+      "desc": "SQL injection may be possible. The attacker is able to modify the SQL query executed by the database, potentially allowing retrieval of arbitrary data, data modification, or arbitrary OS command execution.",
+      "instances": [
+        {
+          "uri": "https://payment.internal.corp/api/payments/search",
+          "method": "GET",
+          "param": "user_id",
+          "attack": "1' AND 1=1 --",
+          "evidence": "SELECT * FROM payments WHERE user_id = '1' AND 1=1 --'",
+          "otherinfo": "The page results were successfully manipulated using the boolean condition [AND 1=1]. The parameter value being modified was stripped from the original HTTP request."
+        },
+        {
+          "uri": "https://payment.internal.corp/api/invoices",
+          "method": "POST",
+          "param": "invoice_id",
+          "attack": "1 UNION SELECT username, password FROM users--",
+          "evidence": "database error: syntax error at or near \"UNION\"",
+          "otherinfo": "Error-based SQL injection confirmed. Database type: PostgreSQL"
+        }
+      ],
+      "count": "2",
+      "solution": "Use parameterized queries, prepared statements, or stored procedures. Apply input validation and escaping.",
+      "otherinfo": "CWE-89",
+      "reference": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+      "cweid": "89",
+      "wascid": "19",
+      "sourceid": "1"
+    },
+    {
+      "pluginid": "90019",
+      "alertRef": "90019",
+      "alert": "Server Side Code Injection - PHP Code Injection",
+      "name": "Remote Code Execution - PHP Code Injection",
+      "riskcode": "3",
+      "confidence": "2",
+      "riskdesc": "High (Medium)",
+      "desc": "A code injection may be possible including injecting PHP code into the application.",
+      "instances": [
+        {
+          "uri": "https://payment.internal.corp/api/reports/generate",
+          "method": "POST",
+          "param": "template",
+          "attack": "<?php echo shell_exec('id'); ?>",
+          "evidence": "uid=33(www-data) gid=33(www-data)",
+          "otherinfo": "PHP code injection confirmed. Remote command execution achieved."
+        }
+      ],
+      "count": "1",
+      "solution": "Sanitize user input. Use a whitelist approach. Never pass user input to eval(), exec(), or include(). Use template engines with auto-escaping.",
+      "cweid": "94",
+      "wascid": "20"
+    },
+    {
+      "pluginid": "40014",
+      "alertRef": "40014",
+      "alert": "Cross Site Scripting (Reflected)",
+      "name": "Cross Site Scripting (Reflected)",
+      "riskcode": "3",
+      "confidence": "2",
+      "riskdesc": "High (Medium)",
+      "desc": "Cross-site Scripting (XSS) is an attack technique that involves echoing attacker-supplied code into a user's browser instance. A browser instance can be a standard web browser client, or a browser object embedded in a software product.",
+      "instances": [
+        {
+          "uri": "https://payment.internal.corp/search?q=<script>alert(1)</script>",
+          "method": "GET",
+          "param": "q",
+          "attack": "<script>alert('ZAP-XSS-PROBE');</script>",
+          "evidence": "<script>alert('ZAP-XSS-PROBE');</script>",
+          "otherinfo": "DOM-based XSS confirmed. Script tag reflected in response body unescaped."
+        },
+        {
+          "uri": "https://payment.internal.corp/profile/edit",
+          "method": "POST",
+          "param": "display_name",
+          "attack": "\"><img src=x onerror=alert(document.cookie)>",
+          "evidence": "\"><img src=x onerror=alert(document.cookie)>",
+          "otherinfo": "Stored XSS in user display name field. Payload executed for all users viewing profile."
+        }
+      ],
+      "count": "2",
+      "solution": "Phase 1: Validate all input. Phase 2: Encode all output. Phase 3: Use Content Security Policy. Phase 4: Use HttpOnly and Secure cookie flags.",
+      "cweid": "79",
+      "wascid": "8"
+    },
+    {
+      "pluginid": "10202",
+      "alertRef": "10202",
+      "alert": "Absence of Anti-CSRF Tokens",
+      "name": "Absence of Anti-CSRF Tokens",
+      "riskcode": "2",
+      "confidence": "2",
+      "riskdesc": "Medium (Medium)",
+      "desc": "No Anti-CSRF tokens were found in an HTML submission form. A cross-site request forgery attack is an attack that involves forcing a victim to send an HTTP request to a target destination without their knowledge or intent in order to perform an action as the victim.",
+      "instances": [
+        { "uri": "https://payment.internal.corp/payment/initiate", "method": "POST", "param": "", "attack": "", "evidence": "<form action='/payment/initiate' method='POST'>" },
+        { "uri": "https://payment.internal.corp/account/password/change", "method": "POST", "param": "", "attack": "", "evidence": "<form action='/account/password/change' method='POST'>" },
+        { "uri": "https://payment.internal.corp/api/transfer", "method": "POST", "param": "", "attack": "", "evidence": "<form action='/api/transfer' method='POST'>" }
+      ],
+      "count": "3",
+      "solution": "Implement Anti-CSRF tokens. Use the SameSite cookie attribute. Verify Origin and Referer headers.",
+      "cweid": "352",
+      "wascid": "9"
+    },
+    {
+      "pluginid": "10038",
+      "alertRef": "10038",
+      "alert": "Content Security Policy (CSP) Header Not Set",
+      "name": "Content Security Policy (CSP) Header Not Set",
+      "riskcode": "2",
+      "confidence": "3",
+      "riskdesc": "Medium (High)",
+      "desc": "Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks.",
+      "instances": [
+        { "uri": "https://payment.internal.corp/", "method": "GET", "param": "Content-Security-Policy", "evidence": "" },
+        { "uri": "https://payment.internal.corp/dashboard", "method": "GET", "param": "Content-Security-Policy", "evidence": "" }
+      ],
+      "count": "47",
+      "solution": "Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.",
+      "cweid": "693",
+      "wascid": "15"
+    },
+    {
+      "pluginid": "10021",
+      "alertRef": "10021",
+      "alert": "X-Content-Type-Options Header Missing",
+      "name": "X-Content-Type-Options Header Missing",
+      "riskcode": "1",
+      "confidence": "3",
+      "riskdesc": "Low (High)",
+      "desc": "The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body.",
+      "count": "31",
+      "solution": "Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.",
+      "cweid": "693",
+      "wascid": "15"
+    },
+    {
+      "pluginid": "10044",
+      "alertRef": "10044",
+      "alert": "Big Redirect Detected (Potential Sensitive Information Leak)",
+      "name": "Open Redirect",
+      "riskcode": "2",
+      "confidence": "2",
+      "riskdesc": "Medium (Medium)",
+      "desc": "The server responded with a redirect that appears to redirect to an external location. This could be used for phishing or credential harvesting.",
+      "instances": [
+        {
+          "uri": "https://payment.internal.corp/auth/callback?redirect=https://evil.example.com/steal-creds",
+          "method": "GET",
+          "param": "redirect",
+          "attack": "https://evil.example.com/steal-creds",
+          "evidence": "Location: https://evil.example.com/steal-creds",
+          "otherinfo": "302 redirect to external domain confirmed."
+        }
+      ],
+      "count": "1",
+      "solution": "Use a server-side whitelist for redirect URLs. Never redirect to user-supplied external URLs without validation.",
+      "cweid": "601",
+      "wascid": "38"
+    },
+    {
+      "pluginid": "10036",
+      "alertRef": "10036",
+      "alert": "Server Leaks Version Information via 'Server' HTTP Response Header Field",
+      "name": "Server Version Disclosure",
+      "riskcode": "1",
+      "confidence": "3",
+      "riskdesc": "Low (High)",
+      "desc": "The web/application server is leaking version information via the 'Server' HTTP response header.",
+      "instances": [
+        { "uri": "https://payment.internal.corp/", "method": "GET", "param": "Server", "evidence": "nginx/1.18.0 (Ubuntu)" },
+        { "uri": "https://payment.internal.corp/api/status", "method": "GET", "param": "X-Powered-By", "evidence": "Express 4.18.2" }
+      ],
+      "count": "19",
+      "solution": "Remove server version headers. Set server_tokens off in nginx. Use helmet.js to remove X-Powered-By.",
+      "cweid": "200",
+      "wascid": "13"
+    },
+    {
+      "pluginid": "40040",
+      "alertRef": "40040",
+      "alert": "CORS Misconfiguration — Wildcard Origin",
+      "name": "Cross-Origin Resource Sharing Misconfiguration",
+      "riskcode": "2",
+      "confidence": "2",
+      "riskdesc": "Medium (Medium)",
+      "desc": "CORS header Access-Control-Allow-Origin is set to '*' with Access-Control-Allow-Credentials: true. Allows any origin to make credentialed requests to the API.",
+      "instances": [
+        {
+          "uri": "https://payment.internal.corp/api/user/profile",
+          "method": "GET",
+          "param": "Access-Control-Allow-Origin",
+          "attack": "Origin: https://evil.example.com",
+          "evidence": "Access-Control-Allow-Origin: https://evil.example.com\nAccess-Control-Allow-Credentials: true",
+          "otherinfo": "Server reflects arbitrary Origin headers. Allows cross-origin credential access."
+        }
+      ],
+      "count": "1",
+      "solution": "Restrict CORS to specific trusted origins. Never combine wildcard origin with credentials:true. Implement an explicit allowlist.",
+      "cweid": "942",
+      "wascid": "14"
+    },
+    {
+      "pluginid": "10010",
+      "alertRef": "10010",
+      "alert": "Cookie No HttpOnly Flag",
+      "name": "Cookie Without HttpOnly Flag",
+      "riskcode": "1",
+      "confidence": "2",
+      "riskdesc": "Low (Medium)",
+      "desc": "A cookie has been set without the HttpOnly flag, which means that the cookie can be accessed by JavaScript. If a malicious script can be run on this page then the cookie will be accessible and can be transmitted to another site.",
+      "instances": [
+        { "uri": "https://payment.internal.corp/auth/login", "method": "POST", "param": "session_token", "evidence": "Set-Cookie: session_token=eyJhbGciOiJIUzI1NiJ9...; Path=/; Secure" }
+      ],
+      "count": "3",
+      "solution": "Set the HttpOnly flag on all cookies. In Express: res.cookie('session_token', value, { httpOnly: true, secure: true, sameSite: 'strict' })",
+      "cweid": "1004",
+      "wascid": "13"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ interface ClientOption {
 }
 
 export function ClientSwitcher() {
-  const { role, loaded } = useAuth();
+  const { role, loaded, organizationId } = useAuth();
   const { activeClientId, activeClientName, setActiveClient } = useClientContext();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -30,7 +30,11 @@ export function ClientSwitcher() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch('/api/clients?organizationId=demo-org')
+    if (!organizationId) {
+      setLoading(false);
+      return;
+    }
+    fetch(`/api/clients?organizationId=${organizationId}`)
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && data.clients) {
@@ -49,7 +53,7 @@ export function ClientSwitcher() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [organizationId]);
 
   // Close dropdown on outside click
   useEffect(() => {

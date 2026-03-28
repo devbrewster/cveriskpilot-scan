@@ -12,6 +12,7 @@ COPY package.json package-lock.json ./
 
 # Copy ALL workspace package.json files so npm can resolve the workspaces
 COPY apps/web/package.json ./apps/web/
+COPY apps/worker/package.json ./apps/worker/
 COPY packages/abac/package.json ./packages/abac/
 COPY packages/agents/package.json ./packages/agents/
 COPY packages/ai/package.json ./packages/ai/
@@ -56,6 +57,9 @@ RUN npx prisma generate --schema=packages/domain/prisma/schema.prisma
 # Build the Next.js application
 RUN npm run build
 
+# Build the worker service
+RUN npm run build --workspace=apps/worker
+
 # =============================================================================
 # Stage 3: Production runner
 # =============================================================================
@@ -81,8 +85,15 @@ COPY --from=build --chown=nextjs:nodejs /app/packages/domain/prisma ./packages/d
 COPY --from=build --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build --chown=nextjs:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
+# Copy worker build output
+COPY --from=build --chown=nextjs:nodejs /app/apps/worker/dist ./apps/worker/dist
+
+# Copy entrypoint script that routes by SERVICE_ROLE
+COPY --from=build --chown=nextjs:nodejs /app/deploy/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
 USER nextjs
 
 EXPOSE 3000
 
-CMD ["node", "apps/web/server.js"]
+CMD ["./entrypoint.sh"]

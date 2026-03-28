@@ -1,11 +1,12 @@
 // SSE streaming endpoint for real-time scan progress
 //
-// GET /api/stream?tenantId=...&jobId=...
+// GET /api/stream?jobId=...
 //
 // Clients connect via EventSource and receive progress, phase-change,
 // finding, error, and complete events as the scan pipeline runs.
 
-import { NextRequest } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import { SSEEmitter } from '@cveriskpilot/streaming';
 
 // ---------------------------------------------------------------------------
@@ -34,16 +35,17 @@ export const dynamic = 'force-dynamic';
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest): Promise<Response> {
-  const { searchParams } = request.nextUrl;
-  const tenantId = searchParams.get('tenantId');
-  const jobId = searchParams.get('jobId');
-
-  if (!tenantId) {
+  const session = await getServerSession(request);
+  if (!session) {
     return new Response(
-      JSON.stringify({ error: 'Missing required query parameter: tenantId' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } },
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } },
     );
   }
+
+  const tenantId = session.organizationId;
+  const { searchParams } = request.nextUrl;
+  const jobId = searchParams.get('jobId');
 
   const emitter = getSSEEmitter();
 

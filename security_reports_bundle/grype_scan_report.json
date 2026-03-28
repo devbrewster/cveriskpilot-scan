@@ -1,0 +1,331 @@
+{
+  "schema": "https://raw.githubusercontent.com/anchore/grype/main/schema/vulnerability/schema-1.0.0.json",
+  "descriptor": {
+    "name": "grype",
+    "version": "0.77.4",
+    "configuration": {
+      "output": ["json"],
+      "scope": "all-layers",
+      "db": {
+        "update-url": "https://toolbox-data.anchore.io/grype/databases/listing.json",
+        "checksum": "sha256:3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f",
+        "build-date": "2026-03-10T00:00:00Z"
+      }
+    }
+  },
+  "source": {
+    "type": "image",
+    "target": {
+      "userInput": "payment-service:2.14.1",
+      "imageID": "sha256:7f3d9c1a2b4e5f6a8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+      "manifestDigest": "sha256:8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b",
+      "platform": "linux/amd64",
+      "layers": [
+        "sha256:a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+        "sha256:b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c",
+        "sha256:c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d"
+      ],
+      "tags": ["payment-service:2.14.1", "payment-service:latest"],
+      "imageSize": 482093184,
+      "os": "debian",
+      "osVersion": "11 (bullseye)"
+    }
+  },
+  "distro": {
+    "name": "debian",
+    "version": "11",
+    "idLike": ["debian"]
+  },
+  "matches": [
+    {
+      "vulnerability": {
+        "id": "CVE-2024-3400",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-3400",
+        "namespace": "nvd:cpe",
+        "severity": "Critical",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2024-3400"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+            "metrics": { "baseScore": 10.0, "exploitabilityScore": 3.9, "impactScore": 6.0 },
+            "vendorMetadata": {}
+          }
+        ],
+        "fix": { "versions": ["10.2.9-h1"], "state": "fixed" },
+        "advisories": []
+      },
+      "matchDetails": [
+        {
+          "type": "exact-indirect-match",
+          "found": { "versionConstraint": "< 10.2.9-h1 (rpm)", "vulnerabilityID": "CVE-2024-3400" }
+        }
+      ],
+      "artifact": {
+        "id": "fa3e2d1c0b9a8f7e",
+        "name": "pan-os-base",
+        "version": "10.2.3",
+        "type": "rpm",
+        "locations": [{ "path": "/var/lib/rpm/Packages", "layerID": "sha256:a1b2c3d4e5f6" }],
+        "language": "",
+        "licenses": ["GPL-2.0"],
+        "cpes": ["cpe:2.3:a:paloaltonetworks:pan-os:10.2.3:*:*:*:*:*:*:*"],
+        "purl": "pkg:rpm/pan-os-base@10.2.3",
+        "upstreams": []
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "CVE-2024-6387",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-6387",
+        "namespace": "debian:distro:debian:11",
+        "severity": "Critical",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2024-6387"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            "metrics": { "baseScore": 8.1, "exploitabilityScore": 2.2, "impactScore": 5.9 },
+            "vendorMetadata": {}
+          }
+        ],
+        "fix": { "versions": ["1:9.8p1-1"], "state": "fixed" },
+        "advisories": [{ "id": "DSA-5724-1", "link": "https://security-tracker.debian.org/tracker/CVE-2024-6387" }]
+      },
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "found": { "versionConstraint": "< 1:9.8p1-1 (deb)", "vulnerabilityID": "CVE-2024-6387" }
+        }
+      ],
+      "artifact": {
+        "id": "ab1c2d3e4f5a6b7c",
+        "name": "openssh-server",
+        "version": "1:8.9p1-3ubuntu0.6",
+        "type": "deb",
+        "locations": [{ "path": "/var/lib/dpkg/status", "layerID": "sha256:a1b2c3d4e5f6" }],
+        "language": "",
+        "licenses": ["OpenSSH"],
+        "cpes": ["cpe:2.3:a:openbsd:openssh:8.9p1:*:*:*:*:*:*:*"],
+        "purl": "pkg:deb/debian/openssh-server@1:8.9p1-3ubuntu0.6"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "CVE-2024-21626",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-21626",
+        "namespace": "github:language:go",
+        "severity": "High",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2024-21626"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
+            "metrics": { "baseScore": 8.6, "exploitabilityScore": 2.8, "impactScore": 6.0 },
+            "vendorMetadata": {}
+          }
+        ],
+        "fix": { "versions": ["1.1.12"], "state": "fixed" }
+      },
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "found": { "versionConstraint": ">= 1.0.0, < 1.1.12 (go)", "vulnerabilityID": "CVE-2024-21626" }
+        }
+      ],
+      "artifact": {
+        "id": "cd2e3f4a5b6c7d8e",
+        "name": "github.com/opencontainers/runc",
+        "version": "1.1.9",
+        "type": "go-module",
+        "locations": [{ "path": "/usr/bin/runc", "layerID": "sha256:b2c3d4e5f6a7" }],
+        "language": "go",
+        "licenses": ["Apache-2.0"],
+        "cpes": ["cpe:2.3:a:opencontainers:runc:1.1.9:*:*:*:*:*:*:*"],
+        "purl": "pkg:golang/github.com/opencontainers/runc@1.1.9"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "CVE-2023-44487",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2023-44487",
+        "namespace": "github:language:go",
+        "severity": "High",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2023-44487"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            "metrics": { "baseScore": 7.5, "exploitabilityScore": 3.9, "impactScore": 3.6 },
+            "vendorMetadata": {}
+          }
+        ],
+        "fix": { "versions": ["0.17.0"], "state": "fixed" }
+      },
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "found": { "versionConstraint": "< 0.17.0 (go)", "vulnerabilityID": "CVE-2023-44487" }
+        }
+      ],
+      "artifact": {
+        "id": "de3f4a5b6c7d8e9f",
+        "name": "golang.org/x/net",
+        "version": "0.10.0",
+        "type": "go-module",
+        "locations": [{ "path": "/app/payment-service", "layerID": "sha256:c3d4e5f6a7b8" }],
+        "language": "go",
+        "licenses": ["BSD-3-Clause"],
+        "cpes": ["cpe:2.3:a:golang:net:0.10.0:*:*:*:*:*:*:*"],
+        "purl": "pkg:golang/golang.org/x/net@0.10.0"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "CVE-2024-45337",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-45337",
+        "namespace": "github:language:go",
+        "severity": "Critical",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2024-45337"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+            "metrics": { "baseScore": 9.1, "exploitabilityScore": 3.9, "impactScore": 5.2 },
+            "vendorMetadata": {}
+          }
+        ],
+        "fix": { "versions": ["0.31.0"], "state": "fixed" }
+      },
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "found": { "versionConstraint": "< 0.31.0 (go)", "vulnerabilityID": "CVE-2024-45337" }
+        }
+      ],
+      "artifact": {
+        "id": "ef4a5b6c7d8e9f0a",
+        "name": "golang.org/x/crypto",
+        "version": "0.18.0",
+        "type": "go-module",
+        "locations": [{ "path": "/app/payment-service", "layerID": "sha256:c3d4e5f6a7b8" }],
+        "language": "go",
+        "licenses": ["BSD-3-Clause"],
+        "cpes": ["cpe:2.3:a:golang:crypto:0.18.0:*:*:*:*:*:*:*"],
+        "purl": "pkg:golang/golang.org/x/crypto@0.18.0"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "CVE-2024-32002",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-32002",
+        "namespace": "github:language:python",
+        "severity": "High",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2024-32002"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:H",
+            "metrics": { "baseScore": 8.8, "exploitabilityScore": 1.6, "impactScore": 6.0 }
+          }
+        ],
+        "fix": { "versions": ["2.45.1"], "state": "fixed" }
+      },
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "found": { "versionConstraint": "< 2.45.1 (python)", "vulnerabilityID": "CVE-2024-32002" }
+        }
+      ],
+      "artifact": {
+        "id": "f0a1b2c3d4e5f6a7",
+        "name": "gitpython",
+        "version": "3.1.40",
+        "type": "python",
+        "locations": [{ "path": "/usr/local/lib/python3.11/site-packages/git", "layerID": "sha256:b2c3d4e5f6a7" }],
+        "language": "python",
+        "licenses": ["BSD-3-Clause"],
+        "cpes": ["cpe:2.3:a:gitpython_project:gitpython:3.1.40:*:*:*:*:*:*:*"],
+        "purl": "pkg:pypi/gitpython@3.1.40"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "CVE-2024-28849",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-28849",
+        "namespace": "github:language:javascript",
+        "severity": "Medium",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2024-28849"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+            "metrics": { "baseScore": 6.5, "exploitabilityScore": 2.8, "impactScore": 3.6 }
+          }
+        ],
+        "fix": { "versions": ["3.1.1"], "state": "fixed" }
+      },
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "found": { "versionConstraint": "< 3.1.1 (npm)", "vulnerabilityID": "CVE-2024-28849" }
+        }
+      ],
+      "artifact": {
+        "id": "a1b2c3d4e5f6a7b8",
+        "name": "follow-redirects",
+        "version": "1.15.4",
+        "type": "npm",
+        "locations": [{ "path": "/app/node_modules/follow-redirects/package.json", "layerID": "sha256:c3d4e5f6a7b8" }],
+        "language": "javascript",
+        "licenses": ["MIT"],
+        "cpes": ["cpe:2.3:a:follow-redirects_project:follow-redirects:1.15.4:*:*:*:*:node.js:*:*"],
+        "purl": "pkg:npm/follow-redirects@1.15.4"
+      }
+    },
+    {
+      "vulnerability": {
+        "id": "CVE-2024-37890",
+        "dataSource": "https://nvd.nist.gov/vuln/detail/CVE-2024-37890",
+        "namespace": "github:language:javascript",
+        "severity": "High",
+        "urls": ["https://nvd.nist.gov/vuln/detail/CVE-2024-37890"],
+        "cvss": [
+          {
+            "version": "3.1",
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            "metrics": { "baseScore": 7.5, "exploitabilityScore": 3.9, "impactScore": 3.6 }
+          }
+        ],
+        "fix": { "versions": ["8.17.1"], "state": "fixed" }
+      },
+      "matchDetails": [
+        {
+          "type": "exact-direct-match",
+          "found": { "versionConstraint": "< 8.17.1 (npm)", "vulnerabilityID": "CVE-2024-37890" }
+        }
+      ],
+      "artifact": {
+        "id": "b2c3d4e5f6a7b8c9",
+        "name": "ws",
+        "version": "8.16.0",
+        "type": "npm",
+        "locations": [{ "path": "/app/node_modules/ws/package.json", "layerID": "sha256:c3d4e5f6a7b8" }],
+        "language": "javascript",
+        "licenses": ["MIT"],
+        "purl": "pkg:npm/ws@8.16.0"
+      }
+    }
+  ],
+  "ignoredMatches": [],
+  "metadata": {
+    "scanDurationMs": 14832,
+    "totalPackages": 847,
+    "totalVulnerabilitiesFound": 47,
+    "byCritical": 5,
+    "byHigh": 14,
+    "byMedium": 20,
+    "byLow": 8,
+    "byUnknown": 0
+  }
+}

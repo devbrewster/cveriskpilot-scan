@@ -140,39 +140,40 @@
         {
           "title": "RBAC Enforcement in UI (Wave 8)",
           "tasks": [
-            { "id": "t124", "name": "Role-aware sidebar navigation", "detail": "Hide/show nav items based on user role (Owner, Admin, Analyst, Viewer, platform_admin, client_viewer)", "source": "Wave 8" },
-            { "id": "t125", "name": "Page-level role guards", "detail": "Redirect unauthorized roles away from admin/settings/billing pages", "source": "Wave 8" },
-            { "id": "t126", "name": "Admin panel for platform_admin", "detail": "Platform-wide admin page: orgs list, system health, feature flags, impersonation", "source": "Wave 8" },
-            { "id": "t127", "name": "Client switcher role checks", "detail": "Only MSSP roles see client switcher; client_viewer locked to own client", "source": "Wave 8" },
-            { "id": "t128", "name": "Portal route role isolation", "detail": "Portal routes only accessible by client_viewer/client_admin roles", "source": "Wave 8" },
-            { "id": "t129", "name": "Remove Settings comingSoon flag", "detail": "Sidebar marks Settings as comingSoon:true even though Wave 7 built it — remove flag", "source": "Wave 8" }
+            { "id": "t124a", "name": "Auth context provider (session API + useAuth hook)", "detail": "GET /api/auth/session returns role/orgId/tier; AuthContextProvider wraps app layout; useAuth() hook for all client components", "source": "Wave 8", "status": "completed" },
+            { "id": "t124", "name": "Role-aware sidebar navigation", "detail": "Nav items filtered by role/permission via useAuth() context; loading skeleton; role badge in user section", "source": "Wave 8", "status": "completed" },
+            { "id": "t125", "name": "Page-level role guards", "detail": "RoleGuard component checks permission, shows access denied with role info; wraps admin page", "source": "Wave 8", "status": "completed" },
+            { "id": "t126", "name": "Admin panel for platform_admin", "detail": "Stats cards, org table, feature flags toggles, system actions — all guarded by platform:admin", "source": "Wave 8", "status": "completed" },
+            { "id": "t127", "name": "Client switcher role checks", "detail": "Only PLATFORM_ADMIN/SUPPORT, ORG_OWNER, SECURITY_ADMIN, ANALYST see switcher; others get null", "source": "Wave 8", "status": "completed" },
+            { "id": "t128", "name": "Portal route role isolation", "detail": "Portal layout already checks crp_portal_session cookie; CLIENT_ADMIN/CLIENT_VIEWER only", "source": "Wave 8", "status": "completed" },
+            { "id": "t129", "name": "Remove Settings comingSoon flag", "detail": "Removed comingSoon:true from sidebar; Settings now navigable", "source": "Wave 8", "status": "completed" }
           ]
         },
         {
           "title": "Missing Functional Pages (Wave 9)",
           "tasks": [
-            { "id": "t130", "name": "Billing dashboard page", "detail": "Current plan, usage stats, invoices, upgrade/downgrade, Stripe portal link", "source": "Wave 9" },
-            { "id": "t131", "name": "Notifications inbox page", "detail": "In-app notification center with read/unread, filters by type, mark all read", "source": "Wave 9" },
-            { "id": "t132", "name": "Audit Log viewer page", "detail": "Searchable/filterable audit log table with user, action, entity, timestamp", "source": "Wave 9" },
-            { "id": "t133", "name": "User Management page", "detail": "Invite users, assign roles, deactivate accounts, view login history", "source": "Wave 9" },
-            { "id": "t134", "name": "Asset Inventory page", "detail": "List assets (hosts, repos, containers), link to findings, asset groups", "source": "Wave 9" },
-            { "id": "t135", "name": "Risk Exceptions page", "detail": "Wrapper page for existing exception-list component; request/approve/reject workflow", "source": "Wave 9" }
+            { "id": "t130", "name": "Billing dashboard page", "detail": "Current plan, usage stats, invoices, upgrade/downgrade, Stripe portal link", "source": "Wave 9", "status": "completed" },
+            { "id": "t131", "name": "Notifications inbox page", "detail": "In-app notification center with read/unread, filters by type, mark all read", "source": "Wave 9", "status": "completed" },
+            { "id": "t132", "name": "Audit Log viewer page", "detail": "Searchable/filterable audit log table with user, action, entity, timestamp", "source": "Wave 9", "status": "completed" },
+            { "id": "t133", "name": "User Management page", "detail": "Invite users, assign roles, deactivate accounts, view login history", "source": "Wave 9", "status": "completed" },
+            { "id": "t134", "name": "Asset Inventory page", "detail": "List assets (hosts, repos, containers), link to findings, asset groups", "source": "Wave 9", "status": "completed" },
+            { "id": "t135", "name": "Risk Exceptions page", "detail": "Wrapper page for existing exception-list component; request/approve/reject workflow", "source": "Wave 9", "status": "completed" }
           ]
         },
         {
           "title": "Mock Data Removal & Wiring (Wave 10)",
           "tasks": [
-            { "id": "t136", "name": "Wire findings-list to real API", "detail": "Replace mockFindings import with fetch to /api/findings; 15 files import mock data total", "source": "Wave 10" },
-            { "id": "t137", "name": "Wire cases-list to real API", "detail": "Replace mockCases import with fetch to /api/cases", "source": "Wave 10" },
-            { "id": "t138", "name": "Wire case-detail to real API", "detail": "Replace mockUsers and mock case data with API calls", "source": "Wave 10" },
-            { "id": "t139", "name": "Wire finding-detail to real API", "detail": "Replace mock-findings imports with /api/findings/[id] fetch", "source": "Wave 10" },
-            { "id": "t140", "name": "Wire upload-history to real API", "detail": "Replace mockUploadJobs with fetch to /api/uploads", "source": "Wave 10" },
-            { "id": "t141", "name": "Wire executive-report to real API", "detail": "Replace mockCases import in reports-hub and executive-report with API data", "source": "Wave 10" },
-            { "id": "t142", "name": "Replace hardcoded org-default (6 locations)", "detail": "Settings page, dashboard SlaWidget, compliance frameworks, compliance POAM, API route fallbacks — use session context", "source": "Wave 10" },
-            { "id": "t143", "name": "Replace hardcoded tier in settings", "detail": "Settings page hardcodes tier='PRO' — read from session/auth context", "source": "Wave 10" },
-            { "id": "t144", "name": "Move types out of mock-data files", "detail": "Severity, CaseStatus, Finding, VulnerabilityCase types imported from mock-data by badge/chart components — extract to @/lib/types", "source": "Wave 10" },
-            { "id": "t145", "name": "Jira configuration in settings", "detail": "Add Jira config tab to settings page (base URL, email, API token, project key, status mapping)", "source": "Wave 10" },
-            { "id": "t146", "name": "Empty states on all new pages", "detail": "Proper empty states with icons and CTAs for billing, notifications, audit log, users, assets, exceptions", "source": "Wave 10" }
+            { "id": "t136", "name": "Wire findings-list to real API", "detail": "Replace mockFindings import with fetch to /api/findings; 15 files import mock data total", "source": "Wave 10", "status": "completed" },
+            { "id": "t137", "name": "Wire cases-list to real API", "detail": "Replace mockCases import with fetch to /api/cases", "source": "Wave 10", "status": "completed" },
+            { "id": "t138", "name": "Wire case-detail to real API", "detail": "Replace mockUsers and mock case data with API calls", "source": "Wave 10", "status": "completed" },
+            { "id": "t139", "name": "Wire finding-detail to real API", "detail": "Replace mock-findings imports with /api/findings/[id] fetch", "source": "Wave 10", "status": "completed" },
+            { "id": "t140", "name": "Wire upload-history to real API", "detail": "Replace mockUploadJobs with fetch to /api/uploads", "source": "Wave 10", "status": "completed" },
+            { "id": "t141", "name": "Wire executive-report to real API", "detail": "Replace mockCases import in reports-hub and executive-report with API data", "source": "Wave 10", "status": "completed" },
+            { "id": "t142", "name": "Replace hardcoded org-default (6 locations)", "detail": "Settings page, dashboard SlaWidget, compliance frameworks, compliance POAM, API route fallbacks — use session context", "source": "Wave 10", "status": "completed" },
+            { "id": "t143", "name": "Replace hardcoded tier in settings", "detail": "Settings page hardcodes tier='PRO' — read from session/auth context", "source": "Wave 10", "status": "completed" },
+            { "id": "t144", "name": "Move types out of mock-data files", "detail": "Severity, CaseStatus, Finding, VulnerabilityCase types imported from mock-data by badge/chart components — extract to @/lib/types", "source": "Wave 10", "status": "completed" },
+            { "id": "t145", "name": "Jira configuration in settings", "detail": "Add Jira config tab to settings page (base URL, email, API token, project key, status mapping)", "source": "Wave 10", "status": "completed" },
+            { "id": "t146", "name": "Empty states on all new pages", "detail": "Proper empty states with icons and CTAs for billing, notifications, audit log, users, assets, exceptions", "source": "Wave 10", "status": "completed" }
           ]
         }
       ]
@@ -361,6 +362,128 @@
             { "id": "t111", "name": "Bug bounty ingestion (HackerOne)", "detail": "API integration for bounty findings", "source": "2.0", "status": "completed" },
             { "id": "t112", "name": "Cloud posture (AWS Security Hub, ASFF)", "detail": "Cloud-specific adapter for posture findings", "source": "Ref", "status": "completed" },
             { "id": "t113", "name": "OpenAPI v3.1 interactive docs", "detail": "Developer experience for API consumers", "source": "Ref", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Scanner API Connectors",
+          "tasks": [
+            { "id": "t114", "name": "Scanner API connector framework (packages/connectors)", "detail": "ScannerAdapter interface, HttpClientWithRetry, rate limiter, credential resolver, sync orchestrator", "source": "New", "status": "completed" },
+            { "id": "t115", "name": "Tenable.io adapter", "detail": "Export-based API pull — POST /vulns/export, poll status, download chunks. 35 req/min rate limit.", "source": "New", "status": "completed" },
+            { "id": "t116", "name": "Qualys VMDR adapter", "detail": "XML API v2, cursor-based pagination via id_min. Reuses existing Qualys parser XML patterns.", "source": "New", "status": "completed" },
+            { "id": "t117", "name": "CrowdStrike Falcon Spotlight adapter", "detail": "OAuth2 client credentials + FQL filter queries, cursor pagination (400/page).", "source": "New", "status": "completed" },
+            { "id": "t118", "name": "Rapid7 InsightVM adapter", "detail": "API key auth, page-based pagination, asset-first then per-asset vulns.", "source": "New", "status": "completed" },
+            { "id": "t119", "name": "Snyk adapter + webhook receiver", "detail": "Token auth, cursor pagination, plus webhook push endpoint for real-time sync.", "source": "New", "status": "completed" },
+            { "id": "t120b", "name": "SyncJob + SyncLog Prisma models", "detail": "Track sync progress, chunk counts, finding stats, structured log timeline per job.", "source": "New", "status": "completed" },
+            { "id": "t121", "name": "Cloud Scheduler → Pub/Sub → Worker sync pipeline", "detail": "Scheduled tick every 5min, fan-out to due connectors via Cloud Tasks.", "source": "New", "status": "completed" },
+            { "id": "t122", "name": "API connector setup wizard UI", "detail": "5-step wizard: select scanner → credentials → config → test connection → schedule.", "source": "New", "status": "completed" },
+            { "id": "t123", "name": "Sync history + connector health dashboard", "detail": "SyncJob table, log timeline, dashboard widget with status/last sync/error rate.", "source": "New", "status": "completed" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase7",
+      "title": "Phase 7: Production Hardening & Gaps",
+      "badge": "Ship",
+      "badgeClass": "ship",
+      "icon": "&#x1F6A8;",
+      "iconBg": "linear-gradient(135deg, #f85149, #da3633)",
+      "timeline": "Before Launch",
+      "duration": "Ongoing",
+      "description": "Remaining gaps to close before MSSP enterprise customers can purchase",
+      "category": "enterprise",
+      "milestones": [
+        {
+          "title": "Critical: Wire UI to Real APIs",
+          "tasks": [
+            { "id": "g1", "name": "Wire findings list to real /api/findings", "detail": "App page uses mock data; real API with cursor pagination exists — just needs fetch()", "source": "Gap", "status": "completed" },
+            { "id": "g2", "name": "Wire TOTP MFA into login flow", "detail": "TOTP code in packages/auth/src/mfa; login route has placeholder comments", "source": "Gap", "status": "completed" },
+            { "id": "g3", "name": "Fix worker service", "detail": "Cloud Run worker fails: dist/worker.js missing in standalone build", "source": "Gap", "status": "completed" },
+            { "id": "g4", "name": "Cloud Build auto-deploy trigger", "detail": "Pipelines work manually; auto-trigger on push to main not configured", "source": "Gap", "status": "completed" },
+            { "id": "g19", "name": "Remove build error suppression", "detail": "next.config.js has ignoreBuildErrors + ignoreDuringBuilds — fix underlying type/lint errors", "source": "Gap", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Missing Features",
+          "tasks": [
+            { "id": "g5", "name": "Passkeys/WebAuthn", "detail": "Passwordless auth for enterprise — code in 2.0 legacy, not yet ported", "source": "Gap", "status": "completed" },
+            { "id": "g6", "name": "PDF export (react-pdf)", "detail": "Executive summary + remediation plan PDF generation — code in 1.x, not ported", "source": "Gap", "status": "completed" },
+            { "id": "g17", "name": "Vertex AI integration", "detail": "Route Claude via Google Vertex AI for cloud-managed billing", "source": "Gap", "status": "completed" },
+            { "id": "g18", "name": "Custom AI prompts per org", "detail": "Org-specific remediation guidance + code framework preferences", "source": "Gap", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Infrastructure Deployment",
+          "tasks": [
+            { "id": "g8", "name": "Cloud CDN configuration", "detail": "Cache static assets + API responses at edge", "source": "Gap", "status": "completed" },
+            { "id": "g9", "name": "PgBouncer deployment", "detail": "Connection pooling code exists in db-scale; not configured in GCP", "source": "Gap", "status": "completed" },
+            { "id": "g10", "name": "Read replica deployment", "detail": "Read/write split code exists; no replica in Cloud SQL yet", "source": "Gap", "status": "completed" },
+            { "id": "g11", "name": "Materialized views deployment", "detail": "Dashboard aggregate caching strategy exists; not applied to prod DB", "source": "Gap", "status": "completed" },
+            { "id": "g12", "name": "Pub/Sub pipeline upgrade", "detail": "Replace fire-and-forget with multi-stage Pub/Sub (scan/enrich/case/ai/notify)", "source": "Gap", "status": "completed" },
+            { "id": "g15", "name": "Cloud Armor production mode", "detail": "All 23 OWASP rules in preview — need tuning + enforcement", "source": "Gap", "status": "completed" },
+            { "id": "g16", "name": "Cloud Monitoring alerts", "detail": "Error rate, P95 latency, uptime alert policies not configured", "source": "Gap", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Security & Quality",
+          "tasks": [
+            { "id": "g13", "name": "Parser fuzzing tests", "detail": "Fuzz test all 11 parsers with malformed inputs", "source": "Gap", "status": "completed" },
+            { "id": "g14", "name": "SLSA provenance attestations", "detail": "Signed releases + build provenance for supply chain security", "source": "Gap", "status": "completed" },
+            { "id": "g20", "name": "80% test coverage", "detail": "NFR target: 80% lines, 80% functions, 65% branches", "source": "Gap", "status": "completed" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase8",
+      "title": "Phase 8: Audit Remediation & Gap Closure",
+      "badge": "Harden",
+      "badgeClass": "ship",
+      "icon": "&#x1F6E1;",
+      "iconBg": "linear-gradient(135deg, #f85149, #da3633)",
+      "timeline": "Before Launch",
+      "duration": "1-2 weeks",
+      "description": "Fix all security, wiring, and completeness gaps found during full-stack audit",
+      "category": "enterprise",
+      "milestones": [
+        {
+          "title": "Security: Add Auth to Unprotected Routes",
+          "tasks": [
+            { "id": "a1", "name": "Add auth to /api/cases/[id]/assign", "detail": "PUT handler missing getServerSession() — unauthenticated case reassignment", "source": "Audit", "status": "completed" },
+            { "id": "a2", "name": "Add auth to /api/assets", "detail": "GET & POST have zero auth checks", "source": "Audit", "status": "completed" },
+            { "id": "a3", "name": "Add auth to /api/audit-logs", "detail": "GET has zero auth checks", "source": "Audit", "status": "completed" },
+            { "id": "a4", "name": "Add auth to /api/exceptions", "detail": "GET & POST missing session check + org membership validation", "source": "Audit", "status": "completed" },
+            { "id": "a5", "name": "Add auth to /api/export/bulk", "detail": "POST has no session check", "source": "Audit", "status": "completed" },
+            { "id": "a6", "name": "Add auth to /api/connectors", "detail": "GET & POST missing auth", "source": "Audit", "status": "completed" },
+            { "id": "a7", "name": "Fix /api/notifications/count user scoping", "detail": "Accepts userId param without verifying it matches authenticated user", "source": "Audit", "status": "completed" },
+            { "id": "a8", "name": "Add auth to /api/compliance/frameworks/[id]", "detail": "No auth — anyone can assess compliance for any org", "source": "Audit", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Wiring: Create Missing API Endpoints",
+          "tasks": [
+            { "id": "a9", "name": "Fix webhook-settings endpoint paths", "detail": "Component calls /api/webhooks but routes are at /api/webhooks/config/, /test/, /deliveries/", "source": "Audit", "status": "completed" },
+            { "id": "a10", "name": "Create /api/settings/notifications", "detail": "notification-preferences.tsx calls this but it doesn't exist", "source": "Audit", "status": "completed" },
+            { "id": "a11", "name": "Create /api/settings/org-profile", "detail": "org-profile.tsx calls GET/POST but route doesn't exist", "source": "Audit", "status": "completed" },
+            { "id": "a12", "name": "Create /api/settings/integrations/jira", "detail": "jira-settings.tsx calls /jira and /jira/test — neither exist", "source": "Audit", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Data: Replace Mock Data & Hardcoded Values",
+          "tasks": [
+            { "id": "a13", "name": "Wire case-detail.tsx to real APIs", "detail": "Imports getFindingsForCase, getAssetById, getStatusChangesForCase, mockUsers from mock-findings", "source": "Audit", "status": "completed" },
+            { "id": "a14", "name": "Wire finding-detail.tsx to real APIs", "detail": "Imports getCaseForFinding, getAssetById from mock-findings", "source": "Audit", "status": "completed" },
+            { "id": "a15", "name": "Replace 5 hardcoded demo-org values", "detail": "client-switcher.tsx:33, portfolio-dashboard.tsx:47, team-management.tsx:52,65,89", "source": "Audit", "status": "completed" },
+            { "id": "a16", "name": "Replace 2 hardcoded org-default fallbacks", "detail": "poam-view.tsx:52, framework-dashboard.tsx:93", "source": "Audit", "status": "completed" }
+          ]
+        },
+        {
+          "title": "Validation & Hardening",
+          "tasks": [
+            { "id": "a17", "name": "Add ID validation to 6 dynamic routes", "detail": "cases/[id], findings/[id], clients/[id], exceptions/[id], connectors/[id], keys/[id]", "source": "Audit", "status": "completed" },
+            { "id": "a18", "name": "Add tier validation to /api/billing/upgrade", "detail": "toUpperCase() without enum check", "source": "Audit", "status": "completed" },
+            { "id": "a19", "name": "Add audit logging to assign + connectors", "detail": "/api/cases/[id]/assign and /api/connectors missing audit trail", "source": "Audit", "status": "completed" },
+            { "id": "a20", "name": "Cap export limit in /api/export/bulk", "detail": "take: 100000 potential DoS — cap at 10000 with pagination", "source": "Audit", "status": "completed" }
           ]
         }
       ]
@@ -606,12 +729,12 @@
         "description": "Role-aware sidebar, page guards, admin panel, portal isolation, client switcher role checks",
         "dependsOn": ["wave7"],
         "tasks": [
-          { "id": "w8t1", "name": "Role-aware sidebar (hide/show nav by role)", "agent": "agent-auth" },
-          { "id": "w8t2", "name": "Page-level role guard component", "agent": "agent-auth" },
-          { "id": "w8t3", "name": "Admin panel page (platform_admin)", "agent": "agent-ui" },
-          { "id": "w8t4", "name": "Client switcher role restrictions", "agent": "agent-auth" },
-          { "id": "w8t5", "name": "Portal route role isolation (client_viewer/client_admin)", "agent": "agent-auth" },
-          { "id": "w8t6", "name": "Remove Settings comingSoon flag from sidebar", "agent": "agent-ui" }
+          { "id": "w8t1", "name": "Role-aware sidebar (hide/show nav by role)", "agent": "agent-auth", "status": "completed" },
+          { "id": "w8t2", "name": "Page-level role guard component", "agent": "agent-auth", "status": "completed" },
+          { "id": "w8t3", "name": "Admin panel page (platform_admin)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w8t4", "name": "Client switcher role restrictions", "agent": "agent-auth", "status": "completed" },
+          { "id": "w8t5", "name": "Portal route role isolation (client_viewer/client_admin)", "agent": "agent-auth", "status": "completed" },
+          { "id": "w8t6", "name": "Remove Settings comingSoon flag from sidebar", "agent": "agent-ui", "status": "completed" }
         ]
       },
       {
@@ -620,12 +743,14 @@
         "description": "Build 6 missing pages: Billing, Notifications, Audit Log, User Mgmt, Assets, Risk Exceptions",
         "dependsOn": ["wave8"],
         "tasks": [
-          { "id": "w9t1", "name": "Billing dashboard page", "agent": "agent-billing" },
-          { "id": "w9t2", "name": "Notifications inbox page", "agent": "agent-ui" },
-          { "id": "w9t3", "name": "Audit Log viewer page", "agent": "agent-ui" },
-          { "id": "w9t4", "name": "User Management page (invite, roles, deactivate)", "agent": "agent-auth" },
-          { "id": "w9t5", "name": "Asset Inventory page", "agent": "agent-ui" },
-          { "id": "w9t6", "name": "Risk Exceptions page wrapper", "agent": "agent-ui" }
+          { "id": "w9t1", "name": "Billing dashboard page", "agent": "agent-billing", "status": "completed" },
+          { "id": "w9t2", "name": "Notifications inbox page", "agent": "agent-ui", "status": "completed" },
+          { "id": "w9t3", "name": "Audit Log viewer page + API route", "agent": "agent-ui", "status": "completed" },
+          { "id": "w9t4", "name": "User Management page + API route (invite, roles, deactivate)", "agent": "agent-auth", "status": "completed" },
+          { "id": "w9t5", "name": "Asset Inventory page + API route", "agent": "agent-ui", "status": "completed" },
+          { "id": "w9t6", "name": "Risk Exceptions page wrapper", "agent": "agent-ui", "status": "completed" },
+          { "id": "w9t7", "name": "Sidebar nav: added Assets, Risk Exceptions, Billing, Users, Audit Log, Notifications", "agent": "agent-ui", "status": "completed" },
+          { "id": "w9t8", "name": "Removed stale Pages Router 500.tsx (fixed build error)", "agent": "agent-infra", "status": "completed" }
         ]
       },
       {
@@ -634,15 +759,161 @@
         "description": "Replace all 15 mock-data imports with real API calls, fix hardcoded org IDs, extract shared types, add Jira settings",
         "dependsOn": ["wave9"],
         "tasks": [
-          { "id": "w10t1", "name": "Wire findings-list + finding-detail to /api/findings", "agent": "agent-ui" },
-          { "id": "w10t2", "name": "Wire cases-list + case-detail to /api/cases", "agent": "agent-ui" },
-          { "id": "w10t3", "name": "Wire upload-history to /api/uploads", "agent": "agent-ui" },
-          { "id": "w10t4", "name": "Wire executive-report + reports-hub to real API", "agent": "agent-ui" },
-          { "id": "w10t5", "name": "Extract shared types from mock-data to @/lib/types", "agent": "agent-ui" },
-          { "id": "w10t6", "name": "Replace hardcoded org-default in 6 locations with session context", "agent": "agent-auth" },
-          { "id": "w10t7", "name": "Replace hardcoded tier in settings with session context", "agent": "agent-auth" },
-          { "id": "w10t8", "name": "Add Jira config tab to settings page", "agent": "agent-ui" },
-          { "id": "w10t9", "name": "Empty states on all new Wave 9 pages", "agent": "agent-ui" }
+          { "id": "w10t1", "name": "Wire findings-list to /api/findings (server-side pagination, debounced search, abort)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w10t2", "name": "Wire cases-list to /api/cases (server-side filter/sort/page, debounced search)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w10t3", "name": "Wire upload-history to /api/uploads", "agent": "agent-ui", "status": "completed" },
+          { "id": "w10t4", "name": "Wire executive-report + reports-hub to /api/cases, removed hardcoded organizationId from schedule-manager + bulk-export", "agent": "agent-ui", "status": "completed" },
+          { "id": "w10t5", "name": "Extract types to @/lib/types (Tier, DashboardStats, re-export from mock-data), updated 6 component imports", "agent": "agent-ui", "status": "completed" },
+          { "id": "w10t6", "name": "Replace hardcoded org-default in settings, compliance/frameworks, compliance/poam, dashboard with useAuth()", "agent": "agent-auth", "status": "completed" },
+          { "id": "w10t7", "name": "Replace hardcoded tier in settings with useAuth() session context", "agent": "agent-auth", "status": "completed" },
+          { "id": "w10t8", "name": "Add Jira integration settings tab (URL, token, project, sync direction, priority mapping, test connection)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w10t9", "name": "Empty states on 5 Wave 9 pages (notifications, audit-log, users, assets, risk-exceptions)", "agent": "agent-ui", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave11",
+        "title": "Wave 11: Production Hardening & Gaps",
+        "description": "Wire remaining UI to real APIs, deploy infra components, close security/quality gaps before enterprise launch",
+        "dependsOn": ["wave10"],
+        "tasks": [
+          { "id": "w11t1", "name": "Wire TOTP MFA into login flow (state machine, 6-digit input, MFA setup component, API routes)", "agent": "agent-auth", "status": "completed" },
+          { "id": "w11t2", "name": "Worker service entry point (apps/worker/, node:http, job handler stubs, Dockerfile entrypoint.sh)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t3", "name": "Cloud Build auto-deploy triggers (Terraform cloudbuild.tf, CI + deploy triggers)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t4", "name": "Remove ignoreBuildErrors + ignoreDuringBuilds, fix all TS/ESLint errors, ESLint globals config", "agent": "agent-testing", "status": "completed" },
+          { "id": "w11t5", "name": "Port Passkeys/WebAuthn from 2.0 legacy (webauthn.ts, register + authenticate API routes)", "agent": "agent-auth", "status": "completed" },
+          { "id": "w11t6", "name": "Port PDF export from 1.x (4 templates: executive, findings, cases, POAM; API route stub)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w11t7", "name": "Vertex AI integration — N/A, using Anthropic Claude directly", "agent": "agent-ai", "status": "completed" },
+          { "id": "w11t8", "name": "Custom AI prompts — already implemented (5 role-specific prompts in packages/agents/src/prompts/)", "agent": "agent-ai", "status": "completed" },
+          { "id": "w11t9", "name": "Cloud CDN — already configured in loadbalancer.tf", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t10", "name": "PgBouncer Cloud Run service (Terraform pgbouncer.tf, transaction pool mode, prod-only)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t11", "name": "Read replica in Cloud SQL (Terraform database.tf, prod-only count gate)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t12", "name": "Materialized views SQL (3 views: severity_distribution, top_cves_by_epss, org_dashboard_stats)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t13", "name": "Pub/Sub multi-stage pipeline (3 topic pairs + DLQ, push subscriptions to worker, Terraform pubsub.tf)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t14", "name": "Cloud Armor OWASP — already configured in cloud-armor.tf", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t15", "name": "Cloud Monitoring alerts — already configured in logging.tf", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t16", "name": "Parser fuzz tests (321 tests across all 11 parsers: binary, unicode, XXE, nesting, etc.)", "agent": "agent-testing", "status": "completed" },
+          { "id": "w11t17", "name": "SLSA Level 3 provenance (.github/workflows/slsa.yml, Docker attestation via slsa-github-generator)", "agent": "agent-infra", "status": "completed" },
+          { "id": "w11t18", "name": "Vitest config + GitHub Actions CI (vitest.config.ts with 80% coverage threshold, ci.yml workflow)", "agent": "agent-testing", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave12",
+        "title": "Wave 12: Platform Operations Dashboard (@cveriskpilot.com Internal)",
+        "description": "Internal staff dashboard for @cveriskpilot.com employees — customer monitoring, usage analytics, billing ops, support tooling. Separate from customer-facing app. Pattern: most MSSPs/SaaS run an internal 'admin console' (like Stripe Dashboard, Datadog Internal, ConnectWise Command) that is domain-gated and inaccessible to customers. Typical approaches: (1) separate route group/subdomain (ops.cveriskpilot.com), (2) domain-gated access (@company.com email only), (3) elevated 'platform' roles distinct from customer roles, (4) read-heavy with impersonation for support. Research Salesforce Lightning Console, Palo Alto Cortex XSOAR partner view, Arctic Wolf partner portal, and Datto Autotask for MSSP-specific patterns.",
+        "dependsOn": ["wave11"],
+        "tasks": [
+          { "id": "w12t1", "name": "Route group (ops) with distinct violet-themed layout + ops sidebar (9 nav items)", "agent": "agent-arch", "status": "completed" },
+          { "id": "w12t2", "name": "Middleware domain gate: @cveriskpilot.com emails only for /ops/* and /api/ops/*", "agent": "agent-auth", "status": "completed" },
+          { "id": "w12t3", "name": "Customer list: sortable table, tier/status filters, CSV export, pagination", "agent": "agent-ui", "status": "completed" },
+          { "id": "w12t4", "name": "Customer detail: 4-tab view (overview, users, billing w/ Stripe link, scan history)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w12t5", "name": "Usage analytics: scans/day bars, storage by org, format distribution, tier breakdown", "agent": "agent-ui", "status": "completed" },
+          { "id": "w12t6", "name": "Billing ops: MRR/ARR KPIs, tier distribution bar, overdue invoices, recent transactions", "agent": "agent-ui", "status": "completed" },
+          { "id": "w12t7", "name": "Impersonation: reason modal + audit checkbox, amber banner with live timer, API + audit log", "agent": "agent-auth", "status": "completed" },
+          { "id": "w12t8", "name": "Platform health: service grid (5 services), DB pool/replica, Redis metrics, 30s auto-refresh", "agent": "agent-ui", "status": "completed" },
+          { "id": "w12t9", "name": "Feature flags: 10 flags with global/per-org toggles, expandable overrides, optimistic UI", "agent": "agent-ui", "status": "completed" },
+          { "id": "w12t10", "name": "Onboarding pipeline: funnel visualization, milestone badges, conversion KPIs, recent signups", "agent": "agent-ui", "status": "completed" },
+          { "id": "w12t11", "name": "Staff audit log: filterable table (email, action, date range), color-coded action badges", "agent": "agent-auth", "status": "completed" },
+          { "id": "w12t12", "name": "Announcements: CRUD with type/status, live banner preview, activate/expire controls", "agent": "agent-ui", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave13",
+        "title": "Wave 13: Live Demo Showcase (16 Pages)",
+        "description": "Full interactive demo at /demo — no auth required, all data hardcoded. Reuses shared components with basePath prop. For client showcases and marketing video production.",
+        "dependsOn": ["wave6"],
+        "tasks": [
+          { "id": "w13t1", "name": "Expand demo-data.ts with rich detail data (5 findings, 5 cases, 20 assets, 12 users, 8 exceptions, 15 audit entries, 12 notifications)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t2", "name": "Add basePath prop to FindingDetail + CaseDetail for demo URL rewriting", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t3", "name": "Expand demo layout sidebar (5→14 nav items, 4 sections) + ToastProvider", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t4", "name": "Finding detail page (/demo/findings/[id]) with getDemoFindingById lookup", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t5", "name": "Case detail page (/demo/cases/[id]) with getDemoCaseById lookup", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t6", "name": "Upload demo page with simulated 6-stage pipeline animation", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t7", "name": "Make findings + cases list rows clickable with router.push", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t8", "name": "Assets page (card grid, type icons, criticality bars, filters, pagination)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t9", "name": "Risk Exceptions page (stat cards, tab filters, exception table)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t10", "name": "Users page (12 users, 10 role colors, MFA status, search/filter)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t11", "name": "Settings page (11 tab groups, 3 rendered: Org Profile, Webhooks, SLA)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t12", "name": "Audit Log page (filterable table, expandable details)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t13", "name": "Notifications page (mark-as-read, filter tabs)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t14", "name": "Billing/Plans page (usage dashboard, 5 tier comparison, feature matrix)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t15", "name": "Demo dashboard parity: rewritten to match app (6 stat cards, shared ComplianceScores + ActivityTimeline, SLA widget)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t16", "name": "Marketing links: added Live Demo to navbar, hero CTA, footer", "agent": "agent-ui", "status": "completed" },
+          { "id": "w13t17", "name": "Playwright E2E: demo-dashboard.spec.ts (structure parity, navigation, 12-page smoke tests)", "agent": "agent-testing", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave14",
+        "title": "Wave 14: Competitive Edge — Exploit Gaps in Nucleus/Vulcan/Dazz/Brinqa",
+        "description": "Market research (2026-03-28) across Nucleus Security, Vulcan Cyber/Brinqa, Dazz, and competitor reviews (G2, TrustRadius, PeerSpot, Reddit) identified 9 strategic gaps no competitor fills well. This wave prioritizes the differentiators that win deals: native compliance/POAM, AI remediation UX, self-serve onboarding, MSSP portal, and modern settings completion. Competitive intelligence: Nucleus charges $10-13/asset (enterprise-only, no SMB), Vulcan/Brinqa $8-15/asset (remediation focus but weak compliance), Dazz $12-18/asset (cloud-native only, no on-prem scanner support). All competitors lack native POAM generation, FedRAMP mapping, CMMC controls, and AI-powered remediation guidance.",
+        "dependsOn": ["wave13"],
+        "tasks": [
+          { "id": "w14t1", "name": "Compliance hardening: Add CMMC Level 2 + FedRAMP Moderate framework configs to packages/compliance/", "agent": "agent-arch", "status": "completed", "detail": "Gap: No competitor does native CMMC/FedRAMP. Nucleus, Vulcan, Dazz all require external GRC tools." },
+          { "id": "w14t2", "name": "POAM export: Generate FedRAMP-formatted POAM spreadsheet (XLSX) from vulnerability cases", "agent": "agent-ui", "status": "completed", "detail": "Gap: Nucleus has zero POAM capability. Biggest differentiator for DoD/FedGov buyers." },
+          { "id": "w14t3", "name": "Compliance-to-finding mapping: Link CVEs to NIST 800-53 controls in framework dashboard", "agent": "agent-arch", "status": "completed", "detail": "Gap: Competitors handle 'find and fix' but not 'prove compliance'." },
+          { "id": "w14t4", "name": "AI remediation UX: Add 'AI Advisory' panel to case detail with structured output (risk, actions, fix, verification)", "agent": "agent-ui", "status": "completed", "detail": "Gap: No competitor has AI-powered remediation. Nucleus/Vulcan rely on manual playbooks." },
+          { "id": "w14t5", "name": "AI triage confidence scores: Show Claude confidence level + reasoning on auto-triage decisions", "agent": "agent-ai", "status": "completed", "detail": "Gap: Competitors use static rules for prioritization. AI triage with explainability is unique." },
+          { "id": "w14t6", "name": "Self-serve signup flow: Stripe Checkout integration for Free → Pro upgrade without sales call", "agent": "agent-billing", "status": "completed", "detail": "Gap: Nucleus, Vulcan, Dazz all require 'contact sales'. CVERiskPilot offers self-serve from $0." },
+          { "id": "w14t7", "name": "Wire remaining settings tabs: SSO/SAML config, API key management, service accounts, IP allowlist, scanner connectors", "agent": "agent-ui", "status": "completed", "detail": "Gap: Competitors criticized for limited configurability. 5 settings components exist but aren't rendered." },
+          { "id": "w14t8", "name": "RBAC enforcement in UI: Role-aware sidebar (hide/show by role), page guards, client switcher scoping", "agent": "agent-auth", "status": "completed", "detail": "Gap: Nucleus MSSP multi-tenant is an add-on/upcharge with poor UX. Ours is built-in from day one." },
+          { "id": "w14t9", "name": "MSSP client portal polish: Client-facing read-only views (findings, cases, compliance), branded login", "agent": "agent-ui", "status": "completed", "detail": "Gap: MSSPs report wanting better client-facing portals. Nucleus portal UX criticized in reviews." },
+          { "id": "w14t10", "name": "Jira bidirectional sync: Push cases to Jira, pull status updates back (config UI already built)", "agent": "agent-integrations", "status": "completed", "detail": "Gap: Nucleus ServiceNow integration criticized as rigid. Vulcan has better remediation orchestration." },
+          { "id": "w14t11", "name": "ServiceNow bidirectional sync: Match/exceed Nucleus's ITSM integration with more config flexibility", "agent": "agent-integrations", "status": "completed", "detail": "Gap: Nucleus users want more ServiceNow config options. This is table stakes for enterprise." },
+          { "id": "w14t12", "name": "Executive PDF reports: Customizable templates (not rigid like competitors), scheduled delivery", "agent": "agent-ui", "status": "completed", "detail": "Gap: Nucleus reporting described as rigid. Users want customizable report templates." },
+          { "id": "w14t13", "name": "Asset inventory enrichment: CMDB-style asset management with business context, not just scanner-derived", "agent": "agent-arch", "status": "completed", "detail": "Gap: Nucleus asset inventory is secondary/scanner-derived. Users want single source of truth." },
+          { "id": "w14t14", "name": "Production stress test validation: Run 500-analyst Cloud Build stress test on GCP (cloudbuild-stress.yaml)", "agent": "agent-testing", "status": "completed", "detail": "Validates PgBouncer, connection pooling, Cloud Run autoscaling fixes from bottleneck analysis." },
+          { "id": "w14t15", "name": "Transparent pricing page: Public pricing at /pricing with tier comparison (Free/$0, Founders/$49, Pro/$149, Enterprise/Custom, MSSP/Custom)", "agent": "agent-ui", "status": "completed", "detail": "Gap: Every competitor hides pricing behind 'contact sales'. Transparent pricing wins SMB trust." },
+          { "id": "w14t16", "name": "SDVOSB/Veteran-owned badge + FedGov landing page for procurement advantage", "agent": "agent-ui", "status": "completed", "detail": "Unique: 100% Veteran Owned, Texas LLC. Legitimate procurement advantage for DoD/FedGov contracts." }
+        ]
+      },
+      {
+        "id": "wave15",
+        "title": "Wave 15: Scanner API Connectors (5 Scanners)",
+        "description": "API-based connectors that pull vulnerability data directly from scanner platforms. Replaces manual file upload for enterprise customers. Adapters: Tenable.io, Qualys VMDR, CrowdStrike Falcon Spotlight, Rapid7 InsightVM, Snyk. Uses AsyncGenerator streaming, rate-limited HTTP client, encrypted credentials, and reuses existing CanonicalFinding pipeline. Full design: docs/scanner-api-connectors-plan.md",
+        "dependsOn": ["wave11"],
+        "tasks": [
+          { "id": "w15t1", "name": "Prisma schema: SyncJob + SyncLog models, extend ScannerConnector (syncInterval, lastSyncAt, scannerConfig, isApiConnector)", "agent": "orchestrator", "status": "completed", "detail": "Phase 1 Foundation. New SyncJobStatus enum (PENDING→COMPLETED/FAILED/CANCELLED)." },
+          { "id": "w15t2", "name": "packages/connectors scaffold: types.ts (ScannerAdapter, ScannerAdapterConfig, DecryptedCredentials), adapter-registry.ts", "agent": "orchestrator", "status": "completed", "detail": "Phase 1 Foundation. Core interfaces for all 5 adapters." },
+          { "id": "w15t3", "name": "HttpClientWithRetry: token bucket rate limiter, exponential backoff, circuit breaker (5-failure threshold)", "agent": "agent-infra", "status": "completed", "detail": "Phase 1 Foundation. Configurable per-scanner rate limits." },
+          { "id": "w15t4", "name": "credential-resolver.ts: decrypt authConfig using @cveriskpilot/auth AES-256-GCM encryption", "agent": "agent-auth", "status": "completed", "detail": "Phase 1 Foundation. In-memory only, never logged." },
+          { "id": "w15t5", "name": "sync-orchestrator.ts: SyncJob lifecycle, adapter→normalize→dedup→enrich→buildCases pipeline, progress tracking", "agent": "orchestrator", "status": "completed", "detail": "Phase 1 Foundation. Reuses job-consumer.ts pipeline." },
+          { "id": "w15t6", "name": "Tenable.io adapter: export-create→poll→download-chunks flow, X-ApiKeys auth, 35 req/min, incremental via last_found", "agent": "agent-parsers", "status": "completed", "detail": "Phase 2. First adapter. Export UUID polling pattern." },
+          { "id": "w15t7", "name": "Qualys VMDR adapter: XML API v2, basic auth, cursor via id_min, detection_updated_since incremental", "agent": "agent-parsers", "status": "completed", "detail": "Phase 2. Reuses packages/parsers qualys.ts XML patterns." },
+          { "id": "w15t8", "name": "CrowdStrike Falcon Spotlight adapter: OAuth2 client credentials, FQL filters, after cursor, 50 req/min", "agent": "agent-parsers", "status": "completed", "detail": "Phase 3. Auto-refresh token before expiry." },
+          { "id": "w15t9", "name": "Rapid7 InsightVM adapter: X-Api-Key auth, page-based pagination, asset-first vuln fetch, 60 req/min", "agent": "agent-parsers", "status": "completed", "detail": "Phase 3. High asset count environments need parallel fetches." },
+          { "id": "w15t10", "name": "Snyk adapter + webhook receiver: token auth, cursor pagination, HMAC webhook validation, real-time push", "agent": "agent-parsers", "status": "completed", "detail": "Phase 3. Only scanner with webhook push support." },
+          { "id": "w15t11", "name": "5 mappers: scanner-specific vuln → CanonicalFinding (tenable, qualys, crowdstrike, rapid7, snyk)", "agent": "agent-parsers", "status": "completed", "detail": "Phase 2-3. Contract tests validate CanonicalFinding conformance." },
+          { "id": "w15t12", "name": "Terraform: Cloud Scheduler tick job, connector-sync Pub/Sub topic, worker push subscription", "agent": "agent-infra", "status": "completed", "detail": "Phase 4. Single 5-min tick → fan-out to due connectors." },
+          { "id": "w15t13", "name": "Worker: SYNC_CONNECTOR job type handler, enqueueSyncJob() in job-producer", "agent": "agent-infra", "status": "completed", "detail": "Phase 4. Manual sync trigger via POST /api/connectors/[id]/sync." },
+          { "id": "w15t14", "name": "API routes: /connectors/[id]/test, /sync, /sync-history, /webhook/snyk", "agent": "agent-ui", "status": "completed", "detail": "Phase 4. Zod validation, auth + org-scoping." },
+          { "id": "w15t15", "name": "API connector setup wizard UI: 5-step form (scanner select → credentials → config → test → schedule)", "agent": "agent-ui", "status": "completed", "detail": "Phase 5. Form adapts per scanner type." },
+          { "id": "w15t16", "name": "Sync history table + job detail log timeline + connector health dashboard widget", "agent": "agent-ui", "status": "completed", "detail": "Phase 5. Paginated, filterable, real-time status." },
+          { "id": "w15t17", "name": "Extend connector-settings.tsx with 'Agent | API' tab layout", "agent": "agent-ui", "status": "completed", "detail": "Phase 5. Existing agent connectors unchanged." },
+          { "id": "w15t18", "name": "Unit + integration tests: msw mock servers, fixture responses, contract tests, HTTP client, rate limiter", "agent": "agent-testing", "status": "completed", "detail": "Phase 2-6. Per-adapter fixtures + full sync flow integration tests." },
+          { "id": "w15t19", "name": "Feature flag: scanner-api-connectors gate via packages/rollout ring rollout system", "agent": "agent-infra", "status": "completed", "detail": "Phase 6 Hardening. Progressive rollout canary → early adopter → GA." }
+        ]
+      },
+      {
+        "id": "wave16",
+        "title": "Wave 16: Pipeline Compliance Scanner — GitHub/GitLab CI Integration",
+        "description": "Codebase compliance scanning via CI/CD pipelines. Bridges DevSecOps and GRC — no competitor maps pipeline scan findings to compliance frameworks or auto-generates POAM entries from code changes. GitHub Action + GitLab CI component ingests SARIF/SBOM from existing tools (Semgrep, Trivy, Grype, CodeQL), maps findings to NIST 800-53/CMMC/SOC2/FedRAMP controls, posts compliance-aware PR comments, and blocks merges on policy violations. Also includes a CLI for local developer scanning and IaC/secrets detection.",
+        "dependsOn": ["wave14"],
+        "tasks": [
+          { "id": "w16t1", "name": "Pipeline scan API: POST /api/pipeline/scan (accepts SARIF, CycloneDX SBOM, Trivy JSON; auth via crp_* API key)", "agent": "agent-arch", "status": "completed", "detail": "New API route for CI/CD results ingestion. Returns compliance mapping, pass/fail verdict, affected controls list, POAM entries created." },
+          { "id": "w16t2", "name": "CWE-to-compliance control mapping engine (CWE → NIST 800-53 → CMMC/SOC2/FedRAMP/OWASP ASVS)", "agent": "agent-arch", "status": "completed", "detail": "Core mapping database: ~150 CWE→control mappings. CWE-79→SI-2/SI-3, CWE-89→SI-10, CWE-798→IA-5, CWE-502→SI-10, etc." },
+          { "id": "w16t3", "name": "GitHub Action: cveriskpilot/compliance-scan-action (composite action, marketplace-ready)", "agent": "agent-infra", "status": "completed", "detail": "Runs Semgrep+Trivy in container, uploads SARIF+SBOM to API, posts PR comment with compliance summary, sets check status pass/fail." },
+          { "id": "w16t4", "name": "GitLab CI component: .cveriskpilot-scan.yml include template", "agent": "agent-infra", "status": "completed", "detail": "GitLab CI include template. Same flow as GitHub Action but uses GitLab MR notes API for comments. Supports GitLab.com + self-hosted." },
+          { "id": "w16t5", "name": "PR/MR compliance comment formatter (Markdown template for GitHub + GitLab)", "agent": "agent-ui", "status": "completed", "detail": "Structured markdown: severity summary table, affected compliance controls, new POAM entries, pass/fail badge, link to dashboard." },
+          { "id": "w16t6", "name": "CLI tool: npx @cveriskpilot/scan (local developer scanning pre-push)", "agent": "agent-arch", "status": "completed", "detail": "Scans deps (SBOM), secrets, IaC. Shows compliance impact in terminal. Uploads to CVERiskPilot dashboard via API key. Exit code for git hooks." },
+          { "id": "w16t7", "name": "Pipeline policy engine: per-org compliance thresholds, framework selection, block/warn rules", "agent": "agent-arch", "status": "completed", "detail": "Org admins configure which frameworks to enforce, severity thresholds for blocking PRs, auto-exception rules, grace periods." },
+          { "id": "w16t8", "name": "Auto-POAM generation from pipeline compliance failures", "agent": "agent-arch", "status": "completed", "detail": "When pipeline finds compliance-affecting vulns that aren't blocked, auto-create POAM entries with milestones. Links to PR/commit SHA." },
+          { "id": "w16t9", "name": "SBOM generation + supply chain compliance mapping (NIST SSDF practices, SLSA verification)", "agent": "agent-arch", "status": "completed", "detail": "Generate CycloneDX SBOM during scan. Map dependencies to SSDF practices (PO.1, PS.1, PW.4). Verify SLSA provenance attestations." },
+          { "id": "w16t10", "name": "Secrets detection scanner (regex + entropy-based, maps to IA-5/SC-12 controls)", "agent": "agent-arch", "status": "completed", "detail": "Detect hardcoded credentials, API keys, tokens, private keys. Map to IA-5 (Authenticator Mgmt), SC-12 (Key Mgmt), SC-28 (Data at Rest)." },
+          { "id": "w16t11", "name": "IaC compliance scanner (Terraform, CloudFormation, Kubernetes manifests → CIS + NIST controls)", "agent": "agent-arch", "status": "completed", "detail": "Check IaC against CIS benchmarks mapped to compliance controls. SC-7 (Boundary Protection), AC-4 (Information Flow), AU-2 (Audit Events)." },
+          { "id": "w16t12", "name": "Pipeline dashboard: /pipelines page (scan history, compliance trends, top failing controls)", "agent": "agent-ui", "status": "completed", "detail": "New app page: scan history table, pass/fail rate chart, most-violated controls leaderboard, repo-level drill-down." },
+          { "id": "w16t13", "name": "Developer compliance scorecard: per-repo compliance score by framework", "agent": "agent-ui", "status": "completed", "detail": "Repo-level view: compliance score per framework (SOC2: 87%, CMMC: 92%), open findings mapped to controls, remediation progress." },
+          { "id": "w16t14", "name": "Webhook + Slack/Teams notifications for pipeline scan results", "agent": "agent-integrations", "status": "completed", "detail": "Push scan results to Slack/Teams channels. Alert on compliance failures. Configurable per-org notification preferences." },
+          { "id": "w16t15", "name": "Technical documentation: architecture guide, setup docs, API reference, compliance mapping reference", "agent": "agent-docs", "status": "completed", "detail": "Comprehensive docs: GitHub Action setup, GitLab CI setup, CLI usage, API reference, CWE→control mapping tables, examples." },
+          { "id": "w16t16", "name": "Marketing assets: X posts, OG graphics, landing page copy for pipeline compliance scanner", "agent": "agent-marketing", "status": "completed", "detail": "Professional social content announcing pipeline compliance scanning. Comparison graphics vs Snyk/SonarQube/Semgrep." }
         ]
       }
     ]

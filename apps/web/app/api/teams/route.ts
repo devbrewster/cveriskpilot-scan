@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const organizationId = session.organizationId;
 
     const teams = await prisma.team.findMany({
       where: { organizationId },
@@ -72,19 +70,24 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { organizationId, name, description } = body;
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!organizationId || !name) {
+    const body = await request.json();
+    const { name, description } = body;
+
+    if (!name) {
       return NextResponse.json(
-        { error: 'organizationId and name are required' },
+        { error: 'name is required' },
         { status: 400 },
       );
     }
 
     const team = await prisma.team.create({
       data: {
-        organizationId,
+        organizationId: session.organizationId,
         name,
         description: description || null,
       },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -7,6 +8,11 @@ interface RouteContext {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
 
     const team = await prisma.team.findUnique({
@@ -45,6 +51,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const body = await request.json();
     const { name, description } = body;
@@ -72,6 +83,11 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
 
     const existing = await prisma.team.findUnique({ where: { id } });

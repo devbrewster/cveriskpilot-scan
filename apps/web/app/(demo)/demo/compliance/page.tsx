@@ -1,6 +1,6 @@
 'use client';
 
-import { demoComplianceScores, demoStats } from '@/lib/demo-data';
+import { demoComplianceScores } from '@/lib/demo-data';
 
 /* ------------------------------------------------------------------ */
 /* Framework metadata                                                 */

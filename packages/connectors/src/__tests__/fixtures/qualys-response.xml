@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE HOST_LIST_VM_DETECTION_OUTPUT SYSTEM "https://qualysapi.qualys.com/api/2.0/fo/asset/host/vm/detection/dtd">
+<HOST_LIST_VM_DETECTION_OUTPUT>
+  <RESPONSE>
+    <DATETIME>2024-08-15T14:30:00Z</DATETIME>
+    <HOST_LIST>
+      <HOST>
+        <ID>12345</ID>
+        <IP>192.168.1.100</IP>
+        <TRACKING_METHOD>IP</TRACKING_METHOD>
+        <DNS>webserver.corp.example.com</DNS>
+        <DNS_DATA>
+          <HOSTNAME>webserver</HOSTNAME>
+          <DOMAIN>corp.example.com</DOMAIN>
+          <FQDN>webserver.corp.example.com</FQDN>
+        </DNS_DATA>
+        <OS>Ubuntu Linux 22.04</OS>
+        <LAST_SCAN_DATETIME>2024-08-15T14:00:00Z</LAST_SCAN_DATETIME>
+        <DETECTION_LIST>
+          <DETECTION>
+            <QID>370876</QID>
+            <TYPE>Vulnerability</TYPE>
+            <SEVERITY>5</SEVERITY>
+            <PORT>443</PORT>
+            <PROTOCOL>tcp</PROTOCOL>
+            <SSL>true</SSL>
+            <RESULTS>OpenSSL version 3.0.2 detected. Upgrade to 3.0.14 or later.</RESULTS>
+            <STATUS>Active</STATUS>
+            <FIRST_FOUND_DATETIME>2024-07-01T10:00:00Z</FIRST_FOUND_DATETIME>
+            <LAST_FOUND_DATETIME>2024-08-15T14:00:00Z</LAST_FOUND_DATETIME>
+            <TIMES_FOUND>5</TIMES_FOUND>
+            <IS_IGNORED>false</IS_IGNORED>
+            <IS_DISABLED>false</IS_DISABLED>
+          </DETECTION>
+          <DETECTION>
+            <QID>157343</QID>
+            <TYPE>Vulnerability</TYPE>
+            <SEVERITY>3</SEVERITY>
+            <PORT>80</PORT>
+            <PROTOCOL>tcp</PROTOCOL>
+            <RESULTS>Apache HTTP Server version 2.4.52 is affected by a moderate vulnerability.</RESULTS>
+            <STATUS>New</STATUS>
+            <FIRST_FOUND_DATETIME>2024-08-15T14:00:00Z</FIRST_FOUND_DATETIME>
+            <LAST_FOUND_DATETIME>2024-08-15T14:00:00Z</LAST_FOUND_DATETIME>
+            <TIMES_FOUND>1</TIMES_FOUND>
+            <IS_IGNORED>false</IS_IGNORED>
+            <IS_DISABLED>false</IS_DISABLED>
+          </DETECTION>
+        </DETECTION_LIST>
+      </HOST>
+      <HOST>
+        <ID>12346</ID>
+        <IP>192.168.1.200</IP>
+        <TRACKING_METHOD>IP</TRACKING_METHOD>
+        <DNS>dbserver.corp.example.com</DNS>
+        <DNS_DATA>
+          <HOSTNAME>dbserver</HOSTNAME>
+          <DOMAIN>corp.example.com</DOMAIN>
+          <FQDN>dbserver.corp.example.com</FQDN>
+        </DNS_DATA>
+        <OS>Red Hat Enterprise Linux 9</OS>
+        <LAST_SCAN_DATETIME>2024-08-15T14:00:00Z</LAST_SCAN_DATETIME>
+        <DETECTION_LIST>
+          <DETECTION>
+            <QID>380199</QID>
+            <TYPE>Vulnerability</TYPE>
+            <SEVERITY>4</SEVERITY>
+            <PORT>5432</PORT>
+            <PROTOCOL>tcp</PROTOCOL>
+            <RESULTS>PostgreSQL version 16.1 detected, affected by CVE-2024-7348.</RESULTS>
+            <STATUS>Active</STATUS>
+            <FIRST_FOUND_DATETIME>2024-08-10T09:00:00Z</FIRST_FOUND_DATETIME>
+            <LAST_FOUND_DATETIME>2024-08-15T14:00:00Z</LAST_FOUND_DATETIME>
+            <TIMES_FOUND>3</TIMES_FOUND>
+            <IS_IGNORED>false</IS_IGNORED>
+            <IS_DISABLED>false</IS_DISABLED>
+          </DETECTION>
+        </DETECTION_LIST>
+      </HOST>
+    </HOST_LIST>
+  </RESPONSE>
+</HOST_LIST_VM_DETECTION_OUTPUT>

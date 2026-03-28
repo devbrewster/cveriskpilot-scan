@@ -98,17 +98,17 @@ export function Dialog({
       {/* Dialog panel */}
       <div
         ref={dialogRef}
-        className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        className="relative z-10 mx-4 w-full max-w-md rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
       >
-        <h3 id="dialog-title" className="text-lg font-semibold text-gray-900">
+        <h3 id="dialog-title" className="text-lg font-semibold text-gray-900 dark:text-white">
           {title}
         </h3>
-        <div className="mt-3 text-sm text-gray-600">{children}</div>
+        <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">{children}</div>
         <div className="mt-5 flex justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           >
             {cancelLabel}
           </button>

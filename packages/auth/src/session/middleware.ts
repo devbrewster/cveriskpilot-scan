@@ -34,6 +34,18 @@ export async function getServerSession(
   const sessionId = getSessionIdFromRequest(request);
   if (!sessionId) return null;
 
+  // Dev-only: handle base64-encoded cookie from /api/auth/dev-session fallback
+  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production') {
+    try {
+      const payload = JSON.parse(
+        Buffer.from(sessionId.slice(4), 'base64').toString('utf-8'),
+      );
+      return payload as Session;
+    } catch {
+      return null;
+    }
+  }
+
   return getSession(sessionId);
 }
 
@@ -46,6 +58,18 @@ export async function getServerSessionFromCookies(
 ): Promise<Session | null> {
   const sessionId = getCookie(SESSION_COOKIE_NAME);
   if (!sessionId) return null;
+
+  // Dev-only: handle base64-encoded cookie from /api/auth/dev-session fallback
+  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production') {
+    try {
+      const payload = JSON.parse(
+        Buffer.from(sessionId.slice(4), 'base64').toString('utf-8'),
+      );
+      return payload as Session;
+    } catch {
+      return null;
+    }
+  }
 
   return getSession(sessionId);
 }

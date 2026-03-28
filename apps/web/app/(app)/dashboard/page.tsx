@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import { useClientContext } from '@/lib/client-context';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import { RecentScans } from '@/components/dashboard/recent-scans';
 import { SlaWidget } from '@/components/dashboard/sla-widget';
 import { ComplianceScores } from '@/components/dashboard/compliance-scores';
 import { ActivityTimeline } from '@/components/dashboard/activity-timeline';
-import type { VulnerabilityCase, UploadJob, Severity } from '@/lib/mock-data';
+import type { VulnerabilityCase, UploadJob, Severity } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,6 +63,7 @@ interface DashboardApiResponse {
 }
 
 export default function DashboardPage() {
+  const { organizationId } = useAuth();
   const { activeClientId, activeClientName } = useClientContext();
   const [data, setData] = useState<DashboardApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,7 +89,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-sm text-gray-500">Loading dashboard...</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">Loading dashboard...</div>
       </div>
     );
   }
@@ -130,6 +132,9 @@ export default function DashboardPage() {
     kevDueDate: null,
     status: c.status as VulnerabilityCase['status'],
     findingCount: 0,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '',
     lastSeenAt: '',
   }));
@@ -152,14 +157,14 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Client scope indicator */}
       {activeClientId && (
-        <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2">
-          <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-800 dark:bg-blue-950">
+          <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
           </svg>
-          <span className="text-sm font-medium text-blue-800">
+          <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
             Viewing data for: {activeClientName || 'Selected Client'}
           </span>
-          <span className="text-xs text-blue-600">
+          <span className="text-xs text-blue-600 dark:text-blue-400">
             (Switch clients using the sidebar dropdown)
           </span>
         </div>
@@ -218,7 +223,7 @@ export default function DashboardPage() {
       {/* Row 4: SLA Status + Recent Scans */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div>
-          <SlaWidget organizationId="org-default" />
+          <SlaWidget organizationId={organizationId ?? 'org-default'} />
         </div>
         <div className="lg:col-span-2">
           <Card title="Recent Scans" description="Latest upload jobs and their processing status">

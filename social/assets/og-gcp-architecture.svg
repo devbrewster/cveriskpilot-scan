@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="blueG" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="gcpGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4285f4"/>
+      <stop offset="25%" stop-color="#ea4335"/>
+      <stop offset="50%" stop-color="#fbbc04"/>
+      <stop offset="75%" stop-color="#34a853"/>
+      <stop offset="100%" stop-color="#4285f4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bg3)"/>
+
+  <!-- Hex logo mark -->
+  <g transform="translate(80, 40)">
+    <polygon points="22,0 44,12 44,36 22,48 0,36 0,12" fill="none" stroke="#0ee6f6" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="22,8 36,16 36,32 22,40 8,32 8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2" opacity="0.8"/>
+    <line x1="22" y1="4" x2="22" y2="18" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="22" y1="30" x2="22" y2="44" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="4" y1="24" x2="18" y2="24" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="26" y1="24" x2="40" y2="24" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <circle cx="22" cy="24" r="3" fill="#0ee6f6"/>
+    <path d="M12,10 L8,12 L8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M32,10 L36,12 L36,16" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M12,38 L8,36 L8,32" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M32,38 L36,36 L36,32" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+  </g>
+  <text x="140" y="68" font-family="system-ui, sans-serif" font-size="20" font-weight="700">
+    <tspan fill="#94a3b8">CVE</tspan><tspan fill="#0ee6f6">RiskPilot</tspan>
+  </text>
+
+  <!-- Title -->
+  <text x="600" y="130" text-anchor="middle" font-family="system-ui, sans-serif" font-size="36" font-weight="800" fill="white">Built on Google Cloud Platform</text>
+  <rect x="350" y="142" width="500" height="3" rx="1.5" fill="url(#gcpGrad)"/>
+  <text x="600" y="175" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#64748b">Enterprise-grade infrastructure for vulnerability management</text>
+
+  <!-- Cloud Armor / WAF -->
+  <g transform="translate(60, 210)">
+    <rect width="1080" height="420" rx="20" fill="none" stroke="#334155" stroke-width="1" stroke-dasharray="8,4"/>
+    <rect x="20" y="-12" width="140" height="24" rx="6" fill="#0f172a"/>
+    <text x="90" y="3" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="600" fill="#4285f4">GCP VPC Network</text>
+  </g>
+
+  <!-- Row 1: Edge -->
+  <g transform="translate(100, 240)">
+    <!-- Cloud Armor -->
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#ea4335" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x1F6E1;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Cloud Armor</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">WAF + DDoS Protection</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#ea4335">OWASP Top 10 Rules</text>
+  </g>
+
+  <!-- Arrow -->
+  <line x1="310" y1="290" x2="360" y2="290" stroke="#4285f4" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="358,285 368,290 358,295" fill="#4285f4"/>
+
+  <!-- Cloud Run -->
+  <g transform="translate(370, 240)">
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#4285f4" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x1F680;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Cloud Run</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">Next.js 15 App</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#4285f4">Auto-scaling containers</text>
+  </g>
+
+  <!-- Arrow -->
+  <line x1="580" y1="290" x2="630" y2="290" stroke="#4285f4" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="628,285 638,290 628,295" fill="#4285f4"/>
+
+  <!-- Cloud KMS -->
+  <g transform="translate(640, 240)">
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#fbbc04" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x1F510;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Cloud KMS</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">Encryption Key Mgmt</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#fbbc04">AES-256-GCM + BYOK</text>
+  </g>
+
+  <!-- Cloud Build -->
+  <g transform="translate(910, 240)">
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#34a853" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x2699;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Cloud Build</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">CI/CD Pipeline</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#34a853">Build + Deploy + Migrate</text>
+  </g>
+
+  <!-- Row 2: Data -->
+  <!-- Arrows down from Cloud Run -->
+  <line x1="430" y1="340" x2="430" y2="395" stroke="#4285f4" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="425,393 430,403 435,393" fill="#4285f4"/>
+  <line x1="510" y1="340" x2="510" y2="395" stroke="#34a853" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="505,393 510,403 515,393" fill="#34a853"/>
+
+  <!-- Cloud SQL -->
+  <g transform="translate(100, 400)">
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#4285f4" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x1F5C4;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Cloud SQL</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">PostgreSQL + Prisma</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#4285f4">25+ models, encrypted</text>
+  </g>
+
+  <!-- Arrow from Cloud Run to Cloud SQL -->
+  <line x1="370" y1="340" x2="250" y2="395" stroke="#4285f4" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="248,389 247,400 256,394" fill="#4285f4"/>
+
+  <!-- Memorystore -->
+  <g transform="translate(370, 400)">
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#ea4335" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x26A1;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Memorystore</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">Redis Cache + Sessions</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#ea4335">Rate limiting, feature flags</text>
+  </g>
+
+  <!-- GCS -->
+  <g transform="translate(640, 400)">
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#34a853" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x1F4E6;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Cloud Storage</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">Scan artifacts + exports</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#34a853">Backups + retention tiers</text>
+  </g>
+
+  <!-- Arrow from Cloud Run to GCS -->
+  <line x1="540" y1="340" x2="700" y2="395" stroke="#34a853" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <polygon points="694,389 703,399 702,390" fill="#34a853"/>
+
+  <!-- Cloud Logging -->
+  <g transform="translate(910, 400)">
+    <rect width="200" height="100" rx="12" fill="#1e293b" stroke="#fbbc04" stroke-width="1.5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">&#x1F4CA;</text>
+    <text x="100" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="white">Observability</text>
+    <text x="100" y="75" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#94a3b8">Logging + OTEL Tracing</text>
+    <text x="100" y="90" text-anchor="middle" font-family="monospace" font-size="9" fill="#fbbc04">Audit trail + metrics</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="590" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="600" fill="#94a3b8">Terraform-managed | SOC 2 Ready | Zero-trust architecture</text>
+  <text x="600" y="620" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#475569">cveriskpilot.com | 100% Veteran Owned Business</text>
+  <rect x="0" y="670" width="1200" height="5" fill="url(#gcpGrad)"/>
+</svg>

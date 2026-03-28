@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { NotificationBell } from '@/components/notifications/notification-bell';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -30,12 +31,12 @@ export function Header() {
   const breadcrumbs = getBreadcrumbs(pathname);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-gray-200 bg-white">
+    <header className="sticky top-0 z-30 border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
       <div className="flex h-16 items-center justify-between px-6">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h1>
           {breadcrumbs.length > 1 && (
-            <nav className="flex items-center gap-1 text-sm text-gray-500">
+            <nav className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
               {breadcrumbs.map((crumb, i) => (
                 <span key={crumb.href} className="flex items-center gap-1">
                   {i > 0 && (
@@ -43,7 +44,7 @@ export function Header() {
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   )}
-                  <span className={crumb.isLast ? 'text-gray-900 font-medium' : ''}>
+                  <span className={crumb.isLast ? 'text-gray-900 dark:text-white font-medium' : ''}>
                     {crumb.label}
                   </span>
                 </span>
@@ -53,12 +54,12 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Notification bell — uses a placeholder userId; replace with auth context */}
+          <ThemeToggle />
           <NotificationBell userId="current-user" />
 
           {/* User menu */}
-          <button className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-100">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-700">
+          <button className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 text-xs font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-300">
               AD
             </div>
             <span className="hidden font-medium sm:block">Admin</span>

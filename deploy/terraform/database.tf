@@ -67,6 +67,55 @@ resource "google_sql_user" "cveriskpilot" {
 }
 
 # -----------------------------------------------------------------------------
+# Cloud SQL — Read Replica (production only)
+# -----------------------------------------------------------------------------
+
+resource "google_sql_database_instance" "read_replica" {
+  count = var.environment == "prod" ? 1 : 0
+
+  name                 = "cveriskpilot-${var.environment}-replica"
+  database_version     = "POSTGRES_16"
+  region               = var.region
+  master_instance_name = google_sql_database_instance.main.name
+
+  replica_configuration {
+    failover_target = false
+  }
+
+  settings {
+    tier              = var.db_tier
+    edition           = "ENTERPRISE"
+    availability_type = "ZONAL"
+    disk_autoresize   = true
+
+    ip_configuration {
+      ipv4_enabled    = false
+      private_network = "projects/${var.project_id}/global/networks/default"
+    }
+
+    database_flags {
+      name  = "log_checkpoints"
+      value = "on"
+    }
+
+    database_flags {
+      name  = "log_connections"
+      value = "on"
+    }
+
+    user_labels = {
+      environment = var.environment
+      app         = "cveriskpilot"
+      role        = "read-replica"
+    }
+  }
+
+  deletion_protection = true
+
+  depends_on = [google_sql_database_instance.main]
+}
+
+# -----------------------------------------------------------------------------
 # Outputs
 # -----------------------------------------------------------------------------
 
@@ -78,4 +127,14 @@ output "db_connection_name" {
 output "db_private_ip" {
   description = "Cloud SQL private IP address"
   value       = google_sql_database_instance.main.private_ip_address
+}
+
+output "db_replica_connection_name" {
+  description = "Cloud SQL read replica connection name (production only)"
+  value       = var.environment == "prod" ? google_sql_database_instance.read_replica[0].connection_name : null
+}
+
+output "db_replica_private_ip" {
+  description = "Cloud SQL read replica private IP (production only)"
+  value       = var.environment == "prod" ? google_sql_database_instance.read_replica[0].private_ip_address : null
 }

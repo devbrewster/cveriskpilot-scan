@@ -26,3 +26,13 @@ output "waf_policy_name" {
   description = "Cloud Armor WAF security policy name"
   value       = google_compute_security_policy.waf_enterprise.name
 }
+
+output "cloudbuild_ci_trigger_id" {
+  description = "Cloud Build CI trigger ID"
+  value       = google_cloudbuild_trigger.ci.trigger_id
+}
+
+output "cloudbuild_deploy_trigger_id" {
+  description = "Cloud Build deploy trigger ID"
+  value       = google_cloudbuild_trigger.deploy.trigger_id
+}

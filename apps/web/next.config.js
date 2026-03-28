@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  poweredByHeader: false,
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
   serverExternalPackages: ['@prisma/client', 'prisma', 'bcryptjs', 'nodemailer', 'ioredis'],
@@ -16,6 +17,7 @@ const nextConfig = {
     '@cveriskpilot/integrations',
     '@cveriskpilot/notifications',
     '@cveriskpilot/compliance',
+    '@cveriskpilot/connectors',
     '@cveriskpilot/stamps',
     '@cveriskpilot/streaming',
     '@cveriskpilot/db-scale',

@@ -1,6 +1,7 @@
 // Redis-based sliding window rate limiter
 // Uses sorted sets for accurate sliding-window counting.
 
+import crypto from 'node:crypto';
 import type Redis from 'ioredis';
 import { getRedisClient } from '../session/redis-store';
 
@@ -70,7 +71,7 @@ export function createRateLimiter(
       const resetAt = new Date(now + windowMs);
 
       // Unique member per request to avoid deduplication
-      const member = `${now}:${Math.random().toString(36).slice(2, 10)}`;
+      const member = `${now}:${crypto.randomBytes(8).toString('hex')}`;
 
       const pipeline = client.pipeline();
       // Remove entries outside the window

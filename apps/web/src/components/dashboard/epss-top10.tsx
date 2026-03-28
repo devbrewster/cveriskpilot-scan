@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { SeverityBadge, StatusBadge } from '@/components/ui/badge';
-import type { VulnerabilityCase } from '@/lib/mock-data';
+import type { VulnerabilityCase } from '@/lib/types';
 
 interface EpssTop10Props {
   cases: VulnerabilityCase[];
@@ -20,7 +20,7 @@ export function EpssTop10({ cases }: EpssTop10Props) {
 
   if (top10.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-gray-500">
+      <div className="flex h-48 items-center justify-center text-sm text-gray-500 dark:text-gray-400">
         No cases with EPSS scores available.
       </div>
     );
@@ -30,7 +30,7 @@ export function EpssTop10({ cases }: EpssTop10Props) {
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-gray-200 text-xs font-medium uppercase tracking-wider text-gray-500">
+          <tr className="border-b border-gray-200 dark:border-gray-700 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
             <th className="pb-3 pr-4">CVE ID</th>
             <th className="pb-3 pr-4">Title</th>
             <th
@@ -53,31 +53,31 @@ export function EpssTop10({ cases }: EpssTop10Props) {
             <th className="pb-3">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {top10.map((c) => (
-            <tr key={c.id} className="hover:bg-gray-50">
+            <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
               <td className="py-3 pr-4">
-                <span className="font-mono text-xs font-medium text-blue-700">
+                <span className="font-mono text-xs font-medium text-blue-700 dark:text-blue-400">
                   {c.cveIds[0] || 'N/A'}
                 </span>
               </td>
-              <td className="max-w-[200px] truncate py-3 pr-4 text-gray-700" title={c.title}>
+              <td className="max-w-[200px] truncate py-3 pr-4 text-gray-700 dark:text-gray-300" title={c.title}>
                 {c.title}
               </td>
               <td className="py-3 pr-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-2 w-20 overflow-hidden rounded-full bg-gray-200">
+                  <div className="h-2 w-20 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                     <div
                       className="h-full rounded-full bg-blue-600 transition-all"
                       style={{ width: `${(c.epssScore ?? 0) * 100}%` }}
                     />
                   </div>
-                  <span className="text-xs font-semibold text-gray-900">
+                  <span className="text-xs font-semibold text-gray-900 dark:text-white">
                     {((c.epssScore ?? 0) * 100).toFixed(1)}%
                   </span>
                 </div>
               </td>
-              <td className="py-3 pr-4 text-xs text-gray-600">
+              <td className="py-3 pr-4 text-xs text-gray-600 dark:text-gray-400">
                 {c.epssPercentile !== null ? `${(c.epssPercentile * 100).toFixed(1)}%` : '-'}
               </td>
               <td className="py-3 pr-4">

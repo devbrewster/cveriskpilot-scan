@@ -133,7 +133,7 @@ export function SsoSettings({ organizationId, tier }: SsoSettingsProps) {
       ) : (
         <>
           {/* SSO Toggle */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-medium text-gray-900">SSO Authentication</h3>
@@ -152,7 +152,7 @@ export function SsoSettings({ organizationId, tier }: SsoSettingsProps) {
                 aria-checked={ssoEnabled}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-900 shadow ring-0 transition duration-200 ease-in-out ${
                     ssoEnabled ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
@@ -161,7 +161,7 @@ export function SsoSettings({ organizationId, tier }: SsoSettingsProps) {
           </div>
 
           {/* Connection Status */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-4">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 space-y-4">
             <h3 className="text-sm font-medium text-gray-900">SSO Connections</h3>
 
             {connections.length === 0 ? (
@@ -208,7 +208,7 @@ export function SsoSettings({ organizationId, tier }: SsoSettingsProps) {
 
           {/* Test SSO */}
           {ssoEnabled && (
-            <div className="rounded-lg border border-gray-200 bg-white p-6">
+            <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
               <h3 className="text-sm font-medium text-gray-900">Test SSO Login</h3>
               <p className="mt-1 text-xs text-gray-500">
                 Test the SSO flow to verify your IdP configuration is working correctly.

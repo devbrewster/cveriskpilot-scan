@@ -53,7 +53,7 @@ function timeAgo(dateStr: string): string {
 /** Render comment content with @mentions highlighted */
 function renderContent(content: string): React.ReactNode[] {
   // Split on @mention patterns
-  const parts = content.split(/(@[\w.+\-]+@[\w\-.]+\.\w+|@[\w\s]+?)(?=\s|$|@)/g);
+  const parts = content.split(/(@[\w.+-]+@[\w\-.]+\.\w+|@[\w\s]+?)(?=\s|$|@)/g);
   return parts.map((part, i) => {
     if (part.startsWith('@')) {
       return (
@@ -299,7 +299,7 @@ export function CommentThread({ caseId, currentUserId }: CommentThreadProps) {
 
         {/* @mention autocomplete dropdown */}
         {showMentions && filteredUsers.length > 0 && (
-          <div className="absolute bottom-full left-0 z-10 mb-1 max-h-48 w-64 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+          <div className="absolute bottom-full left-0 z-10 mb-1 max-h-48 w-64 overflow-auto rounded-md border border-gray-200 bg-white dark:bg-gray-900 shadow-lg">
             {filteredUsers.slice(0, 8).map((user, idx) => (
               <button
                 key={user.id}

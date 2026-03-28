@@ -1,0 +1,121 @@
+{
+  "resources": [
+    {
+      "id": "vuln_001_abc123",
+      "cid": "customer_id_001",
+      "aid": "agent_001_host1",
+      "created_timestamp": "2024-07-10T08:30:00Z",
+      "updated_timestamp": "2024-08-15T12:00:00Z",
+      "status": "open",
+      "cve": {
+        "id": "CVE-2024-6387",
+        "base_score": 8.1,
+        "severity": "HIGH",
+        "exploit_status": 1,
+        "exprt_rating": "HIGH",
+        "description": "A signal handler race condition was found in OpenSSH's server (sshd), where a client does not authenticate within LoginGraceTime seconds, then sshd's SIGALRM handler is called asynchronously. This could lead to remote code execution as root.",
+        "published_date": "2024-07-01T00:00:00Z",
+        "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+        "remediation_level": "O"
+      },
+      "host_info": {
+        "hostname": "prod-web-01",
+        "local_ip": "10.10.1.50",
+        "machine_domain": "corp.example.com",
+        "os_version": "Ubuntu 22.04.3 LTS",
+        "platform": "Linux",
+        "instance_id": "i-0abc123def456",
+        "service_provider": "AWS_EC2",
+        "tags": ["production", "web-tier"],
+        "groups": ["web-servers"]
+      },
+      "remediation": {
+        "ids": ["rem-001"],
+        "action": "Upgrade OpenSSH to 9.8p1 or later"
+      },
+      "app": {
+        "product_name_version": "OpenSSH 9.6p1",
+        "sub_status": "closed",
+        "vendor": "OpenBSD"
+      }
+    },
+    {
+      "id": "vuln_002_def456",
+      "cid": "customer_id_001",
+      "aid": "agent_002_host2",
+      "created_timestamp": "2024-08-01T14:00:00Z",
+      "updated_timestamp": "2024-08-15T12:00:00Z",
+      "status": "open",
+      "cve": {
+        "id": "CVE-2024-38473",
+        "base_score": 9.8,
+        "severity": "CRITICAL",
+        "exploit_status": 2,
+        "exprt_rating": "CRITICAL",
+        "description": "Encoding problem in mod_proxy in Apache HTTP Server 2.4.59 and earlier allows request URLs with incorrect encoding to be sent to backend services, potentially bypassing authentication.",
+        "published_date": "2024-07-04T00:00:00Z",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
+      },
+      "host_info": {
+        "hostname": "api-gateway-02",
+        "local_ip": "10.10.2.30",
+        "machine_domain": "corp.example.com",
+        "os_version": "Amazon Linux 2023.4",
+        "platform": "Linux",
+        "instance_id": "i-0def789ghi012",
+        "service_provider": "AWS_EC2",
+        "tags": ["production", "api-tier"],
+        "groups": ["api-gateways"]
+      },
+      "remediation": {
+        "ids": ["rem-002"],
+        "action": "Upgrade Apache HTTP Server to 2.4.60 or later"
+      },
+      "app": {
+        "product_name_version": "Apache HTTP Server 2.4.59",
+        "sub_status": "open",
+        "vendor": "Apache Software Foundation"
+      }
+    },
+    {
+      "id": "vuln_003_ghi789",
+      "cid": "customer_id_001",
+      "aid": "agent_003_host3",
+      "created_timestamp": "2024-06-15T10:00:00Z",
+      "updated_timestamp": "2024-08-15T12:00:00Z",
+      "status": "open",
+      "cve": {
+        "id": "CVE-2024-4577",
+        "base_score": 5.3,
+        "severity": "MEDIUM",
+        "exploit_status": 0,
+        "description": "PHP CGI argument injection vulnerability allows remote attackers to execute arbitrary commands on affected installations.",
+        "published_date": "2024-06-09T00:00:00Z",
+        "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"
+      },
+      "host_info": {
+        "hostname": "legacy-app-01",
+        "local_ip": "10.10.3.15",
+        "os_version": "Windows Server 2019",
+        "platform": "Windows",
+        "tags": ["legacy"],
+        "groups": ["legacy-apps"]
+      },
+      "app": {
+        "product_name_version": "PHP 8.1.28",
+        "vendor": "PHP Group"
+      }
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "total": 3,
+      "offset": 0,
+      "limit": 400,
+      "after": null
+    },
+    "powered_by": "spotlight-api",
+    "query_time": 0.042,
+    "trace_id": "trace-abc123"
+  }
+}

@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <linearGradient id="blueGrad4" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bg4)"/>
+
+  <!-- Hex logo mark -->
+  <g transform="translate(80, 40)">
+    <polygon points="22,0 44,12 44,36 22,48 0,36 0,12" fill="none" stroke="#0ee6f6" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="22,8 36,16 36,32 22,40 8,32 8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2" opacity="0.8"/>
+    <line x1="22" y1="4" x2="22" y2="18" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="22" y1="30" x2="22" y2="44" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="4" y1="24" x2="18" y2="24" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <line x1="26" y1="24" x2="40" y2="24" stroke="#0ee6f6" stroke-width="0.8" opacity="0.5"/>
+    <circle cx="22" cy="24" r="3" fill="#0ee6f6"/>
+    <path d="M12,10 L8,12 L8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M32,10 L36,12 L36,16" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M12,38 L8,36 L8,32" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+    <path d="M32,38 L36,36 L36,32" fill="none" stroke="#0ee6f6" stroke-width="1.2"/>
+  </g>
+  <text x="140" y="68" font-family="system-ui, sans-serif" font-size="20" font-weight="700">
+    <tspan fill="#94a3b8">CVE</tspan><tspan fill="#0ee6f6">RiskPilot</tspan>
+  </text>
+
+  <!-- Main message -->
+  <text x="600" y="120" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="800" fill="white">Stop Chasing CVSS Scores.</text>
+  <text x="600" y="160" text-anchor="middle" font-family="system-ui, sans-serif" font-size="32" font-weight="800" fill="url(#blueGrad4)">Start Prioritizing by Exploit Risk.</text>
+
+  <!-- Left: Traditional approach -->
+  <g transform="translate(80, 200)">
+    <rect width="480" height="380" rx="16" fill="#1e293b" stroke="#ef4444" stroke-width="1" stroke-opacity="0.3"/>
+    <rect x="20" y="16" width="100" height="28" rx="6" fill="#ef4444" opacity="0.15"/>
+    <text x="70" y="35" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#ef4444">OLD WAY</text>
+
+    <text x="240" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="700" fill="#94a3b8">CVSS-Only Prioritization</text>
+
+    <!-- Fake CVE list -->
+    <g transform="translate(20, 90)">
+      <rect width="440" height="36" rx="6" fill="#0f172a"/>
+      <text x="12" y="23" font-family="monospace" font-size="11" fill="#94a3b8">CVE-2024-21762</text>
+      <rect x="160" y="8" width="50" height="20" rx="4" fill="#ef4444"/><text x="185" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="white">9.8</text>
+      <text x="230" y="23" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">FortiOS RCE</text>
+
+      <rect y="42" width="440" height="36" rx="6" fill="#0f172a"/>
+      <text x="12" y="65" font-family="monospace" font-size="11" fill="#94a3b8">CVE-2024-1234</text>
+      <rect x="160" y="50" width="50" height="20" rx="4" fill="#ef4444"/><text x="185" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="white">9.8</text>
+      <text x="230" y="65" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">Unused library DoS</text>
+
+      <rect y="84" width="440" height="36" rx="6" fill="#0f172a"/>
+      <text x="12" y="107" font-family="monospace" font-size="11" fill="#94a3b8">CVE-2024-5678</text>
+      <rect x="160" y="92" width="50" height="20" rx="4" fill="#ef4444"/><text x="185" y="107" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="white">9.6</text>
+      <text x="230" y="107" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">Theoretical attack</text>
+
+      <rect y="126" width="440" height="36" rx="6" fill="#0f172a"/>
+      <text x="12" y="149" font-family="monospace" font-size="11" fill="#94a3b8">CVE-2024-9012</text>
+      <rect x="160" y="134" width="50" height="20" rx="4" fill="#ef4444"/><text x="185" y="149" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="white">9.4</text>
+      <text x="230" y="149" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">No known exploit</text>
+
+      <rect y="168" width="440" height="36" rx="6" fill="#0f172a"/>
+      <text x="12" y="191" font-family="monospace" font-size="11" fill="#94a3b8">CVE-2024-3456</text>
+      <rect x="160" y="176" width="50" height="20" rx="4" fill="#f97316"/><text x="185" y="191" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="700" fill="white">8.8</text>
+      <text x="230" y="191" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">Local privilege esc</text>
+    </g>
+
+    <!-- Problem callout -->
+    <g transform="translate(20, 320)">
+      <rect width="440" height="44" rx="8" fill="#ef4444" opacity="0.1"/>
+      <text x="220" y="20" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#ef4444">Everything looks critical.</text>
+      <text x="220" y="37" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">Your team wastes weeks on CVEs that don't matter.</text>
+    </g>
+  </g>
+
+  <!-- Right: CVERiskPilot approach -->
+  <g transform="translate(640, 200)">
+    <rect width="480" height="380" rx="16" fill="#1e293b" stroke="#22c55e" stroke-width="1" stroke-opacity="0.3"/>
+    <rect x="20" y="16" width="150" height="28" rx="6" fill="#22c55e" opacity="0.15"/>
+    <text x="95" y="35" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#22c55e">CVERISKPILOT</text>
+
+    <text x="240" y="70" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="700" fill="white">EPSS + KEV + AI Triage</text>
+
+    <!-- Smart CVE list -->
+    <g transform="translate(20, 90)">
+      <rect width="440" height="36" rx="6" fill="#0f172a" stroke="#ef4444" stroke-width="1"/>
+      <text x="12" y="23" font-family="monospace" font-size="11" fill="white">CVE-2024-21762</text>
+      <rect x="160" y="8" width="55" height="20" rx="4" fill="#ef4444"/><text x="187" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="white">EPSS .97</text>
+      <rect x="220" y="8" width="36" height="20" rx="4" fill="#f59e0b"/><text x="238" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="white">KEV</text>
+      <text x="270" y="23" font-family="system-ui, sans-serif" font-size="10" fill="#ef4444" font-weight="600">FIX NOW</text>
+
+      <rect y="42" width="440" height="36" rx="6" fill="#0f172a" stroke="#334155" stroke-width="0.5"/>
+      <text x="12" y="65" font-family="monospace" font-size="11" fill="#94a3b8">CVE-2024-3456</text>
+      <rect x="160" y="50" width="55" height="20" rx="4" fill="#f97316"/><text x="187" y="65" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="white">EPSS .42</text>
+      <text x="230" y="65" font-family="system-ui, sans-serif" font-size="10" fill="#f97316">Schedule</text>
+
+      <rect y="84" width="440" height="36" rx="6" fill="#0f172a" stroke="#334155" stroke-width="0.5" opacity="0.6"/>
+      <text x="12" y="107" font-family="monospace" font-size="11" fill="#64748b">CVE-2024-1234</text>
+      <rect x="160" y="92" width="55" height="20" rx="4" fill="#334155"/><text x="187" y="107" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#64748b">EPSS .01</text>
+      <text x="230" y="107" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">Accept risk</text>
+
+      <rect y="126" width="440" height="36" rx="6" fill="#0f172a" stroke="#334155" stroke-width="0.5" opacity="0.4"/>
+      <text x="12" y="149" font-family="monospace" font-size="11" fill="#475569">CVE-2024-5678</text>
+      <rect x="160" y="134" width="55" height="20" rx="4" fill="#334155"/><text x="187" y="149" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#475569">EPSS .00</text>
+      <text x="230" y="149" font-family="system-ui, sans-serif" font-size="10" fill="#475569">Deprioritized</text>
+
+      <rect y="168" width="440" height="36" rx="6" fill="#0f172a" stroke="#334155" stroke-width="0.5" opacity="0.3"/>
+      <text x="12" y="191" font-family="monospace" font-size="11" fill="#475569">CVE-2024-9012</text>
+      <rect x="160" y="176" width="55" height="20" rx="4" fill="#334155"/><text x="187" y="191" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" font-weight="700" fill="#475569">EPSS .00</text>
+      <text x="230" y="191" font-family="system-ui, sans-serif" font-size="10" fill="#475569">Deprioritized</text>
+    </g>
+
+    <!-- Success callout -->
+    <g transform="translate(20, 320)">
+      <rect width="440" height="44" rx="8" fill="#22c55e" opacity="0.1"/>
+      <text x="220" y="20" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#22c55e">1 CVE needs immediate action.</text>
+      <text x="220" y="37" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#94a3b8">Your team fixes what matters. Everything else is noise.</text>
+    </g>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="625" text-anchor="middle" font-family="system-ui, sans-serif" font-size="15" font-weight="600" fill="#94a3b8">EPSS: Exploit Prediction Scoring System | KEV: CISA Known Exploited Vulnerabilities</text>
+  <text x="600" y="650" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#475569">cveriskpilot.com | 100% Veteran Owned Business</text>
+  <rect x="0" y="670" width="1200" height="5" fill="url(#blueGrad4)"/>
+</svg>

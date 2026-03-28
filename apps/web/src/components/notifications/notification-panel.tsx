@@ -159,7 +159,7 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
             onClick={() => setFilter(f.value)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               filter === f.value
-                ? 'bg-white text-gray-900 shadow-sm'
+                ? 'bg-white dark:bg-gray-900 text-gray-900 shadow-sm'
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -174,21 +174,30 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
           <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-blue-500" />
         </div>
       ) : notifications.length === 0 ? (
-        <div className="rounded-lg border border-gray-200 bg-white py-12 text-center">
-          <svg
-            className="mx-auto h-10 w-10 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-          <p className="mt-2 text-sm text-gray-500">No notifications found</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="mb-4 rounded-full bg-gray-100 p-4 dark:bg-gray-800">
+            <svg
+              className="h-8 w-8 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {filter !== 'all' ? 'No matching notifications' : 'All caught up!'}
+          </h3>
+          <p className="mt-2 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+            {filter !== 'all'
+              ? 'Try switching to "All" to see all your notifications.'
+              : 'You have no notifications yet. They will appear here when there are case updates, SLA breaches, or mentions.'}
+          </p>
         </div>
       ) : (
         <div className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">

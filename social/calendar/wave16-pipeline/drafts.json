@@ -1,0 +1,128 @@
+{
+  "wave": "16",
+  "track": "6",
+  "campaign": "Pipeline Compliance Scanner Launch",
+  "created_at": "2026-03-28T22:00:00Z",
+  "drafts": [
+    {
+      "id": "w16-pipeline-01-launch",
+      "status": "draft",
+      "approved_by": null,
+      "type": "launch",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "Introducing Pipeline Compliance Scanning from CVERiskPilot. Every CVE in your CI/CD pipeline now maps to NIST 800-53, CMMC, SOC 2, and FedRAMP controls. Automatically. On every pull request.",
+          "character_count": 192
+        }
+      },
+      "tags": ["pipeline-compliance", "launch", "product"],
+      "hashtags": ["#CVERiskPilot", "#DevSecOps", "#AppSec"]
+    },
+    {
+      "id": "w16-pipeline-02-github-action",
+      "status": "draft",
+      "approved_by": null,
+      "type": "feature",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "One line in your GitHub Actions workflow. Every PR gets a compliance report with affected NIST, CMMC, and SOC 2 controls. No spreadsheets. No quarterly mapping sprints.",
+          "character_count": 172
+        }
+      },
+      "tags": ["pipeline-compliance", "github-actions", "feature"],
+      "hashtags": ["#CVERiskPilot", "#DevSecOps", "#CICD"]
+    },
+    {
+      "id": "w16-pipeline-03-vs-competitors",
+      "status": "draft",
+      "approved_by": null,
+      "type": "comparison",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "Snyk finds vulnerabilities. SonarQube finds code smells. GitHub GHAS generates alerts. CVERiskPilot maps all of them to compliance controls and auto-generates POAM entries.",
+          "character_count": 175
+        }
+      },
+      "tags": ["pipeline-compliance", "comparison", "differentiation"],
+      "hashtags": ["#CVERiskPilot", "#AppSec", "#VulnerabilityManagement"]
+    },
+    {
+      "id": "w16-pipeline-04-poam",
+      "status": "draft",
+      "approved_by": null,
+      "type": "feature",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "Pipeline finds SQL injection? CVERiskPilot auto-creates a POAM entry mapped to NIST SI-10, SOC 2 CC6.1, and CMMC SI.L2-3.14.2. Milestones, due dates, and audit trail included.",
+          "character_count": 183
+        }
+      },
+      "tags": ["pipeline-compliance", "poam", "automation"],
+      "hashtags": ["#CVERiskPilot", "#Compliance", "#SecurityEngineering"]
+    },
+    {
+      "id": "w16-pipeline-05-developer-cli",
+      "status": "draft",
+      "approved_by": null,
+      "type": "feature",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "npx @cveriskpilot/scan\n\nKnow your compliance impact before you push. NIST, CMMC, SOC 2, and FedRAMP controls checked locally in seconds. Free tier, no credit card.",
+          "character_count": 171
+        }
+      },
+      "tags": ["pipeline-compliance", "cli", "developer-experience"],
+      "hashtags": ["#CVERiskPilot", "#DevSecOps", "#CICD"]
+    },
+    {
+      "id": "w16-pipeline-06-fedgov",
+      "status": "draft",
+      "approved_by": null,
+      "type": "vertical",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "Building for FedRAMP? Your CI pipeline now generates compliance evidence automatically. Every scan maps findings to NIST 800-53 controls with commit-linked audit trails.",
+          "character_count": 175
+        }
+      },
+      "tags": ["pipeline-compliance", "fedramp", "federal"],
+      "hashtags": ["#CVERiskPilot", "#FedRAMP", "#Compliance"]
+    },
+    {
+      "id": "w16-pipeline-07-mssp",
+      "status": "draft",
+      "approved_by": null,
+      "type": "vertical",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "MSSPs: every client repo gets a compliance scorecard across NIST, CMMC, SOC 2, and FedRAMP. No manual mapping. Per-repo scores update on every merge to main.",
+          "character_count": 166
+        }
+      },
+      "tags": ["pipeline-compliance", "mssp", "multi-tenant"],
+      "hashtags": ["#CVERiskPilot", "#MSSP", "#SecurityEngineering"]
+    },
+    {
+      "id": "w16-pipeline-08-deep-dive",
+      "status": "draft",
+      "approved_by": null,
+      "type": "education",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "content": "CWE-79 (XSS) maps to NIST SI-2, CMMC SI.L2-3.14.1, SOC 2 CC6.1, and ASVS V5.3.3. One finding, four frameworks, zero manual work. That is what pipeline compliance scanning does.",
+          "character_count": 185
+        }
+      },
+      "tags": ["pipeline-compliance", "education", "technical"],
+      "hashtags": ["#CVERiskPilot", "#AppSec", "#SOC2"]
+    }
+  ]
+}

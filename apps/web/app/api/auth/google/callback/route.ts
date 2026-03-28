@@ -9,6 +9,23 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+/** Allowlist of valid origins to prevent host header poisoning. */
+const ALLOWED_ORIGINS = [
+  process.env.APP_BASE_URL,
+  'http://localhost:3000',
+].filter(Boolean) as string[];
+
+function getSafeOrigin(request: NextRequest): string {
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const candidate = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : request.nextUrl.origin;
+
+  if (ALLOWED_ORIGINS.includes(candidate)) return candidate;
+  return ALLOWED_ORIGINS[0] || request.nextUrl.origin;
+}
+
 /**
  * GET /api/auth/google/callback
  * Handles the OAuth2 callback from Google.
@@ -21,6 +38,8 @@ export async function GET(request: NextRequest) {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const error = searchParams.get('error');
+
+    const origin = getSafeOrigin(request);
 
     // Handle Google-side errors (user denied, etc.)
     if (error) {
@@ -45,11 +64,6 @@ export async function GET(request: NextRequest) {
     }
 
     const config = getGoogleOIDCConfig();
-    const forwardedHost = request.headers.get('x-forwarded-host');
-    const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
-    const origin = forwardedHost
-      ? `${forwardedProto}://${forwardedHost}`
-      : process.env.APP_BASE_URL || request.nextUrl.origin;
     const redirectUri = `${origin}/api/auth/google/callback`;
 
     // Exchange authorization code for tokens
@@ -111,18 +125,15 @@ export async function GET(request: NextRequest) {
       new URL('/dashboard', origin),
     );
 
-    // Set session cookie
-    if (sessionId) {
-      setSessionCookie(response, sessionId);
-    } else {
-      response.cookies.set('crp_session', result.userId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 86400,
-      });
+    // Session creation is required — no insecure fallback
+    if (!sessionId) {
+      console.error('[API] Google OAuth callback: Redis unavailable, cannot create session');
+      return NextResponse.redirect(
+        new URL('/login?error=session_unavailable', origin),
+      );
     }
+
+    setSessionCookie(response, sessionId);
 
     // Clear the OAuth state cookie
     response.cookies.delete('crp_oauth_state');
@@ -130,8 +141,9 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('[API] GET /api/auth/google/callback error:', error);
+    const fallbackOrigin = getSafeOrigin(request);
     return NextResponse.redirect(
-      new URL('/login?error=google_fail', origin),
+      new URL('/login?error=google_fail', fallbackOrigin),
     );
   }
 }

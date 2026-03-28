@@ -93,9 +93,9 @@ export function Table<T>({
   );
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50 sticky top-0">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <thead className="bg-gray-50 dark:bg-gray-800/50 sticky top-0">
           <tr>
             {selectable && (
               <th className="w-10 px-3 py-3">
@@ -103,15 +103,15 @@ export function Table<T>({
                   type="checkbox"
                   checked={allSelected}
                   onChange={handleSelectAll}
-                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800"
                 />
               </th>
             )}
             {columns.map((col) => (
               <th
                 key={col.key}
-                className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 ${
-                  col.sortable ? 'cursor-pointer select-none hover:bg-gray-100' : ''
+                className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 ${
+                  col.sortable ? 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700/50' : ''
                 }`}
                 style={col.width ? { width: col.width } : undefined}
                 onClick={col.sortable ? () => handleSort(col.key) : undefined}
@@ -119,7 +119,7 @@ export function Table<T>({
                 <span className="inline-flex items-center gap-1">
                   {col.header}
                   {col.sortable && (
-                    <span className="text-gray-400">
+                    <span className="text-gray-400 dark:text-gray-500">
                       {currentSort.key === col.key ? (
                         currentSort.direction === 'asc' ? (
                           <SortAscIcon />
@@ -138,12 +138,12 @@ export function Table<T>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
           {data.length === 0 ? (
             <tr>
               <td
                 colSpan={columns.length + (selectable ? 1 : 0)}
-                className="px-4 py-12 text-center text-sm text-gray-500"
+                className="px-4 py-12 text-center text-sm text-gray-500 dark:text-gray-400"
               >
                 {emptyMessage}
               </td>
@@ -156,9 +156,9 @@ export function Table<T>({
                 <tr
                   key={rowId}
                   className={`${
-                    idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                  } ${onRowClick ? 'cursor-pointer hover:bg-primary-50' : 'hover:bg-gray-50'} ${
-                    isSelected ? 'bg-primary-50' : ''
+                    idx % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50/50 dark:bg-gray-800/30'
+                  } ${onRowClick ? 'cursor-pointer hover:bg-primary-50 dark:hover:bg-primary-950/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'} ${
+                    isSelected ? 'bg-primary-50 dark:bg-primary-950/30' : ''
                   } transition-colors`}
                   onClick={() => onRowClick?.(row)}
                 >
@@ -168,12 +168,12 @@ export function Table<T>({
                         type="checkbox"
                         checked={isSelected ?? false}
                         onChange={() => handleSelectRow(rowId)}
-                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800"
                       />
                     </td>
                   )}
                   {columns.map((col) => (
-                    <td key={col.key} className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                    <td key={col.key} className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                       {col.render(row)}
                     </td>
                   ))}

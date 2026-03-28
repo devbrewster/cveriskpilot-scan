@@ -5,22 +5,102 @@
 import type { RemediationRequest } from './types';
 import { redactSensitiveData } from './redaction';
 
-const SYSTEM_PROMPT = `You are a senior application security engineer specializing in vulnerability remediation.
-Provide actionable, specific remediation guidance. Structure your response in the following JSON format:
+// ---------------------------------------------------------------------------
+// Org-specific prompt customization
+// ---------------------------------------------------------------------------
+
+/** Per-organization AI prompt configuration stored in Organization.aiPromptConfig */
+export interface OrgPromptConfig {
+  /** Additional system prompt text appended to the base prompt */
+  customSystemPrompt?: string;
+  /** Technology stack description to provide context (e.g. "Java 17, Spring Boot 3, PostgreSQL 15") */
+  techStack?: string;
+  /** Compliance frameworks the org cares about */
+  complianceFrameworks?: string[];
+  /** How detailed remediation guidance should be */
+  remediationStyle?: 'concise' | 'detailed' | 'step-by-step';
+  /** Patterns to exclude from recommendations (e.g. "Windows", "Oracle") */
+  excludePatterns?: string[];
+}
+
+/**
+ * Merge org-specific configuration into a base system prompt.
+ * Returns the base prompt unmodified if config is empty/undefined.
+ */
+export function buildOrgSystemPrompt(basePrompt: string, config?: OrgPromptConfig | null): string {
+  if (!config) return basePrompt;
+
+  const sections: string[] = [basePrompt];
+
+  if (config.techStack) {
+    sections.push(
+      `\nThe organization's technology stack: ${config.techStack}. Tailor all code examples and configuration guidance to this stack.`,
+    );
+  }
+
+  if (config.complianceFrameworks && config.complianceFrameworks.length > 0) {
+    sections.push(
+      `\nThe organization must comply with: ${config.complianceFrameworks.join(', ')}. Include relevant compliance references and control mappings in your guidance.`,
+    );
+  }
+
+  if (config.remediationStyle) {
+    const styleInstructions: Record<string, string> = {
+      concise: 'Keep remediation guidance brief and to the point. Omit verbose explanations.',
+      detailed:
+        'Provide thorough remediation guidance with full explanations, context, and rationale for each step.',
+      'step-by-step':
+        'Format remediation as numbered step-by-step instructions. Each step should be a single, clear action.',
+    };
+    sections.push(`\nRemediation style: ${styleInstructions[config.remediationStyle]}`);
+  }
+
+  if (config.excludePatterns && config.excludePatterns.length > 0) {
+    sections.push(
+      `\nDo NOT include recommendations involving: ${config.excludePatterns.join(', ')}. These technologies or approaches are not applicable to this organization.`,
+    );
+  }
+
+  if (config.customSystemPrompt) {
+    sections.push(`\nAdditional instructions from the organization:\n${config.customSystemPrompt}`);
+  }
+
+  return sections.join('');
+}
+
+// ---------------------------------------------------------------------------
+// Base system prompt
+// ---------------------------------------------------------------------------
+
+const SYSTEM_PROMPT = `You are a principal application security engineer with 15+ years of experience in vulnerability management, penetration testing, and secure software development. You advise Fortune 500 security teams and government agencies on remediation strategy.
+
+Your remediation guidance must be:
+- **Specific**: Reference exact CVE/CWE details, affected versions, and known exploit techniques. Never give generic advice when specific guidance is possible.
+- **Prioritized**: Weigh CVSS score, EPSS probability, KEV listing, and asset exposure to determine urgency.
+- **Actionable**: Every step must be something an engineer can execute immediately without further research.
+- **Defense-in-depth**: Include both the immediate tactical fix and longer-term architectural improvements.
+
+Structure your response as a JSON object with exactly this schema:
 {
-  "riskAssessment": "Brief risk analysis explaining the real-world impact",
-  "immediateActions": ["Step-by-step actions to mitigate immediately"],
+  "riskAssessment": "Detailed risk analysis: what the vulnerability allows an attacker to do, real-world exploitation scenarios, and business impact. Reference CVSS vector components and EPSS data when available.",
+  "immediateActions": ["Ordered list of concrete mitigation steps to reduce exposure right now, before a permanent fix is deployed. Include specific commands, configuration changes, or WAF rules where applicable."],
   "permanentFix": {
-    "description": "How to permanently resolve the vulnerability",
-    "codeExample": "Code snippet if applicable (optional)",
-    "configChange": "Configuration change if applicable (optional)"
+    "description": "The definitive remediation — typically a version upgrade, code change, or architectural improvement. Specify exact target versions when known.",
+    "codeExample": "Working code snippet, CLI command, or patch to apply. Include package manager commands (npm, pip, mvn, etc.) with exact version pins. Omit this field if not applicable.",
+    "configChange": "Specific configuration file changes, environment variable settings, or infrastructure-as-code updates. Omit this field if not applicable."
   },
-  "verificationSteps": ["How to verify the fix was applied correctly"],
-  "references": ["Relevant documentation URLs or advisories"],
+  "verificationSteps": ["Concrete steps to confirm the fix: scanner re-run commands, curl tests, log queries, or automated check scripts."],
+  "references": ["NVD URL, vendor advisory URL, CISA KEV entry, relevant CWE page, or security blog with exploit details. Use real, valid URLs."],
   "estimatedEffort": "low|medium|high",
   "priority": "immediate|short-term|long-term"
 }
-Always respond with valid JSON only.`;
+
+Rules:
+- Respond ONLY with valid JSON. No markdown fences, no preamble, no commentary outside the JSON.
+- "estimatedEffort": low = under 1 hour, medium = 1-8 hours, high = multi-day effort.
+- "priority": immediate = KEV-listed or actively exploited, short-term = high EPSS or critical/high CVSS, long-term = lower risk.
+- Include at least 3 immediateActions and 3 verificationSteps.
+- For references, prefer NVD (nvd.nist.gov), vendor advisories, and CISA (cisa.gov) URLs.`;
 
 /**
  * Build the system prompt and user message for a remediation request.

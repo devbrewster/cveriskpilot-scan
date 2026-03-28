@@ -1,5 +1,5 @@
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { UploadParams, UploadResult } from '../types';
 
@@ -66,6 +66,9 @@ export async function uploadToLocal(
 // ---------------------------------------------------------------------------
 
 export async function downloadFromLocal(path: string): Promise<Buffer> {
-  const fullPath = join(UPLOADS_ROOT, path);
+  const fullPath = resolve(UPLOADS_ROOT, path);
+  if (!fullPath.startsWith(UPLOADS_ROOT)) {
+    throw new Error('Invalid path: directory traversal detected');
+  }
   return readFile(fullPath);
 }

@@ -1,11 +1,20 @@
+'use client';
+
+import { useAuth } from '@/lib/auth-context';
 import { FrameworkDashboard } from '@/components/compliance/framework-dashboard';
 
-export const metadata = {
-  title: 'Compliance Frameworks | CVERiskPilot',
-};
-
 export default function FrameworksPage() {
-  const organizationId = 'org-default';
+  const { loaded, organizationId } = useAuth();
+
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
+  const orgId = organizationId ?? 'org-default';
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
@@ -18,7 +27,7 @@ export default function FrameworksPage() {
         </p>
       </div>
 
-      <FrameworkDashboard organizationId={organizationId} />
+      <FrameworkDashboard organizationId={orgId} />
     </div>
   );
 }

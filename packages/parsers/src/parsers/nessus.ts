@@ -36,17 +36,26 @@ export async function parseNessus(
   const xml =
     typeof content === 'string' ? content : content.toString('utf-8');
 
+  // Reject excessively large XML to prevent DoS (100MB limit)
+  if (xml.length > 100 * 1024 * 1024) {
+    throw new Error('XML file exceeds maximum allowed size (100MB)');
+  }
+
+  // Strip DTD declarations to prevent XXE and billion laughs attacks
+  const sanitizedXml = xml.replace(/<!DOCTYPE[^>]*>/gi, '');
+
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
     allowBooleanAttributes: true,
     parseAttributeValue: true,
     trimValues: true,
+    processEntities: false,
   });
 
   let parsed: Record<string, unknown>;
   try {
-    parsed = parser.parse(xml) as Record<string, unknown>;
+    parsed = parser.parse(sanitizedXml) as Record<string, unknown>;
   } catch (err) {
     errors.push({
       message: `XML parse error: ${err instanceof Error ? err.message : String(err)}`,

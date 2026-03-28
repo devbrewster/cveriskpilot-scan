@@ -2,6 +2,7 @@ import { NavBar } from "@/components/landing/nav-bar";
 import { Hero } from "@/components/landing/hero";
 import { SocialProof } from "@/components/landing/social-proof";
 import { Features } from "@/components/landing/features";
+import { PipelineSection } from "@/components/landing/pipeline-section";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Pricing } from "@/components/landing/pricing";
 import { CtaSection } from "@/components/landing/cta-section";
@@ -15,6 +16,7 @@ export default function LandingPage() {
         <Hero />
         <SocialProof />
         <Features />
+        <PipelineSection />
         <HowItWorks />
         <Pricing />
         <CtaSection />

@@ -146,7 +146,7 @@ const ReleaseTracker = (() => {
                 ${phase.timeline ? `<span>${phase.timeline}</span>` : ''}
                 ${phase.duration ? `<span>${phase.duration}</span>` : ''}
                 <span>${stats.completed}/${stats.total} tasks</span>
-                ${phase.description ? `<span style="color:var(--text-muted)">${phase.description}</span>` : ''}
+                ${phase.description ? `<span style="color:var(--text-dim);font-style:italic">${phase.description}</span>` : ''}
               </div>
             </div>
             <div class="phase-progress">
@@ -478,7 +478,7 @@ const ReleaseTracker = (() => {
   // ── Public API ──
   return {
     async init(opts = {}) {
-      const configUrl = opts.configUrl || new URLSearchParams(location.search).get('config') || 'configs/saas-starter.config.json';
+      const configUrl = opts.configUrl || new URLSearchParams(location.search).get('config') || 'configs/cveriskpilot.config.json';
 
       try {
         const res = await fetch(configUrl);

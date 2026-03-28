@@ -52,7 +52,7 @@ export async function GET(
 // POST /api/cases/[id]/comments — create a comment with @mentions
 // ---------------------------------------------------------------------------
 
-const MENTION_REGEX = /@([\w.+\-]+@[\w\-.]+\.\w+|[\w\s]+?)(?=\s|$|@)/g;
+const MENTION_REGEX = /@([\w.+-]+@[\w\-.]+\.\w+|[\w\s]+?)(?=\s|$|@)/g;
 
 function parseMentions(content: string): string[] {
   const matches: string[] = [];

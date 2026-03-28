@@ -48,11 +48,24 @@ const SKIP_PREFIXES = [
 
 const STATIC_EXTENSIONS = /\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf|eot|map)$/;
 
-/** Public pages that do NOT require an active session. */
-const PUBLIC_PREFIXES = [
+/** Block access to dotfiles and common attack paths. */
+const BLOCKED_PATHS = /^\/(\.env|\.git|\.svn|\.hg|\.DS_Store|wp-admin|wp-login|wp-content|phpinfo|\.htaccess|\.htpasswd|web\.config)/;
+
+/** Public paths that do NOT require an active session. */
+const PUBLIC_PATHS = [
+  '/',
   '/login',
   '/signup',
-  '/api',
+  '/pricing',
+  '/privacy',
+  '/terms',
+];
+
+const PUBLIC_PREFIXES = [
+  '/api/',
+  '/demo',
+  '/portal',     // portal has its own auth via crp_portal_session
+  '/_next',
 ];
 
 function shouldSkip(pathname: string): boolean {
@@ -61,7 +74,7 @@ function shouldSkip(pathname: string): boolean {
 }
 
 function isPublicPage(pathname: string): boolean {
-  if (pathname === '/') return true;
+  if (PUBLIC_PATHS.includes(pathname)) return true;
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
@@ -145,8 +158,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // --- Session gate for /app/* routes ---
-  if (pathname.startsWith('/app')) {
+  // Block dotfiles and common attack paths — return 404 before any redirect
+  if (BLOCKED_PATHS.test(pathname)) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  // --- Session gate for protected pages ---
+  // All pages that are not explicitly public require an active session.
+  if (!isPublicPage(pathname)) {
     const sessionCookie = request.cookies.get('crp_session');
     if (!sessionCookie?.value) {
       const loginUrl = new URL('/login', request.url);
@@ -161,6 +180,44 @@ export function middleware(request: NextRequest) {
       });
 
       return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // --- Ops domain gate: /ops/* and /api/ops/* require @cveriskpilot.com ---
+  if (pathname.startsWith('/ops') || pathname.startsWith('/api/ops')) {
+    const sessionCookie = request.cookies.get('crp_session');
+    if (!sessionCookie?.value) {
+      // No session at all — redirect to login (should already be caught above,
+      // but /api/ops/* paths are in PUBLIC_PREFIXES via /api/ so gate them here).
+      const loginUrl = new URL('/login', request.url);
+      loginUrl.searchParams.set('callbackUrl', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    // Attempt to read email from session cookie (base64-encoded JSON)
+    let email: string | null = null;
+    try {
+      const payload = JSON.parse(atob(sessionCookie.value));
+      email = typeof payload.email === 'string' ? payload.email : null;
+    } catch {
+      // Opaque token — cannot verify domain at middleware level.
+      // The API route will enforce its own check; let it through.
+    }
+
+    if (email && !email.endsWith('@cveriskpilot.com')) {
+      const duration_ms = Date.now() - start;
+      writeRequestLog('WARNING', `${request.method} ${pathname} 403 ${duration_ms}ms (ops domain denied)`, {
+        method: request.method,
+        path: pathname,
+        status: 403,
+        duration_ms,
+        denied_email: email,
+      });
+
+      return NextResponse.json(
+        { error: 'Internal staff only' },
+        { status: 403 },
+      );
     }
   }
 

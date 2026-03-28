@@ -1,22 +1,72 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { SeverityBadge, StatusBadge, ScannerBadge, KevBadge } from '@/components/ui/badges';
 import { StatusWorkflow } from '@/components/cases/status-workflow';
 import { useToast } from '@/components/ui/toast';
-import {
-  type VulnerabilityCase,
-  type CaseStatus,
-  type Finding,
-  getFindingsForCase,
-  getAssetById,
-  getStatusChangesForCase,
-  mockUsers,
-} from '@/lib/mock-findings';
+
+type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+type CaseStatus =
+  | 'NEW' | 'TRIAGE' | 'IN_REMEDIATION' | 'FIXED_PENDING_VERIFICATION'
+  | 'VERIFIED_CLOSED' | 'REOPENED' | 'ACCEPTED_RISK' | 'FALSE_POSITIVE'
+  | 'NOT_APPLICABLE' | 'DUPLICATE';
+type ScannerType = 'SCA' | 'SAST' | 'DAST' | 'IAC' | 'CONTAINER' | 'VM' | 'BUG_BOUNTY';
+
+interface VulnerabilityCase {
+  id: string;
+  organizationId: string;
+  clientId: string;
+  title: string;
+  description: string;
+  cveIds: string[];
+  cweIds: string[];
+  severity: Severity;
+  cvssScore: number | null;
+  cvssVector: string | null;
+  cvssVersion: string | null;
+  epssScore: number | null;
+  epssPercentile: number | null;
+  kevListed: boolean;
+  kevDueDate: string | null;
+  status: CaseStatus;
+  assignedToId: string | null;
+  dueAt: string | null;
+  aiAdvisory: Record<string, unknown> | null;
+  remediationNotes: string;
+  findingCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
+
+interface Finding {
+  id: string;
+  organizationId: string;
+  clientId: string;
+  assetId: string;
+  scannerType: ScannerType;
+  scannerName: string;
+  observations: Record<string, unknown>;
+  dedupKey: string;
+  vulnerabilityCaseId: string | null;
+  discoveredAt: string;
+}
+
+interface StatusChange {
+  id: string;
+  caseId: string;
+  fromStatus: CaseStatus | null;
+  toStatus: CaseStatus;
+  reason: string;
+  changedBy: string;
+  changedAt: string;
+}
 
 interface CaseDetailProps {
   vulnCase: VulnerabilityCase;
+  findings: Finding[];
+  assignedUserName: string | null;
+  basePath?: string;
 }
 
 function CvssBar({ score }: { score: number }) {
@@ -85,27 +135,25 @@ function SlaSection({ dueAt }: { dueAt: string | null }) {
   );
 }
 
-function FindingsTab({ findings }: { findings: Finding[] }) {
+function FindingsTab({ findings, basePath = '' }: { findings: Finding[]; basePath?: string }) {
   const router = useRouter();
   return (
     <div className="space-y-2">
       {findings.length === 0 ? (
         <p className="py-4 text-center text-sm text-gray-500">No findings linked to this case.</p>
       ) : (
-        findings.map((f) => {
-          const asset = getAssetById(f.assetId);
-          return (
+        findings.map((f) => (
             <button
               key={f.id}
               type="button"
-              onClick={() => router.push(`/findings/${f.id}`)}
+              onClick={() => router.push(`${basePath}/findings/${f.id}`)}
               className="flex w-full items-center justify-between rounded-md border border-gray-200 p-3 text-left hover:bg-gray-50"
             >
               <div className="flex items-center gap-3">
                 <ScannerBadge scannerType={f.scannerType} />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{f.scannerName}</p>
-                  <p className="text-xs text-gray-500">{asset?.name ?? 'Unknown Asset'}</p>
+                  <p className="text-xs text-gray-500">Asset: {f.assetId}</p>
                 </div>
               </div>
               <div className="text-right">
@@ -115,23 +163,22 @@ function FindingsTab({ findings }: { findings: Finding[] }) {
                 <p className="font-mono text-xs text-gray-400">{f.id}</p>
               </div>
             </button>
-          );
-        })
+          ))
       )}
     </div>
   );
 }
 
-export function CaseDetail({ vulnCase: initialCase }: CaseDetailProps) {
+export function CaseDetail({ vulnCase: initialCase, findings, assignedUserName, basePath = '' }: CaseDetailProps) {
   const router = useRouter();
   const { addToast } = useToast();
   const [caseData, setCaseData] = useState(initialCase);
   const [remediationNotes, setRemediationNotes] = useState(initialCase.remediationNotes);
   const [activeTab, setActiveTab] = useState<'findings' | 'remediation' | 'activity'>('findings');
 
-  const findings = useMemo(() => getFindingsForCase(caseData.id), [caseData.id]);
-  const statusChanges = useMemo(() => getStatusChangesForCase(caseData.id), [caseData.id]);
-  const assignedUser = caseData.assignedToId ? mockUsers[caseData.assignedToId] : null;
+  // Status changes are not yet available from the API; show empty timeline
+  const statusChanges: StatusChange[] = [];
+  const assignedUser = assignedUserName;
 
   const handleStatusChange = useCallback(
     (newStatus: CaseStatus, _reason: string) => {
@@ -156,7 +203,7 @@ export function CaseDetail({ vulnCase: initialCase }: CaseDetailProps) {
       {/* Back */}
       <button
         type="button"
-        onClick={() => router.push('/cases')}
+        onClick={() => router.push(basePath + '/cases')}
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +213,7 @@ export function CaseDetail({ vulnCase: initialCase }: CaseDetailProps) {
       </button>
 
       {/* Header */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -212,7 +259,7 @@ export function CaseDetail({ vulnCase: initialCase }: CaseDetailProps) {
       </div>
 
       {/* Scoring Panel */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Vulnerability Scoring</h2>
         <div className="grid gap-6 md:grid-cols-3">
           {/* CVSS */}
@@ -257,7 +304,7 @@ export function CaseDetail({ vulnCase: initialCase }: CaseDetailProps) {
       <SlaSection dueAt={caseData.dueAt} />
 
       {/* Status Workflow */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Status Workflow</h2>
         <StatusWorkflow currentStatus={caseData.status} onStatusChange={handleStatusChange} />
       </div>
@@ -289,7 +336,7 @@ export function CaseDetail({ vulnCase: initialCase }: CaseDetailProps) {
 
         <div className="p-6">
           {/* Findings Tab */}
-          {activeTab === 'findings' && <FindingsTab findings={findings} />}
+          {activeTab === 'findings' && <FindingsTab findings={findings} basePath={basePath} />}
 
           {/* Remediation Tab */}
           {activeTab === 'remediation' && (
@@ -413,7 +460,7 @@ export function CaseDetail({ vulnCase: initialCase }: CaseDetailProps) {
                             idx === statusChanges.length - 1 ? 'bg-primary-500' : 'bg-gray-400'
                           }`}
                         />
-                        <div className="flex-1 rounded-md border border-gray-200 bg-white p-3">
+                        <div className="flex-1 rounded-md border border-gray-200 bg-white dark:bg-gray-900 p-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               {sc.fromStatus && (

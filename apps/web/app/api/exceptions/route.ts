@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/exceptions — List risk exceptions for an organization
@@ -7,18 +8,18 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
     const status = searchParams.get('status'); // PENDING, APPROVED, REJECTED, EXPIRED
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '25', 10)));
 
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
-    }
+    // Always scope to the authenticated user's organization
+    const organizationId = session.organizationId;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: Record<string, any> = {
@@ -113,6 +114,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
 
     const {
@@ -120,14 +126,12 @@ export async function POST(request: NextRequest) {
       type,
       reason,
       requestedDays,
-      decidedById,
       vexRationale,
     } = body as {
       vulnerabilityCaseId?: string;
       type?: string;
       reason?: string;
       requestedDays?: number;
-      decidedById?: string;
       vexRationale?: string;
     };
 
@@ -152,19 +156,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!decidedById) {
-      return NextResponse.json(
-        { error: 'decidedById is required' },
-        { status: 400 },
-      );
-    }
-
-    // Verify the case exists
+    // Verify the case exists and belongs to the user's organization
     const vulnCase = await prisma.vulnerabilityCase.findUnique({
       where: { id: vulnerabilityCaseId },
     });
 
-    if (!vulnCase) {
+    if (!vulnCase || vulnCase.organizationId !== session.organizationId) {
       return NextResponse.json(
         { error: 'Vulnerability case not found' },
         { status: 404 },
@@ -175,7 +172,7 @@ export async function POST(request: NextRequest) {
       data: {
         vulnerabilityCaseId,
         type: type as 'ACCEPTED_RISK' | 'FALSE_POSITIVE' | 'NOT_APPLICABLE',
-        decidedById,
+        decidedById: session.userId,
         reason,
         vexRationale: vexRationale ?? null,
         evidence: { requestedDays: requestedDays ?? null, rejected: false },

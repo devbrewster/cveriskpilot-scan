@@ -5,7 +5,7 @@
  * Designed to be called from a cron job or scheduled task.
  */
 
-import { PrismaClient } from '@cveriskpilot/domain';
+import type { PrismaClient } from '@cveriskpilot/domain';
 
 interface RetentionPolicy {
   findingsDays: number;

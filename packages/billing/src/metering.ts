@@ -11,11 +11,11 @@ import { STRIPE_PRICES, getTierConfig } from './config';
 
 let _redis: Redis | null = null;
 
-function getRedis(): Redis {
+function getRedis(): Redis | null {
   if (!_redis) {
     const url = process.env.REDIS_URL;
     if (!url) {
-      throw new Error('REDIS_URL environment variable is not set');
+      return null;
     }
     _redis = new Redis(url);
   }
@@ -79,6 +79,7 @@ export async function recordUsageEvent(
   quantity: number,
 ): Promise<number> {
   const redis = getRedis();
+  if (!redis) return quantity;
   const period = currentPeriod();
   const key = usageKey(orgId, clientId, metric, period);
 
@@ -109,6 +110,14 @@ export async function getClientUsage(
   const redis = getRedis();
   const p = period ?? currentPeriod();
 
+  if (!redis) {
+    return {
+      clientId,
+      period: p,
+      metrics: { assets_scanned: 0, findings_processed: 0, ai_calls: 0, storage_gb: 0 },
+    };
+  }
+
   const pipeline = redis.pipeline();
   for (const metric of ALL_METRICS) {
     pipeline.get(usageKey(orgId, clientId, metric, p));
@@ -137,6 +146,15 @@ export async function getOrgUsageSummary(
 ): Promise<OrgUsageSummary> {
   const redis = getRedis();
   const p = period ?? currentPeriod();
+
+  if (!redis) {
+    return {
+      orgId,
+      period: p,
+      totals: { assets_scanned: 0, findings_processed: 0, ai_calls: 0, storage_gb: 0 },
+      clients: [],
+    };
+  }
 
   // Get all clients with usage in this period
   const clientIds = await redis.smembers(orgClientsKey(orgId, p));

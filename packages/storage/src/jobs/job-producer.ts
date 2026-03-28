@@ -70,6 +70,36 @@ export async function enqueueUploadJob(
 }
 
 // ---------------------------------------------------------------------------
+// Enqueue a connector sync job
+// ---------------------------------------------------------------------------
+
+export async function enqueueSyncJob(syncJobId: string): Promise<void> {
+  const payload = {
+    type: 'SYNC_CONNECTOR' as const,
+    syncJobId,
+  };
+
+  if (isProduction()) {
+    await createCloudTask(payload);
+  } else {
+    // In development, call the worker directly via HTTP
+    const workerUrl = getWorkerUrl();
+    try {
+      const response = await fetch(`${workerUrl}/jobs/process`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        console.error(`[dev] Sync job ${syncJobId} worker call failed: ${response.status}`);
+      }
+    } catch (err) {
+      console.error(`[dev] Sync job ${syncJobId} worker call failed:`, err);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Cloud Tasks integration (production)
 // ---------------------------------------------------------------------------
 

@@ -91,7 +91,7 @@ export function DataDeletionDialog({
       />
 
       {/* Dialog */}
-      <div className="relative z-10 mx-4 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+      <div className="relative z-10 mx-4 w-full max-w-lg rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl">
         {receipt ? (
           // Success receipt
           <div className="space-y-4">
@@ -213,7 +213,7 @@ export function DataDeletionDialog({
             <div className="flex justify-end gap-3">
               <button
                 onClick={onClose}
-                className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>

@@ -303,7 +303,7 @@ export function OnboardingWizard() {
   // Success screen
   if (result) {
     return (
-      <div className="mx-auto max-w-lg space-y-6 rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+      <div className="mx-auto max-w-lg space-y-6 rounded-xl border border-gray-200 bg-white dark:bg-gray-900 p-8 dark:border-gray-800 dark:bg-gray-900">
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
             <svg className="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -338,7 +338,7 @@ export function OnboardingWizard() {
   }
 
   return (
-    <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900">
+    <div className="mx-auto max-w-lg rounded-xl border border-gray-200 bg-white dark:bg-gray-900 p-8 dark:border-gray-800 dark:bg-gray-900">
       {/* Progress stepper */}
       <div className="mb-8">
         <div className="flex items-center justify-between">

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Severity } from '@/lib/mock-data';
+import type { Severity } from '@/lib/types';
 
 const severityConfig: Record<Severity, { color: string; label: string }> = {
   CRITICAL: { color: 'bg-red-600', label: 'Critical' },
@@ -18,7 +18,7 @@ export function SeverityChart({ counts }: SeverityChartProps) {
   const total = Object.values(counts).reduce((sum, n) => sum + n, 0);
   if (total === 0) {
     return (
-      <div className="flex h-32 items-center justify-center text-sm text-gray-500">
+      <div className="flex h-32 items-center justify-center text-sm text-gray-500 dark:text-gray-400">
         No vulnerability cases found.
       </div>
     );
@@ -53,8 +53,8 @@ export function SeverityChart({ counts }: SeverityChartProps) {
           return (
             <div key={sev} className="flex items-center gap-2 text-sm">
               <span className={`inline-block h-3 w-3 rounded-sm ${severityConfig[sev].color}`} />
-              <span className="font-medium text-gray-700">{severityConfig[sev].label}</span>
-              <span className="text-gray-500">
+              <span className="font-medium text-gray-700 dark:text-gray-300">{severityConfig[sev].label}</span>
+              <span className="text-gray-500 dark:text-gray-400">
                 {counts[sev]} ({pct}%)
               </span>
             </div>

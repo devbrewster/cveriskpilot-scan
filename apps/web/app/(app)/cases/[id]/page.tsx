@@ -55,9 +55,24 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
     lastSeenAt: vulnCase.lastSeenAt.toISOString(),
   };
 
+  const serializedFindings = vulnCase.findings.map((f) => ({
+    id: f.id,
+    organizationId: f.organizationId,
+    clientId: f.clientId,
+    assetId: f.assetId,
+    scannerType: f.scannerType,
+    scannerName: f.scannerName,
+    observations: f.observations as Record<string, unknown>,
+    dedupKey: f.dedupKey,
+    vulnerabilityCaseId: f.vulnerabilityCaseId,
+    discoveredAt: f.discoveredAt.toISOString(),
+  }));
+
+  const assignedUserName = vulnCase.assignedTo?.name ?? null;
+
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8">
-      <CaseDetail vulnCase={serializedCase} />
+      <CaseDetail vulnCase={serializedCase} findings={serializedFindings} assignedUserName={assignedUserName} />
     </div>
   );
 }

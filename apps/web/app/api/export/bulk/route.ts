@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // In-memory export job tracking.
@@ -13,6 +14,7 @@ export interface ExportJob {
   filters: Record<string, unknown>;
   organizationId: string;
   clientId: string | null;
+  limit: number;
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress: number; // 0-100
   totalRecords: number;
@@ -46,6 +48,9 @@ function escapeCSV(value: string): string {
 // ---------------------------------------------------------------------------
 // Background Processing
 // ---------------------------------------------------------------------------
+
+// Maximum number of records allowed per export to prevent excessive memory usage and DB load
+const MAX_EXPORT_RECORDS = 10000;
 
 async function processExportJob(jobId: string): Promise<void> {
   const job = exportJobStore.get(jobId);
@@ -86,7 +91,7 @@ async function processExportJob(jobId: string): Promise<void> {
             },
           },
           orderBy: { createdAt: 'desc' as const },
-          take: 100000,
+          take: job.limit,
         });
 
         job.totalRecords = findings.length;
@@ -120,7 +125,7 @@ async function processExportJob(jobId: string): Promise<void> {
             slaPolicy: { select: { name: true } },
           },
           orderBy: { createdAt: 'desc' as const },
-          take: 100000,
+          take: job.limit,
         });
 
         job.totalRecords = cases.length;
@@ -153,7 +158,7 @@ async function processExportJob(jobId: string): Promise<void> {
         const assets = await (prisma.asset as any).findMany({
           where,
           orderBy: { createdAt: 'desc' as const },
-          take: 100000,
+          take: job.limit,
         });
 
         job.totalRecords = assets.length;
@@ -203,12 +208,18 @@ async function processExportJob(jobId: string): Promise<void> {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { type, filters, format, organizationId, clientId } = body;
-
-    if (!organizationId) {
-      return NextResponse.json({ error: 'organizationId is required' }, { status: 400 });
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const body = await request.json();
+    const { type, filters, format, clientId, limit: requestedLimit } = body;
+    // Cap export limit to prevent excessive memory usage and DB load
+    const limit = Math.min(
+      typeof requestedLimit === 'number' && requestedLimit > 0 ? requestedLimit : MAX_EXPORT_RECORDS,
+      MAX_EXPORT_RECORDS,
+    );
 
     if (!type || !['findings', 'cases', 'assets'].includes(type)) {
       return NextResponse.json(
@@ -229,8 +240,9 @@ export async function POST(request: NextRequest) {
       type,
       format: format ?? 'csv',
       filters: filters ?? {},
-      organizationId,
+      organizationId: session.organizationId,
       clientId: clientId ?? null,
+      limit,
       status: 'queued',
       progress: 0,
       totalRecords: 0,

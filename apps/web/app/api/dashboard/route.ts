@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 /** Map an AuditLog entry to a dashboard activity event type. */
 function classifyActivityType(
@@ -18,19 +19,22 @@ function classifyActivityType(
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
+    const organizationId = session.organizationId;
     const clientId = searchParams.get('clientId');
 
     // Build filter: org-scoped, optionally narrowed to a single client
-    const baseFilter: Record<string, string> = {};
-    if (organizationId) baseFilter.organizationId = organizationId;
+    const baseFilter: Record<string, string> = { organizationId };
     if (clientId) baseFilter.clientId = clientId;
     const orgFilter = baseFilter;
 
     // Org-only filter for models without clientId (e.g. AuditLog)
-    const orgOnlyFilter: Record<string, string> = {};
-    if (organizationId) orgOnlyFilter.organizationId = organizationId;
+    const orgOnlyFilter: Record<string, string> = { organizationId };
 
     // Run all queries in parallel
     const [

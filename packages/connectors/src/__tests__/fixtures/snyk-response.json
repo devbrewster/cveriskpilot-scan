@@ -1,0 +1,185 @@
+{
+  "data": [
+    {
+      "id": "snyk-issue-001-abc",
+      "type": "issue",
+      "attributes": {
+        "title": "Prototype Pollution in lodash",
+        "description": "Versions of lodash prior to 4.17.21 are vulnerable to Prototype Pollution. The function defaultsDeep could be tricked into adding or modifying properties of Object.prototype using a constructor payload.",
+        "status": "open",
+        "type": "package_vulnerability",
+        "effective_severity_level": "high",
+        "created_at": "2024-06-01T10:00:00Z",
+        "updated_at": "2024-08-15T10:00:00Z",
+        "problems": [
+          { "id": "CVE-2021-23337", "source": "CVE", "type": "vulnerability", "url": "https://nvd.nist.gov/vuln/detail/CVE-2021-23337" },
+          { "id": "CWE-1321", "source": "CWE", "type": "weakness" },
+          { "id": "SNYK-JS-LODASH-1040724", "source": "SNYK", "type": "vulnerability", "url": "https://security.snyk.io/vuln/SNYK-JS-LODASH-1040724" }
+        ],
+        "coordinates": [
+          {
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "lodash",
+                  "package_version": "4.17.20"
+                }
+              }
+            ],
+            "remedies": [
+              {
+                "type": "indirectUpgrade",
+                "description": "Upgrade lodash to version 4.17.21 or later",
+                "details": {
+                  "upgrade_package": "lodash@4.17.21"
+                }
+              }
+            ]
+          }
+        ],
+        "severities": [
+          {
+            "source": "NVD",
+            "level": "high",
+            "score": 7.2,
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
+            "type": "CVSS"
+          },
+          {
+            "source": "Snyk",
+            "level": "high",
+            "score": 7.4,
+            "type": "Snyk"
+          }
+        ],
+        "slots": {
+          "disclosure_time": "2021-02-15T00:00:00Z",
+          "exploit": "Proof of Concept",
+          "publication_time": "2021-02-15T00:00:00Z",
+          "references": [
+            { "title": "GitHub Commit", "url": "https://github.com/lodash/lodash/commit/abc123" }
+          ]
+        },
+        "classes": [
+          { "id": "CWE-1321", "source": "CWE", "type": "weakness" }
+        ],
+        "key": "SNYK-JS-LODASH-1040724",
+        "tool": "snyk-sca"
+      },
+      "relationships": {
+        "organization": { "data": { "id": "org-001", "type": "organization" } },
+        "scan_item": { "data": { "id": "project-frontend", "type": "project" } }
+      }
+    },
+    {
+      "id": "snyk-issue-002-def",
+      "type": "issue",
+      "attributes": {
+        "title": "SQL Injection in sequelize",
+        "description": "Sequelize before 6.37.4 is vulnerable to SQL injection via replacements when using raw queries with certain types of input.",
+        "status": "open",
+        "type": "package_vulnerability",
+        "effective_severity_level": "critical",
+        "created_at": "2024-07-20T08:00:00Z",
+        "updated_at": "2024-08-15T08:00:00Z",
+        "problems": [
+          { "id": "CVE-2023-25813", "source": "CVE", "type": "vulnerability" },
+          { "id": "CWE-89", "source": "CWE", "type": "weakness" }
+        ],
+        "coordinates": [
+          {
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "sequelize",
+                  "package_version": "6.35.0"
+                }
+              }
+            ],
+            "remedies": [
+              {
+                "type": "indirectUpgrade",
+                "description": "Upgrade sequelize to version 6.37.4 or later",
+                "details": {
+                  "upgrade_package": "sequelize@6.37.4"
+                }
+              }
+            ]
+          }
+        ],
+        "severities": [
+          {
+            "source": "NVD",
+            "level": "critical",
+            "score": 9.8,
+            "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+            "type": "CVSS"
+          }
+        ],
+        "slots": {
+          "exploit": "Not Defined"
+        },
+        "classes": [
+          { "id": "CWE-89", "source": "CWE", "type": "weakness" }
+        ],
+        "key": "SNYK-JS-SEQUELIZE-5671381",
+        "tool": "snyk-sca"
+      }
+    },
+    {
+      "id": "snyk-issue-003-ghi",
+      "type": "issue",
+      "attributes": {
+        "title": "Information Exposure in express",
+        "description": "Express before 4.19.2 exposes the path used to serve static files when a 404 error occurs for dot files.",
+        "status": "open",
+        "type": "package_vulnerability",
+        "effective_severity_level": "low",
+        "created_at": "2024-03-01T12:00:00Z",
+        "updated_at": "2024-08-10T12:00:00Z",
+        "problems": [
+          { "id": "CVE-2024-29041", "source": "CVE", "type": "vulnerability" },
+          { "id": "CWE-200", "source": "CWE", "type": "weakness" }
+        ],
+        "coordinates": [
+          {
+            "representations": [
+              {
+                "dependency": {
+                  "package_name": "express",
+                  "package_version": "4.18.2"
+                }
+              }
+            ],
+            "remedies": [
+              {
+                "type": "indirectUpgrade",
+                "description": "Upgrade express to version 4.19.2 or later",
+                "details": {
+                  "upgrade_package": "express@4.19.2"
+                }
+              }
+            ]
+          }
+        ],
+        "severities": [
+          {
+            "source": "NVD",
+            "level": "low",
+            "score": 3.7,
+            "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+            "type": "CVSS"
+          }
+        ],
+        "key": "SNYK-JS-EXPRESS-7926867",
+        "tool": "snyk-sca"
+      }
+    }
+  ],
+  "jsonapi": { "version": "1.0" },
+  "links": {
+    "self": "/rest/orgs/org-001/issues?version=2024-06-21&limit=100",
+    "first": "/rest/orgs/org-001/issues?version=2024-06-21&limit=100",
+    "next": null
+  }
+}

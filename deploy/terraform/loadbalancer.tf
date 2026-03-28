@@ -60,8 +60,9 @@ resource "google_compute_managed_ssl_certificate" "web" {
   }
 }
 
-# HTTPS proxy
+# HTTPS proxy (non-prod only; prod uses CDN-enabled proxy in cdn.tf)
 resource "google_compute_target_https_proxy" "web" {
+  count            = var.environment != "prod" ? 1 : 0
   name             = "cveriskpilot-https-${var.environment}"
   project          = var.project_id
   url_map          = google_compute_url_map.web.id
@@ -87,10 +88,12 @@ resource "google_compute_url_map" "redirect" {
 }
 
 # Forwarding rules — HTTPS (443) and HTTP (80 → redirect)
+# In prod, the HTTPS forwarding rule is managed by cdn.tf (CDN-enabled proxy)
 resource "google_compute_global_forwarding_rule" "https" {
+  count                 = var.environment != "prod" ? 1 : 0
   name                  = "cveriskpilot-https-fwd-${var.environment}"
   project               = var.project_id
-  target                = google_compute_target_https_proxy.web.id
+  target                = google_compute_target_https_proxy.web[0].id
   port_range            = "443"
   ip_address            = google_compute_global_address.lb.address
   load_balancing_scheme = "EXTERNAL_MANAGED"

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { sendWebhook } from '@cveriskpilot/integrations';
 import type { WebhookPayload } from '@cveriskpilot/integrations';
@@ -9,15 +10,20 @@ import type { WebhookPayload } from '@cveriskpilot/integrations';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const organizationId = session.organizationId;
     const body = await request.json();
-    const { organizationId, endpointId } = body as {
-      organizationId: string;
+    const { endpointId } = body as {
       endpointId: string;
     };
 
-    if (!organizationId || !endpointId) {
+    if (!endpointId) {
       return NextResponse.json(
-        { error: 'organizationId and endpointId are required' },
+        { error: 'endpointId is required' },
         { status: 400 },
       );
     }

@@ -27,6 +27,10 @@ interface ExceptionListProps {
   organizationId: string;
   currentUserId: string;
   currentUserRole: string;
+  /** Optional initial filter status to apply on mount */
+  initialFilter?: FilterStatus;
+  /** If true, hide the built-in filter tabs (useful when parent controls filtering) */
+  hideFilterTabs?: boolean;
 }
 
 type FilterStatus = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
@@ -74,11 +78,13 @@ export function ExceptionList({
   organizationId,
   currentUserId,
   currentUserRole,
+  initialFilter = 'ALL',
+  hideFilterTabs = false,
 }: ExceptionListProps) {
   const [exceptions, setExceptions] = useState<RiskExceptionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<FilterStatus>('ALL');
+  const [filter, setFilter] = useState<FilterStatus>(initialFilter);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -165,22 +171,24 @@ export function ExceptionList({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-        {FILTER_TABS.map((tab) => (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => setFilter(tab.value)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              filter === tab.value
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {!hideFilterTabs && (
+        <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+          {FILTER_TABS.map((tab) => (
+            <button
+              key={tab.value}
+              type="button"
+              onClick={() => setFilter(tab.value)}
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === tab.value
+                  ? 'bg-white dark:bg-gray-900 text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {error && (
         <div className="rounded-md bg-red-50 border border-red-200 p-3">
@@ -191,15 +199,37 @@ export function ExceptionList({
       {loading ? (
         <div className="py-12 text-center text-sm text-gray-500">Loading exceptions...</div>
       ) : exceptions.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 py-12 text-center">
-          <p className="text-sm text-gray-500">No exceptions found.</p>
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="mb-4 rounded-full bg-gray-100 p-4 dark:bg-gray-800">
+            <svg
+              className="h-8 w-8 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {filter !== 'ALL' ? 'No matching exceptions' : 'No risk exceptions yet'}
+          </h3>
+          <p className="mt-2 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+            {filter !== 'ALL'
+              ? 'No exceptions match the current filter. Try viewing all exceptions instead.'
+              : 'Risk exceptions will appear here when findings are marked as accepted risk, false positive, or not applicable from a case.'}
+          </p>
           {filter !== 'ALL' && (
             <button
               type="button"
               onClick={() => setFilter('ALL')}
-              className="mt-2 text-xs text-primary-600 underline"
+              className="mt-4 inline-flex items-center rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             >
-              Clear filter
+              View all exceptions
             </button>
           )}
         </div>
@@ -317,7 +347,7 @@ export function ExceptionList({
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((p) => p - 1)}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
                   Previous
                 </button>
@@ -325,7 +355,7 @@ export function ExceptionList({
                   type="button"
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => p + 1)}
-                  className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                  className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
                   Next
                 </button>

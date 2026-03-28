@@ -62,7 +62,7 @@ const DEFAULT_FORM: ScheduleFormData = {
 // Component
 // ---------------------------------------------------------------------------
 
-export function ScheduleManager({ organizationId }: { organizationId: string }) {
+export function ScheduleManager() {
   const [schedules, setSchedules] = useState<ReportSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -79,7 +79,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
   const fetchSchedules = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/reports/schedules?organizationId=${organizationId}`);
+      const res = await fetch('/api/reports/schedules');
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setSchedules(data.schedules ?? []);
@@ -88,7 +88,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
     } finally {
       setLoading(false);
     }
-  }, [organizationId]);
+  }, []);
 
   useEffect(() => {
     fetchSchedules();
@@ -136,7 +136,6 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
 
     const payload = {
       name: form.name.trim(),
-      organizationId,
       clientId: form.clientId || null,
       frequency: form.frequency,
       reportType: form.reportType,
@@ -297,7 +296,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
 
       {/* Create/Edit Form */}
       {showForm && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 shadow-sm">
           <h4 className="mb-4 text-sm font-semibold text-gray-900">
             {editingId ? 'Edit Schedule' : 'Create Schedule'}
           </h4>
@@ -424,7 +423,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
             <button
               type="button"
               onClick={() => { setShowForm(false); setEditingId(null); }}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+              className="rounded-lg border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
@@ -450,7 +449,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
           {schedules.map((schedule) => (
             <div
               key={schedule.id}
-              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm"
+              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white dark:bg-gray-900 px-5 py-4 shadow-sm"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -477,7 +476,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
                   type="button"
                   onClick={() => handleRunNow(schedule)}
                   disabled={runningId === schedule.id}
-                  className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50 transition-colors"
                   title="Run now"
                 >
                   {runningId === schedule.id ? (
@@ -495,7 +494,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
                 <button
                   type="button"
                   onClick={() => openEditForm(schedule)}
-                  className="inline-flex items-center rounded-md border border-gray-300 bg-white p-1.5 text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                  className="inline-flex items-center rounded-md border border-gray-300 bg-white dark:bg-gray-900 p-1.5 text-gray-500 shadow-sm hover:bg-gray-50 hover:text-gray-700 transition-colors"
                   title="Edit"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -505,7 +504,7 @@ export function ScheduleManager({ organizationId }: { organizationId: string }) 
                 <button
                   type="button"
                   onClick={() => handleDelete(schedule.id)}
-                  className="inline-flex items-center rounded-md border border-gray-300 bg-white p-1.5 text-gray-500 shadow-sm hover:bg-red-50 hover:text-red-600 transition-colors"
+                  className="inline-flex items-center rounded-md border border-gray-300 bg-white dark:bg-gray-900 p-1.5 text-gray-500 shadow-sm hover:bg-red-50 hover:text-red-600 transition-colors"
                   title="Delete"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

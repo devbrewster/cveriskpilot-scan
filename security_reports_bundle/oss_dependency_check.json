@@ -1,0 +1,172 @@
+{
+  "reportSchema": "1.1",
+  "scanInfo": {
+    "engineVersion": "9.2.0",
+    "dataSource": [
+      { "name": "NVD CVE Checked", "timestamp": "2026-03-11T08:00:00Z" },
+      { "name": "NPM Public Advisories", "timestamp": "2026-03-11T08:01:12Z" },
+      { "name": "RetireJS", "timestamp": "2026-03-11T08:01:22Z" },
+      { "name": "OSS Index", "timestamp": "2026-03-11T08:02:07Z" }
+    ]
+  },
+  "projectInfo": {
+    "name": "payment-service",
+    "reportDate": "2026-03-11T09:45:00Z",
+    "credits": {
+      "NVD": "This product uses the NVD API but is not endorsed or certified by the NVD."
+    }
+  },
+  "dependencies": [
+    {
+      "isVirtual": false,
+      "fileName": "log4j-core-2.14.1.jar",
+      "filePath": "/app/build/libs/log4j-core-2.14.1.jar",
+      "md5": "dde9e5d9c40be4be43de679ab73b9ec0",
+      "sha1": "cf65f0d33640f2cd0a0b06dd86a5c6353938ccb6",
+      "sha256": "e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6",
+      "evidenceCollected": {
+        "vendorEvidence": [{ "type": "file", "confidence": "HIGH", "source": "pom.xml", "name": "groupId", "value": "org.apache.logging.log4j" }],
+        "productEvidence": [{ "type": "file", "confidence": "HIGH", "source": "pom.xml", "name": "artifactId", "value": "log4j-core" }],
+        "versionEvidence": [{ "type": "file", "confidence": "HIGH", "source": "pom.xml", "name": "version", "value": "2.14.1" }]
+      },
+      "packages": [{ "id": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1", "confidence": "HIGH", "url": "https://ossindex.sonatype.org/component/pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1" }],
+      "vulnerabilityIds": [{ "id": "cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*", "confidence": "HIGHEST" }],
+      "vulnerabilities": [
+        {
+          "source": "NVD",
+          "name": "CVE-2021-44228",
+          "severity": "CRITICAL",
+          "cvssv3": { "baseScore": 10.0, "attackVector": "NETWORK", "attackComplexity": "LOW", "privilegesRequired": "NONE", "userInteraction": "NONE", "scope": "CHANGED", "confidentialityImpact": "HIGH", "integrityImpact": "HIGH", "availabilityImpact": "HIGH", "baseSeverity": "CRITICAL", "exploitabilityScore": 3.9, "impactScore": 6.0 },
+          "cwes": ["CWE-917", "CWE-502"],
+          "description": "Apache Log4j2 2.0-beta9 through 2.15.0 (excluding security releases 2.12.2, 2.12.3, and 2.3.1) JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints.",
+          "notes": "",
+          "references": [
+            { "source": "MISC", "url": "https://logging.apache.org/log4j/2.x/security.html", "name": "Apache Log4j Security Advisories" },
+            { "source": "MISC", "url": "https://www.cisa.gov/known-exploited-vulnerabilities-catalog", "name": "CISA KEV" }
+          ],
+          "publishedDate": "2021-12-10",
+          "updatedDate": "2024-01-15",
+          "vulnerableSoftware": [{ "software": { "id": "cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*", "vulnerabilityIdMatched": true } }]
+        },
+        {
+          "source": "NVD",
+          "name": "CVE-2021-45046",
+          "severity": "CRITICAL",
+          "cvssv3": { "baseScore": 9.0, "attackVector": "NETWORK", "attackComplexity": "HIGH", "privilegesRequired": "NONE", "userInteraction": "NONE", "scope": "CHANGED", "confidentialityImpact": "HIGH", "integrityImpact": "HIGH", "availabilityImpact": "HIGH", "baseSeverity": "CRITICAL" },
+          "cwes": ["CWE-917"],
+          "description": "It was found that the fix to address CVE-2021-44228 in Apache Log4j 2.15.0 was incomplete in certain non-default configurations.",
+          "publishedDate": "2021-12-14",
+          "updatedDate": "2024-01-15"
+        },
+        {
+          "source": "NVD",
+          "name": "CVE-2021-45105",
+          "severity": "HIGH",
+          "cvssv3": { "baseScore": 7.5, "attackVector": "NETWORK", "attackComplexity": "LOW", "privilegesRequired": "NONE", "userInteraction": "NONE", "scope": "UNCHANGED", "confidentialityImpact": "NONE", "integrityImpact": "NONE", "availabilityImpact": "HIGH", "baseSeverity": "HIGH" },
+          "cwes": ["CWE-674"],
+          "description": "Apache Log4j2 versions 2.0-alpha1 through 2.16.0 did not protect from uncontrolled recursion from self-referential lookups. Allows DoS.",
+          "publishedDate": "2021-12-18",
+          "updatedDate": "2023-11-07"
+        }
+      ]
+    },
+    {
+      "isVirtual": false,
+      "fileName": "spring-security-core-5.7.9.jar",
+      "filePath": "/app/build/libs/spring-security-core-5.7.9.jar",
+      "md5": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d",
+      "sha256": "f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7",
+      "vulnerabilities": [
+        {
+          "source": "NVD",
+          "name": "CVE-2024-22257",
+          "severity": "HIGH",
+          "cvssv3": { "baseScore": 8.2, "attackVector": "NETWORK", "attackComplexity": "LOW", "privilegesRequired": "NONE", "userInteraction": "NONE", "scope": "UNCHANGED", "confidentialityImpact": "HIGH", "integrityImpact": "LOW", "availabilityImpact": "NONE", "baseSeverity": "HIGH" },
+          "cwes": ["CWE-284"],
+          "description": "In Spring Security, usage of AuthorityAuthorizationManager or AuthenticatedAuthorizationManager with shim methods may fail to evaluate all conditions. Allows authorization bypass.",
+          "publishedDate": "2024-03-18",
+          "updatedDate": "2024-06-10",
+          "references": [{ "source": "MISC", "url": "https://spring.io/security/cve-2024-22257" }]
+        }
+      ]
+    },
+    {
+      "isVirtual": false,
+      "fileName": "commons-text-1.9.jar",
+      "filePath": "/app/build/libs/commons-text-1.9.jar",
+      "md5": "2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e",
+      "vulnerabilities": [
+        {
+          "source": "NVD",
+          "name": "CVE-2022-42889",
+          "severity": "CRITICAL",
+          "cvssv3": { "baseScore": 9.8, "attackVector": "NETWORK", "attackComplexity": "LOW", "privilegesRequired": "NONE", "userInteraction": "NONE", "scope": "UNCHANGED", "confidentialityImpact": "HIGH", "integrityImpact": "HIGH", "availabilityImpact": "HIGH", "baseSeverity": "CRITICAL" },
+          "cwes": ["CWE-94"],
+          "description": "Apache Commons Text Text4Shell — StringSubstitutor interpolation with script, dns, and url lookups allows remote code execution. Similar to Log4Shell.",
+          "publishedDate": "2022-10-13",
+          "updatedDate": "2023-11-07"
+        }
+      ]
+    },
+    {
+      "isVirtual": false,
+      "fileName": "jackson-databind-2.13.4.jar",
+      "filePath": "/app/build/libs/jackson-databind-2.13.4.jar",
+      "md5": "3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f",
+      "vulnerabilities": [
+        {
+          "source": "NVD",
+          "name": "CVE-2022-42003",
+          "severity": "HIGH",
+          "cvssv3": { "baseScore": 7.5, "attackVector": "NETWORK", "attackComplexity": "LOW", "privilegesRequired": "NONE", "userInteraction": "NONE", "scope": "UNCHANGED", "confidentialityImpact": "NONE", "integrityImpact": "NONE", "availabilityImpact": "HIGH", "baseSeverity": "HIGH" },
+          "cwes": ["CWE-502"],
+          "description": "In FasterXML jackson-databind before 2.14.0-rc1, resource exhaustion can occur because of a lack of a check in primitive value deserializers to avoid deep wrapper array nesting.",
+          "publishedDate": "2022-10-02"
+        }
+      ]
+    },
+    {
+      "isVirtual": false,
+      "fileName": "node_modules/lodash/lodash.js",
+      "filePath": "/app/node_modules/lodash/lodash.js",
+      "md5": "4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a",
+      "vulnerabilities": [
+        {
+          "source": "NPM",
+          "name": "CVE-2021-23337",
+          "severity": "HIGH",
+          "cvssv3": { "baseScore": 7.2, "attackVector": "NETWORK", "attackComplexity": "LOW", "privilegesRequired": "HIGH", "userInteraction": "NONE", "scope": "UNCHANGED", "confidentialityImpact": "HIGH", "integrityImpact": "HIGH", "availabilityImpact": "HIGH", "baseSeverity": "HIGH" },
+          "cwes": ["CWE-77"],
+          "description": "Lodash versions prior to 4.17.21 are vulnerable to Command Injection via the template function.",
+          "publishedDate": "2021-02-15",
+          "updatedDate": "2023-11-07"
+        },
+        {
+          "source": "NPM",
+          "name": "CVE-2020-8203",
+          "severity": "HIGH",
+          "cvssv3": { "baseScore": 7.4, "attackVector": "NETWORK", "attackComplexity": "HIGH", "privilegesRequired": "NONE", "userInteraction": "NONE", "scope": "UNCHANGED", "confidentialityImpact": "NONE", "integrityImpact": "HIGH", "availabilityImpact": "HIGH", "baseSeverity": "HIGH" },
+          "cwes": ["CWE-770"],
+          "description": "Prototype Pollution in lodash < 4.17.19 via zipObjectDeep.",
+          "publishedDate": "2020-07-15"
+        }
+      ]
+    },
+    {
+      "isVirtual": false,
+      "fileName": "node_modules/axios/dist/axios.min.js",
+      "filePath": "/app/node_modules/axios/dist/axios.min.js",
+      "vulnerabilities": [
+        {
+          "source": "NPM",
+          "name": "CVE-2023-45857",
+          "severity": "MEDIUM",
+          "cvssv3": { "baseScore": 6.5, "attackVector": "NETWORK", "attackComplexity": "LOW", "privilegesRequired": "NONE", "userInteraction": "REQUIRED", "scope": "UNCHANGED", "confidentialityImpact": "HIGH", "integrityImpact": "NONE", "availabilityImpact": "NONE", "baseSeverity": "MEDIUM" },
+          "cwes": ["CWE-200"],
+          "description": "Axios < 1.6.0 header exposure — XSRF-TOKEN header sent to third-party origins, leaking CSRF token.",
+          "publishedDate": "2023-11-08"
+        }
+      ]
+    }
+  ]
+}

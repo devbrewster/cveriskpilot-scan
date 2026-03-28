@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { ServiceNowConfig } from '@cveriskpilot/integrations';
 
 /**
  * ServiceNow integration config stored in org.entitlements.servicenow.

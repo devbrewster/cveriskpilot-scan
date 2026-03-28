@@ -29,7 +29,7 @@ function isValidCIDR(value: string): boolean {
   return true;
 }
 
-export function IpAllowlist({ organizationId }: IpAllowlistProps) {
+export function IpAllowlist({ organizationId: _organizationId }: IpAllowlistProps) {
   const [enabled, setEnabled] = useState(false);
   const [allowlist, setAllowlist] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +149,7 @@ export function IpAllowlist({ organizationId }: IpAllowlistProps) {
       ) : (
         <>
           {/* Enable Toggle */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-medium text-gray-900">IP Restriction</h3>
@@ -167,7 +167,7 @@ export function IpAllowlist({ organizationId }: IpAllowlistProps) {
                 aria-checked={enabled}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-900 shadow ring-0 transition duration-200 ease-in-out ${
                     enabled ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />
@@ -184,7 +184,7 @@ export function IpAllowlist({ organizationId }: IpAllowlistProps) {
           </div>
 
           {/* IP Ranges */}
-          <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-4">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 space-y-4">
             <h3 className="text-sm font-medium text-gray-900">Allowed IP Ranges</h3>
 
             {/* Add Entry */}
@@ -256,7 +256,7 @@ export function IpAllowlist({ organizationId }: IpAllowlistProps) {
             <button
               type="button"
               onClick={fetchAllowlist}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Reset
             </button>

@@ -26,7 +26,7 @@ interface ServiceAccountsProps {
   organizationId: string;
 }
 
-export function ServiceAccounts({ organizationId }: ServiceAccountsProps) {
+export function ServiceAccounts({ organizationId: _organizationId }: ServiceAccountsProps) {
   const [accounts, setAccounts] = useState<ServiceAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -170,7 +170,7 @@ export function ServiceAccounts({ organizationId }: ServiceAccountsProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <code className="flex-1 rounded bg-white px-3 py-2 text-sm font-mono text-gray-900 border border-amber-200 select-all">
+            <code className="flex-1 rounded bg-white dark:bg-gray-900 px-3 py-2 text-sm font-mono text-gray-900 border border-amber-200 select-all">
               {newResult.apiKey.key}
             </code>
             <button
@@ -195,7 +195,7 @@ export function ServiceAccounts({ organizationId }: ServiceAccountsProps) {
       {showCreateForm && (
         <form
           onSubmit={handleCreate}
-          className="rounded-lg border border-gray-200 bg-white p-6 space-y-4"
+          className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 space-y-4"
         >
           <h3 className="text-md font-semibold text-gray-900">New Service Account</h3>
 
@@ -244,7 +244,7 @@ export function ServiceAccounts({ organizationId }: ServiceAccountsProps) {
             <button
               type="button"
               onClick={() => setShowCreateForm(false)}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>
@@ -271,7 +271,7 @@ export function ServiceAccounts({ organizationId }: ServiceAccountsProps) {
           {accounts.map((sa) => (
             <div
               key={sa.id}
-              className="rounded-lg border border-gray-200 bg-white p-4"
+              className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4"
             >
               <div className="flex items-center justify-between">
                 <div>

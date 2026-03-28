@@ -1,5 +1,6 @@
 export * from './types';
 export * from './client';
+export * from './vertex-client';
 export * from './redaction';
 export * from './prompt';
 export * from './parser';

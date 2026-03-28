@@ -74,7 +74,7 @@ export function UploadProgress({ currentStage, stageProgress, statusText, stats 
                       ? 'border-green-500 bg-green-500 text-white'
                       : isCurrent
                         ? 'border-primary-500 bg-primary-50 text-primary-600'
-                        : 'border-gray-300 bg-white text-gray-400'
+                        : 'border-gray-300 bg-white dark:bg-gray-900 text-gray-400'
                   }`}
                 >
                   {isCompleted ? (

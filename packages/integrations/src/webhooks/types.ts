@@ -9,6 +9,9 @@ export const WEBHOOK_EVENT_TYPES = [
   'finding.created',
   'sla.breached',
   'comment.created',
+  'pipeline.scan.completed',
+  'pipeline.scan.failed',
+  'pipeline.compliance.violation',
 ] as const;
 
 export type WebhookEventType = (typeof WEBHOOK_EVENT_TYPES)[number];

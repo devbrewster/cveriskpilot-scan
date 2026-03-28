@@ -42,7 +42,7 @@ export function BulkActions({ selectedCount, onStatusChange, onClear }: BulkActi
 
   return (
     <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-      <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-2xl">
+      <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white dark:bg-gray-900 px-5 py-3 shadow-2xl">
         <span className="text-sm font-semibold text-gray-700">
           {selectedCount} selected
         </span>
@@ -54,7 +54,7 @@ export function BulkActions({ selectedCount, onStatusChange, onClear }: BulkActi
           <select
             value={statusValue}
             onChange={(e) => setStatusValue(e.target.value as CaseStatus | '')}
-            className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+            className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm text-gray-700 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
           >
             <option value="">Change Status...</option>
             {BULK_STATUS_OPTIONS.map((opt) => (

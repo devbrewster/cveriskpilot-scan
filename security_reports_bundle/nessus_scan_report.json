@@ -1,0 +1,186 @@
+{
+  "nessus_scan": {
+    "info": {
+      "scanner_name": "Tenable Nessus Professional",
+      "scanner_version": "10.7.2",
+      "policy": "Advanced Scan - Full and Deep",
+      "scan_name": "Production Network Q1 2026",
+      "scan_start": "2026-03-10T22:00:00Z",
+      "scan_end": "2026-03-11T04:37:12Z",
+      "host_count": 47,
+      "total_findings": 312,
+      "critical": 11,
+      "high": 38,
+      "medium": 97,
+      "low": 84,
+      "informational": 82
+    },
+    "hosts": [
+      {
+        "ip": "10.0.1.10",
+        "hostname": "web-prod-01.corp.internal",
+        "os": "Ubuntu 22.04.3 LTS",
+        "findings": [
+          {
+            "plugin_id": "97737",
+            "plugin_name": "SSH Terrapin Prefix Truncation Weakness (CVE-2023-48795)",
+            "severity": "Medium",
+            "cvss3_base_score": 5.9,
+            "cve": ["CVE-2023-48795"],
+            "port": 22,
+            "protocol": "TCP",
+            "description": "The remote SSH server is vulnerable to a prefix truncation attack known as 'Terrapin'. This attack allows a man-in-the-middle attacker to strip a number of messages at the beginning of the SSH handshake, potentially downgrading security.",
+            "plugin_output": "The following supported encryption algorithms allow the attack:\n  - chacha20-poly1305@openssh.com\n  - *-etm@openssh.com MACs\n\nKEX Algorithms: curve25519-sha256\nServer version: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6",
+            "solution": "Upgrade OpenSSH to 9.6 or later which disables the affected algorithms by default. Alternatively, remove chacha20-poly1305 and *-etm MACs from sshd_config.",
+            "risk_factor": "Medium",
+            "patch_available": true,
+            "xref": ["CWE-354", "https://terrapin-attack.com/"]
+          },
+          {
+            "plugin_id": "157288",
+            "plugin_name": "OpenSSH < 9.8 Remote Code Execution (CVE-2024-6387)",
+            "severity": "Critical",
+            "cvss3_base_score": 8.1,
+            "cve": ["CVE-2024-6387"],
+            "port": 22,
+            "protocol": "TCP",
+            "description": "The version of OpenSSH installed on the remote host is prior to 9.8. It is, therefore, affected by a signal handler race condition in the server (sshd). If a client does not authenticate within the LoginGraceTime (120 seconds by default), then sshd's SIGALRM handler is called asynchronously.",
+            "plugin_output": "Installed version: 8.9p1\nFixed version: 9.8p1\n\nNote: LoginGraceTime is set to the default of 120 seconds. Temporary mitigation: Set LoginGraceTime 0",
+            "solution": "Upgrade to OpenSSH 9.8p1 or later.",
+            "risk_factor": "Critical"
+          },
+          {
+            "plugin_id": "10881",
+            "plugin_name": "SSL Certificate Cannot Be Trusted",
+            "severity": "Medium",
+            "cvss3_base_score": 5.4,
+            "port": 443,
+            "protocol": "TCP",
+            "description": "The server's X.509 certificate cannot be trusted. The certificate chain was signed by an unknown certificate authority.",
+            "plugin_output": "Subject: CN=web-prod-01.corp.internal\nIssuer: CN=Corp Internal CA, O=Corp\nNot Before: 2025-01-15\nNot After: 2025-01-15\nError: Certificate expired on 2025-01-15",
+            "solution": "Renew the SSL/TLS certificate. Ensure certificate authority is trusted by clients.",
+            "risk_factor": "Medium"
+          },
+          {
+            "plugin_id": "56984",
+            "plugin_name": "SSL/TLS Diffie-Hellman Modulus <= 1024 Bits (Logjam)",
+            "severity": "Medium",
+            "cvss3_base_score": 5.9,
+            "cve": ["CVE-2015-4000"],
+            "port": 443,
+            "protocol": "TCP",
+            "description": "The remote host allows SSL/TLS connections with one or more Diffie-Hellman moduli less than or equal to 1024 bits. An attacker could decrypt TLS connections via a downgrade attack (aka Logjam).",
+            "plugin_output": "Weak DH group detected:\n  Modulus size: 1024 bits\n  Cipher suite: DHE-RSA-AES256-SHA",
+            "solution": "Reconfigure the service to use a Diffie-Hellman moduli of 2048 bits or greater. Disable export cipher suites.",
+            "risk_factor": "Medium"
+          }
+        ]
+      },
+      {
+        "ip": "10.0.2.45",
+        "hostname": "db-payments-prod-01.corp.internal",
+        "os": "Debian GNU/Linux 11 (bullseye)",
+        "findings": [
+          {
+            "plugin_id": "100774",
+            "plugin_name": "PostgreSQL Multiple Vulnerabilities (January 2024)",
+            "severity": "High",
+            "cvss3_base_score": 8.8,
+            "cve": ["CVE-2024-0985"],
+            "port": 5432,
+            "protocol": "TCP",
+            "description": "The version of PostgreSQL installed on the remote host is prior to 16.2, 15.6, 14.11, 13.14, or 12.18 and is affected by a vulnerability: A user having MAINTAIN privilege on a relation can trigger execution of arbitrary SQL functions under the identity of the relation owner.",
+            "plugin_output": "Installed version: PostgreSQL 14.9\nFixed version: PostgreSQL 14.11",
+            "solution": "Upgrade PostgreSQL to 14.11, 15.6, 16.2, or later.",
+            "risk_factor": "High"
+          },
+          {
+            "plugin_id": "10674",
+            "plugin_name": "PostgreSQL Server Accessible Without Credentials",
+            "severity": "Critical",
+            "cvss3_base_score": 9.8,
+            "port": 5432,
+            "protocol": "TCP",
+            "description": "The PostgreSQL server running on the remote host allows connections without authentication using the 'trust' authentication method for some databases.",
+            "plugin_output": "Database 'analytics' accepts connections with 'trust' authentication from 0.0.0.0/0\npg_hba.conf entry: host all all 0.0.0.0/0 trust",
+            "solution": "Modify pg_hba.conf to require password authentication (md5 or scram-sha-256) for all connections. Remove trust authentication for external connections.",
+            "risk_factor": "Critical"
+          },
+          {
+            "plugin_id": "55890",
+            "plugin_name": "Network Time Protocol (NTP) Mode 6 Scanner",
+            "severity": "Medium",
+            "cvss3_base_score": 5.0,
+            "cve": ["CVE-2013-5211"],
+            "port": 123,
+            "protocol": "UDP",
+            "description": "The remote NTP server responds to mode 6 queries. Devices that respond to these queries have the potential to be used in NTP amplification attacks.",
+            "solution": "Restrict mode 6 queries by adding 'restrict default noquery' to ntp.conf.",
+            "risk_factor": "Medium"
+          }
+        ]
+      },
+      {
+        "ip": "10.0.3.22",
+        "hostname": "jenkins-ci-prod.corp.internal",
+        "os": "CentOS Linux 7",
+        "findings": [
+          {
+            "plugin_id": "200903",
+            "plugin_name": "Jenkins < 2.442 / LTS < 2.426.3 Multiple Vulnerabilities",
+            "severity": "Critical",
+            "cvss3_base_score": 9.8,
+            "cve": ["CVE-2024-23897", "CVE-2024-23898"],
+            "port": 8080,
+            "protocol": "TCP",
+            "description": "The Jenkins server installed on the remote host is prior to 2.442 or LTS 2.426.3 and is vulnerable to arbitrary file read via the CLI endpoint (CVE-2024-23897, CVSS 9.8). An unauthenticated attacker can read arbitrary files including private SSH keys, credentials.xml, and secrets.",
+            "plugin_output": "Installed version: Jenkins 2.387.3 LTS\nFixed version: Jenkins LTS 2.426.3\n\nProof of concept:\nCLI command: java -jar jenkins-cli.jar -s http://10.0.3.22:8080/ help '@/etc/passwd'\nResult: returns /etc/passwd contents",
+            "solution": "Update Jenkins to 2.442 or LTS 2.426.3 or later. Disable CLI access if not needed: JENKINS_URL/manage/configureSecurity/ -> Disable CLI over Remoting.",
+            "risk_factor": "Critical",
+            "exploit_available": true
+          },
+          {
+            "plugin_id": "18405",
+            "plugin_name": "Java Version Detection",
+            "severity": "Informational",
+            "port": 8080,
+            "description": "Java 8u292 (EOL) detected. Java 8 reached end of public updates in 2019.",
+            "solution": "Upgrade to Java 17 LTS or Java 21 LTS.",
+            "risk_factor": "Informational"
+          }
+        ]
+      },
+      {
+        "ip": "10.0.4.15",
+        "hostname": "redis-cache-01.corp.internal",
+        "os": "Ubuntu 20.04.6 LTS",
+        "findings": [
+          {
+            "plugin_id": "141118",
+            "plugin_name": "Redis Server Unprotected by Password Authentication",
+            "severity": "Critical",
+            "cvss3_base_score": 9.8,
+            "port": 6379,
+            "protocol": "TCP",
+            "description": "The remote Redis server does not require authentication. An unauthenticated, remote attacker can access the database and potentially execute OS commands via the SLAVEOF or CONFIG SET commands.",
+            "plugin_output": "Successful unauthenticated connection:\n127.0.0.1:6379> PING\n+PONG\n127.0.0.1:6379> INFO server\n# Server\nredis_version:7.0.14\n...\nKeys found: 14,847\nSample key types: session:*, payment:*, user:*",
+            "solution": "Set requirepass in redis.conf. Enable protected-mode. Bind Redis to 127.0.0.1 or VPC-internal IPs only. Disable dangerous commands: CONFIG, SLAVEOF, DEBUG.",
+            "risk_factor": "Critical"
+          },
+          {
+            "plugin_id": "141119",
+            "plugin_name": "Redis Server Accessible from Untrusted Network",
+            "severity": "High",
+            "cvss3_base_score": 7.5,
+            "port": 6379,
+            "protocol": "TCP",
+            "description": "Redis is listening on 0.0.0.0:6379 and is accessible from external networks.",
+            "plugin_output": "bind 0.0.0.0 detected in Redis configuration",
+            "solution": "Change Redis bind address to 127.0.0.1 or a specific internal IP. Apply network-level controls via firewall.",
+            "risk_factor": "High"
+          }
+        ]
+      }
+    ]
+  }
+}

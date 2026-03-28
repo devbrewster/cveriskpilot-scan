@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="cyan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ee6f6"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.3" opacity="0.3"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+
+  <!-- Logo -->
+  <g transform="translate(80, 20)">
+    <polygon points="22,0 44,12 44,36 22,48 0,36 0,12" fill="none" stroke="#0ee6f6" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="22,8 36,16 36,32 22,40 8,32 8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2" opacity="0.8"/>
+    <circle cx="22" cy="24" r="3" fill="#0ee6f6"/>
+  </g>
+  <text x="140" y="48" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700">
+    <tspan fill="#94a3b8">CVE</tspan><tspan fill="#0ee6f6">RiskPilot</tspan>
+  </text>
+
+  <!-- Title -->
+  <text x="600" y="85" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="800" fill="white">What Developers See on Every PR</text>
+
+  <!-- GitHub PR Comment Card -->
+  <g transform="translate(160, 110)" filter="url(#shadow)">
+    <!-- Card background (white) -->
+    <rect width="880" height="460" rx="12" fill="#ffffff"/>
+    <!-- Card left border (blue like GitHub) -->
+    <rect x="0" y="0" width="4" height="460" rx="2" fill="#3b82f6"/>
+
+    <!-- Comment header -->
+    <g transform="translate(20, 18)">
+      <!-- Bot avatar -->
+      <rect width="36" height="36" rx="18" fill="#0f172a"/>
+      <text x="18" y="24" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16">&#x1F916;</text>
+      <!-- Name and time -->
+      <text x="46" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#1e293b">CVERiskPilot Bot</text>
+      <text x="46" y="33" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">commented just now</text>
+      <!-- Bot badge -->
+      <rect x="195" y="4" width="38" height="18" rx="9" fill="#dbeafe" stroke="#93c5fd" stroke-width="0.5"/>
+      <text x="214" y="17" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#3b82f6">Bot</text>
+    </g>
+
+    <!-- Divider -->
+    <line x1="20" y1="65" x2="860" y2="65" stroke="#e5e7eb" stroke-width="1"/>
+
+    <!-- Title inside comment -->
+    <text x="30" y="92" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#1e293b">Pipeline Compliance Scan Results</text>
+
+    <!-- Verdict badge: FAIL -->
+    <g transform="translate(30, 105)">
+      <rect width="380" height="36" rx="8" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+      <text x="22" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15">&#x274C;</text>
+      <text x="44" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#dc2626">FAIL</text>
+      <text x="80" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#6b7280">&#x2014; 3 compliance controls affected</text>
+    </g>
+
+    <!-- Findings table header -->
+    <g transform="translate(30, 160)">
+      <rect width="820" height="30" rx="6" fill="#f8fafc"/>
+      <text x="15" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#6b7280" letter-spacing="0.5">SEVERITY</text>
+      <text x="130" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#6b7280" letter-spacing="0.5">CWE</text>
+      <text x="300" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#6b7280" letter-spacing="0.5">DESCRIPTION</text>
+      <text x="560" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#6b7280" letter-spacing="0.5">NIST CONTROL</text>
+      <text x="700" y="20" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#6b7280" letter-spacing="0.5">FRAMEWORK</text>
+    </g>
+
+    <!-- Table row 1 -->
+    <g transform="translate(30, 195)">
+      <rect width="820" height="34" rx="0" fill="#ffffff"/>
+      <line x1="0" y1="34" x2="820" y2="34" stroke="#f1f5f9" stroke-width="1"/>
+      <!-- Critical badge -->
+      <rect x="8" y="7" width="70" height="20" rx="10" fill="#fef2f2"/>
+      <text x="43" y="21" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="700" fill="#dc2626">CRITICAL</text>
+      <!-- CWE -->
+      <text x="130" y="22" font-family="monospace" font-size="12" font-weight="600" fill="#1e293b">CWE-798</text>
+      <!-- Description -->
+      <text x="300" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">Hardcoded Credentials</text>
+      <!-- NIST -->
+      <rect x="553" y="7" width="60" height="20" rx="4" fill="#eff6ff"/>
+      <text x="583" y="21" text-anchor="middle" font-family="monospace" font-size="11" font-weight="600" fill="#2563eb">IA-5</text>
+      <!-- Framework -->
+      <text x="700" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">SOC2 CC6.1, CMMC</text>
+    </g>
+
+    <!-- Table row 2 -->
+    <g transform="translate(30, 229)">
+      <rect width="820" height="34" rx="0" fill="#f8fafc"/>
+      <line x1="0" y1="34" x2="820" y2="34" stroke="#f1f5f9" stroke-width="1"/>
+      <rect x="8" y="7" width="70" height="20" rx="10" fill="#fff7ed"/>
+      <text x="43" y="21" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="700" fill="#ea580c">HIGH</text>
+      <text x="130" y="22" font-family="monospace" font-size="12" font-weight="600" fill="#1e293b">CWE-89</text>
+      <text x="300" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">SQL Injection</text>
+      <rect x="553" y="7" width="60" height="20" rx="4" fill="#eff6ff"/>
+      <text x="583" y="21" text-anchor="middle" font-family="monospace" font-size="11" font-weight="600" fill="#2563eb">SI-10</text>
+      <text x="700" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">SOC2 CC6.1, FedRAMP</text>
+    </g>
+
+    <!-- Table row 3 -->
+    <g transform="translate(30, 263)">
+      <rect width="820" height="34" rx="0" fill="#ffffff"/>
+      <line x1="0" y1="34" x2="820" y2="34" stroke="#f1f5f9" stroke-width="1"/>
+      <rect x="8" y="7" width="70" height="20" rx="10" fill="#fefce8"/>
+      <text x="43" y="21" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="700" fill="#ca8a04">MEDIUM</text>
+      <text x="130" y="22" font-family="monospace" font-size="12" font-weight="600" fill="#1e293b">CWE-79</text>
+      <text x="300" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#374151">Cross-Site Scripting</text>
+      <rect x="553" y="7" width="60" height="20" rx="4" fill="#eff6ff"/>
+      <text x="583" y="21" text-anchor="middle" font-family="monospace" font-size="11" font-weight="600" fill="#2563eb">SI-2</text>
+      <text x="700" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#6b7280">CMMC SI.L2-3.14.1</text>
+    </g>
+
+    <!-- POAM section -->
+    <g transform="translate(30, 315)">
+      <rect width="820" height="50" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+      <text x="20" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="15">&#x1F4DD;</text>
+      <text x="42" y="22" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#166534">POAM Auto-Generated</text>
+      <text x="42" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#15803d">2 POAM entries created for affected controls (IA-5, SI-10)</text>
+    </g>
+
+    <!-- Summary stats -->
+    <g transform="translate(30, 380)">
+      <text x="0" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">
+        <tspan font-weight="700" fill="#1e293b">3</tspan> findings |
+        <tspan font-weight="700" fill="#1e293b">3</tspan> controls affected |
+        <tspan font-weight="700" fill="#1e293b">2</tspan> POAM entries |
+        <tspan font-weight="700" fill="#1e293b">6</tspan> frameworks checked
+      </text>
+    </g>
+
+    <!-- Action links -->
+    <g transform="translate(30, 410)">
+      <text x="0" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#3b82f6" text-decoration="underline">View full report</text>
+      <text x="120" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">|</text>
+      <text x="135" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#3b82f6" text-decoration="underline">Download POAM</text>
+      <text x="255" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#6b7280">|</text>
+      <text x="270" y="16" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#3b82f6" text-decoration="underline">Request exception</text>
+    </g>
+
+    <!-- Powered by footer -->
+    <g transform="translate(30, 438)">
+      <text x="0" y="12" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#9ca3af">Powered by CVERiskPilot Pipeline Compliance Scanner</text>
+    </g>
+  </g>
+
+  <!-- Bottom branding -->
+  <text x="600" y="610" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white">One GitHub Action. Zero manual mapping.</text>
+  <text x="600" y="635" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#475569">cveriskpilot.com | 100% Veteran Owned</text>
+  <rect x="0" y="670" width="1200" height="5" fill="url(#cyan-grad)"/>
+</svg>

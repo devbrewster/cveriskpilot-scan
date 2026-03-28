@@ -179,7 +179,7 @@ export function RiskExceptionForm({
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
           >
             Request Exception
           </button>
@@ -255,7 +255,7 @@ export function RiskExceptionForm({
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="rounded-md border border-gray-200 bg-white p-4 space-y-4"
+          className="rounded-md border border-gray-200 bg-white dark:bg-gray-900 p-4 space-y-4"
         >
           <div>
             <label htmlFor="exception-type" className="block text-sm font-medium text-gray-700">
@@ -315,7 +315,7 @@ export function RiskExceptionForm({
                   className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
                     durationOption === opt.value
                       ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                      : 'border-gray-300 bg-white dark:bg-gray-900 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   {opt.label}
@@ -352,7 +352,7 @@ export function RiskExceptionForm({
                 setReason('');
                 setVexRationale('');
               }}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Cancel
             </button>

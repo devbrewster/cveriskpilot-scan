@@ -114,6 +114,7 @@ enum ParserFormat {
   CSAF
   QUALYS
   OPENVAS
+  XLSX
 }
 
 enum AuditAction {
@@ -138,64 +139,83 @@ enum ExceptionType {
   NOT_APPLICABLE
 }
 
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  POLLING
+  DOWNLOADING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum SyncJobTrigger {
+  SCHEDULED
+  MANUAL
+  WEBHOOK
+}
+
 // ---------------------------------------------------------------------------
 // Tenant Models
 // ---------------------------------------------------------------------------
 
 model Organization {
-  id                     String    @id @default(cuid()) @map("id")
-  name                   String    @map("name")
-  slug                   String    @unique @map("slug")
-  tier                   Tier      @default(FREE) @map("tier")
-  stripeCustomerId       String?   @map("stripe_customer_id")
-  stripeSubscriptionId   String?   @map("stripe_subscription_id")
-  entitlements           Json?     @map("entitlements")
-  logoUrl                String?   @map("logo_url")
-  domain                 String?   @map("domain")
-  createdAt              DateTime  @default(now()) @map("created_at")
-  updatedAt              DateTime  @updatedAt @map("updated_at")
-  deletedAt              DateTime? @map("deleted_at")
+  id                   String    @id @default(cuid()) @map("id")
+  name                 String    @map("name")
+  slug                 String    @unique @map("slug")
+  tier                 Tier      @default(FREE) @map("tier")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @map("stripe_subscription_id")
+  stripeMeteredItemId  String?   @map("stripe_metered_item_id")
+  entitlements         Json?     @map("entitlements")
+  aiPromptConfig       Json?     @map("ai_prompt_config")
+  logoUrl              String?   @map("logo_url")
+  domain               String?   @map("domain")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
 
-  users                  User[]
-  clients                Client[]
-  teams                  Team[]
-  assets                 Asset[]
-  slaPolicies            SlaPolicy[]
-  apiKeys                ApiKey[]
-  auditLogs              AuditLog[]
-  findings               Finding[]
-  vulnerabilityCases     VulnerabilityCase[]
-  scanArtifacts          ScanArtifact[]
-  uploadJobs             UploadJob[]
-  brandConfig            BrandConfig?
-  reportSchedules        ReportSchedule[]
+  users              User[]
+  clients            Client[]
+  teams              Team[]
+  assets             Asset[]
+  slaPolicies        SlaPolicy[]
+  apiKeys            ApiKey[]
+  auditLogs          AuditLog[]
+  findings           Finding[]
+  vulnerabilityCases VulnerabilityCase[]
+  scanArtifacts      ScanArtifact[]
+  uploadJobs         UploadJob[]
+  brandConfig        BrandConfig?
+  reportSchedules    ReportSchedule[]
 
   @@map("organizations")
 }
 
 model Client {
-  id                     String    @id @default(cuid()) @map("id")
-  organizationId         String    @map("organization_id")
-  name                   String    @map("name")
-  slug                   String    @map("slug")
-  contactName            String?   @map("contact_name")
-  contactEmail           String?   @map("contact_email")
-  industry               String?   @map("industry")
-  description            String?   @map("description")
-  domain                 String?   @map("domain")
-  tags                   String[]  @default([]) @map("tags")
-  isActive               Boolean   @default(true) @map("is_active")
-  createdAt              DateTime  @default(now()) @map("created_at")
-  updatedAt              DateTime  @updatedAt @map("updated_at")
-  deletedAt              DateTime? @map("deleted_at")
+  id             String    @id @default(cuid()) @map("id")
+  organizationId String    @map("organization_id")
+  name           String    @map("name")
+  slug           String    @map("slug")
+  contactName    String?   @map("contact_name")
+  contactEmail   String?   @map("contact_email")
+  industry       String?   @map("industry")
+  description    String?   @map("description")
+  domain         String?   @map("domain")
+  tags           String[]  @default([]) @map("tags")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
 
-  organization           Organization @relation(fields: [organizationId], references: [id])
-  findings               Finding[]
-  vulnerabilityCases     VulnerabilityCase[]
-  assets                 Asset[]
-  uploadJobs             UploadJob[]
-  scanArtifacts          ScanArtifact[]
-  clientTeamAssignments  ClientTeamAssignment[]
+  organization          Organization           @relation(fields: [organizationId], references: [id])
+  findings              Finding[]
+  vulnerabilityCases    VulnerabilityCase[]
+  assets                Asset[]
+  uploadJobs            UploadJob[]
+  scanArtifacts         ScanArtifact[]
+  clientTeamAssignments ClientTeamAssignment[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -203,25 +223,25 @@ model Client {
 }
 
 model User {
-  id                     String      @id @default(cuid()) @map("id")
-  organizationId         String      @map("organization_id")
-  email                  String      @map("email")
-  name                   String      @map("name")
-  passwordHash           String?     @map("password_hash")
-  googleId               String?     @map("google_id")
-  githubId               String?     @map("github_id")
-  mfaEnabled             Boolean     @default(false) @map("mfa_enabled")
-  mfaSecret              String?     @map("mfa_secret")
-  role                   UserRole    @default(VIEWER) @map("role")
-  status                 UserStatus  @default(PENDING_INVITE) @map("status")
-  lastLoginAt            DateTime?   @map("last_login_at")
-  failedLoginCount       Int         @default(0) @map("failed_login_count")
-  accountLockedUntil     DateTime?   @map("account_locked_until")
-  createdAt              DateTime    @default(now()) @map("created_at")
-  updatedAt              DateTime    @updatedAt @map("updated_at")
-  deletedAt              DateTime?   @map("deleted_at")
+  id                 String     @id @default(cuid()) @map("id")
+  organizationId     String     @map("organization_id")
+  email              String     @map("email")
+  name               String     @map("name")
+  passwordHash       String?    @map("password_hash")
+  googleId           String?    @map("google_id")
+  githubId           String?    @map("github_id")
+  mfaEnabled         Boolean    @default(false) @map("mfa_enabled")
+  mfaSecret          String?    @map("mfa_secret")
+  role               UserRole   @default(VIEWER) @map("role")
+  status             UserStatus @default(PENDING_INVITE) @map("status")
+  lastLoginAt        DateTime?  @map("last_login_at")
+  failedLoginCount   Int        @default(0) @map("failed_login_count")
+  accountLockedUntil DateTime?  @map("account_locked_until")
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+  deletedAt          DateTime?  @map("deleted_at")
 
-  organization           Organization      @relation(fields: [organizationId], references: [id])
+  organization           Organization        @relation(fields: [organizationId], references: [id])
   teamMemberships        TeamMembership[]
   comments               Comment[]
   notifications          Notification[]
@@ -237,43 +257,43 @@ model User {
 }
 
 model Team {
-  id                     String    @id @default(cuid()) @map("id")
-  organizationId         String    @map("organization_id")
-  name                   String    @map("name")
-  description            String?   @map("description")
-  createdAt              DateTime  @default(now()) @map("created_at")
-  updatedAt              DateTime  @updatedAt @map("updated_at")
+  id             String   @id @default(cuid()) @map("id")
+  organizationId String   @map("organization_id")
+  name           String   @map("name")
+  description    String?  @map("description")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  organization           Organization           @relation(fields: [organizationId], references: [id])
-  memberships            TeamMembership[]
-  clientAssignments      ClientTeamAssignment[]
+  organization      Organization           @relation(fields: [organizationId], references: [id])
+  memberships       TeamMembership[]
+  clientAssignments ClientTeamAssignment[]
 
   @@index([organizationId])
   @@map("teams")
 }
 
 model TeamMembership {
-  id                     String    @id @default(cuid()) @map("id")
-  userId                 String    @map("user_id")
-  teamId                 String    @map("team_id")
-  role                   TeamRole  @default(MEMBER) @map("role")
-  createdAt              DateTime  @default(now()) @map("created_at")
+  id        String   @id @default(cuid()) @map("id")
+  userId    String   @map("user_id")
+  teamId    String   @map("team_id")
+  role      TeamRole @default(MEMBER) @map("role")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  user                   User      @relation(fields: [userId], references: [id])
-  team                   Team      @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  team Team @relation(fields: [teamId], references: [id])
 
   @@unique([userId, teamId])
   @@map("team_memberships")
 }
 
 model ClientTeamAssignment {
-  id                     String    @id @default(cuid()) @map("id")
-  teamId                 String    @map("team_id")
-  clientId               String    @map("client_id")
-  createdAt              DateTime  @default(now()) @map("created_at")
+  id        String   @id @default(cuid()) @map("id")
+  teamId    String   @map("team_id")
+  clientId  String   @map("client_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
-  team                   Team      @relation(fields: [teamId], references: [id])
-  client                 Client    @relation(fields: [clientId], references: [id])
+  team   Team   @relation(fields: [teamId], references: [id])
+  client Client @relation(fields: [clientId], references: [id])
 
   @@unique([teamId, clientId])
   @@map("client_team_assignments")
@@ -284,49 +304,49 @@ model ClientTeamAssignment {
 // ---------------------------------------------------------------------------
 
 model Asset {
-  id                     String       @id @default(cuid()) @map("id")
-  organizationId         String       @map("organization_id")
-  clientId               String       @map("client_id")
-  name                   String       @map("name")
-  type                   AssetType    @map("type")
-  environment            Environment  @default(PRODUCTION) @map("environment")
-  criticality            Criticality  @default(MEDIUM) @map("criticality")
-  internetExposed        Boolean      @default(false) @map("internet_exposed")
-  tags                   String[]     @map("tags")
-  deploymentRefs         Json?        @map("deployment_refs")
-  createdAt              DateTime     @default(now()) @map("created_at")
-  updatedAt              DateTime     @updatedAt @map("updated_at")
-  deletedAt              DateTime?    @map("deleted_at")
+  id              String      @id @default(cuid()) @map("id")
+  organizationId  String      @map("organization_id")
+  clientId        String      @map("client_id")
+  name            String      @map("name")
+  type            AssetType   @map("type")
+  environment     Environment @default(PRODUCTION) @map("environment")
+  criticality     Criticality @default(MEDIUM) @map("criticality")
+  internetExposed Boolean     @default(false) @map("internet_exposed")
+  tags            String[]    @map("tags")
+  deploymentRefs  Json?       @map("deployment_refs")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  deletedAt       DateTime?   @map("deleted_at")
 
-  organization           Organization @relation(fields: [organizationId], references: [id])
-  client                 Client       @relation(fields: [clientId], references: [id])
-  findings               Finding[]
+  organization Organization @relation(fields: [organizationId], references: [id])
+  client       Client       @relation(fields: [clientId], references: [id])
+  findings     Finding[]
 
   @@index([organizationId, clientId])
   @@map("assets")
 }
 
 model Finding {
-  id                     String       @id @default(cuid()) @map("id")
-  organizationId         String       @map("organization_id")
-  clientId               String       @map("client_id")
-  assetId                String       @map("asset_id")
-  scannerType            ScannerType  @map("scanner_type")
-  scannerName            String       @map("scanner_name")
-  runId                  String?      @map("run_id")
-  observations           Json         @map("observations")
-  dedupKey               String       @map("dedup_key")
-  vulnerabilityCaseId    String?      @map("vulnerability_case_id")
-  artifactId             String?      @map("artifact_id")
-  discoveredAt           DateTime     @map("discovered_at")
-  createdAt              DateTime     @default(now()) @map("created_at")
-  updatedAt              DateTime     @updatedAt @map("updated_at")
+  id                  String      @id @default(cuid()) @map("id")
+  organizationId      String      @map("organization_id")
+  clientId            String      @map("client_id")
+  assetId             String      @map("asset_id")
+  scannerType         ScannerType @map("scanner_type")
+  scannerName         String      @map("scanner_name")
+  runId               String?     @map("run_id")
+  observations        Json        @map("observations")
+  dedupKey            String      @map("dedup_key")
+  vulnerabilityCaseId String?     @map("vulnerability_case_id")
+  artifactId          String?     @map("artifact_id")
+  discoveredAt        DateTime    @map("discovered_at")
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
 
-  organization           Organization      @relation(fields: [organizationId], references: [id])
-  client                 Client            @relation(fields: [clientId], references: [id])
-  asset                  Asset             @relation(fields: [assetId], references: [id])
-  vulnerabilityCase      VulnerabilityCase? @relation(fields: [vulnerabilityCaseId], references: [id])
-  artifact               ScanArtifact?     @relation(fields: [artifactId], references: [id])
+  organization      Organization       @relation(fields: [organizationId], references: [id])
+  client            Client             @relation(fields: [clientId], references: [id])
+  asset             Asset              @relation(fields: [assetId], references: [id])
+  vulnerabilityCase VulnerabilityCase? @relation(fields: [vulnerabilityCaseId], references: [id])
+  artifact          ScanArtifact?      @relation(fields: [artifactId], references: [id])
 
   @@index([organizationId, clientId, createdAt])
   @@index([dedupKey])
@@ -336,42 +356,42 @@ model Finding {
 }
 
 model VulnerabilityCase {
-  id                     String      @id @default(cuid()) @map("id")
-  organizationId         String      @map("organization_id")
-  clientId               String      @map("client_id")
-  title                  String      @map("title")
-  description            String?     @map("description")
-  cveIds                 String[]    @map("cve_ids")
-  cweIds                 String[]    @map("cwe_ids")
-  severity               Severity    @map("severity")
-  cvssScore              Float?      @map("cvss_score")
-  cvssVector             String?     @map("cvss_vector")
-  cvssVersion            String?     @map("cvss_version")
-  epssScore              Float?      @map("epss_score")
-  epssPercentile         Float?      @map("epss_percentile")
-  kevListed              Boolean     @default(false) @map("kev_listed")
-  kevDueDate             DateTime?   @map("kev_due_date")
-  status                 CaseStatus  @default(NEW) @map("status")
-  assignedToId           String?     @map("assigned_to_id")
-  slaPolicyId            String?     @map("sla_policy_id")
-  dueAt                  DateTime?   @map("due_at")
-  aiAdvisory             Json?       @map("ai_advisory")
-  remediationNotes       String?     @map("remediation_notes")
-  findingCount           Int         @default(0) @map("finding_count")
-  firstSeenAt            DateTime    @map("first_seen_at")
-  lastSeenAt             DateTime    @map("last_seen_at")
-  createdAt              DateTime    @default(now()) @map("created_at")
-  updatedAt              DateTime    @updatedAt @map("updated_at")
+  id               String     @id @default(cuid()) @map("id")
+  organizationId   String     @map("organization_id")
+  clientId         String     @map("client_id")
+  title            String     @map("title")
+  description      String?    @map("description")
+  cveIds           String[]   @map("cve_ids")
+  cweIds           String[]   @map("cwe_ids")
+  severity         Severity   @map("severity")
+  cvssScore        Float?     @map("cvss_score")
+  cvssVector       String?    @map("cvss_vector")
+  cvssVersion      String?    @map("cvss_version")
+  epssScore        Float?     @map("epss_score")
+  epssPercentile   Float?     @map("epss_percentile")
+  kevListed        Boolean    @default(false) @map("kev_listed")
+  kevDueDate       DateTime?  @map("kev_due_date")
+  status           CaseStatus @default(NEW) @map("status")
+  assignedToId     String?    @map("assigned_to_id")
+  slaPolicyId      String?    @map("sla_policy_id")
+  dueAt            DateTime?  @map("due_at")
+  aiAdvisory       Json?      @map("ai_advisory")
+  remediationNotes String?    @map("remediation_notes")
+  findingCount     Int        @default(0) @map("finding_count")
+  firstSeenAt      DateTime   @map("first_seen_at")
+  lastSeenAt       DateTime   @map("last_seen_at")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
 
-  organization           Organization      @relation(fields: [organizationId], references: [id])
-  client                 Client            @relation(fields: [clientId], references: [id])
-  assignedTo             User?             @relation("AssignedCases", fields: [assignedToId], references: [id])
-  slaPolicy              SlaPolicy?        @relation(fields: [slaPolicyId], references: [id])
-  findings               Finding[]
-  comments               Comment[]
-  workflowLineages       WorkflowLineage[]
-  riskExceptions         RiskException[]
-  tickets                Ticket[]
+  organization     Organization      @relation(fields: [organizationId], references: [id])
+  client           Client            @relation(fields: [clientId], references: [id])
+  assignedTo       User?             @relation("AssignedCases", fields: [assignedToId], references: [id])
+  slaPolicy        SlaPolicy?        @relation(fields: [slaPolicyId], references: [id])
+  findings         Finding[]
+  comments         Comment[]
+  workflowLineages WorkflowLineage[]
+  riskExceptions   RiskException[]
+  tickets          Ticket[]
 
   @@index([organizationId, clientId])
   @@index([organizationId, clientId, status])
@@ -385,49 +405,49 @@ model VulnerabilityCase {
 // ---------------------------------------------------------------------------
 
 model ScanArtifact {
-  id                     String       @id @default(cuid()) @map("id")
-  organizationId         String       @map("organization_id")
-  clientId               String       @map("client_id")
-  filename               String       @map("filename")
-  mimeType               String       @map("mime_type")
-  sizeBytes              Int          @map("size_bytes")
-  gcsBucket              String       @map("gcs_bucket")
-  gcsPath                String       @map("gcs_path")
-  checksumSha256         String       @map("checksum_sha256")
-  parserFormat           ParserFormat @map("parser_format")
-  uploadedById           String       @map("uploaded_by_id")
-  createdAt              DateTime     @default(now()) @map("created_at")
+  id             String       @id @default(cuid()) @map("id")
+  organizationId String       @map("organization_id")
+  clientId       String       @map("client_id")
+  filename       String       @map("filename")
+  mimeType       String       @map("mime_type")
+  sizeBytes      Int          @map("size_bytes")
+  gcsBucket      String       @map("gcs_bucket")
+  gcsPath        String       @map("gcs_path")
+  checksumSha256 String       @map("checksum_sha256")
+  parserFormat   ParserFormat @map("parser_format")
+  uploadedById   String       @map("uploaded_by_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
 
-  organization           Organization @relation(fields: [organizationId], references: [id])
-  client                 Client       @relation(fields: [clientId], references: [id])
-  uploadedBy             User         @relation(fields: [uploadedById], references: [id])
-  findings               Finding[]
-  uploadJobs             UploadJob[]
+  organization Organization @relation(fields: [organizationId], references: [id])
+  client       Client       @relation(fields: [clientId], references: [id])
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
+  findings     Finding[]
+  uploadJobs   UploadJob[]
 
   @@index([organizationId, clientId])
   @@map("scan_artifacts")
 }
 
 model UploadJob {
-  id                     String          @id @default(cuid()) @map("id")
-  organizationId         String          @map("organization_id")
-  clientId               String          @map("client_id")
-  artifactId             String          @map("artifact_id")
-  status                 UploadJobStatus @default(QUEUED) @map("status")
-  totalFindings          Int             @default(0) @map("total_findings")
-  parsedFindings         Int             @default(0) @map("parsed_findings")
-  uniqueCvesFound        Int             @default(0) @map("unique_cves_found")
-  uniqueCvesEnriched     Int             @default(0) @map("unique_cves_enriched")
-  findingsCreated        Int             @default(0) @map("findings_created")
-  casesCreated           Int             @default(0) @map("cases_created")
-  errorMessage           String?         @map("error_message")
-  createdAt              DateTime        @default(now()) @map("created_at")
-  updatedAt              DateTime        @updatedAt @map("updated_at")
-  completedAt            DateTime?       @map("completed_at")
+  id                 String          @id @default(cuid()) @map("id")
+  organizationId     String          @map("organization_id")
+  clientId           String          @map("client_id")
+  artifactId         String          @map("artifact_id")
+  status             UploadJobStatus @default(QUEUED) @map("status")
+  totalFindings      Int             @default(0) @map("total_findings")
+  parsedFindings     Int             @default(0) @map("parsed_findings")
+  uniqueCvesFound    Int             @default(0) @map("unique_cves_found")
+  uniqueCvesEnriched Int             @default(0) @map("unique_cves_enriched")
+  findingsCreated    Int             @default(0) @map("findings_created")
+  casesCreated       Int             @default(0) @map("cases_created")
+  errorMessage       String?         @map("error_message")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+  completedAt        DateTime?       @map("completed_at")
 
-  organization           Organization    @relation(fields: [organizationId], references: [id])
-  client                 Client          @relation(fields: [clientId], references: [id])
-  artifact               ScanArtifact    @relation(fields: [artifactId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  client       Client       @relation(fields: [clientId], references: [id])
+  artifact     ScanArtifact @relation(fields: [artifactId], references: [id])
 
   @@index([organizationId, clientId])
   @@index([artifactId])
@@ -439,75 +459,75 @@ model UploadJob {
 // ---------------------------------------------------------------------------
 
 model Comment {
-  id                     String            @id @default(cuid()) @map("id")
-  vulnerabilityCaseId    String            @map("vulnerability_case_id")
-  userId                 String            @map("user_id")
-  content                String            @map("content")
-  mentions               String[]          @map("mentions")
-  createdAt              DateTime          @default(now()) @map("created_at")
-  updatedAt              DateTime          @updatedAt @map("updated_at")
-  deletedAt              DateTime?         @map("deleted_at")
+  id                  String    @id @default(cuid()) @map("id")
+  vulnerabilityCaseId String    @map("vulnerability_case_id")
+  userId              String    @map("user_id")
+  content             String    @map("content")
+  mentions            String[]  @map("mentions")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+  deletedAt           DateTime? @map("deleted_at")
 
-  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
-  user                   User              @relation(fields: [userId], references: [id])
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  user              User              @relation(fields: [userId], references: [id])
 
   @@index([vulnerabilityCaseId])
   @@map("comments")
 }
 
 model WorkflowLineage {
-  id                     String            @id @default(cuid()) @map("id")
-  vulnerabilityCaseId    String            @map("vulnerability_case_id")
-  fromStatus             CaseStatus        @map("from_status")
-  toStatus               CaseStatus        @map("to_status")
-  changedById            String?           @map("changed_by_id")
-  reason                 String?           @map("reason")
-  metadata               Json?             @map("metadata")
-  createdAt              DateTime          @default(now()) @map("created_at")
+  id                  String     @id @default(cuid()) @map("id")
+  vulnerabilityCaseId String     @map("vulnerability_case_id")
+  fromStatus          CaseStatus @map("from_status")
+  toStatus            CaseStatus @map("to_status")
+  changedById         String?    @map("changed_by_id")
+  reason              String?    @map("reason")
+  metadata            Json?      @map("metadata")
+  createdAt           DateTime   @default(now()) @map("created_at")
 
-  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
-  changedBy              User?             @relation(fields: [changedById], references: [id])
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  changedBy         User?             @relation(fields: [changedById], references: [id])
 
   @@index([vulnerabilityCaseId])
   @@map("workflow_lineages")
 }
 
 model RiskException {
-  id                     String            @id @default(cuid()) @map("id")
-  vulnerabilityCaseId    String            @map("vulnerability_case_id")
-  type                   ExceptionType     @map("type")
-  decidedById            String            @map("decided_by_id")
-  reason                 String            @map("reason")
-  evidence               Json?             @map("evidence")
-  approvedById           String?           @map("approved_by_id")
-  expiresAt              DateTime?         @map("expires_at")
-  vexRationale           String?           @map("vex_rationale")
-  createdAt              DateTime          @default(now()) @map("created_at")
-  updatedAt              DateTime          @updatedAt @map("updated_at")
+  id                  String        @id @default(cuid()) @map("id")
+  vulnerabilityCaseId String        @map("vulnerability_case_id")
+  type                ExceptionType @map("type")
+  decidedById         String        @map("decided_by_id")
+  reason              String        @map("reason")
+  evidence            Json?         @map("evidence")
+  approvedById        String?       @map("approved_by_id")
+  expiresAt           DateTime?     @map("expires_at")
+  vexRationale        String?       @map("vex_rationale")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
 
-  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
-  decidedBy              User              @relation("ExceptionDecidedBy", fields: [decidedById], references: [id])
-  approvedBy             User?             @relation("ExceptionApprovedBy", fields: [approvedById], references: [id])
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  decidedBy         User              @relation("ExceptionDecidedBy", fields: [decidedById], references: [id])
+  approvedBy        User?             @relation("ExceptionApprovedBy", fields: [approvedById], references: [id])
 
   @@index([vulnerabilityCaseId])
   @@map("risk_exceptions")
 }
 
 model Ticket {
-  id                     String            @id @default(cuid()) @map("id")
-  vulnerabilityCaseId    String            @map("vulnerability_case_id")
-  system                 String            @map("system")
-  ticketKey              String            @map("ticket_key")
-  ticketUrl              String            @map("ticket_url")
-  status                 String            @map("status")
-  assignee               String?           @map("assignee")
-  dueDate                DateTime?         @map("due_date")
-  syncedAt               DateTime          @map("synced_at")
-  lastSyncError          String?           @map("last_sync_error")
-  createdAt              DateTime          @default(now()) @map("created_at")
-  updatedAt              DateTime          @updatedAt @map("updated_at")
+  id                  String    @id @default(cuid()) @map("id")
+  vulnerabilityCaseId String    @map("vulnerability_case_id")
+  system              String    @map("system")
+  ticketKey           String    @map("ticket_key")
+  ticketUrl           String    @map("ticket_url")
+  status              String    @map("status")
+  assignee            String?   @map("assignee")
+  dueDate             DateTime? @map("due_date")
+  syncedAt            DateTime  @map("synced_at")
+  lastSyncError       String?   @map("last_sync_error")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
 
-  vulnerabilityCase      VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
 
   @@index([vulnerabilityCaseId])
   @@map("tickets")
@@ -518,38 +538,38 @@ model Ticket {
 // ---------------------------------------------------------------------------
 
 model SlaPolicy {
-  id                     String              @id @default(cuid()) @map("id")
-  organizationId         String              @map("organization_id")
-  name                   String              @map("name")
-  description            String?             @map("description")
-  criticalDays           Int                 @map("critical_days")
-  highDays               Int                 @map("high_days")
-  mediumDays             Int                 @map("medium_days")
-  lowDays                Int                 @map("low_days")
-  kevCriticalDays        Int                 @map("kev_critical_days")
-  isDefault              Boolean             @default(false) @map("is_default")
-  createdAt              DateTime            @default(now()) @map("created_at")
-  updatedAt              DateTime            @updatedAt @map("updated_at")
+  id              String   @id @default(cuid()) @map("id")
+  organizationId  String   @map("organization_id")
+  name            String   @map("name")
+  description     String?  @map("description")
+  criticalDays    Int      @map("critical_days")
+  highDays        Int      @map("high_days")
+  mediumDays      Int      @map("medium_days")
+  lowDays         Int      @map("low_days")
+  kevCriticalDays Int      @map("kev_critical_days")
+  isDefault       Boolean  @default(false) @map("is_default")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  organization           Organization        @relation(fields: [organizationId], references: [id])
-  vulnerabilityCases     VulnerabilityCase[]
+  organization       Organization        @relation(fields: [organizationId], references: [id])
+  vulnerabilityCases VulnerabilityCase[]
 
   @@index([organizationId])
   @@map("sla_policies")
 }
 
 model ApiKey {
-  id                     String       @id @default(cuid()) @map("id")
-  organizationId         String       @map("organization_id")
-  name                   String       @map("name")
-  keyHash                String       @map("key_hash")
-  scope                  String       @map("scope")
-  assignedClients        String[]     @map("assigned_clients")
-  expiresAt              DateTime?    @map("expires_at")
-  lastUsedAt             DateTime?    @map("last_used_at")
-  createdAt              DateTime     @default(now()) @map("created_at")
+  id              String    @id @default(cuid()) @map("id")
+  organizationId  String    @map("organization_id")
+  name            String    @map("name")
+  keyHash         String    @map("key_hash")
+  scope           String    @map("scope")
+  assignedClients String[]  @map("assigned_clients")
+  expiresAt       DateTime? @map("expires_at")
+  lastUsedAt      DateTime? @map("last_used_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
 
-  organization           Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId])
   @@index([keyHash])
@@ -561,19 +581,19 @@ model ApiKey {
 // ---------------------------------------------------------------------------
 
 model AuditLog {
-  id                     String       @id @default(cuid()) @map("id")
-  organizationId         String       @map("organization_id")
-  entityType             String       @map("entity_type")
-  entityId               String       @map("entity_id")
-  action                 AuditAction  @map("action")
-  actorId                String       @map("actor_id")
-  actorIp                String?      @map("actor_ip")
-  details                Json         @map("details")
-  hash                   String       @map("hash")
-  previousHash           String?      @map("previous_hash")
-  createdAt              DateTime     @default(now()) @map("created_at")
+  id             String      @id @default(cuid()) @map("id")
+  organizationId String      @map("organization_id")
+  entityType     String      @map("entity_type")
+  entityId       String      @map("entity_id")
+  action         AuditAction @map("action")
+  actorId        String      @map("actor_id")
+  actorIp        String?     @map("actor_ip")
+  details        Json        @map("details")
+  hash           String      @map("hash")
+  previousHash   String?     @map("previous_hash")
+  createdAt      DateTime    @default(now()) @map("created_at")
 
-  organization           Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   @@index([organizationId])
   @@index([organizationId, entityType, entityId])
@@ -582,18 +602,18 @@ model AuditLog {
 }
 
 model Notification {
-  id                     String    @id @default(cuid()) @map("id")
-  userId                 String    @map("user_id")
-  type                   String    @map("type")
-  title                  String    @map("title")
-  message                String    @map("message")
-  relatedEntityType      String?   @map("related_entity_type")
-  relatedEntityId        String?   @map("related_entity_id")
-  isRead                 Boolean   @default(false) @map("is_read")
-  createdAt              DateTime  @default(now()) @map("created_at")
-  readAt                 DateTime? @map("read_at")
+  id                String    @id @default(cuid()) @map("id")
+  userId            String    @map("user_id")
+  type              String    @map("type")
+  title             String    @map("title")
+  message           String    @map("message")
+  relatedEntityType String?   @map("related_entity_type")
+  relatedEntityId   String?   @map("related_entity_id")
+  isRead            Boolean   @default(false) @map("is_read")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  readAt            DateTime? @map("read_at")
 
-  user                   User      @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
   @@index([userId, isRead])
   @@index([userId, createdAt])
@@ -605,23 +625,23 @@ model Notification {
 // ---------------------------------------------------------------------------
 
 model ReportSchedule {
-  id              String       @id @default(cuid()) @map("id")
-  organizationId  String       @map("organization_id")
-  name            String       @map("name")
-  clientId        String?      @map("client_id")
-  reportType      String       @map("report_type") // 'executive' | 'findings' | 'sla'
-  format          String       @default("csv") @map("format")
-  frequency       String       @map("frequency") // 'daily' | 'weekly' | 'monthly'
-  recipients      String[]     @map("recipients") // email addresses
-  dayOfWeek       Int?         @map("day_of_week")
-  hourUtc         Int          @default(0) @map("hour_utc")
-  nextRunAt       DateTime     @map("next_run_at")
-  lastRunAt       DateTime?    @map("last_run_at")
-  enabled         Boolean      @default(true) @map("enabled")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  id             String    @id @default(cuid()) @map("id")
+  organizationId String    @map("organization_id")
+  name           String    @map("name")
+  clientId       String?   @map("client_id")
+  reportType     String    @map("report_type") // 'executive' | 'findings' | 'sla'
+  format         String    @default("csv") @map("format")
+  frequency      String    @map("frequency") // 'daily' | 'weekly' | 'monthly'
+  recipients     String[]  @map("recipients") // email addresses
+  dayOfWeek      Int?      @map("day_of_week")
+  hourUtc        Int       @default(0) @map("hour_utc")
+  nextRunAt      DateTime  @map("next_run_at")
+  lastRunAt      DateTime? @map("last_run_at")
+  enabled        Boolean   @default(true) @map("enabled")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([nextRunAt, enabled])
@@ -633,30 +653,30 @@ model ReportSchedule {
 // ---------------------------------------------------------------------------
 
 model GlobalCveRecord {
-  id                     String    @id @default(cuid()) @map("id")
-  cveId                  String    @unique @map("cve_id")
-  title                  String    @map("title")
-  description            String?   @map("description")
-  cweIds                 String[]  @map("cwe_ids")
-  cvssV2                 Json?     @map("cvss_v2")
-  cvssV3                 Json?     @map("cvss_v3")
-  cvssV4                 Json?     @map("cvss_v4")
-  publishedDate          DateTime  @map("published_date")
-  lastModified           DateTime  @map("last_modified")
-  createdAt              DateTime  @default(now()) @map("created_at")
-  updatedAt              DateTime  @updatedAt @map("updated_at")
+  id            String   @id @default(cuid()) @map("id")
+  cveId         String   @unique @map("cve_id")
+  title         String   @map("title")
+  description   String?  @map("description")
+  cweIds        String[] @map("cwe_ids")
+  cvssV2        Json?    @map("cvss_v2")
+  cvssV3        Json?    @map("cvss_v3")
+  cvssV4        Json?    @map("cvss_v4")
+  publishedDate DateTime @map("published_date")
+  lastModified  DateTime @map("last_modified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   @@index([cveId])
   @@map("global_cve_records")
 }
 
 model GlobalEpssScore {
-  id                     String    @id @default(cuid()) @map("id")
-  cveId                  String    @map("cve_id")
-  score                  Float     @map("score")
-  percentile             Float     @map("percentile")
-  asOfDate               DateTime  @map("as_of_date")
-  createdAt              DateTime  @default(now()) @map("created_at")
+  id         String   @id @default(cuid()) @map("id")
+  cveId      String   @map("cve_id")
+  score      Float    @map("score")
+  percentile Float    @map("percentile")
+  asOfDate   DateTime @map("as_of_date")
+  createdAt  DateTime @default(now()) @map("created_at")
 
   @@index([cveId])
   @@index([cveId, asOfDate])
@@ -664,13 +684,13 @@ model GlobalEpssScore {
 }
 
 model GlobalKevRecord {
-  id                             String    @id @default(cuid()) @map("id")
-  cveId                          String    @unique @map("cve_id")
-  knownRansomwareCampaign        Boolean   @map("known_ransomware_campaign")
-  description                    String    @map("description")
-  dueDate                        DateTime  @map("due_date")
-  createdAt                      DateTime  @default(now()) @map("created_at")
-  updatedAt                      DateTime  @updatedAt @map("updated_at")
+  id                      String   @id @default(cuid()) @map("id")
+  cveId                   String   @unique @map("cve_id")
+  knownRansomwareCampaign Boolean  @map("known_ransomware_campaign")
+  description             String   @map("description")
+  dueDate                 DateTime @map("due_date")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
 
   @@index([cveId])
   @@map("global_kev_records")
@@ -681,20 +701,28 @@ model GlobalKevRecord {
 // ---------------------------------------------------------------------------
 
 model ScannerConnector {
-  id                     String    @id @default(cuid()) @map("id")
-  organizationId         String    @map("organization_id")
-  name                   String    @map("name")
-  type                   String    @map("type") // nessus, qualys, openvas, generic
-  endpoint               String    @map("endpoint")
-  authConfig             Json      @map("auth_config")
-  authKeyHash            String    @map("auth_key_hash")
-  schedule               String?   @map("schedule")
-  lastHeartbeat          DateTime? @map("last_heartbeat")
-  lastHeartbeatData      Json?     @map("last_heartbeat_data")
-  status                 String    @default("pending") @map("status") // online, offline, degraded, pending
-  metadata               Json?     @map("metadata")
-  createdAt              DateTime  @default(now()) @map("created_at")
-  updatedAt              DateTime  @updatedAt @map("updated_at")
+  id                  String    @id @default(cuid()) @map("id")
+  organizationId      String    @map("organization_id")
+  name                String    @map("name")
+  type                String    @map("type") // nessus, qualys, openvas, generic, TENABLE_IO, QUALYS_VMDR, etc.
+  endpoint            String    @map("endpoint")
+  authConfig          Json      @map("auth_config")
+  authKeyHash         String    @map("auth_key_hash")
+  schedule            String?   @map("schedule")
+  lastHeartbeat       DateTime? @map("last_heartbeat")
+  lastHeartbeatData   Json?     @map("last_heartbeat_data")
+  status              String    @default("pending") @map("status") // online, offline, degraded, pending
+  metadata            Json?     @map("metadata")
+  clientId            String?   @map("client_id")
+  syncIntervalMinutes Int       @default(60) @map("sync_interval_minutes")
+  lastSyncAt          DateTime? @map("last_sync_at")
+  lastSyncError       String?   @map("last_sync_error")
+  isApiConnector      Boolean   @default(false) @map("is_api_connector")
+  scannerConfig       Json?     @map("scanner_config")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  syncJobs SyncJob[]
 
   @@index([organizationId])
   @@index([authKeyHash])
@@ -706,21 +734,70 @@ model ScannerConnector {
 // ---------------------------------------------------------------------------
 
 model BrandConfig {
-  id              String       @id @default(cuid()) @map("id")
-  organizationId  String       @unique @map("organization_id")
-  appName         String       @default("CVERiskPilot") @map("app_name")
-  tagline         String       @default("") @map("tagline")
-  logoUrl         String?      @map("logo_url")
-  faviconUrl      String?      @map("favicon_url")
-  primaryColor    String       @default("#2563eb") @map("primary_color")
-  accentColor     String       @default("#7c3aed") @map("accent_color")
-  customCSS       String?      @map("custom_css")
-  emailFromName   String?      @map("email_from_name")
-  emailLogoUrl    String?      @map("email_logo_url")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  id             String   @id @default(cuid()) @map("id")
+  organizationId String   @unique @map("organization_id")
+  appName        String   @default("CVERiskPilot") @map("app_name")
+  tagline        String   @default("") @map("tagline")
+  logoUrl        String?  @map("logo_url")
+  faviconUrl     String?  @map("favicon_url")
+  primaryColor   String   @default("#2563eb") @map("primary_color")
+  accentColor    String   @default("#7c3aed") @map("accent_color")
+  customCSS      String?  @map("custom_css")
+  emailFromName  String?  @map("email_from_name")
+  emailLogoUrl   String?  @map("email_logo_url")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("brand_configs")
+}
+
+// ---------------------------------------------------------------------------
+// Sync Job & Log Models (Scanner API Connectors — Wave 15)
+// ---------------------------------------------------------------------------
+
+model SyncJob {
+  id                   String         @id @default(cuid()) @map("id")
+  connectorId          String         @map("connector_id")
+  organizationId       String         @map("organization_id")
+  clientId             String?        @map("client_id")
+  status               SyncJobStatus  @default(PENDING) @map("status")
+  trigger              SyncJobTrigger @default(SCHEDULED) @map("trigger")
+  externalJobId        String?        @map("external_job_id")
+  totalChunks          Int            @default(0) @map("total_chunks")
+  processedChunks      Int            @default(0) @map("processed_chunks")
+  findingsReceived     Int            @default(0) @map("findings_received")
+  findingsCreated      Int            @default(0) @map("findings_created")
+  findingsDeduplicated Int            @default(0) @map("findings_deduplicated")
+  casesCreated         Int            @default(0) @map("cases_created")
+  casesUpdated         Int            @default(0) @map("cases_updated")
+  errorMessage         String?        @map("error_message")
+  metadata             Json?          @map("metadata")
+  startedAt            DateTime?      @map("started_at")
+  completedAt          DateTime?      @map("completed_at")
+  createdAt            DateTime       @default(now()) @map("created_at")
+  updatedAt            DateTime       @updatedAt @map("updated_at")
+
+  connector ScannerConnector @relation(fields: [connectorId], references: [id])
+  logs      SyncLog[]
+
+  @@index([connectorId])
+  @@index([organizationId, createdAt])
+  @@index([status])
+  @@map("sync_jobs")
+}
+
+model SyncLog {
+  id        String   @id @default(cuid()) @map("id")
+  syncJobId String   @map("sync_job_id")
+  level     String   @map("level") // info, warn, error
+  message   String   @map("message")
+  metadata  Json?    @map("metadata")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  syncJob SyncJob @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+
+  @@index([syncJobId, createdAt])
+  @@map("sync_logs")
 }

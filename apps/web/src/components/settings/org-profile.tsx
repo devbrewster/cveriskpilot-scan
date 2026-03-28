@@ -2,12 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-interface OrgProfileData {
-  name: string;
-  contactEmail: string;
-  slug: string;
-}
-
 interface UsageData {
   uploads: number;
   aiCalls: number;
@@ -107,7 +101,7 @@ function UsageStatCard({
           : 'bg-primary-500';
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
+    <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4">
       <p className="text-xs font-medium uppercase tracking-wider text-gray-500">{label}</p>
       <p className="mt-1 text-lg font-semibold text-gray-900">
         {current} <span className="text-sm font-normal text-gray-400">/ {limitLabel}</span>
@@ -239,7 +233,7 @@ export function OrgProfile({ organizationId, tier }: OrgProfileProps) {
 
         <form
           onSubmit={handleSave}
-          className="rounded-lg border border-gray-200 bg-white p-6 space-y-5"
+          className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 space-y-5"
         >
           <div className="grid gap-5 md:grid-cols-2">
             <div>
@@ -334,7 +328,7 @@ export function OrgProfile({ organizationId, tier }: OrgProfileProps) {
           </p>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-5">
+        <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6 space-y-5">
           <div className="flex items-center gap-3">
             <span
               className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-semibold ${tierBadgeColor}`}
@@ -370,7 +364,7 @@ export function OrgProfile({ organizationId, tier }: OrgProfileProps) {
             {SHOW_UPGRADE_TIERS.has(tier) && (
               <a
                 href="/pricing"
-                className="rounded-md border border-primary-300 bg-white px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50"
+                className="rounded-md border border-primary-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50"
               >
                 Upgrade Plan
               </a>
@@ -419,7 +413,7 @@ export function OrgProfile({ organizationId, tier }: OrgProfileProps) {
               <button
                 type="button"
                 disabled
-                className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 opacity-50 cursor-not-allowed"
+                className="rounded-md border border-red-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-red-600 opacity-50 cursor-not-allowed"
               >
                 Delete Organization
               </button>

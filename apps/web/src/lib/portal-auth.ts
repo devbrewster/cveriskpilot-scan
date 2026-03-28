@@ -6,6 +6,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import crypto from 'node:crypto';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -56,8 +57,33 @@ export async function getPortalSession(): Promise<PortalSession | null> {
       return null;
     }
 
+    // Cookie format: <base64-payload>.<hmac-signature>
+    const raw = sessionCookie.value;
+    const dotIndex = raw.lastIndexOf('.');
+    if (dotIndex === -1) return null;
+
+    const payload = raw.slice(0, dotIndex);
+    const signature = raw.slice(dotIndex + 1);
+
+    // Verify HMAC signature to prevent forgery
+    const secret = process.env.AUTH_SECRET;
+    if (!secret) return null;
+
+    const expected = crypto
+      .createHmac('sha256', secret)
+      .update(payload)
+      .digest('hex');
+
+    // Constant-time comparison
+    if (
+      signature.length !== expected.length ||
+      !crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'))
+    ) {
+      return null;
+    }
+
     const session = JSON.parse(
-      Buffer.from(sessionCookie.value, 'base64').toString('utf-8'),
+      Buffer.from(payload, 'base64').toString('utf-8'),
     ) as PortalSession;
 
     // Validate the session has required fields
@@ -142,5 +168,17 @@ export function createPortalSessionCookie(user: PortalUser): string {
     organizationId: user.organizationId,
     clientId: user.clientId,
   };
-  return Buffer.from(JSON.stringify(session)).toString('base64');
+  const payload = Buffer.from(JSON.stringify(session)).toString('base64');
+
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error('AUTH_SECRET is required to sign portal session cookies');
+  }
+
+  const signature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return `${payload}.${signature}`;
 }

@@ -90,6 +90,7 @@ export const ACCEPTED_FILE_TYPES = [
   '.csv',
   '.cdx.json',
   '.xml',
+  '.xlsx',
 ] as const;
 
 export const ACCEPTED_MIME_TYPES = [

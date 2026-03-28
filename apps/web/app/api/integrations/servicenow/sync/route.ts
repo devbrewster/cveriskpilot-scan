@@ -3,11 +3,8 @@ import { prisma } from '@/lib/prisma';
 import {
   ServiceNowClient,
   mapIncidentToCase,
-  mapCaseToIncident,
-  mapCaseStatusToSnState,
 } from '@cveriskpilot/integrations';
 import type { ServiceNowConfig } from '@cveriskpilot/integrations';
-import type { CaseFields } from '@cveriskpilot/integrations';
 
 interface StoredServiceNowConfig {
   instanceUrl: string;

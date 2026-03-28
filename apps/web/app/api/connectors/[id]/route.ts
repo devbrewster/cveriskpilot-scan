@@ -21,6 +21,11 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const connector = await getConnector(prisma, id);
 
     if (!connector) {
@@ -48,6 +53,11 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { name, endpoint, authConfig, schedule, metadata, rotateKey } = body;
 
@@ -100,6 +110,11 @@ export async function DELETE(
 ) {
   try {
     const { id } = await context.params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     await deleteConnector(prisma, id);
     return NextResponse.json({ message: 'Connector deleted' });
   } catch (error) {

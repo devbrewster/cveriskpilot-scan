@@ -1,76 +1,18 @@
 // Mock data for dashboard development
 // Replace with real API calls when backend is ready
 
-export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
-export type CaseStatus =
-  | 'NEW'
-  | 'TRIAGE'
-  | 'IN_REMEDIATION'
-  | 'FIXED_PENDING_VERIFICATION'
-  | 'VERIFIED_CLOSED'
-  | 'REOPENED'
-  | 'ACCEPTED_RISK'
-  | 'FALSE_POSITIVE'
-  | 'NOT_APPLICABLE'
-  | 'DUPLICATE';
-export type UploadJobStatus =
-  | 'QUEUED'
-  | 'PARSING'
-  | 'ENRICHING'
-  | 'BUILDING_CASES'
-  | 'COMPLETED'
-  | 'FAILED';
-export type ParserFormat =
-  | 'NESSUS'
-  | 'SARIF'
-  | 'CSV'
-  | 'JSON_FORMAT'
-  | 'CYCLONEDX'
-  | 'OSV'
-  | 'SPDX'
-  | 'CSAF'
-  | 'QUALYS'
-  | 'OPENVAS';
+// Types are canonical in @/lib/types — re-export for backward compatibility
+export type {
+  Severity,
+  CaseStatus,
+  UploadJobStatus,
+  ParserFormat,
+  VulnerabilityCase,
+  UploadJob,
+  DashboardStats,
+} from '@/lib/types';
 
-export interface VulnerabilityCase {
-  id: string;
-  title: string;
-  cveIds: string[];
-  severity: Severity;
-  cvssScore: number | null;
-  epssScore: number | null;
-  epssPercentile: number | null;
-  kevListed: boolean;
-  kevDueDate: string | null;
-  status: CaseStatus;
-  findingCount: number;
-  firstSeenAt: string;
-  lastSeenAt: string;
-}
-
-export interface UploadJob {
-  id: string;
-  filename: string;
-  parserFormat: ParserFormat;
-  status: UploadJobStatus;
-  totalFindings: number;
-  findingsCreated: number;
-  casesCreated: number;
-  createdAt: string;
-  completedAt: string | null;
-  errorMessage: string | null;
-}
-
-export interface DashboardStats {
-  totalCases: number;
-  criticalHighCases: number;
-  kevListedCount: number;
-  avgEpssScore: number;
-  totalCasesTrend: number;
-  criticalHighTrend: number;
-  kevTrend: number;
-  epssTrend: number;
-}
+import type { VulnerabilityCase, UploadJob, DashboardStats, Severity } from '@/lib/types';
 
 export const mockCases: VulnerabilityCase[] = [
   {
@@ -85,6 +27,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: '2026-04-10',
     status: 'IN_REMEDIATION',
     findingCount: 47,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-01T10:00:00Z',
     lastSeenAt: '2026-03-26T14:30:00Z',
   },
@@ -100,6 +45,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: '2026-04-15',
     status: 'NEW',
     findingCount: 12,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-20T08:00:00Z',
     lastSeenAt: '2026-03-26T16:00:00Z',
   },
@@ -115,6 +63,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: '2026-04-20',
     status: 'TRIAGE',
     findingCount: 8,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-15T12:00:00Z',
     lastSeenAt: '2026-03-25T09:00:00Z',
   },
@@ -130,6 +81,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'IN_REMEDIATION',
     findingCount: 23,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-10T14:00:00Z',
     lastSeenAt: '2026-03-26T11:00:00Z',
   },
@@ -145,6 +99,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'NEW',
     findingCount: 5,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-22T09:00:00Z',
     lastSeenAt: '2026-03-26T10:00:00Z',
   },
@@ -160,6 +117,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'FIXED_PENDING_VERIFICATION',
     findingCount: 15,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-02-28T16:00:00Z',
     lastSeenAt: '2026-03-20T08:00:00Z',
   },
@@ -175,6 +135,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'TRIAGE',
     findingCount: 31,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-18T07:00:00Z',
     lastSeenAt: '2026-03-26T15:00:00Z',
   },
@@ -190,6 +153,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'IN_REMEDIATION',
     findingCount: 3,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-12T11:00:00Z',
     lastSeenAt: '2026-03-25T13:00:00Z',
   },
@@ -205,6 +171,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'ACCEPTED_RISK',
     findingCount: 2,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-05T10:00:00Z',
     lastSeenAt: '2026-03-24T12:00:00Z',
   },
@@ -220,6 +189,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'VERIFIED_CLOSED',
     findingCount: 7,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-02-20T09:00:00Z',
     lastSeenAt: '2026-03-15T10:00:00Z',
   },
@@ -235,6 +207,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'NEW',
     findingCount: 9,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-24T08:00:00Z',
     lastSeenAt: '2026-03-26T16:30:00Z',
   },
@@ -250,6 +225,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'FALSE_POSITIVE',
     findingCount: 4,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-08T14:00:00Z',
     lastSeenAt: '2026-03-22T11:00:00Z',
   },
@@ -265,6 +243,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'IN_REMEDIATION',
     findingCount: 18,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-01T12:00:00Z',
     lastSeenAt: '2026-03-26T09:00:00Z',
   },
@@ -280,6 +261,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'NOT_APPLICABLE',
     findingCount: 2,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-15T10:00:00Z',
     lastSeenAt: '2026-03-20T14:00:00Z',
   },
@@ -295,6 +279,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'REOPENED',
     findingCount: 11,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-02-25T08:00:00Z',
     lastSeenAt: '2026-03-26T12:00:00Z',
   },
@@ -310,6 +297,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: '2026-04-05',
     status: 'IN_REMEDIATION',
     findingCount: 6,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-23T07:00:00Z',
     lastSeenAt: '2026-03-26T17:00:00Z',
   },
@@ -325,6 +315,9 @@ export const mockCases: VulnerabilityCase[] = [
     kevDueDate: null,
     status: 'TRIAGE',
     findingCount: 4,
+    assignedToId: null,
+    assignedTo: null,
+    dueAt: null,
     firstSeenAt: '2026-03-19T13:00:00Z',
     lastSeenAt: '2026-03-25T16:00:00Z',
   },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // PUT /api/cases/[id]/assign — assign or unassign a case
@@ -10,20 +11,24 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
-    const { assignedToId, assignerId } = body as {
+    const { assignedToId } = body as {
       assignedToId: string | null;
-      assignerId?: string;
     };
 
-    // Verify the case exists
+    // Verify the case exists and belongs to the user's organization
     const existing = await prisma.vulnerabilityCase.findUnique({
       where: { id },
       select: { id: true, title: true, organizationId: true, assignedToId: true },
     });
 
-    if (!existing) {
+    if (!existing || existing.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
@@ -41,13 +46,11 @@ export async function PUT(
 
     // Get assigner's name for notifications
     let assignerName = 'Someone';
-    if (assignerId) {
-      const assigner = await prisma.user.findUnique({
-        where: { id: assignerId },
-        select: { name: true },
-      });
-      if (assigner) assignerName = assigner.name;
-    }
+    const assigner = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { name: true },
+    });
+    if (assigner) assignerName = assigner.name;
 
     // Update the case and create notification in a transaction
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,6 +80,23 @@ export async function PUT(
       }
 
       return result;
+    });
+
+    // Audit log for assignment change
+    await prisma.auditLog.create({
+      data: {
+        organizationId: session.organizationId,
+        actorId: session.userId,
+        action: 'UPDATE',
+        entityType: 'VulnerabilityCase',
+        entityId: id,
+        details: {
+          field: 'assignedToId',
+          from: existing.assignedToId,
+          to: assignedToId,
+        },
+        hash: `assign-case-${id}-${Date.now()}`,
+      },
     });
 
     // Fire-and-forget email to the assigned user

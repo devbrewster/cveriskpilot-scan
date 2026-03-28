@@ -164,7 +164,7 @@ export function UsageDashboard({ organizationId }: UsageDashboardProps) {
         {metrics.map((metric) => (
           <div
             key={metric}
-            className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+            className="rounded-xl border border-gray-200 bg-white dark:bg-gray-900 p-4 dark:border-gray-800 dark:bg-gray-900"
           >
             <p className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               {METRIC_LABELS[metric]}
@@ -184,7 +184,7 @@ export function UsageDashboard({ organizationId }: UsageDashboardProps) {
       </div>
 
       {/* Cost estimate (MSSP only shows metered) */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+      <div className="rounded-xl border border-gray-200 bg-white dark:bg-gray-900 p-6 dark:border-gray-800 dark:bg-gray-900">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Projected Cost</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div>
@@ -233,7 +233,7 @@ export function UsageDashboard({ organizationId }: UsageDashboardProps) {
 
       {/* Per-client usage table (MSSP orgs) */}
       {isMSSP && usage.clients.length > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+        <div className="rounded-xl border border-gray-200 bg-white dark:bg-gray-900 p-6 dark:border-gray-800 dark:bg-gray-900">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Per-Client Usage</h3>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">

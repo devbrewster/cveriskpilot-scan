@@ -3,15 +3,68 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SeverityBadge, StatusBadge, ScannerBadge } from '@/components/ui/badges';
-import {
-  type Finding,
-  type Asset,
-  getCaseForFinding,
-  getAssetById,
-} from '@/lib/mock-findings';
+
+type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
+type CaseStatus =
+  | 'NEW' | 'TRIAGE' | 'IN_REMEDIATION' | 'FIXED_PENDING_VERIFICATION'
+  | 'VERIFIED_CLOSED' | 'REOPENED' | 'ACCEPTED_RISK' | 'FALSE_POSITIVE'
+  | 'NOT_APPLICABLE' | 'DUPLICATE';
+type ScannerType = 'SCA' | 'SAST' | 'DAST' | 'IAC' | 'CONTAINER' | 'VM' | 'BUG_BOUNTY';
+
+interface Finding {
+  id: string;
+  organizationId: string;
+  clientId: string;
+  assetId: string;
+  scannerType: ScannerType;
+  scannerName: string;
+  observations: Record<string, unknown>;
+  dedupKey: string;
+  vulnerabilityCaseId: string | null;
+  discoveredAt: string;
+}
+
+interface Asset {
+  id: string;
+  name: string;
+  type: string;
+  environment: string;
+  criticality: string;
+  internetExposed: boolean;
+  tags: string[];
+}
+
+interface VulnerabilityCase {
+  id: string;
+  organizationId: string;
+  clientId: string;
+  title: string;
+  description: string;
+  cveIds: string[];
+  cweIds: string[];
+  severity: Severity;
+  cvssScore: number | null;
+  cvssVector: string | null;
+  cvssVersion: string | null;
+  epssScore: number | null;
+  epssPercentile: number | null;
+  kevListed: boolean;
+  kevDueDate: string | null;
+  status: CaseStatus;
+  assignedToId: string | null;
+  dueAt: string | null;
+  aiAdvisory: Record<string, unknown> | null;
+  remediationNotes: string;
+  findingCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+}
 
 interface FindingDetailProps {
   finding: Finding;
+  asset: Asset | null;
+  vulnCase: VulnerabilityCase | null;
+  basePath?: string;
 }
 
 function CvssBar({ score }: { score: number }) {
@@ -108,17 +161,15 @@ function AssetSection({ asset }: { asset: Asset }) {
   );
 }
 
-export function FindingDetail({ finding }: FindingDetailProps) {
+export function FindingDetail({ finding, asset, vulnCase, basePath = '' }: FindingDetailProps) {
   const router = useRouter();
-  const vulnCase = getCaseForFinding(finding);
-  const asset = getAssetById(finding.assetId);
 
   return (
     <div className="space-y-6">
       {/* Back Button */}
       <button
         type="button"
-        onClick={() => router.push('/findings')}
+        onClick={() => router.push(basePath + '/findings')}
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
       >
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +179,7 @@ export function FindingDetail({ finding }: FindingDetailProps) {
       </button>
 
       {/* Header */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -170,7 +221,7 @@ export function FindingDetail({ finding }: FindingDetailProps) {
 
       {/* Scoring Section */}
       {vulnCase && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Vulnerability Scoring</h2>
           <div className="grid gap-6 md:grid-cols-3">
             {/* CVSS */}
@@ -240,14 +291,14 @@ export function FindingDetail({ finding }: FindingDetailProps) {
 
       {/* Asset Section */}
       {asset && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Asset Information</h2>
           <AssetSection asset={asset} />
         </div>
       )}
 
       {/* Evidence Section */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Evidence</h2>
         <div className="space-y-4">
           <div className="flex items-center gap-3">
@@ -265,10 +316,10 @@ export function FindingDetail({ finding }: FindingDetailProps) {
 
       {/* Related Case */}
       {vulnCase && (
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Related Vulnerability Case</h2>
           <Link
-            href={`/cases/${vulnCase.id}`}
+            href={`${basePath}/cases/${vulnCase.id}`}
             className="inline-flex items-center gap-2 rounded-md bg-primary-50 px-4 py-3 text-sm font-medium text-primary-700 ring-1 ring-inset ring-primary-200 hover:bg-primary-100"
           >
             <SeverityBadge severity={vulnCase.severity} />
@@ -282,7 +333,7 @@ export function FindingDetail({ finding }: FindingDetailProps) {
       )}
 
       {/* Timeline */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Timeline</h2>
         <dl className="grid gap-4 sm:grid-cols-3">
           <div>

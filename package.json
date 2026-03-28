@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=apps/web",
+    "build:worker": "npm run build --workspace=apps/worker",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -38,6 +39,7 @@
     "context:resume": "node scripts/context-resume.mjs"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^22.0.0",
     "autoprefixer": "10.4.27",
@@ -53,7 +55,11 @@
   },
   "packageManager": "npm@10.8.0",
   "dependencies": {
-    "@prisma/client": "^5.22.0"
+    "@prisma/client": "^5.22.0",
+    "@react-pdf/renderer": "^4.3.2",
+    "@simplewebauthn/server": "^13.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "twitter-api-v2": "^1.29.0"
   },
   "overrides": {
     "@prisma/client": "^5.22.0",

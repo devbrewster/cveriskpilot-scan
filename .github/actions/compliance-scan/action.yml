@@ -1,0 +1,316 @@
+# =============================================================================
+# CVERiskPilot Compliance Scan — GitHub Composite Action
+# =============================================================================
+# Marketplace-ready action that runs vulnerability scanners, uploads results
+# to CVERiskPilot, maps findings to compliance frameworks, and posts a PR
+# comment with the compliance summary.
+# =============================================================================
+
+name: 'CVERiskPilot Compliance Scan'
+description: 'Scan code for vulnerabilities and map to compliance frameworks (NIST, CMMC, SOC2, FedRAMP)'
+author: 'CVERiskPilot LLC'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  api-key:
+    description: 'CVERiskPilot API key (crp_*)'
+    required: true
+  api-url:
+    description: 'CVERiskPilot API base URL'
+    required: false
+    default: 'https://app.cveriskpilot.com'
+  frameworks:
+    description: 'Comma-separated compliance frameworks to evaluate'
+    required: false
+    default: 'nist-800-53,cmmc,soc2'
+  fail-on-violation:
+    description: 'Fail the check if critical/high violations are found'
+    required: false
+    default: 'true'
+  scan-tools:
+    description: 'Comma-separated scanners to run (semgrep, trivy)'
+    required: false
+    default: 'semgrep,trivy'
+  sarif-path:
+    description: 'Path to pre-existing SARIF file (skips running scanners for SAST)'
+    required: false
+    default: ''
+  sbom-path:
+    description: 'Path to pre-existing SBOM file (skips SBOM generation)'
+    required: false
+    default: ''
+
+outputs:
+  verdict:
+    description: 'Scan verdict — PASS, FAIL, or WARN'
+    value: ${{ steps.parse-result.outputs.verdict }}
+  scan-id:
+    description: 'Unique scan ID from CVERiskPilot'
+    value: ${{ steps.parse-result.outputs.scan-id }}
+  dashboard-url:
+    description: 'URL to the scan results on CVERiskPilot dashboard'
+    value: ${{ steps.parse-result.outputs.dashboard-url }}
+  findings-count:
+    description: 'Total number of findings'
+    value: ${{ steps.parse-result.outputs.findings-count }}
+
+runs:
+  using: 'composite'
+  steps:
+    # ── 1. Install scan tools if needed ─────────────────────────────────────
+    - name: Install Semgrep
+      if: contains(inputs.scan-tools, 'semgrep') && inputs.sarif-path == ''
+      shell: bash
+      run: |
+        echo "::group::Installing Semgrep"
+        pip install --quiet semgrep
+        semgrep --version
+        echo "::endgroup::"
+
+    - name: Install Trivy
+      if: contains(inputs.scan-tools, 'trivy') && inputs.sarif-path == ''
+      shell: bash
+      run: |
+        echo "::group::Installing Trivy"
+        TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | jq -r '.tag_name' | sed 's/^v//')
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin "v${TRIVY_VERSION}"
+        trivy --version
+        echo "::endgroup::"
+
+    # ── 2. Run Semgrep (SARIF output) ───────────────────────────────────────
+    - name: Run Semgrep SAST scan
+      if: contains(inputs.scan-tools, 'semgrep') && inputs.sarif-path == ''
+      shell: bash
+      run: |
+        echo "::group::Running Semgrep"
+        mkdir -p .crp-results
+        semgrep scan \
+          --config auto \
+          --sarif \
+          --output .crp-results/semgrep.sarif \
+          --no-error \
+          . || true
+        echo "::endgroup::"
+
+    # ── 3. Run Trivy (SARIF + SBOM output) ──────────────────────────────────
+    - name: Run Trivy vulnerability scan
+      if: contains(inputs.scan-tools, 'trivy') && inputs.sarif-path == ''
+      shell: bash
+      run: |
+        echo "::group::Running Trivy"
+        mkdir -p .crp-results
+
+        # Filesystem vulnerability scan → SARIF
+        trivy fs \
+          --format sarif \
+          --output .crp-results/trivy.sarif \
+          --severity CRITICAL,HIGH,MEDIUM,LOW \
+          . || true
+
+        echo "::endgroup::"
+
+    - name: Generate SBOM with Trivy
+      if: contains(inputs.scan-tools, 'trivy') && inputs.sbom-path == ''
+      shell: bash
+      run: |
+        echo "::group::Generating SBOM"
+        mkdir -p .crp-results
+        trivy fs \
+          --format cyclonedx \
+          --output .crp-results/sbom.cdx.json \
+          . || true
+        echo "::endgroup::"
+
+    # ── 4. Resolve file paths ───────────────────────────────────────────────
+    - name: Resolve scan artifact paths
+      id: resolve-paths
+      shell: bash
+      run: |
+        # SARIF: prefer user-provided, then semgrep, then trivy
+        if [ -n "${{ inputs.sarif-path }}" ] && [ -f "${{ inputs.sarif-path }}" ]; then
+          echo "sarif-path=${{ inputs.sarif-path }}" >> "$GITHUB_OUTPUT"
+        elif [ -f ".crp-results/semgrep.sarif" ]; then
+          echo "sarif-path=.crp-results/semgrep.sarif" >> "$GITHUB_OUTPUT"
+        elif [ -f ".crp-results/trivy.sarif" ]; then
+          echo "sarif-path=.crp-results/trivy.sarif" >> "$GITHUB_OUTPUT"
+        else
+          echo "sarif-path=" >> "$GITHUB_OUTPUT"
+        fi
+
+        # Also include trivy SARIF as secondary if semgrep was primary
+        if [ -f ".crp-results/semgrep.sarif" ] && [ -f ".crp-results/trivy.sarif" ]; then
+          echo "trivy-sarif-path=.crp-results/trivy.sarif" >> "$GITHUB_OUTPUT"
+        else
+          echo "trivy-sarif-path=" >> "$GITHUB_OUTPUT"
+        fi
+
+        # SBOM
+        if [ -n "${{ inputs.sbom-path }}" ] && [ -f "${{ inputs.sbom-path }}" ]; then
+          echo "sbom-path=${{ inputs.sbom-path }}" >> "$GITHUB_OUTPUT"
+        elif [ -f ".crp-results/sbom.cdx.json" ]; then
+          echo "sbom-path=.crp-results/sbom.cdx.json" >> "$GITHUB_OUTPUT"
+        else
+          echo "sbom-path=" >> "$GITHUB_OUTPUT"
+        fi
+
+    # ── 5. Upload results to CVERiskPilot ───────────────────────────────────
+    - name: Upload scan results to CVERiskPilot
+      id: upload
+      shell: bash
+      env:
+        CRP_API_KEY: ${{ inputs.api-key }}
+        CRP_API_URL: ${{ inputs.api-url }}
+        CRP_FRAMEWORKS: ${{ inputs.frameworks }}
+        SARIF_PATH: ${{ steps.resolve-paths.outputs.sarif-path }}
+        TRIVY_SARIF_PATH: ${{ steps.resolve-paths.outputs.trivy-sarif-path }}
+        SBOM_PATH: ${{ steps.resolve-paths.outputs.sbom-path }}
+      run: |
+        echo "::group::Uploading to CVERiskPilot"
+        mkdir -p .crp-results
+
+        CURL_ARGS=(
+          -s -w "\n%{http_code}"
+          -X POST "${CRP_API_URL}/api/pipeline/scan"
+          -H "Authorization: Bearer ${CRP_API_KEY}"
+          -H "X-CRP-Source: github-action"
+          -F "frameworks=${CRP_FRAMEWORKS}"
+          -F "repository=${{ github.repository }}"
+          -F "commit=${{ github.sha }}"
+          -F "ref=${{ github.ref }}"
+          -F "pr=${{ github.event.pull_request.number }}"
+        )
+
+        if [ -n "${SARIF_PATH}" ] && [ -f "${SARIF_PATH}" ]; then
+          CURL_ARGS+=(-F "sarif=@${SARIF_PATH}")
+        fi
+
+        if [ -n "${TRIVY_SARIF_PATH}" ] && [ -f "${TRIVY_SARIF_PATH}" ]; then
+          CURL_ARGS+=(-F "trivy_sarif=@${TRIVY_SARIF_PATH}")
+        fi
+
+        if [ -n "${SBOM_PATH}" ] && [ -f "${SBOM_PATH}" ]; then
+          CURL_ARGS+=(-F "sbom=@${SBOM_PATH}")
+        fi
+
+        RESPONSE=$(curl "${CURL_ARGS[@]}")
+        HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+        BODY=$(echo "$RESPONSE" | sed '$d')
+
+        echo "$BODY" > .crp-results/scan-result.json
+
+        if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+          echo "::error::CVERiskPilot API returned HTTP ${HTTP_CODE}"
+          echo "$BODY"
+          exit 1
+        fi
+
+        echo "Upload successful (HTTP ${HTTP_CODE})"
+        echo "::endgroup::"
+
+    # ── 6. Parse API response ───────────────────────────────────────────────
+    - name: Parse scan result
+      id: parse-result
+      shell: bash
+      run: |
+        RESULT=".crp-results/scan-result.json"
+
+        if [ ! -f "$RESULT" ]; then
+          echo "::error::Scan result file not found"
+          exit 1
+        fi
+
+        VERDICT=$(jq -r '.verdict // "UNKNOWN"' "$RESULT")
+        SCAN_ID=$(jq -r '.scanId // "unknown"' "$RESULT")
+        DASHBOARD_URL=$(jq -r '.dashboardUrl // ""' "$RESULT")
+        FINDINGS_COUNT=$(jq -r '.summary.totalFindings // 0' "$RESULT")
+
+        echo "verdict=${VERDICT}" >> "$GITHUB_OUTPUT"
+        echo "scan-id=${SCAN_ID}" >> "$GITHUB_OUTPUT"
+        echo "dashboard-url=${DASHBOARD_URL}" >> "$GITHUB_OUTPUT"
+        echo "findings-count=${FINDINGS_COUNT}" >> "$GITHUB_OUTPUT"
+
+        echo "Verdict: ${VERDICT}"
+        echo "Scan ID: ${SCAN_ID}"
+        echo "Findings: ${FINDINGS_COUNT}"
+
+        # Save comment body from API response (pre-formatted markdown)
+        jq -r '.comment // empty' "$RESULT" > .crp-results/pr-comment.md
+
+    # ── 7. Post PR comment ──────────────────────────────────────────────────
+    - name: Post compliance summary to PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+
+          // Read pre-formatted comment or build a fallback
+          let body;
+          const commentPath = '.crp-results/pr-comment.md';
+          if (fs.existsSync(commentPath)) {
+            body = fs.readFileSync(commentPath, 'utf8').trim();
+          }
+
+          if (!body) {
+            const verdict = '${{ steps.parse-result.outputs.verdict }}';
+            const scanId = '${{ steps.parse-result.outputs.scan-id }}';
+            const findingsCount = '${{ steps.parse-result.outputs.findings-count }}';
+            const dashboardUrl = '${{ steps.parse-result.outputs.dashboard-url }}';
+
+            const icon = verdict === 'PASS' ? '✅' : verdict === 'FAIL' ? '❌' : '⚠️';
+            body = [
+              '## 🛡️ CVERiskPilot Compliance Scan',
+              '',
+              `**Verdict**: ${icon} ${verdict}`,
+              `**Findings**: ${findingsCount}`,
+              `**Scan ID**: \`${scanId}\``,
+              '',
+              dashboardUrl ? `[📊 View Full Results on Dashboard](${dashboardUrl})` : '',
+              '',
+              '---',
+              '*Generated by [CVERiskPilot](https://cveriskpilot.com) — Veteran-Owned Vulnerability Management*',
+            ].filter(Boolean).join('\n');
+          }
+
+          // Find existing comment to update (avoid spam)
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const marker = '## 🛡️ CVERiskPilot Compliance Scan';
+          const existing = comments.find(c => c.body && c.body.startsWith(marker));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+            console.log(`Updated existing comment ${existing.id}`);
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+            console.log('Created new PR comment');
+          }
+
+    # ── 8. Enforce verdict ──────────────────────────────────────────────────
+    - name: Enforce compliance verdict
+      if: inputs.fail-on-violation == 'true'
+      shell: bash
+      run: |
+        VERDICT="${{ steps.parse-result.outputs.verdict }}"
+        if [ "$VERDICT" = "FAIL" ]; then
+          echo "::error::Compliance scan failed — critical or high violations found"
+          exit 1
+        fi
+        echo "Compliance scan verdict: ${VERDICT}"

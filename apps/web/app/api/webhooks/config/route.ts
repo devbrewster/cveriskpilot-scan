@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
@@ -32,12 +33,12 @@ function getEndpoints(entitlements: unknown): WebhookEndpointConfig[] {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json({ error: 'organizationId is required' }, { status: 400 });
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const organizationId = session.organizationId;
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -69,17 +70,22 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const organizationId = session.organizationId;
     const body = await request.json();
-    const { organizationId, url, secret, events } = body as {
-      organizationId: string;
+    const { url, secret, events } = body as {
       url: string;
       secret: string;
       events: string[];
     };
 
-    if (!organizationId || !url || !secret || !events?.length) {
+    if (!url || !secret || !events?.length) {
       return NextResponse.json(
-        { error: 'organizationId, url, secret, and events are required' },
+        { error: 'url, secret, and events are required' },
         { status: 400 },
       );
     }
@@ -128,20 +134,96 @@ export async function POST(request: NextRequest) {
 }
 
 // ---------------------------------------------------------------------------
+// PUT /api/webhooks/config — update an existing webhook endpoint
+// ---------------------------------------------------------------------------
+
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const organizationId = session.organizationId;
+    const body = await request.json();
+    const { endpointId, url, events, active } = body as {
+      endpointId: string;
+      url?: string;
+      events?: string[];
+      active?: boolean;
+    };
+
+    if (!endpointId) {
+      return NextResponse.json(
+        { error: 'endpointId is required' },
+        { status: 400 },
+      );
+    }
+
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { entitlements: true },
+    });
+
+    if (!org) {
+      return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+    }
+
+    const existing = getEndpoints(org.entitlements);
+    const idx = existing.findIndex((e) => e.id === endpointId);
+    if (idx === -1) {
+      return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
+    }
+
+    const updated = [...existing];
+    updated[idx] = {
+      ...updated[idx],
+      ...(url !== undefined && { url }),
+      ...(events !== undefined && { events }),
+      ...(active !== undefined && { isActive: active }),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const entitlements = {
+      ...(typeof org.entitlements === 'object' && org.entitlements !== null
+        ? org.entitlements
+        : {}),
+      webhookEndpoints: updated,
+    };
+
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { entitlements: entitlements as any },
+    });
+
+    const { secret: _s, ...safe } = updated[idx];
+    return NextResponse.json({ ...safe, secretLast4: _s ? '****' + _s.slice(-4) : null });
+  } catch (error) {
+    console.error('[API] PUT /api/webhooks/config error:', error);
+    return NextResponse.json({ error: 'Failed to update webhook' }, { status: 500 });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // DELETE /api/webhooks/config — remove a webhook endpoint
 // ---------------------------------------------------------------------------
 
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const organizationId = session.organizationId;
     const body = await request.json();
-    const { organizationId, endpointId } = body as {
-      organizationId: string;
+    const { endpointId } = body as {
       endpointId: string;
     };
 
-    if (!organizationId || !endpointId) {
+    if (!endpointId) {
       return NextResponse.json(
-        { error: 'organizationId and endpointId are required' },
+        { error: 'endpointId is required' },
         { status: 400 },
       );
     }

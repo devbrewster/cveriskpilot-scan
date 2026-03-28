@@ -48,10 +48,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 }
 
 const typeStyles: Record<ToastType, string> = {
-  success: 'bg-green-50 border-green-400 text-green-800',
-  error: 'bg-red-50 border-red-400 text-red-800',
-  warning: 'bg-yellow-50 border-yellow-400 text-yellow-800',
-  info: 'bg-blue-50 border-blue-400 text-blue-800',
+  success: 'bg-green-50 border-green-400 text-green-800 dark:bg-green-950/80 dark:border-green-700 dark:text-green-300',
+  error: 'bg-red-50 border-red-400 text-red-800 dark:bg-red-950/80 dark:border-red-700 dark:text-red-300',
+  warning: 'bg-yellow-50 border-yellow-400 text-yellow-800 dark:bg-yellow-950/80 dark:border-yellow-700 dark:text-yellow-300',
+  info: 'bg-blue-50 border-blue-400 text-blue-800 dark:bg-blue-950/80 dark:border-blue-700 dark:text-blue-300',
 };
 
 const typeIcons: Record<ToastType, React.ReactNode> = {

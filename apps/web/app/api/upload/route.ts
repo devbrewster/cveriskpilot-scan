@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@cveriskpilot/auth';
+import { getOrgTier, checkBillingGate, trackUpload } from '@/lib/billing';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -20,11 +21,11 @@ export const maxDuration = 60; // seconds
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024; // 100 MB
 
 const ACCEPTED_EXTENSIONS = new Set([
-  '.nessus', '.sarif', '.json', '.csv', '.cdx.json', '.xml',
+  '.nessus', '.sarif', '.json', '.csv', '.cdx.json', '.xml', '.xlsx',
 ]);
 
 const VALID_PARSER_FORMATS = new Set([
-  'NESSUS', 'SARIF', 'CSV', 'JSON_FORMAT', 'CYCLONEDX', 'OSV', 'SPDX', 'CSAF', 'QUALYS', 'OPENVAS',
+  'NESSUS', 'SARIF', 'CSV', 'JSON_FORMAT', 'CYCLONEDX', 'OSV', 'SPDX', 'CSAF', 'QUALYS', 'OPENVAS', 'XLSX',
 ]);
 
 function getFileExtension(name: string): string {
@@ -81,6 +82,16 @@ export async function POST(request: NextRequest) {
 
     const organizationId = session.organizationId;
     const uploadedById = session.userId;
+
+    // --- Billing gate: check upload limit ---
+    const tier = await getOrgTier(organizationId);
+    const gate = await checkBillingGate(organizationId, tier, 'upload');
+    if (!gate.allowed) {
+      return NextResponse.json(
+        { error: gate.reason, upgradeRequired: gate.upgradeRequired },
+        { status: 403 },
+      );
+    }
 
     const formData = await request.formData();
 
@@ -189,6 +200,9 @@ export async function POST(request: NextRequest) {
       where: { id: jobId },
       data: { artifactId },
     });
+
+    // Step 3.5: Track billing usage (upload counter + MSSP metering)
+    await trackUpload(organizationId, clientId);
 
     // Step 4: Fire-and-forget processing pipeline
     // (parse -> normalize -> dedup -> enrich -> build cases)

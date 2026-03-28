@@ -5,7 +5,7 @@ import { compareScanResults, exportDiffToCSV } from '@/lib/export/scan-diff';
 import { downloadCSV } from '@/lib/export/csv-export';
 import { useToast } from '@/components/ui/toast';
 import { SeverityBadge } from '@/components/ui/badge';
-import type { Severity } from '@/lib/mock-data';
+import type { Severity } from '@/lib/types';
 
 // Mock scan data: two scans with overlapping findings
 const MOCK_SCANS: Record<string, { label: string; date: string; findings: Record<string, unknown>[] }> = {
@@ -73,7 +73,7 @@ function FindingTable({ findings, status, defaultExpanded = true }: FindingTable
   if (findings.length === 0) return null;
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
@@ -160,7 +160,7 @@ export function ScanCompare() {
   return (
     <div className="space-y-6">
       {/* Scan Selectors */}
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
         <div className="border-b border-gray-100 px-6 py-4">
           <h3 className="text-base font-semibold text-gray-900">Select Scans to Compare</h3>
           <p className="mt-1 text-sm text-gray-500">Choose two scans to view their differences</p>
@@ -214,7 +214,7 @@ export function ScanCompare() {
 
       {/* Empty State */}
       {!diff && (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white dark:bg-gray-900 py-16 text-center">
           <svg className="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
           </svg>
@@ -228,11 +228,11 @@ export function ScanCompare() {
         <>
           {/* Summary Stats */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <div className="rounded-lg border border-gray-200 bg-white p-4 text-center shadow-sm">
+            <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 text-center shadow-sm">
               <div className="text-2xl font-bold text-gray-900">{diff.summary.totalA}</div>
               <div className="mt-1 text-xs text-gray-500">Scan A Findings</div>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-white p-4 text-center shadow-sm">
+            <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4 text-center shadow-sm">
               <div className="text-2xl font-bold text-gray-900">{diff.summary.totalB}</div>
               <div className="mt-1 text-xs text-gray-500">Scan B Findings</div>
             </div>
@@ -255,7 +255,7 @@ export function ScanCompare() {
             <button
               type="button"
               onClick={handleExportDiff}
-              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

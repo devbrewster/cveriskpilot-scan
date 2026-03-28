@@ -90,7 +90,7 @@ export function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="bg-white py-20 sm:py-28 dark:bg-gray-950">
+    <section id="pricing" className="bg-white dark:bg-gray-900 py-20 sm:py-28 dark:bg-gray-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
@@ -120,7 +120,7 @@ export function Pricing() {
             }`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-900 shadow ring-0 transition duration-200 ease-in-out ${
                 isAnnual ? 'translate-x-5' : 'translate-x-0'
               }`}
             />
@@ -142,8 +142,8 @@ export function Pricing() {
               key={plan.name}
               className={`relative rounded-2xl border p-8 transition-shadow duration-200 ${
                 plan.highlighted
-                  ? 'border-primary-500 bg-white shadow-xl shadow-primary-100/50 ring-1 ring-primary-500 dark:border-primary-400 dark:bg-gray-900 dark:shadow-primary-900/20 dark:ring-primary-400'
-                  : 'border-gray-200 bg-white shadow-sm hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/30'
+                  ? 'border-primary-500 bg-white dark:bg-gray-900 shadow-xl shadow-primary-100/50 ring-1 ring-primary-500 dark:border-primary-400 dark:bg-gray-900 dark:shadow-primary-900/20 dark:ring-primary-400'
+                  : 'border-gray-200 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/30'
               }`}
             >
               {plan.highlighted && (

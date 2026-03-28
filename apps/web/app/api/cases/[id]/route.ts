@@ -19,6 +19,10 @@ export async function GET(
 
     const { id } = await params;
 
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const vuln = await prisma.vulnerabilityCase.findUnique({
       where: { id },
       include: {
@@ -91,6 +95,11 @@ export async function PATCH(
     }
 
     const { id } = await params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const body = await request.json();
     const { status, assignedToId, remediationNotes, reason } = body;
 

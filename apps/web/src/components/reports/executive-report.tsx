@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { mockCases } from '@/lib/mock-data';
+import { useState, useMemo, useEffect } from 'react';
+import type { ApiCase, CasesApiResponse } from '@/lib/types';
 import type { ExecutiveReportData } from '@/lib/export/pdf-report';
 import { generateExecutivePDF, previewExecutiveReport } from '@/lib/export/pdf-report';
 
@@ -20,6 +20,10 @@ const SECTION_OPTIONS = [
 ] as const;
 
 export function ExecutiveReport() {
+  const [cases, setCases] = useState<ApiCase[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [orgName, setOrgName] = useState('My Organization');
   const [dateFrom, setDateFrom] = useState('2026-03-01');
   const [dateTo, setDateTo] = useState('2026-03-27');
@@ -36,6 +40,37 @@ export function ExecutiveReport() {
     recommendations: true,
   });
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchCases() {
+      setLoading(true);
+      setError(null);
+      try {
+        // Fetch all cases (up to 100 per page) for report generation
+        const res = await fetch('/api/cases?limit=100');
+        if (!res.ok) {
+          throw new Error(`Failed to fetch cases: ${res.status}`);
+        }
+        const data: CasesApiResponse = await res.json();
+        if (!cancelled) {
+          setCases(data.cases ?? []);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load cases');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    fetchCases();
+    return () => { cancelled = true; };
+  }, []);
+
   function toggleSeverity(sev: string) {
     setSeverities((prev) => {
       const next = new Set(prev);
@@ -50,7 +85,7 @@ export function ExecutiveReport() {
   }
 
   const reportData: ExecutiveReportData = useMemo(() => {
-    const filtered = mockCases.filter((c) => severities.has(c.severity));
+    const filtered = cases.filter((c) => severities.has(c.severity));
 
     const criticalCount = filtered.filter((c) => c.severity === 'CRITICAL').length;
     const highCount = filtered.filter((c) => c.severity === 'HIGH').length;
@@ -125,12 +160,42 @@ export function ExecutiveReport() {
         recommendations: sections.recommendations ?? true,
       },
     };
-  }, [orgName, dateFrom, dateTo, severities, sections]);
+  }, [cases, orgName, dateFrom, dateTo, severities, sections]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="flex items-center gap-3 text-sm text-gray-500">
+          <svg className="h-5 w-5 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Loading cases for report...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+        <div className="flex items-center gap-3">
+          <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-red-800">Failed to load report data</p>
+            <p className="mt-1 text-sm text-red-600">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Configuration Form */}
-      <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+      <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
         <div className="border-b border-gray-100 px-6 py-4">
           <h3 className="text-base font-semibold text-gray-900">Report Configuration</h3>
           <p className="mt-1 text-sm text-gray-500">Configure the executive summary report parameters</p>
@@ -213,7 +278,7 @@ export function ExecutiveReport() {
         <button
           type="button"
           onClick={() => previewExecutiveReport(reportData)}
-          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-colors"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

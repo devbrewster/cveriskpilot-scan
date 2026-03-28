@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -7,13 +8,21 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-bold text-white shadow-md shadow-primary-600/20">
-                CR
-              </div>
-              <span className="text-lg font-bold text-gray-900 dark:text-white">
-                CVERiskPilot
-              </span>
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/logo-dark.png"
+                alt="CVERiskPilot"
+                width={220}
+                height={48}
+                className="hidden h-9 w-auto dark:block"
+              />
+              <Image
+                src="/logo-light.png"
+                alt="CVERiskPilot"
+                width={220}
+                height={48}
+                className="block h-9 w-auto dark:hidden"
+              />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500 dark:text-gray-400">
               AI-powered vulnerability management. Prioritize by real exploit
@@ -94,6 +103,22 @@ export function Footer() {
                 >
                   Pricing
                 </a>
+              </li>
+              <li>
+                <a
+                  href="/demo"
+                  className="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  Live Demo
+                </a>
+              </li>
+              <li>
+                <Link
+                  href="/government"
+                  className="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  Government
+                </Link>
               </li>
             </ul>
           </div>

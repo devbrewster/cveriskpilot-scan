@@ -60,3 +60,4 @@ social/queue/
 social/published/
 social/archived/
 state/marketing/generated/
+*.tsbuildinfo

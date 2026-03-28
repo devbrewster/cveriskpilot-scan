@@ -26,9 +26,11 @@ resource "google_cloud_run_v2_service" "web" {
     service_account = google_service_account.cloudrun.email
 
     scaling {
-      min_instance_count = 0
+      min_instance_count = var.environment == "prod" ? 2 : 1
       max_instance_count = 10
     }
+
+    max_instance_request_concurrency = 80
 
     vpc_access {
       connector = google_vpc_access_connector.cloudrun.id
@@ -51,8 +53,8 @@ resource "google_cloud_run_v2_service" "web" {
 
       resources {
         limits = {
-          memory = "512Mi"
-          cpu    = "1"
+          memory = "1Gi"
+          cpu    = "2"
         }
       }
 

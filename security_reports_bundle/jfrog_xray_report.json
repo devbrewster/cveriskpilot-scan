@@ -1,0 +1,311 @@
+{
+  "scan_id": "xray-scan-20260311-084522",
+  "scan_type": "artifact_scan",
+  "scanner": "JFrog Xray",
+  "scanner_version": "3.88.12",
+  "generated_at": "2026-03-11T08:45:22Z",
+  "artifact": {
+    "name": "payment-service",
+    "type": "docker",
+    "path": "docker://registry.internal.corp/payment-service:2.14.1",
+    "sha256": "sha256:7f3d9c1a2b4e5f6a8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b",
+    "size_bytes": 482093184,
+    "created_at": "2026-03-10T14:22:00Z"
+  },
+  "policy_violations": [
+    {
+      "policy_name": "CRITICAL-BLOCK",
+      "rule_name": "block-cvss-9-plus",
+      "violations": 3,
+      "action": "block"
+    },
+    {
+      "policy_name": "HIGH-WARN",
+      "rule_name": "warn-cvss-7-plus",
+      "violations": 11,
+      "action": "warn"
+    },
+    {
+      "policy_name": "LICENSE-COMPLIANCE",
+      "rule_name": "copyleft-gpl-check",
+      "violations": 2,
+      "action": "warn"
+    }
+  ],
+  "summary": {
+    "total_issues": 47,
+    "critical": 3,
+    "high": 11,
+    "medium": 22,
+    "low": 11,
+    "unknown": 0,
+    "licenses_flagged": 2,
+    "operational_risks": 4,
+    "malicious_code_detections": 0
+  },
+  "vulnerabilities": [
+    {
+      "id": "XRAY-2024-193847",
+      "cve": "CVE-2024-3400",
+      "cvss_v3": 10.0,
+      "severity": "Critical",
+      "summary": "PAN-OS GlobalProtect RCE via command injection in telemetry endpoint",
+      "affected_component": {
+        "package_type": "os",
+        "name": "pan-os-base",
+        "version": "10.2.3",
+        "fixed_version": "10.2.9-h1"
+      },
+      "cwe": ["CWE-77"],
+      "exploit_maturity": "Proof of Concept",
+      "kev_listed": true,
+      "epss_score": 0.9732,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-3400",
+        "https://security.paloaltonetworks.com/CVE-2024-3400"
+      ],
+      "xray_research_notes": "Actively exploited by UTA0218 threat actor. Exploitation does not require authentication. Patching priority: IMMEDIATE."
+    },
+    {
+      "id": "XRAY-2024-201034",
+      "cve": "CVE-2024-21762",
+      "cvss_v3": 9.8,
+      "severity": "Critical",
+      "summary": "Fortinet FortiOS SSL-VPN out-of-bounds write leading to RCE",
+      "affected_component": {
+        "package_type": "os",
+        "name": "libssl",
+        "version": "1.1.1n",
+        "fixed_version": "1.1.1w"
+      },
+      "cwe": ["CWE-787"],
+      "exploit_maturity": "Weaponized",
+      "kev_listed": true,
+      "epss_score": 0.9841,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21762"
+      ],
+      "xray_research_notes": "CISA KEV confirmed. Exploit code available in the wild. Affects Fortinet FortiOS and SSL-VPN proxy. Upgrade immediately."
+    },
+    {
+      "id": "XRAY-2025-038821",
+      "cve": "CVE-2025-22457",
+      "cvss_v3": 9.0,
+      "severity": "Critical",
+      "summary": "Ivanti Connect Secure stack-based buffer overflow — unauthenticated RCE",
+      "affected_component": {
+        "package_type": "python",
+        "name": "cryptography",
+        "version": "3.4.7",
+        "fixed_version": "42.0.4"
+      },
+      "cwe": ["CWE-121"],
+      "exploit_maturity": "Proof of Concept",
+      "kev_listed": true,
+      "epss_score": 0.9512,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-22457"
+      ],
+      "xray_research_notes": "UNC5221 observed exploiting this vulnerability post-disclosure. High-value target in financial sector."
+    },
+    {
+      "id": "XRAY-2024-178234",
+      "cve": "CVE-2024-4577",
+      "cvss_v3": 9.8,
+      "severity": "Critical",
+      "summary": "PHP CGI argument injection allowing arbitrary code execution",
+      "affected_component": {
+        "package_type": "os",
+        "name": "php8.1",
+        "version": "8.1.12",
+        "fixed_version": "8.1.29"
+      },
+      "cwe": ["CWE-88"],
+      "exploit_maturity": "Weaponized",
+      "kev_listed": false,
+      "epss_score": 0.9441,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-4577",
+        "https://www.php.net/ChangeLog-8.php#8.1.29"
+      ],
+      "xray_research_notes": "Bypass of the CVE-2012-1823 patch. Affects Windows PHP installations using CGI mode."
+    },
+    {
+      "id": "XRAY-2024-156789",
+      "cve": "CVE-2024-27198",
+      "cvss_v3": 9.8,
+      "severity": "Critical",
+      "summary": "JetBrains TeamCity authentication bypass — full server takeover",
+      "affected_component": {
+        "package_type": "maven",
+        "name": "org.springframework.security:spring-security-core",
+        "version": "5.7.9",
+        "fixed_version": "5.7.12"
+      },
+      "cwe": ["CWE-288"],
+      "exploit_maturity": "Weaponized",
+      "kev_listed": true,
+      "epss_score": 0.9780,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-27198"
+      ],
+      "xray_research_notes": "APT29 actively exploiting. CISA advisory issued 2024-03-07."
+    },
+    {
+      "id": "XRAY-2024-089123",
+      "cve": "CVE-2024-1709",
+      "cvss_v3": 8.8,
+      "severity": "High",
+      "summary": "ConnectWise ScreenConnect authentication bypass",
+      "affected_component": {
+        "package_type": "npm",
+        "name": "express",
+        "version": "4.18.2",
+        "fixed_version": "4.19.2"
+      },
+      "cwe": ["CWE-306"],
+      "exploit_maturity": "Proof of Concept",
+      "kev_listed": true,
+      "epss_score": 0.8833,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-1709"
+      ],
+      "xray_research_notes": "Path traversal allows unauthenticated user setup. Affects versions prior to 23.9.8."
+    },
+    {
+      "id": "XRAY-2024-204412",
+      "cve": "CVE-2024-38063",
+      "cvss_v3": 8.1,
+      "severity": "High",
+      "summary": "Windows TCP/IP Remote Code Execution via IPv6 packet crafting",
+      "affected_component": {
+        "package_type": "os",
+        "name": "libc6",
+        "version": "2.31-13+deb11u6",
+        "fixed_version": "2.31-13+deb11u10"
+      },
+      "cwe": ["CWE-191"],
+      "exploit_maturity": "Proof of Concept",
+      "kev_listed": true,
+      "epss_score": 0.7921,
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-38063"
+      ],
+      "xray_research_notes": "Zero-click wormable vulnerability. Disabling IPv6 is a temporary mitigation."
+    },
+    {
+      "id": "XRAY-2024-071234",
+      "cve": "CVE-2024-6387",
+      "cvss_v3": 8.1,
+      "severity": "High",
+      "summary": "OpenSSH regreSSHion — race condition in signal handler leading to RCE as root",
+      "affected_component": {
+        "package_type": "os",
+        "name": "openssh-server",
+        "version": "8.9p1-3ubuntu0.6",
+        "fixed_version": "9.8p1"
+      },
+      "cwe": ["CWE-364"],
+      "exploit_maturity": "Proof of Concept",
+      "kev_listed": false,
+      "epss_score": 0.6821,
+      "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-6387",
+        "https://www.qualys.com/2024/07/01/cve-2024-6387/regresshion.txt"
+      ],
+      "xray_research_notes": "Regression of CVE-2006-5051 introduced in OpenSSH 8.5p1. Race condition is hard to exploit reliably but PoC exists."
+    },
+    {
+      "id": "XRAY-2024-044512",
+      "cve": "CVE-2023-44487",
+      "cvss_v3": 7.5,
+      "severity": "High",
+      "summary": "HTTP/2 Rapid Reset attack causing DoS — affects servers implementing HTTP/2",
+      "affected_component": {
+        "package_type": "go",
+        "name": "golang.org/x/net",
+        "version": "0.10.0",
+        "fixed_version": "0.17.0"
+      },
+      "cwe": ["CWE-400"],
+      "exploit_maturity": "Weaponized",
+      "kev_listed": true,
+      "epss_score": 0.7234,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-44487"
+      ],
+      "xray_research_notes": "Record-breaking DDoS campaigns observed at 398 million requests/second. Widely exploited."
+    },
+    {
+      "id": "XRAY-2024-033219",
+      "cve": "CVE-2024-21626",
+      "cvss_v3": 8.6,
+      "severity": "High",
+      "summary": "runc container escape via file descriptor leak — Leaky Vessels",
+      "affected_component": {
+        "package_type": "go",
+        "name": "github.com/opencontainers/runc",
+        "version": "1.1.9",
+        "fixed_version": "1.1.12"
+      },
+      "cwe": ["CWE-403"],
+      "exploit_maturity": "Proof of Concept",
+      "kev_listed": false,
+      "epss_score": 0.6102,
+      "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
+      "references": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21626"
+      ],
+      "xray_research_notes": "Allows container escape to host. Affects all Kubernetes clusters using runc < 1.1.12. Critical for container environments."
+    }
+  ],
+  "license_issues": [
+    {
+      "component": "libgpl-utils:2.1.4",
+      "license": "GPL-3.0",
+      "policy_violated": "No-Copyleft",
+      "risk": "Legal: requires source disclosure if distributed"
+    },
+    {
+      "component": "ssllib-agpl:0.9.2",
+      "license": "AGPL-3.0",
+      "policy_violated": "No-Copyleft",
+      "risk": "Legal: network-use triggers copyleft obligations"
+    }
+  ],
+  "operational_risks": [
+    {
+      "component": "log4j-core:2.14.1",
+      "risk_type": "End of Life",
+      "description": "log4j 2.x before 2.17.2 is EOL; no security patches will be issued",
+      "severity": "High"
+    },
+    {
+      "component": "node:14.21.3",
+      "risk_type": "End of Life",
+      "description": "Node.js 14 reached end-of-life 2023-04-30",
+      "severity": "Medium"
+    },
+    {
+      "component": "python:3.8.18",
+      "risk_type": "End of Life",
+      "description": "Python 3.8 reached EOL 2024-10-07",
+      "severity": "Medium"
+    },
+    {
+      "component": "openssl:1.0.2k",
+      "risk_type": "End of Life",
+      "description": "OpenSSL 1.0.2 EOL since 2019-12-31. No patches available.",
+      "severity": "Critical"
+    }
+  ]
+}

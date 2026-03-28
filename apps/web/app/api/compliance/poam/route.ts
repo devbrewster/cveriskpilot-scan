@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { generatePOAM, exportPOAMCsv, exportPOAMJson } from '@cveriskpilot/compliance';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/compliance/poam — Generate POAM from open cases
@@ -9,10 +10,15 @@ import { generatePOAM, exportPOAMCsv, exportPOAMJson } from '@cveriskpilot/compl
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
     const format = searchParams.get('format') ?? 'json';
-    const organizationId = searchParams.get('organizationId') ?? 'org-default';
+    const organizationId = session.organizationId;
 
     if (!clientId) {
       return NextResponse.json(

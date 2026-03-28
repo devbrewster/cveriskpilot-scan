@@ -12,6 +12,10 @@ export async function GET(
   try {
     const { id } = await params;
 
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const exception = await prisma.riskException.findUnique({
       where: { id },
       include: {
@@ -74,6 +78,11 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
+    }
+
     const body = await request.json();
 
     const { action, approvedById, durationDays } = body as {

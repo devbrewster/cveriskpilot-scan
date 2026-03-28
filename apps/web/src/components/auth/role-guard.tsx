@@ -1,13 +1,13 @@
 'use client';
 
 import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
 
-// Minimal client-side permission check (mirrors server RBAC)
+// Standalone users (ORG_OWNER, PLATFORM_ADMIN) get full access.
+// RBAC only restricts roles assigned to added team members.
+const FULL_ACCESS_ROLES = new Set(['PLATFORM_ADMIN', 'ORG_OWNER']);
+
 const ROLE_PERMISSIONS: Record<string, string[]> = {
-  PLATFORM_ADMIN: ['platform:admin', 'org:read', 'org:update', 'org:manage_users', 'org:manage_teams', 'org:manage_billing', 'org:manage_api_keys', 'scans:upload', 'cases:read', 'cases:triage', 'cases:assign', 'audit:read', 'exceptions:approve'],
   PLATFORM_SUPPORT: ['org:read', 'cases:read', 'audit:read'],
-  ORG_OWNER: ['org:read', 'org:update', 'org:manage_users', 'org:manage_teams', 'org:manage_billing', 'org:manage_api_keys', 'scans:upload', 'cases:read', 'cases:triage', 'cases:assign', 'audit:read', 'exceptions:approve'],
   SECURITY_ADMIN: ['org:read', 'org:manage_users', 'org:manage_teams', 'org:manage_api_keys', 'scans:upload', 'cases:read', 'cases:triage', 'cases:assign', 'audit:read', 'exceptions:approve'],
   ANALYST: ['scans:upload', 'cases:read', 'cases:triage', 'cases:assign', 'exceptions:create'],
   DEVELOPER: ['cases:read'],
@@ -19,6 +19,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 
 function hasPermission(role: string | null, permission: string): boolean {
   if (!role) return false;
+  if (FULL_ACCESS_ROLES.has(role)) return true;
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
 

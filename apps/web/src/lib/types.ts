@@ -2,6 +2,8 @@
 
 export type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
 
+export type Tier = 'FREE' | 'FOUNDERS_BETA' | 'PRO' | 'ENTERPRISE' | 'MSSP';
+
 export type CaseStatus =
   | 'NEW'
   | 'TRIAGE'
@@ -55,8 +57,41 @@ export interface VulnerabilityCase {
   kevDueDate: string | null;
   status: CaseStatus;
   findingCount: number;
+  assignedToId: string | null;
+  assignedTo: { id: string; name: string | null; email: string } | null;
+  dueAt: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
+}
+
+/** Shape returned by GET /api/cases (offset pagination) */
+export interface CasesApiResponse {
+  cases: ApiCase[];
+  total: number;
+  page: number;
+  totalPages: number;
+  pagination: 'offset';
+}
+
+/** Raw case shape from the API (Prisma includes _count and assignedTo) */
+export interface ApiCase {
+  id: string;
+  title: string;
+  cveIds: string[];
+  severity: Severity;
+  cvssScore: number | null;
+  epssScore: number | null;
+  epssPercentile: number | null;
+  kevListed: boolean;
+  kevDueDate: string | null;
+  status: CaseStatus;
+  assignedToId: string | null;
+  assignedTo: { id: string; name: string | null; email: string } | null;
+  dueAt: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  _count?: { findings: number };
+  findingCount?: number;
 }
 
 export interface UploadJob {
@@ -139,4 +174,15 @@ export interface DashboardApiResponse {
   totalFindings: number;
   totalCases: number;
   nearestKevDueDate: string | null;
+}
+
+export interface DashboardStats {
+  totalCases: number;
+  criticalHighCases: number;
+  kevListedCount: number;
+  avgEpssScore: number;
+  totalCasesTrend: number;
+  criticalHighTrend: number;
+  kevTrend: number;
+  epssTrend: number;
 }

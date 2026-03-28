@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/lib/auth-context';
 import { SlaSettings } from '@/components/settings/sla-settings';
 import { RetentionSettings } from '@/components/settings/retention-settings';
 import { SsoSettings } from '@/components/settings/sso-settings';
@@ -8,13 +9,11 @@ import { ApiKeys } from '@/components/settings/api-keys';
 import { ServiceAccounts } from '@/components/settings/service-accounts';
 import { IpAllowlist } from '@/components/settings/ip-allowlist';
 import { ConnectorSettings } from '@/components/settings/connector-settings';
+import { JiraSettings } from '@/components/settings/jira-settings';
 import { NotificationPreferences } from '@/components/settings/notification-preferences';
 import { WebhookSettings } from '@/components/settings/webhook-settings';
 import { OrgProfile } from '@/components/settings/org-profile';
-
-// TODO: These should come from session/auth context
-const organizationId = 'org-default';
-const tier = 'PRO';
+import { AiPrompts } from '@/components/settings/ai-prompts';
 
 type TabId =
   | 'org-profile'
@@ -23,10 +22,12 @@ type TabId =
   | 'service-accounts'
   | 'ip-allowlist'
   | 'connectors'
+  | 'jira'
   | 'webhooks'
   | 'sla-policies'
   | 'data-retention'
-  | 'notifications';
+  | 'notifications'
+  | 'ai-prompts';
 
 interface TabItem {
   id: TabId;
@@ -56,6 +57,7 @@ const tabGroups: TabGroup[] = [
     name: 'Integrations',
     tabs: [
       { id: 'connectors', label: 'Connectors' },
+      { id: 'jira', label: 'Jira' },
       { id: 'webhooks', label: 'Webhooks' },
     ],
   },
@@ -67,44 +69,60 @@ const tabGroups: TabGroup[] = [
     ],
   },
   {
+    name: 'AI',
+    tabs: [{ id: 'ai-prompts', label: 'AI Prompts' }],
+  },
+  {
     name: 'Notifications',
     tabs: [{ id: 'notifications', label: 'Notification Preferences' }],
   },
 ];
 
-const allTabs = tabGroups.flatMap((g) => g.tabs);
-
-function renderTab(activeTab: TabId) {
-  switch (activeTab) {
-    case 'org-profile':
-      return <OrgProfile organizationId={organizationId} tier={tier} />;
-    case 'sso':
-      return <SsoSettings organizationId={organizationId} tier={tier} />;
-    case 'api-keys':
-      return <ApiKeys organizationId={organizationId} />;
-    case 'service-accounts':
-      return <ServiceAccounts organizationId={organizationId} />;
-    case 'ip-allowlist':
-      return <IpAllowlist organizationId={organizationId} />;
-    case 'connectors':
-      return <ConnectorSettings organizationId={organizationId} />;
-    case 'webhooks':
-      return <WebhookSettings organizationId={organizationId} />;
-    case 'sla-policies':
-      return <SlaSettings organizationId={organizationId} />;
-    case 'data-retention':
-      return <RetentionSettings organizationId={organizationId} />;
-    case 'notifications':
-      return <NotificationPreferences organizationId={organizationId} />;
-    default:
-      return null;
-  }
-}
-
 export default function SettingsPage() {
+  const { loaded, organizationId, tier } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>('org-profile');
 
-  const activeLabel = allTabs.find((t) => t.id === activeTab)?.label ?? 'Settings';
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-gray-500">Loading settings...</div>
+      </div>
+    );
+  }
+
+  const orgId = organizationId ?? 'org-default';
+  const orgTier = tier ?? 'PRO';
+
+  function renderTab(tab: TabId) {
+    switch (tab) {
+      case 'org-profile':
+        return <OrgProfile organizationId={orgId} tier={orgTier} />;
+      case 'sso':
+        return <SsoSettings organizationId={orgId} tier={orgTier} />;
+      case 'api-keys':
+        return <ApiKeys organizationId={orgId} />;
+      case 'service-accounts':
+        return <ServiceAccounts organizationId={orgId} />;
+      case 'ip-allowlist':
+        return <IpAllowlist organizationId={orgId} />;
+      case 'connectors':
+        return <ConnectorSettings organizationId={orgId} />;
+      case 'jira':
+        return <JiraSettings organizationId={orgId} />;
+      case 'webhooks':
+        return <WebhookSettings organizationId={orgId} />;
+      case 'sla-policies':
+        return <SlaSettings organizationId={orgId} />;
+      case 'data-retention':
+        return <RetentionSettings organizationId={orgId} />;
+      case 'notifications':
+        return <NotificationPreferences organizationId={orgId} />;
+      case 'ai-prompts':
+        return <AiPrompts organizationId={orgId} />;
+      default:
+        return null;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -124,7 +142,7 @@ export default function SettingsPage() {
           id="settings-tab"
           value={activeTab}
           onChange={(e) => setActiveTab(e.target.value as TabId)}
-          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="block w-full rounded-md border border-gray-300 bg-white dark:bg-gray-900 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           {tabGroups.map((group) => (
             <optgroup key={group.name} label={group.name}>
@@ -170,7 +188,7 @@ export default function SettingsPage() {
 
         {/* Main content area */}
         <div className="min-w-0 flex-1">
-          <div className="rounded-lg border border-gray-200 bg-white p-6">
+          <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
             {renderTab(activeTab)}
           </div>
         </div>

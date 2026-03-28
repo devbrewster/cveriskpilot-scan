@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" width="1200" height="675">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="red-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#f87171"/>
+    </linearGradient>
+    <linearGradient id="cyan-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ee6f6"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
+    </linearGradient>
+    <linearGradient id="green-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#4ade80"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#334155" stroke-width="0.3" opacity="0.3"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <rect width="1200" height="675" fill="url(#grid)"/>
+
+  <!-- Logo -->
+  <g transform="translate(80, 30)">
+    <polygon points="22,0 44,12 44,36 22,48 0,36 0,12" fill="none" stroke="#0ee6f6" stroke-width="1.5" opacity="0.6"/>
+    <polygon points="22,8 36,16 36,32 22,40 8,32 8,16" fill="none" stroke="#0ee6f6" stroke-width="1.2" opacity="0.8"/>
+    <circle cx="22" cy="24" r="3" fill="#0ee6f6"/>
+  </g>
+  <text x="140" y="58" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700">
+    <tspan fill="#94a3b8">CVE</tspan><tspan fill="#0ee6f6">RiskPilot</tspan>
+  </text>
+
+  <!-- Title -->
+  <text x="600" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="800" fill="white">Manual vs Automated Compliance Mapping</text>
+
+  <!-- Left side: Manual -->
+  <g transform="translate(60, 150)">
+    <rect width="480" height="300" rx="16" fill="#1e293b" stroke="#ef4444" stroke-width="1" stroke-opacity="0.3"/>
+    <text x="240" y="40" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#ef4444" letter-spacing="2">MANUAL PROCESS</text>
+
+    <!-- Spreadsheet icon -->
+    <rect x="190" y="60" width="100" height="70" rx="6" fill="#1a1a2e" stroke="#475569" stroke-width="1"/>
+    <line x1="210" y1="60" x2="210" y2="130" stroke="#475569" stroke-width="0.5"/>
+    <line x1="240" y1="60" x2="240" y2="130" stroke="#475569" stroke-width="0.5"/>
+    <line x1="270" y1="60" x2="270" y2="130" stroke="#475569" stroke-width="0.5"/>
+    <line x1="190" y1="78" x2="290" y2="78" stroke="#475569" stroke-width="0.5"/>
+    <line x1="190" y1="95" x2="290" y2="95" stroke="#475569" stroke-width="0.5"/>
+    <line x1="190" y1="112" x2="290" y2="112" stroke="#475569" stroke-width="0.5"/>
+
+    <!-- Time stat -->
+    <text x="240" y="170" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="800" fill="url(#red-grad)">40+</text>
+    <text x="240" y="195" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#94a3b8">hours per quarter</text>
+
+    <!-- Pain points -->
+    <text x="240" y="235" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Copy-paste from scanner exports</text>
+    <text x="240" y="258" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Manual CWE-to-control lookup</text>
+    <text x="240" y="281" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#64748b">Error-prone POAM assembly</text>
+  </g>
+
+  <!-- VS Badge -->
+  <g transform="translate(565, 275)">
+    <circle cx="35" cy="25" r="30" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+    <text x="35" y="33" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" fill="#0ee6f6" filter="url(#glow)">VS</text>
+  </g>
+
+  <!-- Right side: Automated -->
+  <g transform="translate(660, 150)">
+    <rect width="480" height="300" rx="16" fill="#1e293b" stroke="#0ee6f6" stroke-width="1" stroke-opacity="0.3"/>
+    <text x="240" y="40" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0ee6f6" letter-spacing="2">AUTOMATED PIPELINE</text>
+
+    <!-- Pipeline icon -->
+    <g transform="translate(195, 65)">
+      <rect width="90" height="55" rx="8" fill="#0ee6f6" opacity="0.1" stroke="#0ee6f6" stroke-width="1"/>
+      <circle cx="20" cy="18" r="6" fill="none" stroke="#0ee6f6" stroke-width="1.5"/>
+      <line x1="26" y1="18" x2="40" y2="18" stroke="#0ee6f6" stroke-width="1.5"/>
+      <circle cx="46" cy="18" r="6" fill="none" stroke="#0ee6f6" stroke-width="1.5"/>
+      <line x1="52" y1="18" x2="64" y2="18" stroke="#0ee6f6" stroke-width="1.5"/>
+      <circle cx="70" cy="18" r="6" fill="#0ee6f6" opacity="0.5"/>
+      <text x="45" y="45" text-anchor="middle" font-family="monospace" font-size="9" fill="#0ee6f6">CI/CD</text>
+    </g>
+
+    <!-- Time stat -->
+    <text x="240" y="170" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="800" fill="url(#cyan-grad)" filter="url(#glow)">30s</text>
+    <text x="240" y="195" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#94a3b8">per pull request</text>
+
+    <!-- Benefits -->
+    <text x="240" y="235" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94a3b8">Automatic CWE-to-control mapping</text>
+    <text x="240" y="258" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94a3b8">POAM entries generated instantly</text>
+    <text x="240" y="281" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#94a3b8">Commit-linked audit trail</text>
+  </g>
+
+  <!-- Bottom stats row -->
+  <g transform="translate(60, 480)">
+    <rect width="1080" height="80" rx="12" fill="#1e293b" stroke="#334155" stroke-width="0.5"/>
+    <line x1="360" y1="16" x2="360" y2="64" stroke="#334155" stroke-width="0.5"/>
+    <line x1="720" y1="16" x2="720" y2="64" stroke="#334155" stroke-width="0.5"/>
+
+    <!-- Stat 1 -->
+    <text x="180" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#ef4444">3-10 day lag</text>
+    <text x="180" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#ef4444" dx="0">
+      <tspan fill="#475569"> &#x2192; </tspan>
+      <tspan fill="#0ee6f6">Real-time</tspan>
+    </text>
+    <text x="180" y="56" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Scan-to-Compliance Speed</text>
+
+    <!-- Stat 2 -->
+    <text x="540" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700">
+      <tspan fill="#ef4444">No audit trail</tspan>
+      <tspan fill="#475569"> &#x2192; </tspan>
+      <tspan fill="#0ee6f6">Commit-linked</tspan>
+    </text>
+    <text x="540" y="56" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Traceability</text>
+
+    <!-- Stat 3 -->
+    <text x="900" y="35" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700">
+      <tspan fill="#ef4444">Per quarter</tspan>
+      <tspan fill="#475569"> &#x2192; </tspan>
+      <tspan fill="#0ee6f6">Per PR</tspan>
+    </text>
+    <text x="900" y="56" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" fill="#64748b">Compliance Cadence</text>
+  </g>
+
+  <!-- Veteran Owned badge -->
+  <text x="1050" y="55" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#94a3b8" letter-spacing="1">100% VETERAN OWNED</text>
+  <rect x="980" y="60" width="140" height="1" fill="#0ee6f6" opacity="0.3"/>
+
+  <!-- Footer -->
+  <text x="600" y="610" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="white">CVERiskPilot Pipeline Compliance Scanner</text>
+  <text x="600" y="635" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="13" fill="#475569">cveriskpilot.com | 100% Veteran Owned</text>
+  <rect x="0" y="670" width="1200" height="5" fill="url(#cyan-grad)"/>
+</svg>

@@ -1,0 +1,250 @@
+{
+  "report": {
+    "title": "Security Log Analysis & Misconfiguration Findings",
+    "generated_at": "2026-03-11T10:00:00Z",
+    "period": "2026-03-10T00:00:00Z to 2026-03-11T00:00:00Z",
+    "sources": ["nginx access logs", "auth logs", "syslog", "CloudTrail", "k8s audit logs", "firewall logs"],
+    "siem": "Elastic SIEM 8.12.0",
+    "analyst": "automated-detection-pipeline",
+    "environment": "production"
+  },
+  "summary": {
+    "total_events_ingested": 8472193,
+    "total_alerts_generated": 284,
+    "critical_incidents": 3,
+    "high_alerts": 17,
+    "medium_alerts": 48,
+    "log_misconfigurations": 9,
+    "assets_affected": 14
+  },
+  "critical_incidents": [
+    {
+      "id": "LOG-INC-2026031101",
+      "severity": "Critical",
+      "category": "Brute Force — Successful Authentication",
+      "title": "Admin account compromised after brute-force attack",
+      "detected_at": "2026-03-10T03:14:22Z",
+      "source_logs": ["auth.log", "nginx access logs"],
+      "description": "Account 'admin@corp.internal' received 2,847 failed login attempts from 185.220.101.44 between 02:55 and 03:13 UTC, followed by a successful login at 03:14:22 UTC from the same IP. Session established for 42 minutes. IP is a known Tor exit node.",
+      "raw_log_samples": [
+        "Mar 10 02:55:01 web-01 sshd[29321]: Failed password for admin from 185.220.101.44 port 57234 ssh2",
+        "Mar 10 02:55:02 web-01 sshd[29322]: Failed password for admin from 185.220.101.44 port 57235 ssh2",
+        "Mar 10 03:14:22 web-01 sshd[31044]: Accepted password for admin from 185.220.101.44 port 58901 ssh2",
+        "Mar 10 03:14:22 web-01 sshd[31044]: pam_unix(sshd:session): session opened for user admin by (uid=0)"
+      ],
+      "indicators": {
+        "source_ip": "185.220.101.44",
+        "ip_reputation": "Tor exit node / Brute-force source (AbuseIPDB score: 97)",
+        "target_account": "admin@corp.internal",
+        "failed_attempts": 2847,
+        "success": true,
+        "session_duration_minutes": 42,
+        "post_auth_commands": ["whoami", "id", "cat /etc/passwd", "ls -la /root", "crontab -l"]
+      },
+      "mitre_ttp": ["T1110.001 - Brute Force: Password Guessing", "T1078 - Valid Accounts", "T1033 - System Owner/User Discovery"],
+      "response_taken": "Account disabled. Session terminated. Password reset initiated. IP blocked at firewall.",
+      "recommendations": "Implement account lockout after 5 failures. Enable MFA for all admin accounts. Use fail2ban or equivalent. Review all actions taken during the 42-minute session."
+    },
+    {
+      "id": "LOG-INC-2026031102",
+      "severity": "Critical",
+      "category": "Data Exfiltration",
+      "title": "Unusual large data transfer to external IP",
+      "detected_at": "2026-03-10T14:22:18Z",
+      "source_logs": ["firewall logs", "VPC flow logs", "CloudTrail"],
+      "description": "Database server 'payments-db-prod-01' (10.0.2.45) established outbound connection to 77.88.55.66:443 and transferred 4.7 GB over 18 minutes. This IP is not in the approved egress allowlist. CloudTrail shows S3 GetObject calls for entire 'payment-receipts-prod' bucket 3 minutes prior.",
+      "raw_log_samples": [
+        "Mar 10 14:19:12 [ALLOW] src=10.0.2.45 dst=77.88.55.66 sport=49123 dport=443 proto=TCP bytes=4923847381",
+        "cloudtrail: {\"eventSource\":\"s3.amazonaws.com\",\"eventName\":\"GetObject\",\"sourceIPAddress\":\"10.0.2.45\",\"requestParameters\":{\"bucketName\":\"payment-receipts-prod\",\"key\":\"*\"}}",
+        "cloudtrail: {\"eventSource\":\"s3.amazonaws.com\",\"eventName\":\"ListObjects\",\"sourceIPAddress\":\"10.0.2.45\",\"requestParameters\":{\"bucketName\":\"payment-receipts-prod\"}}"
+      ],
+      "indicators": {
+        "source_host": "payments-db-prod-01",
+        "source_ip": "10.0.2.45",
+        "destination_ip": "77.88.55.66",
+        "destination_country": "RU",
+        "bytes_transferred": 4923847381,
+        "duration_seconds": 1080,
+        "s3_objects_accessed": 18472,
+        "s3_bucket": "payment-receipts-prod"
+      },
+      "mitre_ttp": ["T1048 - Exfiltration Over Alternative Protocol", "T1530 - Data from Cloud Storage Object", "T1537 - Transfer Data to Cloud Account"],
+      "response_taken": "Firewall rule added to block 77.88.55.66. S3 bucket access locked down. Incident declared. Legal hold initiated.",
+      "recommendations": "Implement strict egress filtering. Enable S3 Macie for sensitive data detection. Monitor for bulk S3 ListObjects/GetObject API calls. SIEM rule for large outbound transfers created."
+    },
+    {
+      "id": "LOG-INC-2026031103",
+      "severity": "Critical",
+      "category": "Privilege Escalation",
+      "title": "Unauthorized sudo usage leading to root access",
+      "detected_at": "2026-03-10T22:47:03Z",
+      "source_logs": ["auth.log", "syslog"],
+      "description": "User account 'deploy-svc' executed a GTFOBins-based privilege escalation via sudo misconfiguration. User ran 'sudo find / -exec /bin/bash \\;' exploiting an overly permissive sudoers entry. Root shell obtained on app-server-03.",
+      "raw_log_samples": [
+        "Mar 10 22:47:01 app-03 sudo: deploy-svc : TTY=pts/0 ; PWD=/home/deploy-svc ; USER=root ; COMMAND=/usr/bin/find / -exec /bin/bash \\;",
+        "Mar 10 22:47:03 app-03 su: (to root) deploy-svc on pts/0",
+        "Mar 10 22:47:05 app-03 useradd[48821]: new user: name=backdoor, UID=0, GID=0, home=/root/backdoor",
+        "Mar 10 22:47:08 app-03 cron[48833]: (root) LIST (backdoor)"
+      ],
+      "indicators": {
+        "account": "deploy-svc",
+        "host": "app-server-03",
+        "escalation_method": "sudo find GTFOBins",
+        "root_obtained": true,
+        "persistence_established": true,
+        "new_user_created": "backdoor (UID=0)",
+        "cron_job_added": true
+      },
+      "mitre_ttp": ["T1548.003 - Sudo and Sudo Caching", "T1136 - Create Account", "T1053.003 - Scheduled Task/Job: Cron"],
+      "sudoers_entry": "deploy-svc ALL=(ALL) NOPASSWD: /usr/bin/find",
+      "response_taken": "Host isolated from network. deploy-svc account disabled. Backdoor account deleted. Cron job removed. Forensic image taken.",
+      "recommendations": "Audit all sudoers entries. Use principle of least privilege. Never allow NOPASSWD for programs capable of spawning shells. Run regular audits with sudoers linting tools."
+    }
+  ],
+  "high_alerts": [
+    {
+      "id": "LOG-ALT-2026031104",
+      "severity": "High",
+      "category": "Reconnaissance",
+      "title": "Port scan detected from internal host",
+      "detected_at": "2026-03-10T11:03:44Z",
+      "source_ip": "10.0.4.87",
+      "destination_ips": ["10.0.0.0/8"],
+      "description": "Host 10.0.4.87 scanned 4,200 internal IP addresses across ports 22, 80, 443, 3306, 5432 over 4 minutes. Consistent with nmap -sV behavior.",
+      "raw_log_samples": [
+        "Mar 10 11:03:44 firewall SYN 10.0.4.87:51234 -> 10.0.1.1:22",
+        "Mar 10 11:03:44 firewall SYN 10.0.4.87:51235 -> 10.0.1.2:22",
+        "Mar 10 11:03:44 firewall SYN 10.0.4.87:51236 -> 10.0.1.3:22"
+      ],
+      "mitre_ttp": ["T1046 - Network Service Discovery", "T1595 - Active Scanning"],
+      "recommendations": "Investigate 10.0.4.87 for compromise. Implement internal network segmentation. Alert on high-rate internal SYN patterns."
+    },
+    {
+      "id": "LOG-ALT-2026031105",
+      "severity": "High",
+      "category": "Credential Access",
+      "title": "AWS IAM user accessing from unusual country",
+      "detected_at": "2026-03-10T04:55:12Z",
+      "source_logs": ["CloudTrail", "GuardDuty"],
+      "description": "IAM user 'ci-deploy-prod' authenticated from 103.21.244.0 (China) at 04:55 UTC. Normal access pattern is US-East only. User made 14 API calls including DescribeSecurityGroups, ListBuckets, and DescribeInstances.",
+      "raw_log_samples": [
+        "{\"eventSource\":\"signin.amazonaws.com\",\"eventName\":\"ConsoleLogin\",\"sourceIPAddress\":\"103.21.244.0\",\"userAgent\":\"Mozilla/5.0\",\"responseElements\":{\"ConsoleLogin\":\"Success\"}}",
+        "{\"eventSource\":\"ec2.amazonaws.com\",\"eventName\":\"DescribeInstances\",\"sourceIPAddress\":\"103.21.244.0\"}",
+        "{\"eventSource\":\"s3.amazonaws.com\",\"eventName\":\"ListBuckets\",\"sourceIPAddress\":\"103.21.244.0\"}"
+      ],
+      "mitre_ttp": ["T1078.004 - Valid Accounts: Cloud Accounts", "T1526 - Cloud Service Discovery"],
+      "recommendations": "Revoke and rotate IAM credentials. Enable MFA for all IAM users. Implement GuardDuty anomaly-based alerts. Review all API calls from this session."
+    },
+    {
+      "id": "LOG-ALT-2026031106",
+      "severity": "High",
+      "category": "Defense Evasion",
+      "title": "CloudTrail logging disabled",
+      "detected_at": "2026-03-10T02:10:44Z",
+      "source_logs": ["CloudTrail", "Config"],
+      "description": "CloudTrail trail 'prod-audit-trail' was stopped at 02:10:44 UTC by IAM user 'devops-user-07'. Trail was stopped for 14 minutes before being re-enabled. API calls during the gap are unaudited.",
+      "raw_log_samples": [
+        "{\"eventSource\":\"cloudtrail.amazonaws.com\",\"eventName\":\"StopLogging\",\"userIdentity\":{\"userName\":\"devops-user-07\"},\"requestParameters\":{\"name\":\"prod-audit-trail\"}}",
+        "{\"eventSource\":\"cloudtrail.amazonaws.com\",\"eventName\":\"StartLogging\",\"userIdentity\":{\"userName\":\"devops-user-07\"},\"requestParameters\":{\"name\":\"prod-audit-trail\"}}"
+      ],
+      "mitre_ttp": ["T1562.008 - Impair Defenses: Disable or Modify Cloud Logs"],
+      "recommendations": "Alert on StopLogging CloudTrail API calls. Protect trail with IAM condition denying StopLogging for all users. Use AWS Config rule cloud-trail-enabled."
+    }
+  ],
+  "log_misconfigurations": [
+    {
+      "id": "LOGCFG-001",
+      "severity": "High",
+      "title": "Nginx access logs missing key fields — no response time, upstream, user-agent",
+      "host": "web-01, web-02, web-03",
+      "file": "/etc/nginx/nginx.conf",
+      "current_config": "log_format main '$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent';",
+      "description": "Nginx log format missing $request_time, $upstream_response_time, $http_user_agent, and $http_x_forwarded_for. Insufficient for security investigation and performance triage.",
+      "recommended_config": "log_format security_extended '$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\" $request_time $upstream_response_time \"$http_x_forwarded_for\"';",
+      "impact": "Unable to identify client IPs behind load balancers. Missing user-agent data impedes bot detection and forensic analysis."
+    },
+    {
+      "id": "LOGCFG-002",
+      "severity": "Critical",
+      "title": "Audit logging (auditd) not running on production hosts",
+      "host": "app-server-01, app-server-02, app-server-03",
+      "description": "auditd service is not installed or not running on 3 of 6 production application servers. System call auditing absent. File access, user authentication, and privilege use not logged.",
+      "detection_evidence": "systemctl status auditd → Unit auditd.service could not be found",
+      "impact": "Cannot detect or reconstruct privilege escalation, file tampering, or unauthorized access events on these hosts.",
+      "remediation": "apt install auditd audispd-plugins; systemctl enable --now auditd; configure /etc/audit/rules.d/ with CIS Level 2 rules."
+    },
+    {
+      "id": "LOGCFG-003",
+      "severity": "High",
+      "title": "Log rotation misconfigured — logs older than 24 hours deleted",
+      "host": "log-aggregator-01",
+      "file": "/etc/logrotate.d/nginx",
+      "current_config": "rotate 1\ndaily\ncompress",
+      "description": "logrotate configured to keep only 1 rotation (1 day of logs). Security investigations often require 30-90 days of historical logs.",
+      "remediation": "Set rotate 90 to retain 90 days. For compliance: PCI DSS requires 12 months retention (3 months immediately available).",
+      "impact": "LOG-INC-2026031101 investigation hampered — 30 days of prior brute-force history unavailable."
+    },
+    {
+      "id": "LOGCFG-004",
+      "severity": "High",
+      "title": "SSH login failures not forwarded to SIEM",
+      "host": "bastion-01, bastion-02",
+      "description": "Filebeat configuration on bastion hosts excludes /var/log/auth.log from ingestion into Elastic SIEM. SSH brute-force attempts and successful logins from bastion are not visible in centralized logging.",
+      "detection_evidence": "Elastic: No auth.log events from bastion-01 or bastion-02 in last 30 days",
+      "remediation": "Add auth.log path to Filebeat config: paths: ['/var/log/auth.log', '/var/log/secure']. Restart filebeat service.",
+      "impact": "LOG-INC-2026031101 brute-force not detected via SIEM — discovered only during manual log review."
+    },
+    {
+      "id": "LOGCFG-005",
+      "severity": "Medium",
+      "title": "CloudTrail not configured for all regions",
+      "cloud": "AWS account 123456789012",
+      "description": "CloudTrail trail 'prod-audit-trail' is configured only for us-east-1. API activity in us-west-2, eu-west-1, and ap-southeast-1 is not logged. Attacker could provision resources in unmonitored regions.",
+      "remediation": "Enable 'Apply trail to all regions' in CloudTrail console or via Terraform: is_multi_region_trail = true. Ensure global service events (IAM, STS) are also captured.",
+      "impact": "Backdoor resources or malicious Lambda functions could be deployed in unmonitored regions without detection."
+    },
+    {
+      "id": "LOGCFG-006",
+      "severity": "Medium",
+      "title": "Docker daemon not logging container events",
+      "host": "docker-host-01 through docker-host-06",
+      "file": "/etc/docker/daemon.json",
+      "current_config": "{\"log-driver\": \"none\"}",
+      "description": "Docker daemon configured with log-driver 'none'. All container stdout/stderr discarded. Container activity, errors, and access patterns unavailable.",
+      "remediation": "Set log-driver to json-file or forward to centralized logging: {\"log-driver\": \"json-file\", \"log-opts\": {\"max-size\": \"100m\", \"max-file\": \"5\"}}",
+      "impact": "Runtime incidents (cryptominer, reverse shell) in containers cannot be investigated. Application errors invisible."
+    },
+    {
+      "id": "LOGCFG-007",
+      "severity": "High",
+      "title": "Kubernetes API server audit logging disabled",
+      "cluster": "prod-k8s-cluster-01",
+      "description": "Kubernetes API server not started with --audit-log-path or --audit-policy-file flags. All API server actions (pod creation, RBAC changes, secret access) unlogged.",
+      "detection_evidence": "kubectl get pod kube-apiserver-prod-01 -n kube-system -o yaml | grep audit → no audit flags found",
+      "remediation": "Add --audit-policy-file=/etc/kubernetes/audit-policy.yaml and --audit-log-path=/var/log/kubernetes/audit.log to kube-apiserver manifests. Create audit policy with at least Metadata level for all resources.",
+      "impact": "Cannot detect malicious kubectl commands, RBAC escalation, or secret exfiltration via the Kubernetes API."
+    },
+    {
+      "id": "LOGCFG-008",
+      "severity": "Medium",
+      "title": "S3 server access logging disabled on sensitive buckets",
+      "cloud": "AWS account 123456789012",
+      "buckets_affected": ["payment-receipts-prod", "customer-pii-data", "backup-encrypted-2026"],
+      "description": "Three production S3 buckets containing PCI-scoped and PII data do not have server access logging enabled. Object access cannot be audited.",
+      "remediation": "Enable logging on each bucket: aws s3api put-bucket-logging --bucket payment-receipts-prod --bucket-logging-status '{\"LoggingEnabled\":{\"TargetBucket\":\"s3-access-logs\",\"TargetPrefix\":\"payment-receipts-prod/\"}}'",
+      "compliance_impact": "PCI DSS Requirement 10: Audit log access to cardholder data. This is a PCI compliance gap.",
+      "impact": "Data exfiltration from S3 (LOG-INC-2026031102) was detected only via VPC flow logs — S3 access logs would have provided earlier detection and full audit trail."
+    },
+    {
+      "id": "LOGCFG-009",
+      "severity": "Medium",
+      "title": "Application logs contain sensitive data (PAN, passwords)",
+      "host": "app-server-01, app-server-02",
+      "file": "/var/log/payment-service/app.log",
+      "description": "Application logs contain unmasked Primary Account Numbers (PANs), partial passwords, and session tokens. Sample: 'Processing payment for card 4111111111111234, amount=$450.00'. Constitutes PCI DSS violation.",
+      "raw_log_example": "2026-03-10 11:23:44 INFO PaymentProcessor - Charging card 4111111111111234 for user_id=8472 amount=450.00 cvv=382",
+      "remediation": "Implement log sanitization middleware. Mask/redact sensitive fields before logging. Use structured logging with allowlisted fields only. Review and purge existing logs.",
+      "compliance_impact": "PCI DSS Requirement 3.4: Render PAN unreadable. This is an immediate PCI DSS violation requiring remediation and potentially notification."
+    }
+  ]
+}

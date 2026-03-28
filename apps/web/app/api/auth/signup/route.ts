@@ -11,6 +11,21 @@ import {
 import { UserRole } from '@cveriskpilot/domain';
 
 export async function POST(request: NextRequest) {
+  // Rate limit by IP to prevent mass account creation and email enumeration
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  try {
+    const limiter = getLoginLimiter();
+    const rl = await limiter.check(`signup:${ip}`);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many signup attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+      );
+    }
+  } catch {
+    // Redis not available — skip rate limiting
+  }
+
   try {
     // Parse body first before anything else
     const body = await request.json() as Record<string, unknown>;
@@ -75,28 +90,24 @@ export async function POST(request: NextRequest) {
       // Redis not available — session will not be persisted server-side
     }
 
+    // Session creation is required — no insecure fallback
+    if (!sessionId) {
+      console.error('[API] POST /api/auth/signup: Redis unavailable, cannot create session');
+      return NextResponse.json(
+        { error: 'Session service unavailable. Please try again.' },
+        { status: 503 },
+      );
+    }
+
     const response = NextResponse.json(
       {
         success: true,
         userId: result.userId,
-        organizationId: result.organizationId,
       },
       { status: 201 },
     );
 
-    // Set session cookie
-    if (sessionId) {
-      setSessionCookie(response, sessionId);
-    } else {
-      // Fallback: set a basic cookie so the client knows auth succeeded
-      response.cookies.set('crp_session', result.userId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 86400,
-      });
-    }
+    setSessionCookie(response, sessionId);
 
     return response;
   } catch (error: unknown) {

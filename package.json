@@ -21,7 +21,21 @@
     "db:studio": "prisma studio --schema=packages/domain/prisma/schema.prisma",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next"
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules apps/*/.next",
+    "social:generate": "node scripts/generate-x-drafts.mjs --source all",
+    "social:generate:kev": "node scripts/generate-x-drafts.mjs --source kev",
+    "social:generate:news": "node scripts/generate-x-drafts.mjs --source news",
+    "social:autopilot": "node scripts/social-autopilot.mjs",
+    "social:autopilot:dry-run": "node scripts/social-autopilot.mjs --dry-run",
+    "social:preflight:x": "node scripts/preflight-x-publish.mjs --all",
+    "social:publish:x": "node scripts/publish-x-posts.mjs",
+    "social:publish:x:dry-run": "node scripts/publish-x-posts.mjs --dry-run",
+    "social:push:x": "node scripts/preflight-x-publish.mjs --all --publish",
+    "release:doctor": "node scripts/release-doctor.mjs",
+    "release:validate": "node scripts/validate-release-metadata.mjs",
+    "release:status": "node scripts/scaffold-status.mjs",
+    "release:workflow": "node scripts/web-release-workflow.mjs",
+    "context:resume": "node scripts/context-resume.mjs"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",

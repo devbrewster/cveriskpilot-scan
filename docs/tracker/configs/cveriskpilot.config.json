@@ -121,6 +121,59 @@
             { "id": "t54", "name": "Security hardening pass", "detail": "CSP nonces, CSRF, rate limiting, input validation", "source": "Both", "status": "completed" },
             { "id": "t55", "name": "E2E tests (Playwright)", "detail": "Critical flows: signup, upload, triage, export", "source": "Both", "status": "completed" }
           ]
+        },
+        {
+          "title": "Settings & Configuration (Wave 7)",
+          "tasks": [
+            { "id": "t114", "name": "Tabbed settings page with sidebar nav", "detail": "10-tab settings page with grouped sidebar: Org, Security, Integrations, Policies, Notifications", "source": "Wave 7", "status": "completed" },
+            { "id": "t115", "name": "Org Profile & Billing section", "detail": "Org name/email edit, tier badge, usage stats with progress bars, Stripe portal link, danger zone", "source": "Wave 7", "status": "completed" },
+            { "id": "t116", "name": "SSO settings wired into settings page", "detail": "SAML SSO toggle, connection status, test SSO — component existed, now rendered in settings", "source": "Wave 7", "status": "completed" },
+            { "id": "t117", "name": "API Keys management wired in", "detail": "Create/revoke/rotate API keys with scopes and expiry — component existed, now rendered", "source": "Wave 7", "status": "completed" },
+            { "id": "t118", "name": "Service Accounts wired in", "detail": "CI/CD service account management — component existed, now rendered", "source": "Wave 7", "status": "completed" },
+            { "id": "t119", "name": "IP Allowlist wired in", "detail": "CIDR-based IP allowlist management — component existed, now rendered", "source": "Wave 7", "status": "completed" },
+            { "id": "t120", "name": "Connector Settings wired in", "detail": "Scanner connector config (Nessus, Qualys, OpenVAS) — component existed, now rendered", "source": "Wave 7", "status": "completed" },
+            { "id": "t121", "name": "Notification Preferences (new)", "detail": "9 event types × 2 channels (email/in-app) toggle grid, save to API", "source": "Wave 7", "status": "completed" },
+            { "id": "t122", "name": "Webhook Management UI (new)", "detail": "CRUD for webhook endpoints, event subscription checkboxes, test ping, delivery status", "source": "Wave 7", "status": "completed" },
+            { "id": "t123", "name": "SLA Policies + Data Retention in tabs", "detail": "Existing components now accessible via Policies tab group", "source": "Wave 7", "status": "completed" }
+          ]
+        },
+        {
+          "title": "RBAC Enforcement in UI (Wave 8)",
+          "tasks": [
+            { "id": "t124", "name": "Role-aware sidebar navigation", "detail": "Hide/show nav items based on user role (Owner, Admin, Analyst, Viewer, platform_admin, client_viewer)", "source": "Wave 8" },
+            { "id": "t125", "name": "Page-level role guards", "detail": "Redirect unauthorized roles away from admin/settings/billing pages", "source": "Wave 8" },
+            { "id": "t126", "name": "Admin panel for platform_admin", "detail": "Platform-wide admin page: orgs list, system health, feature flags, impersonation", "source": "Wave 8" },
+            { "id": "t127", "name": "Client switcher role checks", "detail": "Only MSSP roles see client switcher; client_viewer locked to own client", "source": "Wave 8" },
+            { "id": "t128", "name": "Portal route role isolation", "detail": "Portal routes only accessible by client_viewer/client_admin roles", "source": "Wave 8" },
+            { "id": "t129", "name": "Remove Settings comingSoon flag", "detail": "Sidebar marks Settings as comingSoon:true even though Wave 7 built it — remove flag", "source": "Wave 8" }
+          ]
+        },
+        {
+          "title": "Missing Functional Pages (Wave 9)",
+          "tasks": [
+            { "id": "t130", "name": "Billing dashboard page", "detail": "Current plan, usage stats, invoices, upgrade/downgrade, Stripe portal link", "source": "Wave 9" },
+            { "id": "t131", "name": "Notifications inbox page", "detail": "In-app notification center with read/unread, filters by type, mark all read", "source": "Wave 9" },
+            { "id": "t132", "name": "Audit Log viewer page", "detail": "Searchable/filterable audit log table with user, action, entity, timestamp", "source": "Wave 9" },
+            { "id": "t133", "name": "User Management page", "detail": "Invite users, assign roles, deactivate accounts, view login history", "source": "Wave 9" },
+            { "id": "t134", "name": "Asset Inventory page", "detail": "List assets (hosts, repos, containers), link to findings, asset groups", "source": "Wave 9" },
+            { "id": "t135", "name": "Risk Exceptions page", "detail": "Wrapper page for existing exception-list component; request/approve/reject workflow", "source": "Wave 9" }
+          ]
+        },
+        {
+          "title": "Mock Data Removal & Wiring (Wave 10)",
+          "tasks": [
+            { "id": "t136", "name": "Wire findings-list to real API", "detail": "Replace mockFindings import with fetch to /api/findings; 15 files import mock data total", "source": "Wave 10" },
+            { "id": "t137", "name": "Wire cases-list to real API", "detail": "Replace mockCases import with fetch to /api/cases", "source": "Wave 10" },
+            { "id": "t138", "name": "Wire case-detail to real API", "detail": "Replace mockUsers and mock case data with API calls", "source": "Wave 10" },
+            { "id": "t139", "name": "Wire finding-detail to real API", "detail": "Replace mock-findings imports with /api/findings/[id] fetch", "source": "Wave 10" },
+            { "id": "t140", "name": "Wire upload-history to real API", "detail": "Replace mockUploadJobs with fetch to /api/uploads", "source": "Wave 10" },
+            { "id": "t141", "name": "Wire executive-report to real API", "detail": "Replace mockCases import in reports-hub and executive-report with API data", "source": "Wave 10" },
+            { "id": "t142", "name": "Replace hardcoded org-default (6 locations)", "detail": "Settings page, dashboard SlaWidget, compliance frameworks, compliance POAM, API route fallbacks — use session context", "source": "Wave 10" },
+            { "id": "t143", "name": "Replace hardcoded tier in settings", "detail": "Settings page hardcodes tier='PRO' — read from session/auth context", "source": "Wave 10" },
+            { "id": "t144", "name": "Move types out of mock-data files", "detail": "Severity, CaseStatus, Finding, VulnerabilityCase types imported from mock-data by badge/chart components — extract to @/lib/types", "source": "Wave 10" },
+            { "id": "t145", "name": "Jira configuration in settings", "detail": "Add Jira config tab to settings page (base URL, email, API token, project key, status mapping)", "source": "Wave 10" },
+            { "id": "t146", "name": "Empty states on all new pages", "detail": "Proper empty states with icons and CTAs for billing, notifications, audit log, users, assets, exceptions", "source": "Wave 10" }
+          ]
         }
       ]
     },
@@ -515,6 +568,81 @@
           { "id": "w5t10", "name": "E2E tests: billing upgrade + limit enforcement", "agent": "agent-testing", "status": "completed" },
           { "id": "w5t11", "name": "E2E tests: AI remediation flow", "agent": "agent-testing", "status": "completed" },
           { "id": "w5t12", "name": "Integration review + merge all packages", "agent": "orchestrator", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave6",
+        "title": "Wave 6: Dashboard Completeness",
+        "description": "Extended dashboard with 6 stat cards, SLA widget, compliance scores, activity timeline, MTTR",
+        "dependsOn": ["wave5"],
+        "tasks": [
+          { "id": "w6t1", "name": "Dashboard API: MTTR, nearestKevDueDate, recentActivity, complianceScores", "agent": "agent-ui", "status": "completed" },
+          { "id": "w6t2", "name": "6 stat cards (Findings, Cases, Crit/High, KEV, EPSS, MTTR)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w6t3", "name": "SLA widget wired into dashboard", "agent": "agent-ui", "status": "completed" },
+          { "id": "w6t4", "name": "Compliance Scores widget (new component)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w6t5", "name": "Activity Timeline widget (audit log feed)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w6t6", "name": "AI remediation auth + rate limiting wired", "agent": "agent-ai", "status": "completed" },
+          { "id": "w6t7", "name": "BrandConfig + ReportSchedule Prisma models", "agent": "orchestrator", "status": "completed" },
+          { "id": "w6t8", "name": "ServiceNow API routes (config/sync/push)", "agent": "agent-ui", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave7",
+        "title": "Wave 7: Settings Page Completion",
+        "description": "Full settings page with tabbed navigation, 10 sections covering org profile, security, integrations, policies, notifications",
+        "dependsOn": ["wave6"],
+        "tasks": [
+          { "id": "w7t1", "name": "Tabbed settings page with sidebar nav (5 groups, 10 tabs)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w7t2", "name": "Org Profile & Billing section (tier badge, usage stats, Stripe portal)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w7t3", "name": "Wire SSO, API Keys, Service Accounts, IP Allowlist, Connectors", "agent": "agent-ui", "status": "completed" },
+          { "id": "w7t4", "name": "Notification Preferences (9 events × email/in-app toggles)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w7t5", "name": "Webhook Management UI (CRUD, event subscriptions, test ping)", "agent": "agent-ui", "status": "completed" },
+          { "id": "w7t6", "name": "SLA Policies + Data Retention in Policies tab group", "agent": "agent-ui", "status": "completed" }
+        ]
+      },
+      {
+        "id": "wave8",
+        "title": "Wave 8: RBAC Enforcement in UI",
+        "description": "Role-aware sidebar, page guards, admin panel, portal isolation, client switcher role checks",
+        "dependsOn": ["wave7"],
+        "tasks": [
+          { "id": "w8t1", "name": "Role-aware sidebar (hide/show nav by role)", "agent": "agent-auth" },
+          { "id": "w8t2", "name": "Page-level role guard component", "agent": "agent-auth" },
+          { "id": "w8t3", "name": "Admin panel page (platform_admin)", "agent": "agent-ui" },
+          { "id": "w8t4", "name": "Client switcher role restrictions", "agent": "agent-auth" },
+          { "id": "w8t5", "name": "Portal route role isolation (client_viewer/client_admin)", "agent": "agent-auth" },
+          { "id": "w8t6", "name": "Remove Settings comingSoon flag from sidebar", "agent": "agent-ui" }
+        ]
+      },
+      {
+        "id": "wave9",
+        "title": "Wave 9: Missing Functional Pages",
+        "description": "Build 6 missing pages: Billing, Notifications, Audit Log, User Mgmt, Assets, Risk Exceptions",
+        "dependsOn": ["wave8"],
+        "tasks": [
+          { "id": "w9t1", "name": "Billing dashboard page", "agent": "agent-billing" },
+          { "id": "w9t2", "name": "Notifications inbox page", "agent": "agent-ui" },
+          { "id": "w9t3", "name": "Audit Log viewer page", "agent": "agent-ui" },
+          { "id": "w9t4", "name": "User Management page (invite, roles, deactivate)", "agent": "agent-auth" },
+          { "id": "w9t5", "name": "Asset Inventory page", "agent": "agent-ui" },
+          { "id": "w9t6", "name": "Risk Exceptions page wrapper", "agent": "agent-ui" }
+        ]
+      },
+      {
+        "id": "wave10",
+        "title": "Wave 10: Mock Data Removal & Polish",
+        "description": "Replace all 15 mock-data imports with real API calls, fix hardcoded org IDs, extract shared types, add Jira settings",
+        "dependsOn": ["wave9"],
+        "tasks": [
+          { "id": "w10t1", "name": "Wire findings-list + finding-detail to /api/findings", "agent": "agent-ui" },
+          { "id": "w10t2", "name": "Wire cases-list + case-detail to /api/cases", "agent": "agent-ui" },
+          { "id": "w10t3", "name": "Wire upload-history to /api/uploads", "agent": "agent-ui" },
+          { "id": "w10t4", "name": "Wire executive-report + reports-hub to real API", "agent": "agent-ui" },
+          { "id": "w10t5", "name": "Extract shared types from mock-data to @/lib/types", "agent": "agent-ui" },
+          { "id": "w10t6", "name": "Replace hardcoded org-default in 6 locations with session context", "agent": "agent-auth" },
+          { "id": "w10t7", "name": "Replace hardcoded tier in settings with session context", "agent": "agent-auth" },
+          { "id": "w10t8", "name": "Add Jira config tab to settings page", "agent": "agent-ui" },
+          { "id": "w10t9", "name": "Empty states on all new Wave 9 pages", "agent": "agent-ui" }
         ]
       }
     ]

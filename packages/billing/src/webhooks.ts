@@ -53,6 +53,21 @@ async function handleCheckoutCompleted(
       ? session.customer
       : (session.customer as Stripe.Customer | null)?.id;
 
+  // Resolve tier from the subscription's price ID instead of hardcoding
+  let tier = 'PRO'; // fallback
+  if (subscriptionId) {
+    try {
+      const stripe = getStripe();
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const priceId = subscription.items.data[0]?.price?.id;
+      if (priceId) {
+        tier = getTierFromPriceId(priceId) ?? 'PRO';
+      }
+    } catch {
+      // If retrieval fails, fall back to PRO
+    }
+  }
+
   const db = prisma as {
     organization: {
       update: (args: Record<string, unknown>) => Promise<unknown>;
@@ -64,8 +79,8 @@ async function handleCheckoutCompleted(
     data: {
       stripeCustomerId: customerId ?? null,
       stripeSubscriptionId: subscriptionId ?? null,
-      tier: 'PRO',
-      entitlements: getEntitlements('PRO'),
+      tier,
+      entitlements: getEntitlements(tier),
     },
   });
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import {
   getOrgUsageSummary,
   getClientUsage,
@@ -8,22 +9,20 @@ import {
 
 /**
  * GET /api/billing/usage
- * Returns usage summary for an organization.
- * Query params: organizationId, period (optional, defaults to current month), clientId (optional)
+ * Returns usage summary for the authenticated user's organization.
+ * Query params: period (optional, defaults to current month), clientId (optional)
  */
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
+    const organizationId = session.organizationId;
     const period = searchParams.get('period') ?? undefined;
     const clientId = searchParams.get('clientId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
-    }
 
     const org = await prisma.organization.findUniqueOrThrow({
       where: { id: organizationId },

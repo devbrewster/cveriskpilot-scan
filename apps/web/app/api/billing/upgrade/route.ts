@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import {
   STRIPE_PRICES,
   getEntitlements,
@@ -8,17 +9,23 @@ import {
 
 /**
  * POST /api/billing/upgrade
- * Upgrade or downgrade an organization's billing tier.
- * Body: { organizationId, targetTier, billingInterval }
+ * Upgrade or downgrade the authenticated user's organization billing tier.
+ * Body: { targetTier, billingInterval }
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { organizationId, targetTier, billingInterval = 'monthly' } = body;
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!organizationId || !targetTier) {
+    const body = await request.json();
+    const { targetTier, billingInterval = 'monthly' } = body;
+    const organizationId = session.organizationId;
+
+    if (!targetTier) {
       return NextResponse.json(
-        { error: 'organizationId and targetTier are required' },
+        { error: 'targetTier is required' },
         { status: 400 },
       );
     }

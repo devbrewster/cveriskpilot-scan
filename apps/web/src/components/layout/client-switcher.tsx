@@ -2,6 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useClientContext } from '@/lib/client-context';
+import { useAuth, type UserRole } from '@/lib/auth-context';
+
+const SWITCHER_ROLES: UserRole[] = [
+  'PLATFORM_ADMIN',
+  'PLATFORM_SUPPORT',
+  'ORG_OWNER',
+  'SECURITY_ADMIN',
+  'ANALYST',
+];
 
 interface ClientOption {
   id: string;
@@ -9,6 +18,7 @@ interface ClientOption {
 }
 
 export function ClientSwitcher() {
+  const { role, loaded } = useAuth();
   const { activeClientId, activeClientName, setActiveClient } = useClientContext();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -59,6 +69,16 @@ export function ClientSwitcher() {
   );
 
   const displayName = activeClientId ? activeClientName || 'Client' : 'All Clients';
+
+  // Show skeleton while auth is loading
+  if (!loaded) {
+    return <div className="h-[38px] w-full animate-pulse rounded-md bg-gray-700" />;
+  }
+
+  // Hide switcher for roles that are locked to a single client
+  if (!role || !SWITCHER_ROLES.includes(role)) {
+    return null;
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>

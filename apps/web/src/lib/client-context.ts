@@ -38,7 +38,7 @@ export function getActiveClientFromCookie(): { id: string | null; name: string |
   };
 }
 
-/** Set the active client cookie */
+/** Set the active client cookie and update the server-side session */
 export function setActiveClientCookie(clientId: string | null, clientName: string | null = null) {
   const maxAge = 60 * 60 * 24 * 365; // 1 year
   if (clientId) {
@@ -48,4 +48,13 @@ export function setActiveClientCookie(clientId: string | null, clientName: strin
     document.cookie = `${COOKIE_NAME}=; path=/; max-age=0`;
     document.cookie = `${COOKIE_NAME_LABEL}=; path=/; max-age=0`;
   }
+
+  // Sync the client switch to the server-side session (fire-and-forget)
+  fetch('/api/session/client', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ clientId }),
+  }).catch((err) => {
+    console.error('[ClientContext] Failed to sync client switch to session:', err);
+  });
 }

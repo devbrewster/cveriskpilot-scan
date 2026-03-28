@@ -2,7 +2,8 @@
 // Prisma Schema - PostgreSQL with ULID-style CUID IDs
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -166,6 +167,8 @@ model Organization {
   vulnerabilityCases     VulnerabilityCase[]
   scanArtifacts          ScanArtifact[]
   uploadJobs             UploadJob[]
+  brandConfig            BrandConfig?
+  reportSchedules        ReportSchedule[]
 
   @@map("organizations")
 }
@@ -175,6 +178,12 @@ model Client {
   organizationId         String    @map("organization_id")
   name                   String    @map("name")
   slug                   String    @map("slug")
+  contactName            String?   @map("contact_name")
+  contactEmail           String?   @map("contact_email")
+  industry               String?   @map("industry")
+  description            String?   @map("description")
+  domain                 String?   @map("domain")
+  tags                   String[]  @default([]) @map("tags")
   isActive               Boolean   @default(true) @map("is_active")
   createdAt              DateTime  @default(now()) @map("created_at")
   updatedAt              DateTime  @updatedAt @map("updated_at")
@@ -592,6 +601,34 @@ model Notification {
 }
 
 // ---------------------------------------------------------------------------
+// Report Schedule Model
+// ---------------------------------------------------------------------------
+
+model ReportSchedule {
+  id              String       @id @default(cuid()) @map("id")
+  organizationId  String       @map("organization_id")
+  name            String       @map("name")
+  clientId        String?      @map("client_id")
+  reportType      String       @map("report_type") // 'executive' | 'findings' | 'sla'
+  format          String       @default("csv") @map("format")
+  frequency       String       @map("frequency") // 'daily' | 'weekly' | 'monthly'
+  recipients      String[]     @map("recipients") // email addresses
+  dayOfWeek       Int?         @map("day_of_week")
+  hourUtc         Int          @default(0) @map("hour_utc")
+  nextRunAt       DateTime     @map("next_run_at")
+  lastRunAt       DateTime?    @map("last_run_at")
+  enabled         Boolean      @default(true) @map("enabled")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([nextRunAt, enabled])
+  @@map("report_schedules")
+}
+
+// ---------------------------------------------------------------------------
 // Global Reference Data (no org scoping)
 // ---------------------------------------------------------------------------
 
@@ -662,4 +699,28 @@ model ScannerConnector {
   @@index([organizationId])
   @@index([authKeyHash])
   @@map("scanner_connectors")
+}
+
+// ---------------------------------------------------------------------------
+// White-Label Brand Configuration (t-whitelabel)
+// ---------------------------------------------------------------------------
+
+model BrandConfig {
+  id              String       @id @default(cuid()) @map("id")
+  organizationId  String       @unique @map("organization_id")
+  appName         String       @default("CVERiskPilot") @map("app_name")
+  tagline         String       @default("") @map("tagline")
+  logoUrl         String?      @map("logo_url")
+  faviconUrl      String?      @map("favicon_url")
+  primaryColor    String       @default("#2563eb") @map("primary_color")
+  accentColor     String       @default("#7c3aed") @map("accent_color")
+  customCSS       String?      @map("custom_css")
+  emailFromName   String?      @map("email_from_name")
+  emailLogoUrl    String?      @map("email_logo_url")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("brand_configs")
 }

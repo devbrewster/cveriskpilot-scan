@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { isValidTransition, getValidNextStatuses } from '@/lib/workflow';
 
 // ---------------------------------------------------------------------------
@@ -7,10 +8,15 @@ import { isValidTransition, getValidNextStatuses } from '@/lib/workflow';
 // ---------------------------------------------------------------------------
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const vuln = await prisma.vulnerabilityCase.findUnique({
@@ -52,6 +58,11 @@ export async function GET(
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
+    // Verify the case belongs to the user's organization
+    if (vuln.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+
     return NextResponse.json({
       ...vuln,
       validNextStatuses: getValidNextStatuses(vuln.status),
@@ -74,6 +85,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { status, assignedToId, remediationNotes, reason } = body;
@@ -81,10 +97,15 @@ export async function PATCH(
     // Fetch current case
     const current = await prisma.vulnerabilityCase.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: { id: true, status: true, organizationId: true },
     });
 
     if (!current) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+
+    // Verify the case belongs to the user's organization
+    if (current.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 

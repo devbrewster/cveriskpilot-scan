@@ -1085,18 +1085,18 @@ Users pay for this because their scanner gives them 8,000 CVEs with no prioritiz
 
 #### Infrastructure (week 1-2, parallel)
 
-| Component | MVP Implementation | Full Version Later |
-|-----------|-------------------|-------------------|
-| **Compute** | Cloud Run (single service + 1 worker) | Multiple workers, SSE gateway |
-| **Database** | Cloud SQL PostgreSQL (single instance, no replica) | HA + read replicas + PgBouncer |
-| **Cache** | Memorystore Redis (basic tier) | Standard tier + connection pooling |
-| **Storage** | GCS (single bucket with org prefix) | Per-tier buckets + lifecycle policies |
-| **Queue** | Cloud Tasks (single queue) | Pub/Sub + priority queues + DLQ |
-| **Secrets** | Secret Manager | Same |
-| **CI/CD** | Cloud Build (single pipeline) | Staged rollout (dev/staging/prod) |
-| **Monitoring** | Cloud Logging + basic alerts | Full OTel + Cloud Monitoring SLOs |
-| **WAF** | Cloud Armor (basic rules) | Full OWASP + bot protection |
-| **IaC** | Terraform (core resources) | Full infra-as-code |
+| Component | MVP Implementation | Deployed (dev) | Full Version Later |
+|-----------|-------------------|----------------|-------------------|
+| **Compute** | Cloud Run (single service + 1 worker) | **YES** — web + worker on Cloud Run | Multiple workers, SSE gateway |
+| **Database** | Cloud SQL PostgreSQL (single instance, no replica) | **YES** — PostgreSQL 16, PITR enabled | HA + read replicas + PgBouncer |
+| **Cache** | Memorystore Redis (basic tier) | **YES** — connected, health check passes | Standard tier + connection pooling |
+| **Storage** | GCS (single bucket with org prefix) | **YES** — artifacts bucket with lifecycle rules | Per-tier buckets + lifecycle policies |
+| **Queue** | Cloud Tasks (single queue) | **YES** — scan pipeline queue configured | Pub/Sub + priority queues + DLQ |
+| **Secrets** | Secret Manager | **YES** — 8 secrets defined | Same |
+| **CI/CD** | Cloud Build (single pipeline) | **PARTIAL** — build configs exist, no triggers | Staged rollout (dev/staging/prod) |
+| **Monitoring** | Cloud Logging + basic alerts | **PARTIAL** — alert policies, no dashboards | Full OTel + Cloud Monitoring SLOs |
+| **WAF** | Cloud Armor (basic rules) | **YES** — 23 OWASP CRS rules + rate limiting | Full bot protection + geo-blocking |
+| **IaC** | Terraform (core resources) | **PARTIAL** — all resources defined, state drift from manual deploys | Full infra-as-code |
 
 ### 8.3 Coming Soon: What's Visible but Not Available
 
@@ -1384,7 +1384,7 @@ Lessons learned from both codebases:
 
 1. **Do not store scan artifacts as database BLOBs** (1.x mistake) -- use object storage from day one
 2. **Do not use fire-and-forget async for critical operations** (both) -- implement a proper job queue
-3. **Do not allow `unsafe-inline`/`unsafe-eval` in CSP** (2.0 mistake) -- use nonce-based CSP
+3. **Minimize CSP `unsafe-inline` usage** -- Next.js standalone mode requires `'unsafe-inline'` for script-src (nonces not injected into prerendered `<script>` tags); track Next.js upstream nonce support to migrate to strict nonce-only CSP
 4. **Do not let store files grow to 2000+ LOC** (2.0 issue) -- enforce module boundaries early
 5. **Do not skip schema migrations** (2.0's runtime ALTER TABLE) -- use Prisma migrations from the start
 6. **Do not mix demo/marketing with production routes** (2.0 issue) -- separate concerns clearly
@@ -1430,12 +1430,12 @@ Beyond what exists in 1.x and 2.0, the enterprise reference report mandates:
 | **SCIM provisioning** | Automated provisioning/deprovisioning | Neither: **new work** |
 | **Envelope encryption** | Key lifecycle: rotation, access controls, separation of duties | 1.x: AES-256-GCM master key; **use Cloud KMS key rings with per-tenant DEKs** |
 | **CMK/BYOK** | Customer-managed keys for regulated tenants | Neither: **use Cloud KMS BYOK / Cloud EKM** |
-| **WAF + DDoS** | Front-door protections, bot protection | Neither has WAF: **use Cloud Armor** |
+| **WAF + DDoS** | Front-door protections, bot protection | **DONE**: Cloud Armor with 23 OWASP CRS rules, rate limiting, ML-based L7 DDoS |
 | **SSDF alignment** | Secure development practices integrated into SDLC | 2.0: evidence collection exists; needs formalization |
 | **SLSA provenance** | Build pipeline tamper resistance, signed releases | Neither: **new work** |
 | **VEX/CSAF publishing** | Declare affected/not-affected status for advisories | 1.x parses inbound; **publishing is new work** |
 | **Parser fuzzing** | Fuzz testing on all ingestion parsers | Neither: **new work** |
-| **Secrets management** | Centralized, rotated, never embedded in connector configs | 1.x: encrypted credentials; **use Secret Manager with automatic rotation** |
+| **Secrets management** | Centralized, rotated, never embedded in connector configs | **DONE**: Secret Manager with 8 secrets, IAM-scoped access from Cloud Run service account |
 
 ## 13. Migration & Data Strategy
 
@@ -1555,3 +1555,113 @@ Beyond what exists in 1.x and 2.0, the enterprise reference report mandates:
 | Notifications | 1.x full system | Comprehensive in-app + email + digest |
 | Testing | Vitest + Playwright + 2.0 smoke tests | Best coverage strategy from both |
 | Self-hosted option | Docker Compose + PostgreSQL + S3-compatible | For air-gapped / on-prem customers |
+
+---
+
+## 17. GCP Deployment Status (as of 2026-03-28)
+
+This section tracks the actual deployment state of the combined platform on GCP.
+
+### 17.1 Current State: Dev Environment Live
+
+The platform is running on GCP Cloud Run in a dev environment.
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| **Cloud Run — Web** | **LIVE** | `cveriskpilot-web-dev` serving v8 at `https://cveriskpilot-web-dev-642334918401.us-central1.run.app` |
+| **Cloud Run — Worker** | **LIVE** | `cveriskpilot-worker-dev` serving v8, receives Cloud Tasks jobs at `/api/jobs/process` |
+| **Cloud SQL** | **LIVE** | PostgreSQL instance connected, health check returns `ok` |
+| **Memorystore Redis** | **LIVE** | Connected, health check returns `ok` |
+| **Cloud Build** | **CONFIGURED** | `cloudbuild-deploy.yaml` builds Docker image + deploys web/worker; `cloudbuild.yaml` runs CI (lint, type-check, test) |
+| **Secret Manager** | **CONFIGURED** | 8 secrets defined in Terraform: DATABASE_URL, REDIS_URL, AUTH_SECRET, GOOGLE_OIDC_CLIENT_SECRET, ANTHROPIC_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, NVD_API_KEY |
+| **Cloud Armor WAF** | **CONFIGURED** | 23 rules: OWASP CRS (SQLi, XSS, LFI, RFI, RCE), rate limiting (200/min global, 20/min auth), geo-blocking, ML-based L7 DDoS |
+| **Cloud Tasks** | **CONFIGURED** | Scan pipeline queue: 10 dispatches/sec, 5 concurrent, 3 retries with exponential backoff |
+| **GCS Artifacts** | **CONFIGURED** | Bucket with lifecycle rules (90d → NEARLINE, 365d → delete) |
+| **Load Balancer** | **CONFIGURED** | Static IP, managed SSL cert for `app.cveriskpilot.com`, HTTPS redirect |
+| **Terraform IaC** | **PARTIAL** | All resources defined; manual `gcloud run deploy` used for dev (state drift exists) |
+| **Cloud Build Triggers** | **NOT SET UP** | No auto-deploy on push; builds triggered manually |
+| **DNS** | **NOT CONFIGURED** | No records pointing `cveriskpilot.com` to GCP load balancer |
+| **Monitoring Dashboards** | **NOT CONFIGURED** | Alert policies exist (error rate, P95 latency) but no dashboards |
+| **Backup Automation** | **NOT CONFIGURED** | Cloud SQL PITR enabled; no scheduled app-level backup jobs |
+
+### 17.2 Infrastructure Files
+
+| File | Purpose |
+|------|---------|
+| `deploy/Dockerfile` | Multi-stage build: Node.js 20 Alpine, standalone output, OpenSSL 3.x for Prisma |
+| `deploy/cloudbuild.yaml` | CI pipeline: lint, type-check, test (parallel steps) |
+| `deploy/cloudbuild-deploy.yaml` | Build + push Docker image, deploy to Cloud Run web + worker |
+| `deploy/cloudbuild-migrate.yaml` | Database migration via Cloud SQL Proxy + Prisma migrate deploy |
+| `deploy/terraform/cloudrun.tf` | Cloud Run web + worker services with secrets, VPC, Cloud SQL |
+| `deploy/terraform/database.tf` | Cloud SQL PostgreSQL 16, HA for prod, PITR 7-14 days |
+| `deploy/terraform/cloud-armor.tf` | WAF security policy with OWASP CRS rules |
+| `deploy/terraform/loadbalancer.tf` | HTTPS load balancer, SSL cert, NEG backend, URL map |
+| `deploy/terraform/tasks.tf` | Cloud Tasks queue for scan pipeline |
+| `deploy/terraform/secrets.tf` | Secret Manager resources |
+| `deploy/terraform/logging.tf` | Log metrics, alert policies, log sink to GCS |
+| `deploy/terraform/iam.tf` | Service accounts and IAM bindings |
+| `deploy/terraform/network.tf` | VPC, subnets, VPC Access Connector |
+
+### 17.3 Build & Deploy Process (Current)
+
+```bash
+# 1. Build image (from repo root)
+gcloud builds submit --config /path/to/cloudbuild.yaml --timeout=900
+
+# 2. Deploy web
+gcloud run deploy cveriskpilot-web-dev \
+  --image gcr.io/cveriskpilot-prod/cveriskpilot-web:TAG \
+  --region us-central1 --platform managed --ingress all
+
+# 3. Deploy worker
+gcloud run deploy cveriskpilot-worker-dev \
+  --image gcr.io/cveriskpilot-prod/cveriskpilot-web:TAG \
+  --region us-central1 --platform managed --no-allow-unauthenticated
+
+# 4. Run migrations
+gcloud builds submit --config deploy/cloudbuild-migrate.yaml
+```
+
+### 17.4 Key Deployment Decisions Made
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| CSP script-src | `'unsafe-inline'` (not nonce) | Next.js standalone output doesn't inject nonce attributes into prerendered `<script>` tags; nonce-only CSP blocks all JavaScript |
+| Prisma binary targets | `["native", "linux-musl-openssl-3.0.x"]` | Alpine 3.20+ ships OpenSSL 3.x; Prisma default targets OpenSSL 1.1.x |
+| Worker architecture | Same Next.js image, different service | Worker runs the same codebase; Cloud Tasks POSTs to `/api/jobs/process` route |
+| Cloud Run ingress | `INGRESS_TRAFFIC_ALL` for dev, `INTERNAL_LOAD_BALANCER` for prod | Dev has no load balancer; production will route through Cloud Armor + LB |
+| Startup probe | 12 failures × 10s period = 120s tolerance | Next.js cold start with DB + Redis connections needs >35s on first boot |
+| Worker deploy failure | `allowFailure: true` in Cloud Build | Worker startup issues don't block web deployment |
+
+### 17.5 Remaining Work to Production
+
+**Critical (must-have for production launch):**
+
+1. **DNS configuration** — Point `app.cveriskpilot.com` to GCP load balancer static IP
+2. **Populate secrets** — Set actual values in Secret Manager for all 8 secrets
+3. **Terraform reconciliation** — `terraform import` existing Cloud Run services to align state
+4. **Cloud Build triggers** — Auto-deploy on push to main branch
+5. **Stripe webhook registration** — Register `https://app.cveriskpilot.com/api/billing/webhook` in Stripe dashboard
+
+**High priority (needed soon after launch):**
+
+6. Database migration automation in deploy pipeline
+7. Monitoring dashboards in Cloud Monitoring
+8. Email provider secrets (SMTP/Resend) for notifications
+9. Cloud Scheduler for backup automation
+
+**Lower priority (post-launch):**
+
+10. PDF export (from legacy 1.x)
+11. Passkey/WebAuthn support (from legacy 2.0)
+12. Marketing public pages (from legacy 2.0)
+
+### 17.6 Environment URLs
+
+| Environment | URL | Status |
+|-------------|-----|--------|
+| **Dev (Cloud Run)** | `https://cveriskpilot-web-dev-642334918401.us-central1.run.app` | Live |
+| **Dev Demo** | `https://cveriskpilot-web-dev-642334918401.us-central1.run.app/demo` | Live |
+| **Dev Health** | `https://cveriskpilot-web-dev-642334918401.us-central1.run.app/api/health` | Live |
+| **Production** | `https://app.cveriskpilot.com` | DNS not configured |
+| **Local Dev** | `http://localhost:3000` | Working |

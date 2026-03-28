@@ -3,7 +3,8 @@
 // ---------------------------------------------------------------------------
 
 import { createLogger } from '@cveriskpilot/shared';
-import { BrandConfigService } from './config';
+import { getBrandConfig } from './config';
+import type { BrandConfigStorage } from './config';
 import type { BrandConfig } from './types';
 
 const logger = createLogger('whitelabel:middleware');
@@ -30,8 +31,8 @@ export interface WhiteLabelResult {
 
 /** Options for the middleware. */
 export interface WhiteLabelMiddlewareOptions {
-  /** The BrandConfigService instance. */
-  service: BrandConfigService;
+  /** A BrandConfigStorage implementation. */
+  storage: BrandConfigStorage;
   /** Function to extract the org ID from the request (e.g. from session, header, or host). */
   getOrgId: (req: WhiteLabelRequest) => Promise<string | null>;
   /** Optional: fallback org ID if extraction fails. */
@@ -50,7 +51,7 @@ export async function whiteLabelMiddleware(
   req: WhiteLabelRequest,
   options: WhiteLabelMiddlewareOptions,
 ): Promise<WhiteLabelResult> {
-  const { service, getOrgId, fallbackOrgId } = options;
+  const { storage, getOrgId, fallbackOrgId } = options;
 
   let orgId = await getOrgId(req);
 
@@ -64,7 +65,7 @@ export async function whiteLabelMiddleware(
     }
   }
 
-  const brandConfig = service.getBrandConfig(orgId);
+  const brandConfig = await getBrandConfig(storage, orgId);
 
   logger.debug(
     `White-label resolved: org=${orgId}, custom=${brandConfig.isCustom}, app=${brandConfig.appName}`,

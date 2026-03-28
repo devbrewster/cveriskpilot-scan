@@ -57,6 +57,7 @@ export default function SignupPage() {
       {/* Google Sign Up */}
       <button
         type="button"
+        onClick={() => { window.location.href = '/api/auth/google'; }}
         className="mt-8 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-750"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">

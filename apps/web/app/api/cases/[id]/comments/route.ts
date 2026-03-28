@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/cases/[id]/comments — list comments for a case
@@ -10,7 +11,23 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
+
+    // Verify the case belongs to the user's organization
+    const vuln = await prisma.vulnerabilityCase.findUnique({
+      where: { id },
+      select: { id: true, organizationId: true },
+    });
+
+    if (!vuln || vuln.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
+    }
+
     const { searchParams } = new URL(request.url);
     const order = searchParams.get('order') === 'newest' ? 'desc' : 'asc';
 
@@ -51,24 +68,30 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
-    const { content, userId } = body as { content: string; userId: string };
+    const { content } = body as { content: string };
+    const userId = session.userId;
 
-    if (!content || !userId) {
+    if (!content) {
       return NextResponse.json(
-        { error: 'content and userId are required' },
+        { error: 'content is required' },
         { status: 400 },
       );
     }
 
-    // Verify the case exists
+    // Verify the case exists and belongs to the user's organization
     const vuln = await prisma.vulnerabilityCase.findUnique({
       where: { id },
       select: { id: true, title: true, organizationId: true },
     });
 
-    if (!vuln) {
+    if (!vuln || vuln.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 

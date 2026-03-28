@@ -2,16 +2,17 @@
 
 @config "../tailwind.config.ts";
 
+/* Use class-based dark mode (only activates with `dark` class on html) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --foreground: #171717;
   --background: #ffffff;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground: #ededed;
-    --background: #0a0a0a;
-  }
+.dark {
+  --foreground: #ededed;
+  --background: #0a0a0a;
 }
 
 html {

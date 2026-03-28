@@ -10,15 +10,16 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "^15.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@cveriskpilot/domain": "*",
-    "@cveriskpilot/shared": "*",
+    "@cveriskpilot/api-docs": "*",
     "@cveriskpilot/auth": "*",
-    "@cveriskpilot/notifications": "*",
+    "@cveriskpilot/domain": "*",
     "@cveriskpilot/integrations": "*",
-    "@cveriskpilot/api-docs": "*"
+    "@cveriskpilot/notifications": "*",
+    "@cveriskpilot/shared": "*",
+    "next": "^15.0.0",
+    "next-themes": "^0.4.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

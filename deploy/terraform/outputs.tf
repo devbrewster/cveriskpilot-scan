@@ -24,5 +24,5 @@ output "bucket_name" {
 
 output "waf_policy_name" {
   description = "Cloud Armor WAF security policy name"
-  value       = google_compute_security_policy.waf.name
+  value       = google_compute_security_policy.waf_enterprise.name
 }

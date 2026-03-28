@@ -57,115 +57,165 @@ const DEFAULT_SETTINGS: WhiteLabelSettings = {
 };
 
 // ---------------------------------------------------------------------------
-// BrandConfigService
+// Storage interface — decouples from Prisma for testability
 // ---------------------------------------------------------------------------
 
-export class BrandConfigService {
-  /** In-memory store. Replace with database-backed implementation in production. */
-  private configs: Map<string, BrandConfig> = new Map();
-  private settings: Map<string, WhiteLabelSettings> = new Map();
+export interface BrandConfigStorage {
+  get(organizationId: string): Promise<BrandConfig | null>;
+  upsert(organizationId: string, config: Partial<BrandConfig>): Promise<BrandConfig>;
+  delete(organizationId: string): Promise<void>;
+}
 
-  /**
-   * Get the brand configuration for an organization.
-   * Falls back to defaults if no custom config exists.
-   */
-  getBrandConfig(orgId: string): BrandConfig {
-    const stored = this.configs.get(orgId);
-    if (stored) {
-      return stored;
-    }
+// ---------------------------------------------------------------------------
+// In-memory storage — for tests and dev
+// ---------------------------------------------------------------------------
 
-    logger.debug(`No custom brand config for org ${orgId}; returning defaults`);
-    return {
-      ...DEFAULT_BRAND_CONFIG,
-      orgId,
-      isCustom: false,
-      updatedAt: new Date().toISOString(),
-    };
+export function createMemoryStorage(): BrandConfigStorage {
+  const store = new Map<string, BrandConfig>();
+
+  return {
+    async get(organizationId: string): Promise<BrandConfig | null> {
+      return store.get(organizationId) ?? null;
+    },
+
+    async upsert(organizationId: string, config: Partial<BrandConfig>): Promise<BrandConfig> {
+      const existing = store.get(organizationId);
+      const merged: BrandConfig = {
+        ...DEFAULT_BRAND_CONFIG,
+        ...existing,
+        ...config,
+        orgId: organizationId,
+        colors: {
+          ...DEFAULT_COLORS,
+          ...(existing?.colors ?? {}),
+          ...(config.colors ?? {}),
+        },
+        logo: {
+          ...DEFAULT_BRAND_CONFIG.logo,
+          ...(existing?.logo ?? {}),
+          ...(config.logo ?? {}),
+        },
+        email: {
+          ...DEFAULT_BRAND_CONFIG.email!,
+          ...(existing?.email ?? {}),
+          ...(config.email ?? {}),
+        },
+        isCustom: true,
+        updatedAt: new Date().toISOString(),
+      };
+      store.set(organizationId, merged);
+      return merged;
+    },
+
+    async delete(organizationId: string): Promise<void> {
+      store.delete(organizationId);
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Settings store (still in-memory — lightweight feature flags per org)
+// ---------------------------------------------------------------------------
+
+const settingsStore = new Map<string, WhiteLabelSettings>();
+
+// ---------------------------------------------------------------------------
+// Public async functions
+// ---------------------------------------------------------------------------
+
+/**
+ * Get the brand configuration for an organization.
+ * Falls back to defaults if no custom config exists in storage.
+ */
+export async function getBrandConfig(
+  storage: BrandConfigStorage,
+  organizationId: string,
+): Promise<BrandConfig> {
+  const stored = await storage.get(organizationId);
+  if (stored) {
+    return stored;
   }
 
-  /**
-   * Update the brand configuration for an organization.
-   * Merges the partial update with existing config (or defaults).
-   */
-  updateBrandConfig(orgId: string, update: Partial<Omit<BrandConfig, 'orgId'>>): BrandConfig {
-    const current = this.getBrandConfig(orgId);
-    const settings = this.getSettings(orgId);
+  logger.debug(`No custom brand config for org ${organizationId}; returning defaults`);
+  return {
+    ...DEFAULT_BRAND_CONFIG,
+    orgId: organizationId,
+    isCustom: false,
+    updatedAt: new Date().toISOString(),
+  };
+}
 
-    // Enforce settings restrictions
-    if (update.customCSS && !settings.allowCustomCSS) {
-      logger.warn(`Org ${orgId} attempted to set custom CSS but it is not allowed`);
-      delete update.customCSS;
-    }
+/**
+ * Update (or create) the brand configuration for an organization.
+ * Merges the partial update with existing config (or defaults).
+ * Enforces white-label settings restrictions.
+ */
+export async function updateBrandConfig(
+  storage: BrandConfigStorage,
+  organizationId: string,
+  updates: Partial<Omit<BrandConfig, 'orgId'>>,
+): Promise<BrandConfig> {
+  const settings = getSettings(organizationId);
 
-    if (update.customCSS && update.customCSS.length > settings.maxCustomCSSLength) {
-      logger.warn(
-        `Custom CSS for org ${orgId} exceeds max length (${update.customCSS.length} > ${settings.maxCustomCSSLength})`,
-      );
-      update.customCSS = update.customCSS.slice(0, settings.maxCustomCSSLength);
-    }
-
-    if (update.customDomain && !settings.allowCustomDomain) {
-      logger.warn(`Org ${orgId} attempted to set custom domain but it is not allowed`);
-      delete update.customDomain;
-    }
-
-    if (update.email && !settings.allowEmailBranding) {
-      logger.warn(`Org ${orgId} attempted to set email branding but it is not allowed`);
-      delete update.email;
-    }
-
-    const merged: BrandConfig = {
-      ...current,
-      ...update,
-      orgId,
-      colors: {
-        ...current.colors,
-        ...(update.colors ?? {}),
-      },
-      logo: {
-        ...current.logo,
-        ...(update.logo ?? {}),
-      },
-      email: update.email
-        ? { ...current.email, ...update.email }
-        : current.email,
-      isCustom: true,
-      updatedAt: new Date().toISOString(),
-    };
-
-    this.configs.set(orgId, merged);
-    logger.info(`Brand config updated for org ${orgId}`);
-    return merged;
+  // Enforce settings restrictions
+  if (updates.customCSS && !settings.allowCustomCSS) {
+    logger.warn(`Org ${organizationId} attempted to set custom CSS but it is not allowed`);
+    delete updates.customCSS;
   }
 
-  /** Remove custom brand config, reverting to defaults. */
-  resetBrandConfig(orgId: string): void {
-    this.configs.delete(orgId);
-    logger.info(`Brand config reset to defaults for org ${orgId}`);
+  if (updates.customCSS && updates.customCSS.length > settings.maxCustomCSSLength) {
+    logger.warn(
+      `Custom CSS for org ${organizationId} exceeds max length (${updates.customCSS.length} > ${settings.maxCustomCSSLength})`,
+    );
+    updates.customCSS = updates.customCSS.slice(0, settings.maxCustomCSSLength);
   }
 
-  /** Get white-label settings for an org. */
-  getSettings(orgId: string): WhiteLabelSettings {
-    return this.settings.get(orgId) ?? { ...DEFAULT_SETTINGS };
+  if (updates.customDomain && !settings.allowCustomDomain) {
+    logger.warn(`Org ${organizationId} attempted to set custom domain but it is not allowed`);
+    delete updates.customDomain;
   }
 
-  /** Update white-label settings for an org. */
-  updateSettings(orgId: string, update: Partial<WhiteLabelSettings>): WhiteLabelSettings {
-    const current = this.getSettings(orgId);
-    const merged = { ...current, ...update };
-    this.settings.set(orgId, merged);
-    logger.info(`White-label settings updated for org ${orgId}`);
-    return merged;
+  if (updates.email && !settings.allowEmailBranding) {
+    logger.warn(`Org ${organizationId} attempted to set email branding but it is not allowed`);
+    delete updates.email;
   }
 
-  /** Get the default brand config (for reference). */
-  getDefaultBrandConfig(): Omit<BrandConfig, 'orgId'> {
-    return { ...DEFAULT_BRAND_CONFIG };
-  }
+  const result = await storage.upsert(organizationId, updates);
+  logger.info(`Brand config updated for org ${organizationId}`);
+  return result;
+}
 
-  /** Get the default theme colors. */
-  getDefaultColors(): ThemeColors {
-    return { ...DEFAULT_COLORS };
-  }
+/**
+ * Remove custom brand config, reverting to defaults.
+ */
+export async function resetBrandConfig(
+  storage: BrandConfigStorage,
+  organizationId: string,
+): Promise<void> {
+  await storage.delete(organizationId);
+  logger.info(`Brand config reset to defaults for org ${organizationId}`);
+}
+
+/** Get white-label settings for an org. */
+export function getSettings(orgId: string): WhiteLabelSettings {
+  return settingsStore.get(orgId) ?? { ...DEFAULT_SETTINGS };
+}
+
+/** Update white-label settings for an org. */
+export function updateSettings(orgId: string, update: Partial<WhiteLabelSettings>): WhiteLabelSettings {
+  const current = getSettings(orgId);
+  const merged = { ...current, ...update };
+  settingsStore.set(orgId, merged);
+  logger.info(`White-label settings updated for org ${orgId}`);
+  return merged;
+}
+
+/** Get the default brand config (for reference). */
+export function getDefaultBrandConfig(): Omit<BrandConfig, 'orgId'> {
+  return { ...DEFAULT_BRAND_CONFIG };
+}
+
+/** Get the default theme colors. */
+export function getDefaultColors(): ThemeColors {
+  return { ...DEFAULT_COLORS };
 }

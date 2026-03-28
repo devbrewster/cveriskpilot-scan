@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -7,6 +8,11 @@ interface RouteContext {
 
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
 
     const client = await prisma.client.findUnique({
@@ -34,6 +40,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
+    if (client.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+
     return NextResponse.json({ client });
   } catch (error) {
     console.error('[API] GET /api/clients/[id] error:', error);
@@ -46,12 +56,21 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
 export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
     const body = await request.json();
     const { name, isActive } = body;
 
     const existing = await prisma.client.findUnique({ where: { id } });
     if (!existing || existing.deletedAt) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+
+    if (existing.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
@@ -72,6 +91,18 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       data,
     });
 
+    await prisma.auditLog.create({
+      data: {
+        organizationId: session.organizationId,
+        actorId: session.userId,
+        action: 'UPDATE',
+        entityType: 'Client',
+        entityId: client.id,
+        details: { name: client.name, slug: client.slug },
+        hash: `update-client-${client.id}-${Date.now()}`,
+      },
+    });
+
     return NextResponse.json({ client });
   } catch (error) {
     console.error('[API] PUT /api/clients/[id] error:', error);
@@ -84,10 +115,19 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await context.params;
 
     const existing = await prisma.client.findUnique({ where: { id } });
     if (!existing || existing.deletedAt) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+
+    if (existing.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 

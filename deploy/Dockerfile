@@ -47,6 +47,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# The host .env.local symlink is invalid inside the container — replace with empty file
+RUN rm -f apps/web/.env.local && touch apps/web/.env.local
+
 # Generate Prisma client
 RUN npx prisma generate --schema=packages/domain/prisma/schema.prisma
 
@@ -58,7 +61,7 @@ RUN npm run build
 # =============================================================================
 FROM node:20-alpine AS runner
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl openssl
 
 WORKDIR /app
 

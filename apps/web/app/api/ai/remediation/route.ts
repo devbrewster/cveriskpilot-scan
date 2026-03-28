@@ -4,6 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import type { RemediationRequest, RemediationResult } from '@cveriskpilot/ai';
 
 // ---------- helpers --------------------------------------------------------
@@ -15,9 +16,9 @@ function errorResponse(status: number, message: string) {
 // ---------- handler --------------------------------------------------------
 
 export async function POST(request: NextRequest) {
-  // --- Auth check (placeholder — wire up real session later) ---------------
-  // const session = await getServerSession();
-  // if (!session) return errorResponse(401, 'Unauthorized');
+  // --- Auth check ---
+  const session = await getServerSession(request);
+  if (!session) return errorResponse(401, 'Unauthorized');
 
   let body: { caseId?: string; caseData?: RemediationRequest };
   try {
@@ -32,20 +33,20 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Dynamic import to keep the route bundle small and allow tree-shaking.
-    // When the AI package is fully wired the imports resolve at runtime.
-    const { generateRemediation, parseRemediationResponse } = await import(
-      '@cveriskpilot/ai'
-    );
+    const {
+      generateRemediation,
+      parseRemediationResponse,
+      checkAiRateLimit,
+      incrementAiUsage,
+    } = await import('@cveriskpilot/ai');
 
-    // --- Rate limiting (placeholder — uncomment when Redis is available) ---
-    // const { checkAiRateLimit, incrementAiUsage } = await import('@cveriskpilot/ai');
-    // const orgId = session.user.organizationId;
-    // const tier = session.user.tier ?? 'FREE';
-    // const limit = await checkAiRateLimit(orgId, tier);
-    // if (!limit.allowed) {
-    //   return errorResponse(429, `AI rate limit exceeded. Resets at ${limit.resetAt.toISOString()}`);
-    // }
+    // --- Rate limiting ---
+    const orgId = session.organizationId;
+    const tier = (session as Record<string, unknown>).tier as string ?? 'FREE';
+    const limit = await checkAiRateLimit(orgId, tier);
+    if (!limit.allowed) {
+      return errorResponse(429, `AI rate limit exceeded. Resets at ${limit.resetAt.toISOString()}`);
+    }
 
     const response = await generateRemediation(caseData);
     const result: RemediationResult = parseRemediationResponse(
@@ -53,8 +54,8 @@ export async function POST(request: NextRequest) {
       response.model,
     );
 
-    // --- Increment usage counter ---
-    // await incrementAiUsage(orgId);
+    // Increment usage counter
+    await incrementAiUsage(orgId);
 
     return NextResponse.json(result);
   } catch (err: unknown) {

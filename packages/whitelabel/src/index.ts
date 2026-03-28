@@ -1,5 +1,15 @@
 // @cveriskpilot/whitelabel
-export { BrandConfigService } from './config';
+export {
+  getBrandConfig,
+  updateBrandConfig,
+  resetBrandConfig,
+  createMemoryStorage,
+  getSettings,
+  updateSettings,
+  getDefaultBrandConfig,
+  getDefaultColors,
+} from './config';
+export type { BrandConfigStorage } from './config';
 export { createDomainOrgResolver, whiteLabelMiddleware } from './middleware';
 export type {
   WhiteLabelMiddlewareOptions,

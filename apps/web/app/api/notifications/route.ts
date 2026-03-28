@@ -1,21 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
-// GET /api/notifications — list notifications for a user (paginated)
+// GET /api/notifications — list notifications for the authenticated user (paginated)
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = session.userId;
     const page = Math.max(1, Number(searchParams.get('page') || '1'));
     const limit = Math.min(50, Math.max(1, Number(searchParams.get('limit') || '20')));
     const filter = searchParams.get('filter'); // all | unread | mention | assignment | sla
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
-    }
 
     const where: Record<string, unknown> = { userId };
 
@@ -64,17 +66,18 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
-    const { notificationIds, userId, markAllRead } = body as {
+    const { notificationIds, markAllRead } = body as {
       notificationIds?: string[];
-      userId: string;
       markAllRead?: boolean;
     };
 
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
-    }
-
+    const userId = session.userId;
     const now = new Date();
 
     if (markAllRead) {

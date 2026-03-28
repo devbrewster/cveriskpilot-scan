@@ -9,7 +9,7 @@ import { Footer } from "@/components/landing/footer";
 
 export default function LandingPage() {
   return (
-    <>
+    <div className="dark">
       <NavBar />
       <main>
         <Hero />
@@ -20,6 +20,6 @@ export default function LandingPage() {
         <CtaSection />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

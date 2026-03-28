@@ -24,13 +24,16 @@ export function ClientList() {
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
+  const [newContactName, setNewContactName] = useState('');
+  const [newContactEmail, setNewContactEmail] = useState('');
+  const [newIndustry, setNewIndustry] = useState('');
   const [creating, setCreating] = useState(false);
 
   const fetchClients = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/clients?organizationId=demo-org');
+      const res = await fetch('/api/clients');
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load');
       setClients(data.clients || []);
@@ -54,8 +57,10 @@ export function ClientList() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          organizationId: 'demo-org',
           name: newName.trim(),
+          contactName: newContactName.trim() || undefined,
+          contactEmail: newContactEmail.trim() || undefined,
+          industry: newIndustry || undefined,
         }),
       });
       if (!res.ok) {
@@ -63,6 +68,9 @@ export function ClientList() {
         throw new Error(data.error || 'Failed to create');
       }
       setNewName('');
+      setNewContactName('');
+      setNewContactEmail('');
+      setNewIndustry('');
       setShowCreate(false);
       fetchClients();
     } catch (err) {
@@ -142,6 +150,44 @@ export function ClientList() {
                   autoFocus
                   required
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Contact Name</label>
+                <input
+                  type="text"
+                  value={newContactName}
+                  onChange={(e) => setNewContactName(e.target.value)}
+                  placeholder="e.g., Jane Smith"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Contact Email</label>
+                <input
+                  type="email"
+                  value={newContactEmail}
+                  onChange={(e) => setNewContactEmail(e.target.value)}
+                  placeholder="e.g., jane@example.com"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Industry</label>
+                <select
+                  value={newIndustry}
+                  onChange={(e) => setNewIndustry(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="">Select an industry...</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Healthcare">Healthcare</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Government">Government</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Education">Education</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
               <div className="flex justify-end gap-3">
                 <button

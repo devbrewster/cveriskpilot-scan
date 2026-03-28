@@ -19,6 +19,9 @@ redis_memory_size_gb = 1
 # Container image (leave empty to use gcr.io/{project}/cveriskpilot-web:latest)
 image_tag = ""
 
+# Public URL (for auth callbacks, Stripe redirects)
+app_url = "https://cveriskpilot.com"
+
 # Monitoring
 alert_email = ""
 

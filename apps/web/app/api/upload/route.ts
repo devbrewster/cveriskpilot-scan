@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -73,17 +74,37 @@ async function saveToLocal(
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const organizationId = session.organizationId;
+    const uploadedById = session.userId;
+
     const formData = await request.formData();
 
     const file = formData.get('file') as File | null;
-    const organizationId = (formData.get('organizationId') as string | null) ?? 'default-org';
-    const clientId = (formData.get('clientId') as string | null) ?? 'default-client';
-    const uploadedById = (formData.get('uploadedById') as string | null) ?? 'default-user';
+    const clientId = formData.get('clientId') as string | null;
     const parserFormat = formData.get('parserFormat') as string | null;
 
     // Validation
     if (!file) {
       return NextResponse.json({ error: 'file is required' }, { status: 400 });
+    }
+
+    if (!clientId) {
+      return NextResponse.json({ error: 'clientId is required' }, { status: 400 });
+    }
+
+    // Validate that the client belongs to the user's organization
+    const client = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { organizationId: true },
+    });
+
+    if (!client || client.organizationId !== organizationId) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     if (file.size > MAX_UPLOAD_SIZE) {

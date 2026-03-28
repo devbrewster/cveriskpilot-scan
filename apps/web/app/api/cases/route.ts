@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { CursorPaginator } from '@cveriskpilot/db-scale';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
 
     const severity = searchParams.get('severity');
@@ -12,7 +18,6 @@ export async function GET(request: NextRequest) {
     const epssMin = searchParams.get('epssMin');
     const search = searchParams.get('search');
     const assignedToId = searchParams.get('assignedToId');
-    const organizationId = searchParams.get('organizationId');
     const clientId = searchParams.get('clientId');
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '25', 10)));
@@ -24,13 +29,11 @@ export async function GET(request: NextRequest) {
     const cursorDirection = (searchParams.get('cursorDirection') ?? 'forward') as 'forward' | 'backward';
     const useCursorPagination = !!cursor || searchParams.has('cursor');
 
-    // Build where clause
+    // Build where clause — always scope to the user's organization
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: Record<string, any> = {};
-
-    if (organizationId) {
-      where.organizationId = organizationId;
-    }
+    const where: Record<string, any> = {
+      organizationId: session.organizationId,
+    };
 
     if (clientId) {
       where.clientId = clientId;

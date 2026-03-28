@@ -26,6 +26,33 @@ export type {
 export { sendWebhook, generateSignature, verifySignature } from './webhooks/webhook-sender';
 export type { WebhookPayload, WebhookEndpoint, WebhookEventType } from './webhooks/types';
 export { WEBHOOK_EVENT_TYPES } from './webhooks/types';
+export {
+  DeliveryTracker,
+  getDeliveryTracker,
+  resetDeliveryTracker,
+} from './webhooks/delivery-tracker';
+export type {
+  DeliveryRecord,
+  DeliveryAttempt,
+  DeliveryTrackerConfig,
+} from './webhooks/delivery-tracker';
+export {
+  emitWebhookEvent,
+  buildCloudEvent,
+  emitCaseCreated,
+  emitCaseUpdated,
+  emitCaseClosed,
+  emitSlaBreached,
+  emitScanCompleted,
+  emitFindingNew,
+  EMITTER_EVENT_TYPES,
+} from './webhooks/event-emitter';
+export type {
+  CloudEvent as WebhookCloudEvent,
+  EmitterEventType,
+  RegisteredEndpoint,
+  EmitResult,
+} from './webhooks/event-emitter';
 
 // Scanner connectors
 export {

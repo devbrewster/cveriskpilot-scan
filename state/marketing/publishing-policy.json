@@ -1,0 +1,44 @@
+{
+  "brand_name": "CVERiskPilot",
+  "platforms": ["linkedin", "x"],
+  "account_handles": {
+    "linkedin": "",
+    "x": ""
+  },
+  "approval_required": true,
+  "character_limits": {
+    "linkedin": null,
+    "x": 280
+  },
+  "post_queue_dir": "social/queue",
+  "roles": [
+    "marketing_strategist",
+    "release_announcer",
+    "feature_promoter",
+    "linkedin_publisher",
+    "x_publisher"
+  ],
+  "content_cadence": {
+    "progress_updates": "twice per week while active beta work is shipping",
+    "patch_release_updates": "immediately after release metadata or changelog changes reserve or promote a patch",
+    "upcoming_features": "weekly, but only for roadmap items already present in repo truth sources",
+    "implementation_snapshots": "after user-visible or operator-visible release changes land"
+  },
+  "source_of_truth": [
+    "apps/web/src/lib/release-metadata.json",
+    "CHANGELOG.md",
+    "state/current-cycle.json",
+    "state/active-task.json",
+    "state/next-queue.json",
+    "beta-launch/",
+    "reports/final/"
+  ],
+  "posting_rules": [
+    "Do not claim a feature is live unless it appears in currentRelease or the public changelog.",
+    "Do not claim a patch is shipped until release metadata promotes it and deployment evidence exists.",
+    "Treat beta-launch and reports/final as evidence sources, not as customer-facing copy to paste verbatim.",
+    "Keep every post within the configured character limit and attach the supporting source paths.",
+    "Require human approval before anything is posted to a real X account.",
+    "LinkedIn copy stays manual or scheduler-driven until an approved direct integration exists."
+  ]
+}

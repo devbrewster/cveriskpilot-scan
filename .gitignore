@@ -29,8 +29,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# prisma
-packages/domain/prisma/migrations/
+# prisma — migrations are version-controlled (remove this line to ignore them)
+# packages/domain/prisma/migrations/
 
 # test
 coverage/
@@ -52,3 +52,11 @@ uploads/
 # database dumps
 *.dump
 *.sql.gz
+
+# social media automation (runtime data, not config)
+social/logs/
+social/drafts/
+social/queue/
+social/published/
+social/archived/
+state/marketing/generated/

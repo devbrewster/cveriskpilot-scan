@@ -62,7 +62,8 @@ resource "google_cloud_run_v2_service" "web" {
         }
         initial_delay_seconds = 5
         period_seconds        = 10
-        failure_threshold     = 3
+        failure_threshold     = 12
+        timeout_seconds       = 5
       }
 
       liveness_probe {
@@ -93,6 +94,31 @@ resource "google_cloud_run_v2_service" "web" {
         value = var.project_id
       }
 
+      env {
+        name  = "NEXT_PUBLIC_APP_URL"
+        value = var.app_url
+      }
+
+      env {
+        name  = "APP_BASE_URL"
+        value = var.app_url
+      }
+
+      env {
+        name  = "WORKER_URL"
+        value = "https://cveriskpilot-worker-${var.environment}-${var.region}.run.app"
+      }
+
+      env {
+        name  = "CLOUD_TASKS_LOCATION"
+        value = var.region
+      }
+
+      env {
+        name  = "CLOUD_TASKS_QUEUE"
+        value = google_cloud_tasks_queue.scan_pipeline.name
+      }
+
       # Secret-backed environment variables
       dynamic "env" {
         for_each = local.secret_env_vars
@@ -114,18 +140,14 @@ resource "google_cloud_run_v2_service" "web" {
     }
   }
 
+  # Allow traffic from the load balancer and internal sources
+  # Use ALL for dev (no load balancer); switch to INTERNAL_LOAD_BALANCER for production
+  ingress = var.environment == "prod" ? "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER" : "INGRESS_TRAFFIC_ALL"
+
   depends_on = [
     google_secret_manager_secret.app_secrets,
     google_service_networking_connection.private_vpc,
   ]
-}
-
-# Allow unauthenticated access (public web app)
-resource "google_cloud_run_v2_service_iam_member" "web_public" {
-  name     = google_cloud_run_v2_service.web.name
-  location = google_cloud_run_v2_service.web.location
-  role     = "roles/run.invoker"
-  member   = "allUsers"
 }
 
 # -----------------------------------------------------------------------------
@@ -157,15 +179,34 @@ resource "google_cloud_run_v2_service" "worker" {
     }
 
     containers {
-      image   = local.image
-      command = ["node"]
-      args    = ["dist/worker.js"]
+      image = local.image
+
+      ports {
+        container_port = 3000
+      }
 
       resources {
         limits = {
           memory = "1Gi"
           cpu    = "1"
         }
+      }
+
+      startup_probe {
+        http_get {
+          path = "/api/health"
+        }
+        initial_delay_seconds = 5
+        period_seconds        = 10
+        failure_threshold     = 12
+        timeout_seconds       = 5
+      }
+
+      liveness_probe {
+        http_get {
+          path = "/api/health"
+        }
+        period_seconds = 30
       }
 
       env {
@@ -191,6 +232,16 @@ resource "google_cloud_run_v2_service" "worker" {
       env {
         name  = "GCS_PROJECT_ID"
         value = var.project_id
+      }
+
+      env {
+        name  = "CLOUD_TASKS_LOCATION"
+        value = var.region
+      }
+
+      env {
+        name  = "CLOUD_TASKS_QUEUE"
+        value = google_cloud_tasks_queue.scan_pipeline.name
       }
 
       dynamic "env" {

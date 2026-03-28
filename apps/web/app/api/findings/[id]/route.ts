@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const finding = await prisma.finding.findUnique({
@@ -33,6 +39,11 @@ export async function GET(
     });
 
     if (!finding) {
+      return NextResponse.json({ error: 'Finding not found' }, { status: 404 });
+    }
+
+    // Verify the finding belongs to the user's organization
+    if (finding.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Finding not found' }, { status: 404 });
     }
 

@@ -1,5 +1,7 @@
 import { POAMView } from '@/components/compliance/poam-view';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'POAM Tracking | CVERiskPilot',
 };

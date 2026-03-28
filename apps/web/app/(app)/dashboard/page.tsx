@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useClientContext } from '@/lib/client-context';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card } from '@/components/ui/card';
@@ -7,30 +8,145 @@ import { SeverityChart } from '@/components/dashboard/severity-chart';
 import { KevWidget } from '@/components/dashboard/kev-widget';
 import { EpssTop10 } from '@/components/dashboard/epss-top10';
 import { RecentScans } from '@/components/dashboard/recent-scans';
-import {
-  mockCases,
-  mockUploadJobs,
-  mockStats,
-  getSeverityCounts,
-} from '@/lib/mock-data';
+import { SlaWidget } from '@/components/dashboard/sla-widget';
+import { ComplianceScores } from '@/components/dashboard/compliance-scores';
+import { ActivityTimeline } from '@/components/dashboard/activity-timeline';
+import type { VulnerabilityCase, UploadJob, Severity } from '@/lib/mock-data';
+
+export const dynamic = 'force-dynamic';
+
+interface DashboardApiResponse {
+  severityCounts: Record<string, number>;
+  kevCount: number;
+  epssTop10: Array<{
+    id: string;
+    title: string;
+    cveIds: string[];
+    severity: Severity;
+    epssScore: number | null;
+    epssPercentile: number | null;
+    kevListed: boolean;
+    status: string;
+  }>;
+  recentScans: Array<{
+    id: string;
+    status: string;
+    totalFindings: number;
+    findingsCreated: number;
+    casesCreated: number;
+    createdAt: string;
+    completedAt: string | null;
+    errorMessage: string | null;
+    artifact: {
+      filename: string;
+      parserFormat: string;
+    } | null;
+  }>;
+  totalFindings: number;
+  totalCases: number;
+  nearestKevDueDate: string | null;
+  mttrDays: number | null;
+  recentActivity: Array<{
+    id: string;
+    type: 'scan' | 'case' | 'remediation' | 'alert' | 'kev' | 'policy';
+    title: string;
+    description?: string;
+    timestamp: string;
+  }>;
+  complianceScores: Array<{
+    framework: string;
+    score: number;
+    controlsTotal: number;
+    controlsMet: number;
+  }>;
+}
 
 export default function DashboardPage() {
   const { activeClientId, activeClientName } = useClientContext();
+  const [data, setData] = useState<DashboardApiResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const severityCounts = getSeverityCounts(mockCases);
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (activeClientId) params.set('clientId', activeClientId);
 
-  // Find nearest KEV due date among active KEV cases
-  const kevCases = mockCases.filter(
-    (c) =>
-      c.kevListed &&
-      c.kevDueDate &&
-      !['VERIFIED_CLOSED', 'FALSE_POSITIVE', 'NOT_APPLICABLE', 'DUPLICATE'].includes(c.status)
-  );
-  const nearestKevDueDate: string | null = kevCases.length > 0
-    ? kevCases
-        .map((c) => c.kevDueDate!)
-        .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0] ?? null
-    : null;
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/dashboard?${params.toString()}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load dashboard data');
+        return res.json();
+      })
+      .then((json) => setData(json))
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [activeClientId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-gray-500">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-red-600">{error || 'Failed to load dashboard data'}</div>
+      </div>
+    );
+  }
+
+  // Build severity counts with all severity levels
+  const severityCounts: Record<Severity, number> = {
+    CRITICAL: data.severityCounts['CRITICAL'] ?? 0,
+    HIGH: data.severityCounts['HIGH'] ?? 0,
+    MEDIUM: data.severityCounts['MEDIUM'] ?? 0,
+    LOW: data.severityCounts['LOW'] ?? 0,
+    INFO: data.severityCounts['INFO'] ?? 0,
+  };
+
+  const criticalHighCases = severityCounts.CRITICAL + severityCounts.HIGH;
+
+  // Compute average EPSS score from top-10 data (best available)
+  const epssScores = data.epssTop10.filter((c) => c.epssScore !== null).map((c) => c.epssScore!);
+  const avgEpssScore = epssScores.length > 0
+    ? epssScores.reduce((sum, s) => sum + s, 0) / epssScores.length
+    : 0;
+
+  // Map epssTop10 to VulnerabilityCase shape expected by EpssTop10 component
+  const epssTop10Cases: VulnerabilityCase[] = data.epssTop10.map((c) => ({
+    id: c.id,
+    title: c.title,
+    cveIds: c.cveIds,
+    severity: c.severity,
+    cvssScore: null,
+    epssScore: c.epssScore,
+    epssPercentile: c.epssPercentile,
+    kevListed: c.kevListed,
+    kevDueDate: null,
+    status: c.status as VulnerabilityCase['status'],
+    findingCount: 0,
+    firstSeenAt: '',
+    lastSeenAt: '',
+  }));
+
+  // Map recentScans to UploadJob shape expected by RecentScans component
+  const recentJobs: UploadJob[] = data.recentScans.map((s) => ({
+    id: s.id,
+    filename: s.artifact?.filename ?? 'Unknown',
+    parserFormat: (s.artifact?.parserFormat ?? 'CSV') as UploadJob['parserFormat'],
+    status: s.status as UploadJob['status'],
+    totalFindings: s.totalFindings,
+    findingsCreated: s.findingsCreated,
+    casesCreated: s.casesCreated,
+    createdAt: s.createdAt,
+    completedAt: s.completedAt,
+    errorMessage: s.errorMessage,
+  }));
 
   return (
     <div className="space-y-6">
@@ -50,32 +166,32 @@ export default function DashboardPage() {
       )}
 
       {/* Row 1: Stat cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard
-          label="Total Cases"
-          value={mockStats.totalCases}
-          trend={mockStats.totalCasesTrend}
-          trendLabel="vs last month"
+          label="Total Findings"
+          value={data.totalFindings}
+        />
+        <StatCard
+          label="Open Cases"
+          value={data.totalCases}
         />
         <StatCard
           label="Critical / High"
-          value={mockStats.criticalHighCases}
-          trend={mockStats.criticalHighTrend}
-          trendLabel="vs last month"
+          value={criticalHighCases}
           accent="text-red-700"
         />
         <StatCard
           label="KEV-Listed"
-          value={mockStats.kevListedCount}
-          trend={mockStats.kevTrend}
-          trendLabel="vs last month"
-          accent={mockStats.kevListedCount > 0 ? 'text-red-600' : 'text-green-600'}
+          value={data.kevCount}
+          accent={data.kevCount > 0 ? 'text-red-600' : 'text-green-600'}
         />
         <StatCard
-          label="Avg EPSS Score"
-          value={`${(mockStats.avgEpssScore * 100).toFixed(1)}%`}
-          trend={mockStats.epssTrend}
-          trendLabel="vs last month"
+          label="Avg EPSS (Top 10)"
+          value={`${(avgEpssScore * 100).toFixed(1)}%`}
+        />
+        <StatCard
+          label="MTTR"
+          value={data.mttrDays !== null ? `${data.mttrDays}d` : '—'}
         />
       </div>
 
@@ -88,21 +204,42 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card title="EPSS Top 10" description="Highest exploitation probability scores">
-            <EpssTop10 cases={mockCases} />
+            <EpssTop10 cases={epssTop10Cases} />
           </Card>
         </div>
         <div>
           <KevWidget
-            kevCount={mockStats.kevListedCount}
-            nearestDueDate={nearestKevDueDate}
+            kevCount={data.kevCount}
+            nearestDueDate={data.nearestKevDueDate}
           />
         </div>
       </div>
 
-      {/* Row 4: Recent Scans */}
-      <Card title="Recent Scans" description="Latest upload jobs and their processing status">
-        <RecentScans jobs={mockUploadJobs} />
-      </Card>
+      {/* Row 4: SLA Status + Recent Scans */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div>
+          <SlaWidget organizationId="org-default" />
+        </div>
+        <div className="lg:col-span-2">
+          <Card title="Recent Scans" description="Latest upload jobs and their processing status">
+            <RecentScans jobs={recentJobs} />
+          </Card>
+        </div>
+      </div>
+
+      {/* Row 5: Compliance Scores + Activity Timeline */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div>
+          <Card title="Compliance Scores" description="Framework compliance status">
+            <ComplianceScores scores={data.complianceScores} />
+          </Card>
+        </div>
+        <div className="lg:col-span-2">
+          <Card title="Recent Activity" description="Latest events across the platform">
+            <ActivityTimeline events={data.recentActivity} />
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

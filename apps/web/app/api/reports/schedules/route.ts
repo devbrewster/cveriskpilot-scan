@@ -1,42 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-// ---------------------------------------------------------------------------
-// In-memory store for report schedules.
-// In production, this would be a Prisma model or a dedicated DB table.
-// ---------------------------------------------------------------------------
-
-export interface ReportSchedule {
-  id: string;
-  name: string;
-  organizationId: string;
-  clientId: string | null;
-  frequency: 'daily' | 'weekly' | 'monthly';
-  reportType: 'executive' | 'findings' | 'sla';
-  format: 'pdf' | 'csv';
-  recipients: string[];
-  dayOfWeek: number | null;
-  hourUtc: number;
-  enabled: boolean;
-  lastRunAt: string | null;
-  nextRunAt: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Shared mutable store (persists for the lifetime of the server process)
-const scheduleStore = new Map<string, ReportSchedule>();
-
-export { scheduleStore };
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function generateId(): string {
-  return `sched_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function computeNextRun(frequency: string, dayOfWeek: number | null, hourUtc: number): string {
+function computeNextRun(frequency: string, dayOfWeek: number | null, hourUtc: number): Date {
   const now = new Date();
   const next = new Date(now);
   next.setUTCMinutes(0, 0, 0);
@@ -59,12 +29,11 @@ function computeNextRun(frequency: string, dayOfWeek: number | null, hourUtc: nu
       break;
   }
 
-  return next.toISOString();
+  return next;
 }
 
 function validateScheduleBody(body: Record<string, unknown>): string | null {
   if (!body.name || typeof body.name !== 'string') return 'name is required';
-  if (!body.organizationId || typeof body.organizationId !== 'string') return 'organizationId is required';
   if (!['daily', 'weekly', 'monthly'].includes(body.frequency as string)) return 'frequency must be daily, weekly, or monthly';
   if (!['executive', 'findings', 'sla'].includes(body.reportType as string)) return 'reportType must be executive, findings, or sla';
   if (!['pdf', 'csv'].includes(body.format as string)) return 'format must be pdf or csv';
@@ -74,24 +43,20 @@ function validateScheduleBody(body: Record<string, unknown>): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/reports/schedules — List schedules for an organization
+// GET /api/reports/schedules — List schedules for the authenticated org
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId query parameter is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const schedules = Array.from(scheduleStore.values()).filter(
-      (s) => s.organizationId === organizationId,
-    );
+    const schedules = await prisma.reportSchedule.findMany({
+      where: { organizationId: session.organizationId },
+      orderBy: { createdAt: 'desc' },
+    });
 
     return NextResponse.json({ schedules });
   } catch (error) {
@@ -106,6 +71,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const validationError = validateScheduleBody(body);
 
@@ -113,26 +83,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
-    const now = new Date().toISOString();
-    const schedule: ReportSchedule = {
-      id: generateId(),
-      name: body.name,
-      organizationId: body.organizationId,
-      clientId: body.clientId ?? null,
-      frequency: body.frequency,
-      reportType: body.reportType,
-      format: body.format,
-      recipients: body.recipients,
-      dayOfWeek: body.dayOfWeek ?? null,
-      hourUtc: body.hourUtc,
-      enabled: body.enabled !== false,
-      lastRunAt: null,
-      nextRunAt: computeNextRun(body.frequency, body.dayOfWeek ?? null, body.hourUtc),
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    scheduleStore.set(schedule.id, schedule);
+    const schedule = await prisma.reportSchedule.create({
+      data: {
+        organizationId: session.organizationId,
+        name: body.name,
+        clientId: body.clientId ?? null,
+        frequency: body.frequency,
+        reportType: body.reportType,
+        format: body.format,
+        recipients: body.recipients,
+        dayOfWeek: body.dayOfWeek ?? null,
+        hourUtc: body.hourUtc,
+        enabled: body.enabled !== false,
+        nextRunAt: computeNextRun(body.frequency, body.dayOfWeek ?? null, body.hourUtc),
+      },
+    });
 
     return NextResponse.json({ schedule }, { status: 201 });
   } catch (error) {

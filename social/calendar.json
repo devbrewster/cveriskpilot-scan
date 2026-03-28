@@ -1,0 +1,25 @@
+{
+  "strategy": "build in public + security education + product updates",
+  "cadence": "3 posts per week (Mon / Wed / Fri)",
+  "audience": "security engineers, AppSec teams, DevSecOps practitioners, CTOs at growth-stage companies",
+  "content_mix": {
+    "education": "40% — teach something useful, earn authority",
+    "product": "30% — features, releases, what we shipped",
+    "build_in_public": "20% — process, pipeline, decisions",
+    "community": "10% — engagement, questions, polls"
+  },
+  "schedule": [
+    { "date": "2026-03-17", "id": "2026-03-17-we-joined-x", "type": "announcement", "status": "published", "topic": "We joined X" },
+    { "date": "2026-03-19", "id": "2026-03-19-cve-noise-problem", "type": "education", "status": "draft", "topic": "The CVE noise problem" },
+    { "date": "2026-03-21", "id": "2026-03-21-beta-202-release", "type": "product", "status": "draft", "topic": "Beta 2.0.2 shipped" },
+    { "date": "2026-03-24", "id": "2026-03-24-xlsx-cve-fix", "type": "build_in_public", "status": "draft", "topic": "We patched our own CVE" },
+    { "date": "2026-03-26", "id": "2026-03-26-cvss-problem", "type": "education", "status": "draft", "topic": "CVSS scores lie" },
+    { "date": "2026-03-28", "id": "2026-03-28-cicd-security-gate", "type": "build_in_public", "status": "draft", "topic": "Our CI/CD security gate" },
+    { "date": "2026-03-31", "id": "2026-03-31-soc2-audit-events", "type": "product", "status": "draft", "topic": "SOC2 audit event coverage" },
+    { "date": "2026-04-02", "id": "2026-04-02-cve-triage-framework", "type": "education", "status": "draft", "topic": "How to triage a CVE in 5 steps" },
+    { "date": "2026-04-04", "id": "2026-04-04-upload-formats", "type": "product", "status": "draft", "topic": "XLSX, CSV, JSON, SARIF — we parse all of them" },
+    { "date": "2026-04-07", "id": "2026-04-07-beta-progress", "type": "build_in_public", "status": "draft", "topic": "3 weeks of beta progress" },
+    { "date": "2026-04-09", "id": "2026-04-09-remediation-tracking", "type": "product", "status": "draft", "topic": "Remediation tracking feature" },
+    { "date": "2026-04-11", "id": "2026-04-11-security-team-poll", "type": "community", "status": "draft", "topic": "Poll: how does your team triage CVEs?" }
+  ]
+}

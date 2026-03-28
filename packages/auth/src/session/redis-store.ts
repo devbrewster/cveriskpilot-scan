@@ -14,6 +14,10 @@ export interface Session {
   createdAt: string;    // ISO 8601
   expiresAt: string;    // ISO 8601
   mfaVerified?: boolean;
+  /** MSSP client context — set when user switches to a specific client */
+  clientId?: string;
+  /** Display name of the active MSSP client */
+  clientName?: string;
 }
 
 /** Default session TTL: 24 hours in seconds */
@@ -149,7 +153,7 @@ export async function refreshSession(
  */
 export async function updateSession(
   sessionId: string,
-  updates: Partial<Pick<Session, 'mfaVerified' | 'role'>>,
+  updates: Partial<Pick<Session, 'mfaVerified' | 'role' | 'clientId' | 'clientName'>>,
 ): Promise<Session | null> {
   const session = await getSession(sessionId);
   if (!session) return null;

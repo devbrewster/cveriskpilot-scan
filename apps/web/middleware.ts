@@ -12,9 +12,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 // ---------------------------------------------------------------------------
 
 function buildCsp(nonce: string, isDev: boolean): string {
+  // Next.js standalone output does not inject nonce attributes into prerendered
+  // script tags, so we must allow 'unsafe-inline' for scripts in production.
   const scriptSrc = isDev
-    ? `'self' 'unsafe-eval' 'nonce-${nonce}'`
-    : `'self' 'nonce-${nonce}'`;
+    ? `'self' 'unsafe-eval' 'unsafe-inline'`
+    : `'self' 'unsafe-inline'`;
 
   const connectSrc = isDev
     ? `'self' https://api.first.org https://services.nvd.nist.gov ws://localhost:* wss://localhost:*`

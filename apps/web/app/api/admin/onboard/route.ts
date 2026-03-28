@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { onboardTenant } from '@cveriskpilot/auth/org/onboarding';
 
 /**
@@ -9,11 +10,13 @@ import { onboardTenant } from '@cveriskpilot/auth/org/onboarding';
  */
 export async function POST(request: NextRequest) {
   try {
-    // TODO: Replace with real admin auth check (e.g., session role === PLATFORM_ADMIN)
-    const authHeader = request.headers.get('authorization');
-    const adminToken = process.env.ADMIN_API_TOKEN;
-    if (adminToken && authHeader !== `Bearer ${adminToken}`) {
+    const session = await getServerSession(request);
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (session.role !== 'PLATFORM_ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const body = await request.json();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { isValidTransition } from '@/lib/workflow';
 
 // ---------------------------------------------------------------------------
@@ -8,6 +9,11 @@ import { isValidTransition } from '@/lib/workflow';
 
 export async function PATCH(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { caseIds, status, reason } = body;
 
@@ -33,9 +39,9 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Fetch all target cases to validate transitions
+    // Fetch all target cases scoped to the user's organization
     const cases = await prisma.vulnerabilityCase.findMany({
-      where: { id: { in: caseIds } },
+      where: { id: { in: caseIds }, organizationId: session.organizationId },
       select: { id: true, status: true },
     });
 

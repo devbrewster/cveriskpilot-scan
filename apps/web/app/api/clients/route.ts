@@ -1,17 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const organizationId = session.organizationId;
 
     const clients = await prisma.client.findMany({
       where: {
@@ -81,12 +79,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { organizationId, name, industry, contactEmail, contactName } = body;
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!organizationId || !name) {
+    const organizationId = session.organizationId;
+    const body = await request.json();
+    const { name } = body;
+
+    if (!name) {
       return NextResponse.json(
-        { error: 'organizationId and name are required' },
+        { error: 'name is required' },
         { status: 400 },
       );
     }
@@ -116,8 +120,39 @@ export async function POST(request: NextRequest) {
         organizationId,
         name,
         slug,
-        // Store additional fields in the future or via schema extension
-        // For now we persist what the schema supports
+        contactName: body.contactName ?? null,
+        contactEmail: body.contactEmail ?? null,
+        industry: body.industry ?? null,
+        description: body.description ?? null,
+        domain: body.domain ?? null,
+      },
+    });
+
+    // Create a default SLA policy for the new client
+    // (mirrors the onboarding pipeline pattern)
+    await prisma.slaPolicy.create({
+      data: {
+        organizationId,
+        name: 'Default SLA Policy',
+        description: `Default SLA for ${name}`,
+        criticalDays: 7,
+        highDays: 30,
+        mediumDays: 90,
+        lowDays: 180,
+        kevCriticalDays: 3,
+        isDefault: false,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        organizationId,
+        actorId: session.userId,
+        action: 'CREATE',
+        entityType: 'Client',
+        entityId: client.id,
+        details: { name: client.name, slug: client.slug },
+        hash: `create-client-${client.id}-${Date.now()}`,
       },
     });
 

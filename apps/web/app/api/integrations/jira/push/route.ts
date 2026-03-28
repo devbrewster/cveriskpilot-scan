@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { JiraClient, pushCaseToJira } from '@cveriskpilot/integrations';
 import type { JiraOrgConfig } from '@cveriskpilot/integrations';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

@@ -1,0 +1,18 @@
+{
+  "currentRelease": {
+    "label": "Beta",
+    "version": "0.1.0",
+    "date": "2026-03-27",
+    "status": "beta",
+    "channel": "beta",
+    "highlights": [
+      { "title": "MVP scaffold complete" },
+      { "title": "Prisma schema with multi-tenant model" }
+    ]
+  },
+  "upcomingPatch": {
+    "version": "0.1.1",
+    "channel": "beta",
+    "releaseType": "patch"
+  }
+}

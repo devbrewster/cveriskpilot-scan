@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // POST /api/clients/[id]/delete-data — GDPR/CCPA client data deletion
@@ -10,6 +11,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id: clientId } = await params;
     const body = await request.json();
 
@@ -22,6 +28,10 @@ export async function POST(
     });
 
     if (!client) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+
+    if (client.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
@@ -85,7 +95,7 @@ export async function POST(
           entityType: 'Client',
           entityId: clientId,
           action: 'DELETE',
-          actorId: 'system', // In production, use the actual authenticated user
+          actorId: session.userId,
           details: {
             reason,
             deletionType: 'GDPR_CCPA_CLIENT_DELETION',

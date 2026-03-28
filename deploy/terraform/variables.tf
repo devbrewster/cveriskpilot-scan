@@ -50,6 +50,12 @@ variable "alert_email" {
   default     = ""
 }
 
+variable "app_url" {
+  description = "Public-facing URL for the application (used for auth callbacks, Stripe redirects, etc.)"
+  type        = string
+  default     = ""
+}
+
 variable "blocked_countries" {
   description = "List of ISO 3166-1 alpha-2 country codes to block via Cloud Armor geo-blocking"
   type        = list(string)

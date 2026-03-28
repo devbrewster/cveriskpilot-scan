@@ -26,13 +26,13 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.warn('[Google OAuth] Authorization error:', error);
       return NextResponse.redirect(
-        new URL('/login?error=google_denied', request.url),
+        new URL('/login?error=google_denied', origin),
       );
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/login?error=google_invalid', request.url),
+        new URL('/login?error=google_invalid', origin),
       );
     }
 
@@ -40,12 +40,16 @@ export async function GET(request: NextRequest) {
     const savedState = request.cookies.get('crp_oauth_state')?.value;
     if (!savedState || savedState !== state) {
       return NextResponse.redirect(
-        new URL('/login?error=google_state', request.url),
+        new URL('/login?error=google_state', origin),
       );
     }
 
     const config = getGoogleOIDCConfig();
-    const origin = request.nextUrl.origin;
+    const forwardedHost = request.headers.get('x-forwarded-host');
+    const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+    const origin = forwardedHost
+      ? `${forwardedProto}://${forwardedHost}`
+      : process.env.APP_BASE_URL || request.nextUrl.origin;
     const redirectUri = `${origin}/api/auth/google/callback`;
 
     // Exchange authorization code for tokens
@@ -65,7 +69,7 @@ export async function GET(request: NextRequest) {
       const err = await tokenResponse.text();
       console.error('[Google OAuth] Token exchange failed:', err);
       return NextResponse.redirect(
-        new URL('/login?error=google_token', request.url),
+        new URL('/login?error=google_token', origin),
       );
     }
 
@@ -77,7 +81,7 @@ export async function GET(request: NextRequest) {
     if (!tokens.id_token) {
       console.error('[Google OAuth] No id_token in response');
       return NextResponse.redirect(
-        new URL('/login?error=google_token', request.url),
+        new URL('/login?error=google_token', origin),
       );
     }
 
@@ -104,7 +108,7 @@ export async function GET(request: NextRequest) {
     }
 
     const response = NextResponse.redirect(
-      new URL('/dashboard', request.url),
+      new URL('/dashboard', origin),
     );
 
     // Set session cookie
@@ -127,7 +131,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[API] GET /api/auth/google/callback error:', error);
     return NextResponse.redirect(
-      new URL('/login?error=google_fail', request.url),
+      new URL('/login?error=google_fail', origin),
     );
   }
 }

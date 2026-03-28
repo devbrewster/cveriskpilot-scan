@@ -6,10 +6,21 @@ Pipeline Compliance Scanner — scan your codebase for vulnerable dependencies, 
 
 ## Quick Start
 
+### Install from npm
+
+```bash
+# Run instantly (no install needed)
+npx --package @cveriskpilot/scan crp-scan
+
+# Or install globally
+npm install -g @cveriskpilot/scan
+crp-scan
+cveriskpilot-scan   # full name also works
+```
+
 ### Install from GitHub
 
 ```bash
-# Clone and build
 git clone https://github.com/devbrewster/cveriskpilot-scan.git
 cd cveriskpilot-scan
 npm install
@@ -18,15 +29,9 @@ npm run build
 # Scan any project
 node dist/cli.js /path/to/your/project
 
-# Or install globally so you can run from anywhere
+# Or link globally
 npm link
-cveriskpilot-scan /path/to/your/project
-```
-
-### Install from npm (coming soon)
-
-```bash
-npx @cveriskpilot/scan
+crp-scan /path/to/your/project
 ```
 
 ## What It Does
@@ -68,47 +73,45 @@ npx @cveriskpilot/scan
 
 ## Usage
 
-After installing (see [Quick Start](#quick-start)), use `cveriskpilot-scan` (if linked) or `node dist/cli.js`:
-
 ```bash
 # Scan current directory — all frameworks, colored table output
-cveriskpilot-scan
+crp-scan
 
 # Scan a specific project
-cveriskpilot-scan /path/to/your/project
+crp-scan /path/to/your/project
 
 # SOC 2 + ASVS only (startup preset)
-cveriskpilot-scan --preset startup
+crp-scan --preset startup
 
 # CMMC + FedRAMP only (using aliases)
-cveriskpilot-scan --frameworks CMMC,FEDRAMP
+crp-scan --frameworks CMMC,FEDRAMP
 
 # Only HIGH and CRITICAL findings
-cveriskpilot-scan --severity HIGH
+crp-scan --severity HIGH
 
 # Dependencies only, JSON output
-cveriskpilot-scan --deps-only --format json
+crp-scan --deps-only --format json
 
 # Exclude test files and specific CWEs
-cveriskpilot-scan --exclude test/** --exclude-cwe CWE-79,CWE-89
+crp-scan --exclude test/** --exclude-cwe CWE-79,CWE-89
 
 # CI/CD mode (JSON output, exit code 1 on critical findings)
-cveriskpilot-scan --ci
+crp-scan --ci
 
 # SARIF output for GitHub/GitLab integration
-cveriskpilot-scan --format sarif > results.sarif
+crp-scan --format sarif > results.sarif
 
 # Upload results to CVERiskPilot dashboard
-cveriskpilot-scan --api-key $CRP_API_KEY
+crp-scan --api-key $CRP_API_KEY
 
 # List all frameworks, presets, and aliases
-cveriskpilot-scan --list-frameworks
+crp-scan --list-frameworks
 
 # Defense contractor full scan
-cveriskpilot-scan --preset defense --fail-on high --verbose
+crp-scan --preset defense --fail-on high --verbose
 ```
 
-> **Tip:** Replace `cveriskpilot-scan` with `node dist/cli.js` if you haven't run `npm link`.
+> **Note:** `crp-scan` and `cveriskpilot-scan` are interchangeable. Use whichever you prefer.
 
 ## CLI Flags
 

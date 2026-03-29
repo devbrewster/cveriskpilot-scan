@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import crypto from 'node:crypto';
 
 // ---------------------------------------------------------------------------
 // Ops auth helper
 // ---------------------------------------------------------------------------
 async function requireOpsAuth(request: NextRequest) {
-  const session = await getServerSession(request);
-  if (!session) {
-    return { error: NextResponse.json({ error: 'Authentication required' }, { status: 401 }) };
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) {
+    return { error: auth };
   }
+  const session = auth;
   if (!session.email?.endsWith('@cveriskpilot.com')) {
     return { error: NextResponse.json({ error: 'Internal staff only' }, { status: 403 }) };
   }

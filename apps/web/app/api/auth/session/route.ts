@@ -16,9 +16,10 @@ function withCsrf(payload: Record<string, unknown>): NextResponse {
 export async function GET(request: NextRequest) {
   // Try Redis-backed session first
   try {
-    const { getServerSession } = await import('@cveriskpilot/auth');
-    const session = await getServerSession(request);
-    if (session) {
+    const { requireAuth } = await import('@cveriskpilot/auth');
+    const auth = await requireAuth(request);
+    if (!(auth instanceof NextResponse)) {
+      const session = auth;
       return withCsrf({
         authenticated: true,
         userId: session.userId,

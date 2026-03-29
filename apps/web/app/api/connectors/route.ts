@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, validateExternalUrl, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, validateExternalUrl, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import {
   getConnectorStatus,
@@ -12,10 +12,9 @@ import {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const organizationId = session.organizationId;
     const connectors = await getConnectorStatus(prisma, organizationId);
@@ -37,10 +36,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const roleError = requireRole(session.role, MANAGE_ROLES);
     if (roleError) return roleError;

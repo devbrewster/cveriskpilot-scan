@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession, getRedisClient, getBulkExportLimiter } from '@cveriskpilot/auth';
+import { requireAuth, getRedisClient, getBulkExportLimiter } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // Redis-backed export job tracking.
@@ -234,10 +234,9 @@ async function processExportJob(jobId: string): Promise<void> {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // Rate limiting — 3 req/min per user
     try {

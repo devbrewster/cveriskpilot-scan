@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import {
   generateFindingsReport,
   generateExecutiveReport,
@@ -14,10 +14,9 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const { organizationId } = session;
 

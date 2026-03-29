@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
@@ -44,10 +44,9 @@ function getOrCreateProfile(organizationId: string): OrgProfileData {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const organizationId = session.organizationId;
     const profile = getOrCreateProfile(organizationId);
@@ -74,10 +73,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
     if (roleError) return roleError;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession, generateApiKey, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, generateApiKey, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 import { UserRole, UserStatus } from '@cveriskpilot/domain';
 
@@ -9,10 +9,9 @@ import { UserRole, UserStatus } from '@cveriskpilot/domain';
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const serviceAccounts = await (prisma as any).user.findMany({
       where: {
@@ -78,10 +77,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
     if (roleError) return roleError;

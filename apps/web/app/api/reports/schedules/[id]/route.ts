@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -41,10 +41,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const { id } = await params;
     const schedule = await prisma.reportSchedule.findFirst({
@@ -71,10 +70,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth2 = await requireAuth(request);
+    if (auth2 instanceof NextResponse) return auth2;
+    const session = auth2;
 
     const { id } = await params;
 
@@ -134,10 +132,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth3 = await requireAuth(request);
+    if (auth3 instanceof NextResponse) return auth3;
+    const session = auth3;
 
     const { id } = await params;
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { isValidSlackWebhookUrl } from '@cveriskpilot/integrations';
 import { isValidTeamsWebhookUrl } from '@cveriskpilot/integrations';
 
@@ -61,10 +61,9 @@ const VALID_CHANNELS = ['slack', 'teams', 'webhook'] as const;
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const organizationId = session.organizationId;
     const channels = channelStore[organizationId] ?? [];
@@ -87,10 +86,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // Require admin role
     const adminRoles = ['PLATFORM_ADMIN', 'PLATFORM_SUPPORT', 'ORG_OWNER', 'SECURITY_ADMIN'];

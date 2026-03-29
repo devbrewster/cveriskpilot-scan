@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getServerSession, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
+import { requireAuth, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
 import { getOrgTier, checkBillingGate, trackAiCall } from '@/lib/billing';
 import type { RemediationRequest, RemediationResult } from '@cveriskpilot/ai';
 
@@ -18,8 +18,9 @@ function errorResponse(status: number, message: string) {
 
 export async function POST(request: NextRequest) {
   // --- Auth check ---
-  const session = await getServerSession(request);
-  if (!session) return errorResponse(401, 'Unauthorized');
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const session = auth;
 
   // Rate limiting — 10 req/min per user
   try {

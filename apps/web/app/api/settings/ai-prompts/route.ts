@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // In-memory AI prompt config store (per org)
@@ -121,10 +121,9 @@ function validateConfig(body: unknown): { config?: OrgPromptConfig; errors?: str
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const organizationId = session.organizationId;
     const config = promptConfigs[organizationId] ?? {};
@@ -145,10 +144,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
     if (roleError) return roleError;

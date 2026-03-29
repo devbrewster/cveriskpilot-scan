@@ -18,9 +18,11 @@ export async function POST(request: NextRequest) {
 
   if (!taskHeader || !queueHeader) {
     // Not a Cloud Tasks request — require PLATFORM_ADMIN session
-    const { getServerSession } = await import('@cveriskpilot/auth');
-    const session = await getServerSession(request);
-    if (!session || session.role !== 'PLATFORM_ADMIN') {
+    const { requireAuth } = await import('@cveriskpilot/auth');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
+    if (session.role !== 'PLATFORM_ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
   }

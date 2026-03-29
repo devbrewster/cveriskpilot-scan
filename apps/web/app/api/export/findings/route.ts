@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
-import { getServerSession, getExportLimiter } from '@cveriskpilot/auth';
+import { requireAuth, getExportLimiter } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/export/findings — Export findings as CSV
@@ -9,10 +9,9 @@ import { getServerSession, getExportLimiter } from '@cveriskpilot/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // Rate limiting — 5 req/min per user
     try {

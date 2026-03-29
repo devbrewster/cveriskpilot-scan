@@ -6,7 +6,8 @@
 // finding, error, and complete events as the scan pipeline runs.
 
 import type { NextRequest } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { NextResponse } from 'next/server';
+import { requireAuth } from '@cveriskpilot/auth';
 import { SSEEmitter } from '@cveriskpilot/streaming';
 
 // ---------------------------------------------------------------------------
@@ -35,13 +36,9 @@ export const dynamic = 'force-dynamic';
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest): Promise<Response> {
-  const session = await getServerSession(request);
-  if (!session) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } },
-    );
-  }
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const session = auth;
 
   const tenantId = session.organizationId;
   const { searchParams } = request.nextUrl;

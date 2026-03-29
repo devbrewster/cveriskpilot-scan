@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/ops/audit — Staff action audit log
@@ -126,10 +126,9 @@ function isStaffEmail(email: string): boolean {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     if (!isStaffEmail(session.email)) {
       return NextResponse.json(

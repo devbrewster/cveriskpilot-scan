@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, validateExternalUrl, checkCsrf, encryptForTenant, requireRole, ADMIN_ROLES, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
+import { requireAuth, validateExternalUrl, checkCsrf, encryptForTenant, requireRole, ADMIN_ROLES, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
 import type { EncryptedPayload } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -34,10 +34,9 @@ function getEndpoints(entitlements: unknown): WebhookEndpointConfig[] {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const organizationId = session.organizationId;
 
@@ -71,10 +70,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // Rate limiting — 10 req/min per user
     try {
@@ -195,10 +193,9 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // Rate limiting — 10 req/min per user
     try {
@@ -312,10 +309,9 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // CSRF protection
     const csrfError = checkCsrf(request);

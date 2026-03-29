@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -144,10 +144,9 @@ const flags: FeatureFlag[] = [
 ];
 
 export async function GET(request: NextRequest) {
-  const session = await getServerSession(request);
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const session = auth;
   if (session.role !== 'PLATFORM_ADMIN') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -157,10 +156,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth2 = await requireAuth(request);
+    if (auth2 instanceof NextResponse) return auth2;
+    const session = auth2;
     if (session.role !== 'PLATFORM_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

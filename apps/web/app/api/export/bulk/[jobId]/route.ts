@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { getExportJob } from '../route';
 
 // ---------------------------------------------------------------------------
@@ -11,10 +11,9 @@ export async function GET(
   { params }: { params: Promise<{ jobId: string }> },
 ) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const { jobId } = await params;
     const job = await getExportJob(jobId);

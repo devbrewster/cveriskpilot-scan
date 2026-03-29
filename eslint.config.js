@@ -69,7 +69,56 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
+  // JS files (browser scripts, test harnesses) — add globals and disable no-undef
   {
-    ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/*.js.map'],
+    files: ['**/*.js', '**/*.mjs'],
+    languageOptions: {
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        navigator: 'readonly',
+        fetch: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        requestAnimationFrame: 'readonly',
+        console: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        Headers: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        FormData: 'readonly',
+        AbortController: 'readonly',
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        structuredClone: 'readonly',
+        crypto: 'readonly',
+        atob: 'readonly',
+        btoa: 'readonly',
+        // Node.js globals
+        process: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        global: 'readonly',
+        // Test globals (k6, vitest)
+        __ENV: 'readonly',
+        __VU: 'readonly',
+        open: 'readonly',
+      },
+    },
+    rules: {
+      'no-undef': 'off',
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-console': 'off',
+    },
+  },
+  {
+    ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/*.js.map', '**/next-env.d.ts'],
   },
 ];

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, validateExternalUrl } from '@cveriskpilot/auth';
+import { requireAuth, validateExternalUrl } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // In-memory Jira configuration store (per org)
@@ -26,10 +26,9 @@ const jiraConfigStore: Record<string, JiraConfig> = {};
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const organizationId = session.organizationId;
     const config = jiraConfigStore[organizationId] ?? null;
@@ -66,10 +65,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const organizationId = session.organizationId;
     const body = await request.json();

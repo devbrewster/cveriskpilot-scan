@@ -12,11 +12,10 @@ import { openApiSpec } from '@cveriskpilot/api-docs';
 export async function GET(request: NextRequest): Promise<NextResponse> {
   // Gate behind auth in production to prevent API surface reconnaissance
   if (process.env.NODE_ENV === 'production') {
-    const { getServerSession } = await import('@cveriskpilot/auth');
-    const session = await getServerSession(request);
-    if (!session) {
-      return new NextResponse(null, { status: 404 });
-    }
+    const { requireAuth } = await import('@cveriskpilot/auth');
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
   }
 
   return NextResponse.json(openApiSpec, {

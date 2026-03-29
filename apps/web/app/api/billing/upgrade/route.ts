@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 import {
   STRIPE_PRICES,
   getEntitlements,
@@ -15,10 +15,9 @@ import {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // CSRF protection
     const csrfError = checkCsrf(request);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { UserRole } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
 import { SyncOrchestrator } from '@cveriskpilot/connectors';
@@ -23,10 +23,9 @@ const SYNC_ALLOWED_ROLES: Set<string> = new Set([
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     // Role check
     if (!SYNC_ALLOWED_ROLES.has(session.role)) {

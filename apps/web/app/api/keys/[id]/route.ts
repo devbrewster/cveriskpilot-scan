@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession, generateApiKey, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, generateApiKey, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
 
 /**
  * PUT /api/keys/[id] — Rotate an API key.
@@ -11,10 +11,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const roleError = requireRole(session.role, MANAGE_ROLES);
     if (roleError) return roleError;
@@ -92,10 +91,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth2 = await requireAuth(request);
+    if (auth2 instanceof NextResponse) return auth2;
+    const session = auth2;
 
     const roleError2 = requireRole(session.role, MANAGE_ROLES);
     if (roleError2) return roleError2;

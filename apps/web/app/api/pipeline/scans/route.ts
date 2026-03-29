@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
@@ -46,7 +45,25 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const [jobs, total] = await Promise.all([
+    // Query PipelineScanResult first (richer data from CLI scans)
+    const pipelineWhere: Record<string, unknown> = {
+      organizationId: session.organizationId,
+    };
+    if (verdict && verdict !== 'all') {
+      pipelineWhere.verdict = verdict;
+    }
+    if (where.createdAt) {
+      pipelineWhere.createdAt = where.createdAt;
+    }
+
+    const [pipelineResults, pipelineTotal, jobs, uploadTotal] = await Promise.all([
+      prisma.pipelineScanResult.findMany({
+        where: pipelineWhere,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.pipelineScanResult.count({ where: pipelineWhere }),
       prisma.uploadJob.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -64,12 +81,37 @@ export async function GET(request: NextRequest) {
       prisma.uploadJob.count({ where }),
     ]);
 
+    const total = pipelineTotal + uploadTotal;
     const totalPages = Math.max(1, Math.ceil(total / limit));
 
-    // Map UploadJob records to the scan response shape the frontend expects
-    const scans = jobs.map((job) => {
+    // Map PipelineScanResult records (from CLI/API scans)
+    const pipelineScans = pipelineResults.map((r) => ({
+      scanId: r.id,
+      repository: r.repoUrl ?? r.format,
+      branch: r.branch,
+      commitSha: r.commitSha,
+      prNumber: r.prNumber,
+      verdict: r.verdict,
+      totalFindings: r.totalFindings,
+      critical: r.criticalCount,
+      high: r.highCount,
+      medium: r.mediumCount,
+      low: r.lowCount,
+      controlsAffected: Array.isArray(r.complianceImpact) ? (r.complianceImpact as unknown[]).length : 0,
+      frameworks: [],
+      poamEntriesCreated: r.poamEntriesCreated,
+      casesCreated: 0,
+      findingsCreated: r.totalFindings,
+      status: 'COMPLETED',
+      errorMessage: null,
+      createdAt: r.createdAt.toISOString(),
+      completedAt: r.createdAt.toISOString(),
+    }));
+
+    // Map UploadJob records (from file upload UI)
+    const uploadScans = jobs.map((job) => {
       const hasFailures = job.status === 'FAILED';
-      const verdict = hasFailures
+      const v = hasFailures
         ? 'fail'
         : job.totalFindings > 0
           ? 'warn'
@@ -81,9 +123,9 @@ export async function GET(request: NextRequest) {
         branch: null,
         commitSha: null,
         prNumber: null,
-        verdict,
+        verdict: v,
         totalFindings: job.totalFindings,
-        critical: 0, // detailed severity breakdown not stored on UploadJob
+        critical: 0,
         high: 0,
         medium: 0,
         low: 0,
@@ -98,6 +140,11 @@ export async function GET(request: NextRequest) {
         completedAt: job.completedAt?.toISOString() ?? null,
       };
     });
+
+    // Merge and sort by createdAt descending
+    const scans = [...pipelineScans, ...uploadScans]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
 
     return NextResponse.json({
       scans,

@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { resolveClientScope } from '@/lib/client-scope';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const { searchParams } = new URL(request.url);
 

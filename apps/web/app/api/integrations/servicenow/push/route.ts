@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import {
   ServiceNowClient,
@@ -55,10 +55,9 @@ function buildClientConfig(stored: StoredServiceNowConfig): ServiceNowConfig {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const body = await request.json();
     const { caseId } = body as { caseId?: string };

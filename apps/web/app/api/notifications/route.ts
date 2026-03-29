@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/notifications — list notifications for the authenticated user (paginated)
@@ -8,10 +8,9 @@ import { getServerSession } from '@cveriskpilot/auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const { searchParams } = new URL(request.url);
     const userId = session.userId;
@@ -66,10 +65,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth2 = await requireAuth(request);
+    if (auth2 instanceof NextResponse) return auth2;
+    const session = auth2;
 
     const body = await request.json();
     const { notificationIds, markAllRead } = body as {

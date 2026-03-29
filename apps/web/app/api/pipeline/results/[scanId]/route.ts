@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { validateApiKey, hasScope } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -42,10 +42,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
       organizationId = keyResult.organizationId;
     } else {
-      const session = await getServerSession(request);
-      if (!session) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+      const auth = await requireAuth(request);
+      if (auth instanceof NextResponse) return auth;
+      const session = auth;
       organizationId = session.organizationId;
     }
 
@@ -66,14 +65,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
     let scanResult: Record<string, unknown> | null = null;
 
     try {
-      scanResult = await (prisma as any).pipelineScanResult?.findUnique?.({
+      scanResult = await prisma.pipelineScanResult.findUnique({
         where: { id: scanId },
       });
-    } catch {
-      // PipelineScanResult table may not exist yet
+    } catch (err) {
+      console.error('[pipeline/results] Failed to query scan result:', err);
       return NextResponse.json(
-        { error: 'Pipeline scan results storage not available. The scan result was returned in the original POST response.' },
-        { status: 501 },
+        { error: 'Failed to retrieve scan result' },
+        { status: 500 },
       );
     }
 

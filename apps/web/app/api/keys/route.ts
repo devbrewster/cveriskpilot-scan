@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
-  getServerSession,
+  requireAuth,
   generateApiKey,
   requireRole,
   MANAGE_ROLES,
@@ -15,10 +15,9 @@ import {
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const keys = await (prisma as any).apiKey.findMany({
       where: { organizationId: session.organizationId },
@@ -62,10 +61,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const auth2 = await requireAuth(request);
+    if (auth2 instanceof NextResponse) return auth2;
+    const session = auth2;
 
     // Rate limiting — 10 req/min per user
     try {

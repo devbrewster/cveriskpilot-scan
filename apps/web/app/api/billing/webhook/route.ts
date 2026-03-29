@@ -21,11 +21,17 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error('[billing/webhook] Error processing webhook:', message);
-    // Return 200 to prevent Stripe from retrying on application errors
-    // Only signature verification failures should return 400
+
+    // Signature verification failures → 400 (Stripe won't retry)
     if (message.includes('signature') || message.includes('Webhook')) {
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
-    return NextResponse.json({ received: true, error: message });
+
+    // Application errors → 500 so Stripe retries (transient DB/network failures)
+    // Don't leak internal error details to external callers
+    return NextResponse.json(
+      { error: 'Webhook processing failed' },
+      { status: 500 },
+    );
   }
 }

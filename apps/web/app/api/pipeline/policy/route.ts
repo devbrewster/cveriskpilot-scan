@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 import { validateApiKey, hasScope } from '@cveriskpilot/auth';
 import { UserRole } from '@cveriskpilot/domain';
 import { getDefaultPolicy } from '@cveriskpilot/compliance';
 import type { PipelinePolicy } from '@cveriskpilot/compliance';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
@@ -47,15 +48,15 @@ async function authenticateRequest(
     };
   }
 
-  const session = await getServerSession(request);
-  if (!session) {
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) {
     return { error: 'Unauthorized', status: 401 };
   }
 
   return {
-    organizationId: session.organizationId,
-    role: session.role,
-    userId: session.userId,
+    organizationId: auth.organizationId,
+    role: auth.role,
+    userId: auth.userId,
   };
 }
 
@@ -132,25 +133,25 @@ export async function GET(request: NextRequest) {
     let policy: PipelinePolicy;
 
     try {
-      const stored = await (prisma as any).pipelinePolicy?.findUnique?.({
+      const stored = await prisma.pipelinePolicy.findUnique({
         where: { organizationId: auth.organizationId },
       });
 
       if (stored) {
         policy = {
           orgId: auth.organizationId,
-          frameworks: stored.frameworks ?? ['nist-800-53'],
-          blockOnSeverity: stored.blockOnSeverity ?? 'CRITICAL',
+          frameworks: (stored.frameworks as string[]) ?? ['nist-800-53'],
+          blockOnSeverity: (stored.blockOnSeverity ?? 'CRITICAL') as PipelinePolicy['blockOnSeverity'],
           blockOnControlViolation: stored.blockOnControlViolation ?? false,
           warnOnly: stored.warnOnly ?? false,
-          autoExceptionRules: stored.autoExceptionRules ?? [],
+          autoExceptionRules: (stored.autoExceptionRules as unknown as PipelinePolicy['autoExceptionRules']) ?? [],
           gracePeriodDays: stored.gracePeriodDays ?? 0,
         };
       } else {
         policy = getDefaultPolicy(auth.organizationId);
       }
-    } catch {
-      // PipelinePolicy table may not exist yet — return defaults
+    } catch (err) {
+      console.error('[pipeline/policy] Failed to load policy:', err);
       policy = getDefaultPolicy(auth.organizationId);
     }
 
@@ -200,51 +201,59 @@ export async function PUT(request: NextRequest) {
 
     const updates = validation.data;
 
-    // Try to persist — if PipelinePolicy table doesn't exist, return the merged defaults
+    // Convert typed fields to Prisma-compatible JSON values
+    const toJson = (v: unknown): Prisma.InputJsonValue => JSON.parse(JSON.stringify(v));
+
+    const prismaUpdate: Prisma.PipelinePolicyUpdateInput = {};
+    if (updates.frameworks) prismaUpdate.frameworks = toJson(updates.frameworks);
+    if (updates.blockOnSeverity) prismaUpdate.blockOnSeverity = updates.blockOnSeverity;
+    if (updates.blockOnControlViolation !== undefined) prismaUpdate.blockOnControlViolation = updates.blockOnControlViolation;
+    if (updates.warnOnly !== undefined) prismaUpdate.warnOnly = updates.warnOnly;
+    if (updates.autoExceptionRules) prismaUpdate.autoExceptionRules = toJson(updates.autoExceptionRules);
+    if (updates.gracePeriodDays !== undefined) prismaUpdate.gracePeriodDays = updates.gracePeriodDays;
+
+    // Try to persist
     let savedPolicy: PipelinePolicy;
 
     try {
-      const stored = await (prisma as any).pipelinePolicy?.upsert?.({
+      const stored = await prisma.pipelinePolicy.upsert({
         where: { organizationId: auth.organizationId },
-        update: {
-          ...updates,
-          updatedAt: new Date(),
-        },
+        update: prismaUpdate,
         create: {
           organizationId: auth.organizationId,
-          frameworks: updates.frameworks ?? ['nist-800-53'],
+          frameworks: toJson(updates.frameworks ?? ['nist-800-53']),
           blockOnSeverity: updates.blockOnSeverity ?? 'CRITICAL',
           blockOnControlViolation: updates.blockOnControlViolation ?? false,
           warnOnly: updates.warnOnly ?? false,
-          autoExceptionRules: updates.autoExceptionRules ?? [],
+          autoExceptionRules: toJson(updates.autoExceptionRules ?? []),
           gracePeriodDays: updates.gracePeriodDays ?? 0,
         },
       });
 
       savedPolicy = {
         orgId: auth.organizationId,
-        frameworks: stored.frameworks,
-        blockOnSeverity: stored.blockOnSeverity,
+        frameworks: stored.frameworks as string[],
+        blockOnSeverity: stored.blockOnSeverity as PipelinePolicy['blockOnSeverity'],
         blockOnControlViolation: stored.blockOnControlViolation,
         warnOnly: stored.warnOnly,
-        autoExceptionRules: stored.autoExceptionRules,
+        autoExceptionRules: stored.autoExceptionRules as unknown as PipelinePolicy['autoExceptionRules'],
         gracePeriodDays: stored.gracePeriodDays,
       };
-    } catch {
-      // PipelinePolicy table may not exist yet — return merged defaults
+    } catch (err) {
+      console.error('[pipeline/policy] Failed to upsert policy:', err);
       const defaults = getDefaultPolicy(auth.organizationId);
       savedPolicy = { ...defaults, ...updates, orgId: auth.organizationId };
     }
 
     // Audit log (fire-and-forget)
-    (prisma as any).auditLog?.create?.({
+    prisma.auditLog.create({
       data: {
         organizationId: auth.organizationId,
         actorId: auth.userId,
         action: 'UPDATE',
         entityType: 'PipelinePolicy',
         entityId: auth.organizationId,
-        details: { updates },
+        details: toJson({ updates }),
         hash: `pipeline-policy-${auth.organizationId}-${Date.now()}`,
       },
     }).catch(() => {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, validateExternalUrl, encryptForTenant, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, validateExternalUrl, encryptForTenant, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { logAudit } from '@/lib/audit';
 import { DEFAULT_JIRA_TO_CASE_STATUS } from '@cveriskpilot/integrations';
@@ -12,10 +12,9 @@ import type { JiraOrgConfig } from '@cveriskpilot/integrations';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const { organizationId } = session;
 
@@ -50,10 +49,9 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
     if (roleError) return roleError;

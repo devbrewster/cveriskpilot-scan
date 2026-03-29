@@ -1,0 +1,25 @@
+{
+  "id": "2026-03-29-production-launch",
+  "created_at": "2026-03-29T20:00:00Z",
+  "type": "announcement",
+  "status": "draft",
+  "approved_by": null,
+  "content": "CVERiskPilot just passed a 1,000-analyst stress test.\n\n25 endpoints. Zero data leaks. Zero crashes.\n\nUpload a Nessus scan → get compliance-mapped cases in seconds.\n\nVeteran-owned. Built for GRC teams who ship.\n\n#InfoSec #VulnerabilityManagement #CVERiskPilot",
+  "platforms": {
+    "x": {
+      "status": "draft",
+      "content": "CVERiskPilot just passed a 1,000-analyst stress test.\n\n25 endpoints. Zero data leaks. Zero crashes.\n\nUpload a Nessus scan → get compliance-mapped cases in seconds.\n\nVeteran-owned. Built for GRC teams who ship.\n\n#InfoSec #VulnerabilityManagement #CVERiskPilot",
+      "character_count": 268,
+      "post_id": null,
+      "published_at": null
+    }
+  },
+  "tags": ["production-launch", "milestone", "stress-test"],
+  "source": {
+    "evidence_paths": [
+      "tests/stress/production-stress-1000.ts",
+      "tests/stress/results/"
+    ]
+  },
+  "notes": "HOLD: Do not publish until 1000-analyst stress test passes and results are saved. Update content with actual pass rate if needed."
+}

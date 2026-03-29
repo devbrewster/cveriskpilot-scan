@@ -11,9 +11,9 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/cveriskpilot-web:$SHORT_SHA'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cveriskpilot/web:$SHORT_SHA'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/cveriskpilot-web:latest'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cveriskpilot/web:latest'
       - '-f'
       - 'deploy/Dockerfile'
       - '.'
@@ -21,7 +21,7 @@ steps:
   # ── Push image to GCR ───────────────────────────────────────────────────
   - name: 'gcr.io/cloud-builders/docker'
     id: 'push'
-    args: ['push', '--all-tags', 'gcr.io/$PROJECT_ID/cveriskpilot-web']
+    args: ['push', '--all-tags', 'us-central1-docker.pkg.dev/$PROJECT_ID/cveriskpilot/web']
     waitFor: ['build']
 
   # ── Update web service image on Cloud Run ─────────────────────────────────
@@ -36,7 +36,7 @@ steps:
       - 'update'
       - 'cveriskpilot-web-${_ENV}'
       - '--region=${_REGION}'
-      - '--image=gcr.io/$PROJECT_ID/cveriskpilot-web:$SHORT_SHA'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/cveriskpilot/web:$SHORT_SHA'
       - '--platform=managed'
     waitFor: ['push']
 
@@ -51,7 +51,7 @@ steps:
       - 'update'
       - 'cveriskpilot-worker-${_ENV}'
       - '--region=${_REGION}'
-      - '--image=gcr.io/$PROJECT_ID/cveriskpilot-web:$SHORT_SHA'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/cveriskpilot/web:$SHORT_SHA'
       - '--platform=managed'
     waitFor: ['push']
 

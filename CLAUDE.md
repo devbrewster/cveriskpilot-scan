@@ -160,39 +160,40 @@ FREE, FOUNDERS_BETA, PRO, ENTERPRISE, MSSP
 - Delegate implementation to sub-agents when orchestrating large tasks
 - Never expose secrets/keys/credentials in the context window
 
-## Save Point — 2026-03-27
+## Save Point — 2026-03-28
+
+### Version: 0.1.0-alpha
+First versioned save point on new GCP infrastructure. All prior work committed and clean.
 
 ### Build Status: GREEN
-`npm run build` passes (74 static pages, 70 API routes, 74 components).
+`npm run build` passes.
 
 ### Repo Stats
-- **42 modified files** + **67 untracked files** (uncommitted — all work since last commit `aa63986`)
-- **3 commits** on `main`: initial scaffold → MVP waves 0-5 → full platform build-out
-- **29 pages**: 15 app, 4 portal, 6 demo, 4 public
-- **70 API routes** across 30 domains
-- **74 components** in `apps/web/src/components/`
-- **22 packages** in `packages/`
+- **13 commits** on `main` (all committed, clean working tree)
+- **74 pages** (app + portal + demo + public)
+- **116 API routes**
+- **90 components** in `apps/web/src/components/`
+- **25 packages** in `packages/`
 - **10 RBAC roles** defined in schema + `packages/auth/src/rbac/permissions.ts`
+- Latest commit: `7deaa37` (2026-03-28)
 
-### Completed Waves (0-6)
+### Completed Waves (0-12)
 - **Waves 0-5** (commit `aa63986`): Full MVP scaffold — auth, upload, parsers, enrichment, dashboard, findings, cases, reports, compliance, POAM, portal, demo, billing, teams, clients, portfolio, settings, Terraform, Dockerfile, CI/CD
-- **Wave 6** (uncommitted): Dashboard completeness
-  - Wired `sla-widget.tsx` into dashboard (was unused)
-  - Created `compliance-scores.tsx` — framework progress bars
-  - Created `activity-timeline.tsx` — color-coded audit log feed
-  - Extended `GET /api/dashboard` with: `nearestKevDueDate`, `mttrDays`, `recentActivity`, `complianceScores`
-  - Dashboard now has 6 stat cards (Total Findings, Open Cases, Critical/High, KEV-Listed, Avg EPSS, MTTR) + 5 widget rows
-  - Created `apps/web/pages/500.tsx` to fix standalone build error
+- **Wave 6**: Dashboard completeness — SLA widget, compliance scores, activity timeline, 6 stat cards + 5 widget rows
+- **Wave 7**: Settings page completion — API keys, service accounts, IP allowlist, connector settings, notification prefs, webhook config, org profile
+- **Wave 8**: RBAC enforcement in UI — role-aware sidebar, page guards, client switcher role checks
+- **Wave 9**: Missing functional pages — billing, notifications, audit log, user management, asset inventory, risk exceptions
+- **Wave 10**: Polish — security audit remediation (auth, RBAC, CSRF, MSSP isolation), CSP fix, build fixes
+- **Wave 11**: Pipeline compliance scanner CLI (`@cveriskpilot/scan`) — 6 frameworks, offline-first, npx support
+- **Wave 12**: Ops dashboard — internal staff monitoring, customer support tools
 
 ### Next Waves (pending)
-- **Wave 7: Settings Page Completion** — 5 components exist but not rendered on settings page: `sso-settings.tsx`, `api-keys.tsx`, `service-accounts.tsx`, `ip-allowlist.tsx`, `connector-settings.tsx`. Also missing: Notification Preferences, Webhook config, Org Profile/Billing section.
-- **Wave 8: RBAC Enforcement in UI** — Role-aware sidebar (hide/show nav by role), role-aware page guards, team→client scoping in UI, client switcher role checks, portal role isolation, admin panel for platform_admin.
-- **Wave 9: Missing Functional Pages** — Billing dashboard, Notifications inbox, Audit Log viewer, User Management (invite/roles/deactivate), Asset Inventory, Risk Exceptions workflow UI.
-- **Wave 10: Polish & Integration UIs** — Jira config UI, Webhook management UI, "Coming Soon" badges, empty states for all pages.
+- **Wave 13: Connectors Package** — Scanner adapter framework (`@cveriskpilot/connectors`), Tenable/Qualys/Rapid7 adapters, connector test endpoint, creation wizard
+- **Wave 14: E2E Tests** — Playwright test coverage for critical flows (auth, upload, findings, cases)
+- **Wave 15: Marketing Public Pages** — Port from legacy 2.0 repo
+- **Wave 16: Production Hardening** — Cloud Armor tuning, PgBouncer, CDN, monitoring alerts
 
 ### Known Issues
-- All 109 files (42 modified + 67 untracked) are uncommitted
-- Settings page only renders SLA + Retention (5 other setting components exist but aren't wired in)
 - `SlaWidget` uses hardcoded `organizationId="org-default"` — needs session context
 - `complianceScores` returns empty array (no compliance model in Prisma schema yet)
 - Demo route group `(demo)` duplicates dashboard logic — could share components better

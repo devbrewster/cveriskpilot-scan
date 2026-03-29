@@ -310,51 +310,20 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // --- CSRF protection for state-changing API requests ---
-  // Uses double-submit cookie pattern: crp_csrf cookie must match X-CSRF-Token header.
-  // Exemptions: routes with their own auth (webhooks, cron, pipeline, SCIM, auth flows).
-  if (
-    pathname.startsWith('/api/') &&
-    !['GET', 'HEAD', 'OPTIONS'].includes(request.method)
-  ) {
-    const CSRF_EXEMPT_PREFIXES = [
-      '/api/auth/',           // Login/signup flows
-      '/api/webhooks/',       // External webhooks (HMAC auth)
-      '/api/billing/webhook', // Stripe webhooks
-      '/api/jobs/',           // Cloud Tasks (internal)
-      '/api/cron/',           // Cloud Scheduler (internal)
-      '/api/pipeline/',       // API key auth
-      '/api/scim/',           // SCIM token auth
-      '/api/health',          // Health checks
-      '/api/integrations/jira/webhook',     // Jira webhooks
-      '/api/integrations/servicenow/sync',  // ServiceNow sync (API-initiated)
-      '/api/connectors/webhook/',           // Scanner webhooks
-    ];
-
-    // Also exempt heartbeat endpoint (connector agents, not browsers)
-    const isCsrfExempt =
-      CSRF_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p)) ||
-      pathname.match(/^\/api\/connectors\/[^/]+\/heartbeat$/);
-
-    if (!isCsrfExempt) {
-      const csrfCookie = request.cookies.get('crp_csrf')?.value;
-      const csrfHeader = request.headers.get('x-csrf-token');
-
-      if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
-        const duration_ms = Date.now() - start;
-        writeRequestLog('WARNING', `${request.method} ${pathname} 403 ${duration_ms}ms (CSRF failed)`, {
-          method: request.method,
-          path: pathname,
-          status: 403,
-          duration_ms,
-        });
-
-        return NextResponse.json(
-          { error: 'CSRF validation failed' },
-          { status: 403 },
-        );
-      }
-    }
+  // --- CSRF cookie seeder ---
+  // Set a crp_csrf cookie on every response so the client can read it and send
+  // it back as X-CSRF-Token on sensitive mutations. Enforcement happens at the
+  // route level via checkCsrf() on high-risk endpoints (billing, keys, webhooks,
+  // teams, retention). Session cookies with SameSite=Lax provide baseline CSRF
+  // protection for all same-origin API calls.
+  if (!request.cookies.get('crp_csrf')?.value) {
+    const token = crypto.randomUUID();
+    response.cookies.set('crp_csrf', token, {
+      httpOnly: false, // Client JS must read this
+      sameSite: 'lax',
+      secure: !isDev,
+      path: '/',
+    });
   }
 
   // --- Security headers ---

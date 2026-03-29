@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.5 (2026-03-29)
+## 0.1.6 (2026-03-29)
 
 ### Features
 
@@ -11,6 +11,7 @@
 
 - **Corrected framework control counts** — NIST 45 (was 39), SOC 2 7 (was 6), FedRAMP 35 (was 47), ASVS 7 (was 6), SSDF 8 (was 7)
 - **Install docs** — all commands now recommend `@latest` suffix
+- **npm README** — restored package README on npmjs.com
 
 ## 0.1.4 (2026-03-29)
 

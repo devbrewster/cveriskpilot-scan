@@ -14,7 +14,7 @@
  *   --secrets-only       Secrets scan only
  *   --iac-only           IaC scan only
  *   --frameworks <list>  Comma-separated framework IDs (aliases OK)
- *   --preset <name>      Framework preset: federal, defense, startup, devsecops, all
+ *   --preset <name>      Framework preset: federal, defense, enterprise, startup, devsecops, all
  *   --severity <level>   Min severity to display: CRITICAL, HIGH, MEDIUM, LOW, INFO
  *   --exclude <glob>     Exclude paths (repeatable)
  *   --exclude-cwe <id>   Exclude CWE IDs (repeatable)
@@ -55,7 +55,7 @@ import {
 // Version
 // ---------------------------------------------------------------------------
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.6';
 const PKG_NAME = '@cveriskpilot/scan';
 
 // ---------------------------------------------------------------------------

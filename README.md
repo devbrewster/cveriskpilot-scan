@@ -9,11 +9,11 @@ Pipeline Compliance Scanner — scan your codebase for vulnerable dependencies, 
 ### Install from npm
 
 ```bash
-# Run instantly (no install needed)
-npx --package @cveriskpilot/scan crp-scan
+# Run instantly (no install needed — always uses latest)
+npx --package @cveriskpilot/scan@latest crp-scan
 
 # Or install globally
-npm install -g @cveriskpilot/scan
+npm install -g @cveriskpilot/scan@latest
 crp-scan
 cveriskpilot-scan   # full name also works
 ```
@@ -52,14 +52,14 @@ crp-scan /path/to/your/project
 
 | Framework | CLI ID | Aliases | Controls |
 |-----------|--------|---------|----------|
-| NIST 800-53 Rev 5 | `nist-800-53` | `nist`, `nist800` | 39 |
-| SOC 2 Type II | `soc2-type2` | `soc2`, `soc` | 6 |
+| NIST 800-53 Rev 5 | `nist-800-53` | `nist`, `nist800` | 45 |
+| SOC 2 Type II | `soc2-type2` | `soc2`, `soc` | 7 |
 | CMMC Level 2 | `cmmc-level2` | `cmmc`, `cmmc2` | 33 |
-| FedRAMP Moderate | `fedramp-moderate` | `fedramp` | 47 |
-| OWASP ASVS 4.0 | `owasp-asvs` | `asvs`, `owasp` | 6 |
-| NIST SSDF 1.1 | `nist-ssdf` | `ssdf` | 7 |
+| FedRAMP Moderate | `fedramp-moderate` | `fedramp` | 35 |
+| OWASP ASVS 4.0 | `owasp-asvs` | `asvs`, `owasp` | 7 |
+| NIST SSDF 1.1 | `nist-ssdf` | `ssdf` | 8 |
 
-**138 total controls** mapped via 80+ CWE entries.
+**135 total controls** mapped via 80+ CWE entries.
 
 ## Framework Presets
 
@@ -67,6 +67,7 @@ crp-scan /path/to/your/project
 |--------|-----------|-----|
 | `federal` | NIST 800-53 + FedRAMP + SSDF | Federal agencies |
 | `defense` | NIST 800-53 + CMMC + SSDF | Defense contractors |
+| `enterprise` | NIST 800-53 + SOC 2 + ASVS + SSDF | Enterprise / regulated |
 | `startup` | SOC 2 + ASVS | SaaS startups |
 | `devsecops` | ASVS + SSDF | DevSecOps teams |
 | `all` | All 6 frameworks | Comprehensive |
@@ -126,7 +127,7 @@ crp-scan --preset defense --fail-on high --verbose
 | Flag | Description |
 |------|-------------|
 | `--frameworks <list>` | Comma-separated framework IDs or aliases |
-| `--preset <name>` | Framework preset: `federal`, `defense`, `startup`, `devsecops`, `all` |
+| `--preset <name>` | Framework preset: `federal`, `defense`, `enterprise`, `startup`, `devsecops`, `all` |
 | `--list-frameworks` | Show all frameworks, presets, and aliases |
 
 ### Filtering

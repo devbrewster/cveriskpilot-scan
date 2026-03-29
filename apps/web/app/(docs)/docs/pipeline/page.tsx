@@ -389,10 +389,78 @@ export default function PipelinePage() {
             .github/workflows/compliance.yml
           </code>
         </p>
-        <div className="mt-4">
+
+        {/* Option 1: GitHub Action (recommended) */}
+        <h3 className="mt-6 text-base font-semibold text-white">
+          Option 1: GitHub Action (recommended)
+        </h3>
+        <p className="mt-1 text-sm text-gray-400">
+          Scans your code, posts a compliance summary as a PR comment, and fails the check on severity threshold.
+        </p>
+        <div className="mt-3">
           <CodeBlock title=".github/workflows/compliance.yml">
-            <span className="text-gray-400"># CVERiskPilot Compliance Scan</span>
+            <span className="text-gray-400"># CVERiskPilot Compliance Scan with PR Comment</span>
             {"\n"}
+            <span className="text-primary-400">name</span>
+            <span className="text-gray-300">: Compliance Scan</span>
+            {"\n"}
+            <span className="text-primary-400">on</span>
+            <span className="text-gray-300">: [pull_request]</span>
+            {"\n"}
+            <span className="text-primary-400">jobs</span>
+            <span className="text-gray-300">:</span>
+            {"\n"}
+            {"  "}
+            <span className="text-primary-400">compliance</span>
+            <span className="text-gray-300">:</span>
+            {"\n"}
+            {"    "}
+            <span className="text-primary-400">runs-on</span>
+            <span className="text-gray-300">: ubuntu-latest</span>
+            {"\n"}
+            {"    "}
+            <span className="text-primary-400">steps</span>
+            <span className="text-gray-300">:</span>
+            {"\n"}
+            {"      "}
+            <span className="text-gray-300">- </span>
+            <span className="text-primary-400">uses</span>
+            <span className="text-gray-300">: actions/checkout@v4</span>
+            {"\n"}
+            {"      "}
+            <span className="text-gray-300">- </span>
+            <span className="text-primary-400">uses</span>
+            <span className="text-gray-300">: devbrewster/cveriskpilot-scan/action@main</span>
+            {"\n"}
+            {"        "}
+            <span className="text-primary-400">with</span>
+            <span className="text-gray-300">:</span>
+            {"\n"}
+            {"          "}
+            <span className="text-primary-400">preset</span>
+            <span className="text-gray-300">: &apos;startup&apos;</span>
+            {"\n"}
+            {"          "}
+            <span className="text-primary-400">fail-on</span>
+            <span className="text-gray-300">: &apos;critical&apos;</span>
+            {"\n"}
+            {"          "}
+            <span className="text-primary-400">api-key</span>
+            <span className="text-gray-300">
+              : {"${{ secrets.CRP_API_KEY }}"}
+            </span>
+          </CodeBlock>
+        </div>
+
+        {/* Option 2: npx (manual) */}
+        <h3 className="mt-8 text-base font-semibold text-white">
+          Option 2: npx (manual setup)
+        </h3>
+        <p className="mt-1 text-sm text-gray-400">
+          Run the CLI directly if you want full control over the workflow steps.
+        </p>
+        <div className="mt-3">
+          <CodeBlock title=".github/workflows/compliance.yml">
             <span className="text-primary-400">name</span>
             <span className="text-gray-300">: Compliance Scan</span>
             {"\n"}

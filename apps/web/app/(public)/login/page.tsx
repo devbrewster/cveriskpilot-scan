@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 type LoginState = 'idle' | 'submitting' | 'mfa_challenge' | 'mfa_verifying' | 'success';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') ?? searchParams.get('redirect') ?? '/dashboard';
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -82,7 +84,7 @@ export default function LoginPage() {
         }
         // No MFA — login complete
         setState('success');
-        router.push("/dashboard");
+        router.push(callbackUrl);
       } else {
         setError(data.error || "Login failed. Please try again.");
         setState('idle');
@@ -116,7 +118,7 @@ export default function LoginPage() {
 
       if (res.ok && data.success) {
         setState('success');
-        router.push("/dashboard");
+        router.push(callbackUrl);
       } else {
         setError(data.error || "Invalid code. Please try again.");
         setState('mfa_challenge');

@@ -67,6 +67,8 @@ const PUBLIC_PATHS = [
 
 const PUBLIC_PREFIXES = [
   '/demo',
+  '/docs',       // documentation is public
+  '/blog',       // blog is public
   '/portal',     // portal has its own auth via crp_portal_session
   '/_next',
 ];

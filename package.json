@@ -41,6 +41,10 @@
     "release:status": "node scripts/scaffold-status.mjs",
     "release:workflow": "node scripts/web-release-workflow.mjs",
     "context:resume": "node scripts/context-resume.mjs",
+    "security:scan": "node scripts/security-scan.mjs",
+    "security:scan:json": "node scripts/security-scan.mjs --json",
+    "security:scan:fix": "node scripts/security-scan.mjs --fix",
+    "security:scan:apt": "node scripts/security-scan.mjs --fix --level 4",
     "audit:deep": "npx tsx packages/audit/src/index.ts",
     "blog:medium": "node scripts/md-to-medium.mjs"
   },

@@ -40,10 +40,6 @@ const PLANS: PlanInfo[] = [
     description: 'Early adopter pricing. Locked in forever.',
     limits: { users: '5', assets: '250', uploads: 'Unlimited', aiCalls: '250/mo' },
     features: [
-      'API access',
-      'Jira integration',
-      'Custom SLA policies',
-      'Webhooks',
       'Email support',
     ],
     badge: 'Limited',
@@ -261,7 +257,7 @@ export function TierComparison() {
 
             <a
               href={plan.ctaHref}
-              className={`mt-6 block w-full rounded-lg py-2.5 text-center text-sm font-semibold transition-colors ${
+              className={`mt-auto block w-full rounded-lg py-2.5 text-center text-sm font-semibold transition-colors ${
                 plan.highlighted
                   ? 'bg-primary-600 text-white hover:bg-primary-700'
                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'

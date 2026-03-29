@@ -27,13 +27,11 @@ const plans = [
     annualPrice: 278,
     description: 'Early adopter pricing. Locked in forever.',
     features: [
+      '250 assets',
       '5 users',
       'Unlimited uploads',
-      '250 AI remediation calls',
-      '250 assets',
+      '250 AI calls',
       'Email support',
-      'Jira integration',
-      'Custom SLA policies',
     ],
     cta: 'Join Founders Beta',
     ctaHref: '/signup?plan=founders_beta',
@@ -159,7 +157,7 @@ export function Pricing() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative rounded-2xl border p-8 transition-shadow duration-200 ${
+              className={`relative flex flex-col rounded-2xl border p-8 transition-shadow duration-200 ${
                 plan.highlighted
                   ? 'border-primary-500 bg-white dark:bg-gray-900 shadow-xl shadow-primary-100/50 ring-1 ring-primary-500 dark:border-primary-400 dark:bg-gray-900 dark:shadow-primary-900/20 dark:ring-primary-400'
                   : 'border-gray-200 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/30'
@@ -202,7 +200,7 @@ export function Pricing() {
                 </p>
               )}
 
-              <ul className="mt-8 space-y-3">
+              <ul className="mt-8 flex-1 space-y-3">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
                     <svg
@@ -221,7 +219,7 @@ export function Pricing() {
 
               <Link
                 href={plan.ctaHref}
-                className={`mt-8 block w-full rounded-xl py-3 text-center text-sm font-semibold transition-all duration-200 ${
+                className={`mt-auto block w-full rounded-xl py-3 text-center text-sm font-semibold transition-all duration-200 ${
                   plan.highlighted
                     ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-500/25'
                     : 'border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-800'

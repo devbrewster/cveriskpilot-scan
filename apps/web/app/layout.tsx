@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cveriskpilot.com'),
   title: 'CVERiskPilot | AI-Powered Vulnerability Management',
   description:
     'Unify vulnerability signals from every scanner into a single, AI-powered remediation system. Prioritize by real exploit risk, not just CVSS. Built by veterans, for security teams.',

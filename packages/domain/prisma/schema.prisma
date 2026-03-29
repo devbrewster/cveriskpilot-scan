@@ -193,6 +193,7 @@ model Organization {
   pipelineScans      PipelineScan[]
   pipelinePolicy     PipelinePolicy?
   pipelineScanResults PipelineScanResult[]
+  pipelineUsage      PipelineUsage[]
   comments           Comment[]
   workflowLineages   WorkflowLineage[]
   riskExceptions     RiskException[]
@@ -946,4 +947,25 @@ model PipelineScanResult {
   @@index([organizationId, verdict])
   @@index([organizationId, repoUrl])
   @@map("pipeline_scan_results")
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline Usage — monthly counters for tier-gated features
+// ---------------------------------------------------------------------------
+
+model PipelineUsage {
+  id                String   @id @default(cuid()) @map("id")
+  organizationId    String   @map("organization_id")
+  month             String   @map("month")             // YYYY-MM format
+  prCommentsUsed    Int      @default(0) @map("pr_comments_used")
+  uploadsUsed       Int      @default(0) @map("uploads_used")
+  scansRun          Int      @default(0) @map("scans_run")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, month])
+  @@index([organizationId, month])
+  @@map("pipeline_usage")
 }

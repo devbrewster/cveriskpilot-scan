@@ -1925,33 +1925,44 @@ export const demoPipelineMSSPClients = [
   { id: 'mssp-005', name: 'Patriot Energy Co.', industry: 'Energy / Utilities', frameworks: ['NIST 800-53', 'FedRAMP', 'CMMC'], scanCount: 1456, openFindings: 19, poamItems: 6, complianceScore: 91 },
 ];
 
-export const demoPRCommentMarkdown = `## 🔒 CVERiskPilot Compliance Scan
+export const demoPRCommentMarkdown = `## ❌ CVERiskPilot Compliance Scan
 
-**Verdict: ❌ FAIL** — 8 compliance controls affected across 3 frameworks
+> **FAIL** — 6 finding(s) at or above **CRITICAL** severity.
 
-### Summary
-| Metric | Count |
-|--------|-------|
-| Total Findings | 12 |
-| Critical | 2 |
-| High | 4 |
-| Controls Affected | 8 |
-| POAM Entries Created | 4 |
+🔴 **2** Critical  🟠 **3** High  🟡 **4** Medium  🔵 **2** Low  ⚪ **1** Info
 
-### Findings
-| # | Severity | Title | CWE | NIST 800-53 | SOC 2 | CMMC |
-|---|----------|-------|-----|-------------|-------|------|
-| 1 | 🔴 CRITICAL | SQL Injection in user query | CWE-89 | SI-10 | CC6.1 | SI.L2-3.14.2 |
-| 2 | 🔴 CRITICAL | Hardcoded API key in config | CWE-798 | IA-5 | CC6.1 | IA.L2-3.5.10 |
-| 3 | 🟠 HIGH | XSS in search input | CWE-79 | SI-2 | CC6.1 | SI.L2-3.14.1 |
-| 4 | 🟠 HIGH | Path traversal in file upload | CWE-22 | AC-4 | CC6.1 | AC.L2-3.1.3 |
+**Triage:** 8 actionable · 3 needs review · 1 auto-dismissed
 
-### POAM Entries Created
-| ID | Weakness | Control | Due Date | Owner |
-|----|----------|---------|----------|-------|
-| POAM-2026-0342 | CWE-89 | SI-10 | 2026-04-11 | @security-team |
-| POAM-2026-0343 | CWE-798 | IA-5 | 2026-04-11 | @security-team |
-| POAM-2026-0344 | CWE-79 | SI-2 | 2026-04-27 | @dev-lead |
-| POAM-2026-0345 | CWE-22 | AC-4 | 2026-04-27 | @dev-lead |
+<sub>842 dependencies (npm, pip) · Scanners: sbom, secrets, iac · Duration: 1240ms</sub>
 
-[View full report →](https://app.cveriskpilot.com/pipelines/scan_01JQXYZ123456)`;
+<details>
+<summary><strong>🔍 8 Findings Requiring Attention</strong></summary>
+
+| Severity | Verdict | Finding | CWE | Location |
+|----------|---------|---------|-----|----------|
+| 🔴 CRITICAL | 🔴 TP | SQL Injection in user query builder | CWE-89 | \`src/db/queries.ts:42\` |
+| 🔴 CRITICAL | 🔴 TP | Hardcoded AWS secret key | CWE-798 | \`config/aws.ts:8\` |
+| 🟠 HIGH | 🔴 TP | XSS in search input handler | CWE-79 | \`src/routes/search.ts:156\` |
+| 🟠 HIGH | 🟡 Review | Path traversal in file upload | CWE-22 | \`src/upload/handler.ts:73\` |
+| 🟠 HIGH | 🔴 TP | lodash@4.17.20 — Prototype Pollution | CWE-1321 | \`lodash@4.17.20\` |
+| 🟡 MEDIUM | 🟡 Review | Terraform S3 bucket missing encryption | CWE-311 | \`infra/s3.tf:12\` |
+| 🟡 MEDIUM | 🔴 TP | Dockerfile running as root | CWE-250 | \`Dockerfile:1\` |
+| 🔵 LOW | 🟡 Review | Missing Content-Security-Policy header | CWE-693 | \`src/middleware.ts:5\` |
+
+</details>
+
+<details>
+<summary><strong>🏛️ Compliance Impact — 14 controls affected</strong></summary>
+
+| Framework | Controls Affected | Control IDs |
+|-----------|:-----------------:|-------------|
+| **NIST 800-53 Rev 5** | 6 | SI-10, IA-5, SI-2, AC-4, SC-28, CM-7 |
+| **SOC 2 Type II** | 2 | CC6.1, CC8.1 |
+| **CMMC Level 2** | 3 | SI.L2-3.14.2, IA.L2-3.5.10, AC.L2-3.1.3 |
+| **FedRAMP Moderate** | 2 | SI-2, SA-11 |
+| **OWASP ASVS 4.0** | 1 | V5.1 |
+
+</details>
+
+---
+<sub>🛡️ Scanned by <a href="https://cveriskpilot.com">CVERiskPilot</a> · <a href="https://www.npmjs.com/package/@cveriskpilot/scan">CLI</a> · <a href="https://cveriskpilot.com/docs/pipeline">Setup Guide</a></sub>`;

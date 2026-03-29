@@ -20,6 +20,9 @@ export type { IacScanResult, IacRule, IacViolation, IacFileType } from './scanne
 export { formatOutput, severityRank } from './output.js';
 export type { OutputFormat, ScanSummary } from './output.js';
 
+export { formatPrComment } from './pr-comment.js';
+export type { ScanJsonOutput } from './pr-comment.js';
+
 export {
   IMPLEMENTED_FRAMEWORKS,
   FRAMEWORK_ALIASES,

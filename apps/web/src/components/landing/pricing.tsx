@@ -12,6 +12,7 @@ const plans = [
     features: [
       '1 user',
       '3 uploads per month',
+      '3 PR comments per month',
       '50 AI remediation calls',
       '50 assets',
       'Community support',
@@ -30,6 +31,7 @@ const plans = [
       '250 assets',
       '5 users',
       'Unlimited uploads',
+      '100 PR comments per month',
       '250 AI calls',
       'Email support',
     ],
@@ -46,6 +48,7 @@ const plans = [
     features: [
       '10 users',
       'Unlimited uploads',
+      'Unlimited PR comments',
       '500 AI remediation calls',
       '500 assets',
       'Priority support',
@@ -65,6 +68,7 @@ const plans = [
     features: [
       '50 users',
       'Unlimited uploads',
+      'Unlimited PR comments',
       '5,000 AI remediation calls',
       '5,000 assets',
       'SSO / SAML / SCIM',
@@ -83,6 +87,7 @@ const plans = [
     description: 'Multi-tenant managed security service provider.',
     features: [
       'Unlimited everything',
+      'Unlimited PR comments',
       'White-label branding',
       'Per-client usage metering',
       'Bulk tenant onboarding',

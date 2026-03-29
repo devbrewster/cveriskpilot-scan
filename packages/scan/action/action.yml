@@ -1,0 +1,244 @@
+name: 'CVERiskPilot Compliance Scan'
+description: 'Scan dependencies, secrets, and IaC — map to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, SSDF. Post results as a PR comment.'
+author: 'CVERiskPilot LLC'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  preset:
+    description: 'Framework preset: federal, defense, enterprise, startup, devsecops, all'
+    required: false
+    default: 'all'
+  fail-on:
+    description: 'Severity threshold to fail the check: critical, high, medium, low'
+    required: false
+    default: 'critical'
+  format:
+    description: 'Additional output format: json, sarif, markdown (comment always posted)'
+    required: false
+    default: ''
+  scanners:
+    description: 'Limit to specific scanners: deps, secrets, iac (comma-separated, default: all)'
+    required: false
+    default: ''
+  exclude:
+    description: 'Glob patterns to exclude (comma-separated)'
+    required: false
+    default: ''
+  api-key:
+    description: 'CVERiskPilot API key for dashboard upload + PR comment posting (or set CRP_API_KEY env)'
+    required: false
+    default: ''
+  comment:
+    description: 'Post results as a PR comment (true/false)'
+    required: false
+    default: 'true'
+  github-token:
+    description: 'GitHub token for posting PR comments (defaults to GITHUB_TOKEN)'
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  exit-code:
+    description: 'Scan exit code (0=pass, 1=fail, 2=error)'
+  total-findings:
+    description: 'Total number of findings'
+  critical-count:
+    description: 'Number of critical findings'
+  high-count:
+    description: 'Number of high findings'
+  controls-affected:
+    description: 'Number of compliance controls affected'
+  comment-id:
+    description: 'GitHub comment ID (if posted)'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run CVERiskPilot Scan
+      id: scan
+      shell: bash
+      env:
+        CRP_API_KEY: ${{ inputs.api-key }}
+      run: |
+        # Build CLI flags
+        FLAGS="--ci --preset ${{ inputs.preset }} --fail-on ${{ inputs.fail-on }}"
+
+        if [ -n "${{ inputs.scanners }}" ]; then
+          IFS=',' read -ra SCANNERS <<< "${{ inputs.scanners }}"
+          for s in "${SCANNERS[@]}"; do
+            s=$(echo "$s" | xargs)
+            case "$s" in
+              deps) FLAGS="$FLAGS --deps-only" ;;
+              secrets) FLAGS="$FLAGS --secrets-only" ;;
+              iac) FLAGS="$FLAGS --iac-only" ;;
+            esac
+          done
+        fi
+
+        if [ -n "${{ inputs.exclude }}" ]; then
+          IFS=',' read -ra EXCLUDES <<< "${{ inputs.exclude }}"
+          for e in "${EXCLUDES[@]}"; do
+            FLAGS="$FLAGS --exclude $(echo "$e" | xargs)"
+          done
+        fi
+
+        # Run scan, capture output + exit code
+        set +e
+        SCAN_OUTPUT=$(npx --yes @cveriskpilot/scan@latest $FLAGS 2>/dev/null)
+        SCAN_EXIT=$?
+        set -e
+
+        # Save raw JSON
+        echo "$SCAN_OUTPUT" > "$RUNNER_TEMP/crp-scan-results.json"
+
+        # Extract summary values
+        TOTAL=$(echo "$SCAN_OUTPUT" | jq -r '.totalFindings // 0')
+        CRITICAL=$(echo "$SCAN_OUTPUT" | jq -r '.summary.CRITICAL // 0')
+        HIGH=$(echo "$SCAN_OUTPUT" | jq -r '.summary.HIGH // 0')
+        CONTROLS=$(echo "$SCAN_OUTPUT" | jq -r '.complianceImpact.totalAffectedControls // 0')
+
+        # Set outputs
+        echo "exit-code=$SCAN_EXIT" >> "$GITHUB_OUTPUT"
+        echo "total-findings=$TOTAL" >> "$GITHUB_OUTPUT"
+        echo "critical-count=$CRITICAL" >> "$GITHUB_OUTPUT"
+        echo "high-count=$HIGH" >> "$GITHUB_OUTPUT"
+        echo "controls-affected=$CONTROLS" >> "$GITHUB_OUTPUT"
+        echo "scan-exit=$SCAN_EXIT" >> "$GITHUB_OUTPUT"
+
+    - name: Format PR Comment
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      id: format
+      shell: bash
+      run: |
+        # Generate the PR comment markdown from scan JSON
+        node -e "
+        const fs = require('fs');
+        const scan = JSON.parse(fs.readFileSync('$RUNNER_TEMP/crp-scan-results.json', 'utf-8'));
+
+        const SEV_EMOJI = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡', LOW: '🔵', INFO: '⚪' };
+        const s = scan.summary || {};
+        const v = scan.verdictSummary || {};
+        const passed = scan.exitCode === 0;
+        const lines = [];
+
+        // Header
+        lines.push('## ' + (passed ? '✅' : '❌') + ' CVERiskPilot Compliance Scan');
+        lines.push('');
+        lines.push('> **' + (passed ? 'PASS' : 'FAIL') + '** — ' + (passed
+          ? 'No findings at or above **' + scan.failOnSeverity + '** severity.'
+          : scan.findings.filter(f => f.verdict !== 'FALSE_POSITIVE').length + ' finding(s) at or above **' + scan.failOnSeverity + '** severity.'));
+        lines.push('');
+
+        // Severity summary
+        lines.push(
+          (SEV_EMOJI.CRITICAL) + ' **' + (s.CRITICAL||0) + '** Critical  ' +
+          (SEV_EMOJI.HIGH) + ' **' + (s.HIGH||0) + '** High  ' +
+          (SEV_EMOJI.MEDIUM) + ' **' + (s.MEDIUM||0) + '** Medium  ' +
+          (SEV_EMOJI.LOW) + ' **' + (s.LOW||0) + '** Low  ' +
+          (SEV_EMOJI.INFO) + ' **' + (s.INFO||0) + '** Info'
+        );
+        lines.push('');
+        lines.push('**Triage:** ' + (v.TRUE_POSITIVE||0) + ' actionable · ' + (v.NEEDS_REVIEW||0) + ' needs review · ' + (v.FALSE_POSITIVE||0) + ' auto-dismissed');
+        lines.push('');
+
+        // Findings table
+        const actionable = (scan.findings || [])
+          .filter(f => f.verdict !== 'FALSE_POSITIVE')
+          .sort((a, b) => ['CRITICAL','HIGH','MEDIUM','LOW','INFO'].indexOf(a.severity) - ['CRITICAL','HIGH','MEDIUM','LOW','INFO'].indexOf(b.severity));
+
+        if (actionable.length > 0) {
+          lines.push('<details>');
+          lines.push('<summary><strong>🔍 ' + actionable.length + ' Findings Requiring Attention</strong></summary>');
+          lines.push('');
+          lines.push('| Severity | Verdict | Finding | CWE | Location |');
+          lines.push('|----------|---------|---------|-----|----------|');
+          for (const f of actionable.slice(0, 25)) {
+            const sev = (SEV_EMOJI[f.severity]||'') + ' ' + f.severity;
+            const verdict = f.verdict === 'NEEDS_REVIEW' ? '🟡 Review' : '🔴 TP';
+            const cwe = (f.cweIds && f.cweIds[0]) || '-';
+            const loc = f.filePath ? ('\`' + f.filePath + (f.lineNumber ? ':'+f.lineNumber : '') + '\`') : (f.packageName ? ('\`' + f.packageName + '\`') : '-');
+            lines.push('| ' + sev + ' | ' + verdict + ' | ' + f.title + ' | ' + cwe + ' | ' + loc + ' |');
+          }
+          if (actionable.length > 25) lines.push('', '*... and ' + (actionable.length - 25) + ' more findings*');
+          lines.push('', '</details>', '');
+        }
+
+        // Compliance impact
+        if (scan.complianceImpact && scan.complianceImpact.totalAffectedControls > 0) {
+          lines.push('<details>');
+          lines.push('<summary><strong>🏛️ Compliance Impact — ' + scan.complianceImpact.totalAffectedControls + ' controls affected</strong></summary>');
+          lines.push('');
+          lines.push('| Framework | Controls Affected | Control IDs |');
+          lines.push('|-----------|:-----------------:|-------------|');
+          for (const fw of scan.complianceImpact.frameworkSummary) {
+            const ids = fw.controlIds.length > 5 ? fw.controlIds.slice(0,5).join(', ') + ' (+' + (fw.controlIds.length-5) + ' more)' : fw.controlIds.join(', ');
+            lines.push('| **' + fw.framework + '** | ' + fw.affectedControls + ' | ' + ids + ' |');
+          }
+          lines.push('', '</details>', '');
+        }
+
+        // Footer
+        lines.push('---');
+        lines.push('<sub>🛡️ Scanned by <a href=\"https://cveriskpilot.com\">CVERiskPilot</a> · <a href=\"https://www.npmjs.com/package/@cveriskpilot/scan\">CLI</a> · <a href=\"https://cveriskpilot.com/docs/pipeline\">Setup Guide</a></sub>');
+
+        fs.writeFileSync('$RUNNER_TEMP/crp-pr-comment.md', lines.join('\n'));
+        "
+
+    - name: Post PR Comment
+      if: inputs.comment == 'true' && github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      env:
+        COMMENT_BODY_FILE: ${{ runner.temp }}/crp-pr-comment.md
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require('fs');
+          const body = fs.readFileSync(process.env.COMMENT_BODY_FILE, 'utf-8');
+          const marker = '<!-- crp-scan-comment -->';
+          const fullBody = marker + '\n' + body;
+
+          // Find existing comment to update (avoid spam)
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+
+          const existing = comments.find(c => c.body && c.body.includes(marker));
+
+          if (existing) {
+            const { data: updated } = await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body: fullBody,
+            });
+            core.setOutput('comment-id', updated.id);
+          } else {
+            const { data: created } = await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: fullBody,
+            });
+            core.setOutput('comment-id', created.id);
+          }
+
+    - name: Upload SARIF (if requested)
+      if: inputs.format == 'sarif'
+      shell: bash
+      run: |
+        npx --yes @cveriskpilot/scan@latest --preset ${{ inputs.preset }} --format sarif > "$RUNNER_TEMP/crp-results.sarif"
+
+    - name: Fail on threshold
+      if: steps.scan.outputs.scan-exit != '0'
+      shell: bash
+      run: exit ${{ steps.scan.outputs.scan-exit }}

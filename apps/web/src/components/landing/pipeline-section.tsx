@@ -294,7 +294,8 @@ export function PipelineSection() {
                 CR
               </div>
               <div>
-                <span className="text-sm font-semibold text-gray-900">CVERiskPilot Bot</span>
+                <span className="text-sm font-semibold text-gray-900">cveriskpilot[bot]</span>
+                <span className="ml-1 rounded-full border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500">bot</span>
                 <span className="ml-2 text-xs text-gray-400">commented just now</span>
               </div>
             </div>

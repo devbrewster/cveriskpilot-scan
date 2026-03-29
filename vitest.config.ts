@@ -23,7 +23,7 @@ export default defineConfig({
     // Coverage configuration
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'text-summary', 'lcov', 'json-summary'],
+      reporter: ['text', 'text-summary', 'lcov', 'json-summary', 'cobertura'],
       reportsDirectory: './coverage',
       include: [
         'packages/*/src/**/*.ts',

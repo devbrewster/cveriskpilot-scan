@@ -69,6 +69,20 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
+  // Server-side TS files — allow console.log/info for backend logging
+  {
+    files: [
+      'apps/web/app/api/**/*.ts',
+      'apps/web/src/lib/**/*.ts',
+      'apps/worker/**/*.ts',
+      'packages/**/*.ts',
+      'scripts/**/*.ts',
+      'tests/**/*.ts',
+    ],
+    rules: {
+      'no-console': ['warn', { allow: ['log', 'info', 'warn', 'error', 'debug'] }],
+    },
+  },
   // JS files (browser scripts, test harnesses) — add globals and disable no-undef
   {
     files: ['**/*.js', '**/*.mjs'],

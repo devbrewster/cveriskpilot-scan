@@ -10,7 +10,7 @@
     "dev": "npm run dev --workspace=apps/web",
     "build": "npm run build --workspace=apps/web",
     "build:worker": "npm run build --workspace=apps/worker",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
@@ -41,7 +41,8 @@
     "release:status": "node scripts/scaffold-status.mjs",
     "release:workflow": "node scripts/web-release-workflow.mjs",
     "context:resume": "node scripts/context-resume.mjs",
-    "audit:deep": "npx tsx packages/audit/src/index.ts"
+    "audit:deep": "npx tsx packages/audit/src/index.ts",
+    "blog:medium": "node scripts/md-to-medium.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

@@ -66,7 +66,7 @@ const sections = [
         />
       </svg>
     ),
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     title: "GitHub Action",
@@ -92,7 +92,7 @@ const sections = [
         />
       </svg>
     ),
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     title: "Frameworks",

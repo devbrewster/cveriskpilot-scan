@@ -1,0 +1,1120 @@
+{
+  "runId": 1774821526969,
+  "timestamp": "2026-03-29T22:01:52.914Z",
+  "baseUrl": "https://cveriskpilot-web-dev-642334918401.us-central1.run.app",
+  "analystCount": 1000,
+  "batchSize": 100,
+  "waveDelayMs": 500,
+  "totalTestMs": 185673,
+  "totalRequests": 27400,
+  "passedAnalysts": 995,
+  "failedAnalysts": 5,
+  "stepSummaries": {
+    "01-signup": {
+      "method": "POST",
+      "avg": 1110,
+      "p50": 952,
+      "p95": 2507,
+      "p99": 3860,
+      "min": 80,
+      "max": 4196,
+      "errors": 5,
+      "total": 1000
+    },
+    "01-signup-fallback-login": {
+      "method": "POST",
+      "avg": 477,
+      "p50": 284,
+      "p95": 1732,
+      "p99": 2173,
+      "min": 56,
+      "max": 2332,
+      "errors": 0,
+      "total": 1000
+    },
+    "02-dashboard": {
+      "method": "GET",
+      "avg": 440,
+      "p50": 233,
+      "p95": 1766,
+      "p99": 2271,
+      "min": 48,
+      "max": 3414,
+      "errors": 0,
+      "total": 1000
+    },
+    "03-upload-scan": {
+      "method": "POST",
+      "avg": 383,
+      "p50": 229,
+      "p95": 1234,
+      "p99": 2011,
+      "min": 47,
+      "max": 2215,
+      "errors": 0,
+      "total": 1000
+    },
+    "04-poll-job": {
+      "method": "GET",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "errors": 0,
+      "total": 1000
+    },
+    "05-findings-list": {
+      "method": "GET",
+      "avg": 366,
+      "p50": 218,
+      "p95": 1172,
+      "p99": 1614,
+      "min": 47,
+      "max": 2271,
+      "errors": 0,
+      "total": 1000
+    },
+    "06-findings-critical": {
+      "method": "GET",
+      "avg": 357,
+      "p50": 232,
+      "p95": 1087,
+      "p99": 1257,
+      "min": 47,
+      "max": 2368,
+      "errors": 0,
+      "total": 1000
+    },
+    "07-finding-detail": {
+      "method": "GET",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "errors": 0,
+      "total": 1000
+    },
+    "08-build-cases": {
+      "method": "POST",
+      "avg": 343,
+      "p50": 211,
+      "p95": 1016,
+      "p99": 1309,
+      "min": 48,
+      "max": 2233,
+      "errors": 0,
+      "total": 1000
+    },
+    "09-cases-list": {
+      "method": "GET",
+      "avg": 348,
+      "p50": 203,
+      "p95": 1130,
+      "p99": 1498,
+      "min": 47,
+      "max": 2075,
+      "errors": 0,
+      "total": 1000
+    },
+    "10-case-detail": {
+      "method": "GET",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "errors": 0,
+      "total": 1000
+    },
+    "11-update-case": {
+      "method": "PATCH",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "errors": 0,
+      "total": 1000
+    },
+    "12-case-comment": {
+      "method": "POST",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "errors": 0,
+      "total": 1000
+    },
+    "13-bulk-cases": {
+      "method": "POST",
+      "avg": 0,
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "min": 0,
+      "max": 0,
+      "errors": 0,
+      "total": 1000
+    },
+    "14-ai-remediation": {
+      "method": "POST",
+      "avg": 346,
+      "p50": 212,
+      "p95": 1052,
+      "p99": 1464,
+      "min": 46,
+      "max": 1575,
+      "errors": 0,
+      "total": 1000
+    },
+    "15-compliance-frameworks": {
+      "method": "GET",
+      "avg": 342,
+      "p50": 219,
+      "p95": 931,
+      "p99": 1404,
+      "min": 45,
+      "max": 1794,
+      "errors": 0,
+      "total": 1000
+    },
+    "16-poam": {
+      "method": "GET",
+      "avg": 342,
+      "p50": 225,
+      "p95": 937,
+      "p99": 1171,
+      "min": 47,
+      "max": 1576,
+      "errors": 0,
+      "total": 1000
+    },
+    "17-export-csv": {
+      "method": "GET",
+      "avg": 329,
+      "p50": 220,
+      "p95": 926,
+      "p99": 1191,
+      "min": 49,
+      "max": 1488,
+      "errors": 0,
+      "total": 1000
+    },
+    "18-export-pdf": {
+      "method": "POST",
+      "avg": 325,
+      "p50": 217,
+      "p95": 947,
+      "p99": 1210,
+      "min": 45,
+      "max": 1516,
+      "errors": 0,
+      "total": 1000
+    },
+    "19-billing-usage": {
+      "method": "GET",
+      "avg": 359,
+      "p50": 217,
+      "p95": 1153,
+      "p99": 1895,
+      "min": 48,
+      "max": 3073,
+      "errors": 0,
+      "total": 1000
+    },
+    "20-notifications": {
+      "method": "GET",
+      "avg": 345,
+      "p50": 216,
+      "p95": 1122,
+      "p99": 1989,
+      "min": 43,
+      "max": 4374,
+      "errors": 0,
+      "total": 1000
+    },
+    "21-create-api-key": {
+      "method": "POST",
+      "avg": 323,
+      "p50": 216,
+      "p95": 1054,
+      "p99": 1933,
+      "min": 47,
+      "max": 6090,
+      "errors": 0,
+      "total": 1000
+    },
+    "22-create-webhook": {
+      "method": "POST",
+      "avg": 289,
+      "p50": 211,
+      "p95": 814,
+      "p99": 1609,
+      "min": 42,
+      "max": 6645,
+      "errors": 0,
+      "total": 1000
+    },
+    "23-portfolio": {
+      "method": "GET",
+      "avg": 331,
+      "p50": 216,
+      "p95": 1054,
+      "p99": 2273,
+      "min": 43,
+      "max": 6161,
+      "errors": 0,
+      "total": 1000
+    },
+    "24-sla-check": {
+      "method": "GET",
+      "avg": 274,
+      "p50": 204,
+      "p95": 793,
+      "p99": 1534,
+      "min": 43,
+      "max": 4356,
+      "errors": 0,
+      "total": 1000
+    },
+    "25-generate-report": {
+      "method": "POST",
+      "avg": 302,
+      "p50": 202,
+      "p95": 800,
+      "p99": 1542,
+      "min": 47,
+      "max": 16743,
+      "errors": 0,
+      "total": 1000
+    },
+    "zd-org-isolation": {
+      "method": "GET",
+      "avg": 412,
+      "p50": 184,
+      "p95": 706,
+      "p99": 1485,
+      "min": 48,
+      "max": 17127,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-data-leakage": {
+      "method": "GET",
+      "avg": 266,
+      "p50": 182,
+      "p95": 758,
+      "p99": 1185,
+      "min": 47,
+      "max": 1538,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-rate-limit": {
+      "method": "GET",
+      "avg": 1892,
+      "p50": 1134,
+      "p95": 6887,
+      "p99": 7940,
+      "min": 120,
+      "max": 9687,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-session-integrity": {
+      "method": "GET",
+      "avg": 239,
+      "p50": 75,
+      "p95": 830,
+      "p99": 2448,
+      "min": 47,
+      "max": 5093,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-pagination-boundary": {
+      "method": "GET",
+      "avg": 131,
+      "p50": 65,
+      "p95": 391,
+      "p99": 822,
+      "min": 45,
+      "max": 1505,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-sqli-filter": {
+      "method": "GET",
+      "avg": 104,
+      "p50": 65,
+      "p95": 254,
+      "p99": 672,
+      "min": 44,
+      "max": 1052,
+      "errors": 0,
+      "total": 300
+    },
+    "zd-upload-size-limit": {
+      "method": "POST",
+      "avg": 876,
+      "p50": 734,
+      "p95": 1987,
+      "p99": 2162,
+      "min": 279,
+      "max": 2226,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-file-type-restriction": {
+      "method": "POST",
+      "avg": 68,
+      "p50": 58,
+      "p95": 139,
+      "p99": 165,
+      "min": 43,
+      "max": 170,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-cors-headers": {
+      "method": "GET",
+      "avg": 73,
+      "p50": 57,
+      "p95": 146,
+      "p99": 282,
+      "min": 42,
+      "max": 397,
+      "errors": 0,
+      "total": 100
+    },
+    "zd-stack-trace-leak": {
+      "method": "GET",
+      "avg": 72,
+      "p50": 57,
+      "p95": 163,
+      "p99": 205,
+      "min": 40,
+      "max": 247,
+      "errors": 0,
+      "total": 300
+    }
+  },
+  "zeroDayFindings": [
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 1,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 11,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 21,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 31,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 41,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 51,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 61,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 71,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 81,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 91,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 101,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 111,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 121,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 131,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 141,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 151,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 161,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 171,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 181,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 191,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 201,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 211,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 221,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 231,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 241,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 251,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 261,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 271,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 281,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 291,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 301,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 311,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 321,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 331,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 341,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 351,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 361,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 371,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 381,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 391,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 401,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 411,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 421,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 431,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 441,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 451,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 461,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 471,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 481,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 491,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 501,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 511,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 521,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 531,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 541,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 551,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 561,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 571,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 581,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 591,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 601,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 611,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 621,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 631,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 641,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 651,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 661,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 671,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 681,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 691,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 701,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 711,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 721,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 731,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 741,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 751,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 761,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 771,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 781,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 791,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 801,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 811,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 821,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 831,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 841,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 851,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 861,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 871,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 881,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 891,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 901,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 911,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 921,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 931,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 941,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 951,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 961,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 971,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 981,
+      "evidence": "100 requests, 0 rate-limited"
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests to /api/dashboard returned no 429 responses",
+      "severity": "MEDIUM",
+      "analystId": 991,
+      "evidence": "100 requests, 0 rate-limited"
+    }
+  ],
+  "zeroDaySummary": {
+    "total": 100,
+    "critical": 0,
+    "high": 0,
+    "medium": 100,
+    "low": 0,
+    "info": 0
+  }
+}

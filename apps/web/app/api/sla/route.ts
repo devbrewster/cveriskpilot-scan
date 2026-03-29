@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
 // GET /api/sla — List SLA policies for an organization
@@ -43,6 +44,9 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
 
     const { organizationId } = session;
 
@@ -101,6 +105,15 @@ export async function POST(request: NextRequest) {
       return tx.slaPolicy.create({
         data: policyData,
       });
+    });
+
+    logAudit({
+      organizationId,
+      actorId: session.userId,
+      action: 'CREATE',
+      entityType: 'SlaPolicy',
+      entityId: policy.id,
+      details: { name: policy.name, isDefault: policy.isDefault },
     });
 
     return NextResponse.json({ policy }, { status: 201 });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, WRITE_ROLES } from '@cveriskpilot/auth';
 import { isValidTransition, getValidNextStatuses } from '@/lib/workflow';
 import { logAudit } from '@/lib/audit';
 
@@ -94,6 +94,9 @@ export async function PATCH(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, WRITE_ROLES);
+    if (roleError) return roleError;
 
     const { id } = await params;
 

@@ -132,8 +132,10 @@ export async function POST(request: NextRequest) {
     try {
       storedSecret = await encryptForTenant(secret, organizationId);
     } catch {
-      // If encryption is unavailable (e.g., dev without keys), store as-is
-      console.warn('[webhooks/config] Encryption unavailable — storing secret in plaintext');
+      return NextResponse.json(
+        { error: 'Encryption service unavailable. Cannot store secrets.' },
+        { status: 503 },
+      );
     }
 
     const existing = getEndpoints(org.entitlements);

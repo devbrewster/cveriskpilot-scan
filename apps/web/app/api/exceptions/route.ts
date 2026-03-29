@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession, requireRole, WRITE_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
 // GET /api/exceptions — List risk exceptions for an organization
@@ -189,6 +190,15 @@ export async function POST(request: NextRequest) {
           select: { id: true, name: true, email: true },
         },
       },
+    });
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'RISK_EXCEPTION',
+      entityType: 'RiskException',
+      entityId: exception.id,
+      details: { vulnerabilityCaseId, type, reason },
     });
 
     return NextResponse.json({ exception, derivedStatus: 'PENDING' }, { status: 201 });

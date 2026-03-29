@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -64,6 +65,9 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
 
     const { id } = await context.params;
 
@@ -129,6 +133,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
+
     const { id } = await context.params;
 
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
@@ -148,6 +155,15 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     await prisma.client.update({
       where: { id },
       data: { deletedAt: new Date() },
+    });
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'DELETE',
+      entityType: 'Client',
+      entityId: id,
+      details: { name: existing.name },
     });
 
     return NextResponse.json({ success: true });

@@ -77,7 +77,7 @@ const plans: Plan[] = [
       'White-label',
       'Client management',
       'Usage-based billing',
-      'Partner portal',
+      'Full API access',
     ],
     cta: 'sales',
   },

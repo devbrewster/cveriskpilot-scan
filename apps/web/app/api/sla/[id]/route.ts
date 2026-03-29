@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
 // GET /api/sla/[id] — Get a specific SLA policy
@@ -57,6 +58,9 @@ export async function PUT(
     if (!session) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
 
     const { id } = await params;
     const body = await request.json();
@@ -117,6 +121,15 @@ export async function PUT(
       });
     });
 
+    logAudit({
+      organizationId: existing.organizationId,
+      actorId: session.userId,
+      action: 'UPDATE',
+      entityType: 'SlaPolicy',
+      entityId: id,
+      details: updateData as Record<string, string | number | boolean>,
+    });
+
     return NextResponse.json(policy);
   } catch (error) {
     console.error('[API] PUT /api/sla/[id] error:', error);
@@ -140,6 +153,9 @@ export async function DELETE(
     if (!session) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
 
     const { id } = await params;
 
@@ -168,6 +184,15 @@ export async function DELETE(
         data: { slaPolicyId: null },
       });
       await tx.slaPolicy.delete({ where: { id } });
+    });
+
+    logAudit({
+      organizationId: existing.organizationId,
+      actorId: session.userId,
+      action: 'DELETE',
+      entityType: 'SlaPolicy',
+      entityId: id,
+      details: { name: existing.name },
     });
 
     return NextResponse.json({ success: true });

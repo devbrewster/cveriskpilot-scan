@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, validateExternalUrl, encryptForTenant } from '@cveriskpilot/auth';
+import { getServerSession, validateExternalUrl, encryptForTenant, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
+import { logAudit } from '@/lib/audit';
 import { DEFAULT_JIRA_TO_CASE_STATUS } from '@cveriskpilot/integrations';
 import type { JiraOrgConfig } from '@cveriskpilot/integrations';
 
@@ -54,6 +55,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, ADMIN_ROLES);
+    if (roleError) return roleError;
+
     const { organizationId } = session;
 
     const body = await request.json();
@@ -100,9 +104,10 @@ export async function PUT(request: NextRequest) {
         const encrypted = await encryptForTenant(apiToken, organizationId);
         storedApiToken = JSON.stringify(encrypted);
       } catch {
-        // If encryption is unavailable (e.g., dev without keys), store as-is
-        console.warn('[jira/config] Encryption unavailable — storing apiToken in plaintext');
-        storedApiToken = apiToken;
+        return NextResponse.json(
+          { error: 'Encryption service unavailable. Cannot store secrets.' },
+          { status: 503 },
+        );
       }
     }
 
@@ -125,6 +130,15 @@ export async function PUT(request: NextRequest) {
           jira: updatedJira,
         } as any,
       },
+    });
+
+    logAudit({
+      organizationId,
+      actorId: session.userId,
+      action: 'UPDATE',
+      entityType: 'JiraConfig',
+      entityId: organizationId,
+      details: { baseUrl: updatedJira.baseUrl, email: updatedJira.email, projectKey: updatedJira.projectKey },
     });
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -98,6 +99,15 @@ export async function POST(request: NextRequest) {
         name,
         description: description || null,
       },
+    });
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'CREATE',
+      entityType: 'Team',
+      entityId: team.id,
+      details: { name: team.name },
     });
 
     return NextResponse.json({ team }, { status: 201 });

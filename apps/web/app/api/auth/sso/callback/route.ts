@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
   handleSSOCallback,
@@ -118,17 +119,13 @@ export async function GET(request: NextRequest) {
     const dashboardUrl = new URL('/app/dashboard', request.url);
     const response = NextResponse.redirect(dashboardUrl);
 
-    if (sessionId) {
-      setSessionCookie(response, sessionId);
-    } else {
-      response.cookies.set('crp_session', userId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 86400,
-      });
+    if (!sessionId) {
+      console.error('[API] GET /api/auth/sso/callback: Redis unavailable, cannot create session');
+      const loginUrl = new URL('/login?error=session_unavailable', request.url);
+      return NextResponse.redirect(loginUrl);
     }
+
+    setSessionCookie(response, sessionId);
 
     return response;
   } catch (error) {

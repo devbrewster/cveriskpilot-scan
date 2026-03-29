@@ -196,6 +196,7 @@ build:docker:
       aud: https://gitlab.com
   before_script:
     # Authenticate via WIF + impersonation
+    - apt-get update -qq && apt-get install -y -qq jq > /dev/null
     - |
       GCP_ACCESS_TOKEN=$(curl -s -X POST \
         "https://sts.googleapis.com/v1/token" \

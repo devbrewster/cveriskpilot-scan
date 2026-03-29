@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession, generateApiKey } from '@cveriskpilot/auth';
+import { getServerSession, generateApiKey, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 import { UserRole, UserStatus } from '@cveriskpilot/domain';
 
 /**
@@ -82,6 +83,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, ADMIN_ROLES);
+    if (roleError) return roleError;
+
     let body: Record<string, unknown>;
     try {
       body = await request.json();
@@ -150,6 +154,15 @@ export async function POST(request: NextRequest) {
           createdAt: apiKey.createdAt,
         },
       };
+    });
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'CREATE',
+      entityType: 'ServiceAccount',
+      entityId: result.serviceAccount.id,
+      details: { name, scopes: scopeStr },
     });
 
     return NextResponse.json(

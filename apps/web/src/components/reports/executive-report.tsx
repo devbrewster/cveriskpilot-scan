@@ -19,14 +19,33 @@ const SECTION_OPTIONS = [
   { key: 'recommendations', label: 'Recommendations' },
 ] as const;
 
-export function ExecutiveReport() {
+interface ExecutiveReportProps {
+  /** Organization name to pre-fill; falls back to 'My Organization' */
+  defaultOrgName?: string;
+  /** Start of date range (YYYY-MM-DD); defaults to 30 days ago */
+  defaultDateFrom?: string;
+  /** End of date range (YYYY-MM-DD); defaults to today */
+  defaultDateTo?: string;
+}
+
+export function ExecutiveReport({
+  defaultOrgName,
+  defaultDateFrom,
+  defaultDateTo,
+}: ExecutiveReportProps = {}) {
   const [cases, setCases] = useState<ApiCase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [orgName, setOrgName] = useState('My Organization');
-  const [dateFrom, setDateFrom] = useState('2026-03-01');
-  const [dateTo, setDateTo] = useState('2026-03-27');
+  // Dynamic defaults: org name from props/context, date range = last 30 days
+  const [orgName, setOrgName] = useState(defaultOrgName ?? 'My Organization');
+  const [dateFrom, setDateFrom] = useState(() => {
+    if (defaultDateFrom) return defaultDateFrom;
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().slice(0, 10);
+  });
+  const [dateTo, setDateTo] = useState(() => defaultDateTo ?? new Date().toISOString().slice(0, 10));
   const [severities, setSeverities] = useState<Set<string>>(
     new Set(SEVERITY_OPTIONS),
   );
@@ -132,6 +151,20 @@ export function ExecutiveReport() {
     const openCount = filtered.filter((c) => OPEN_STATUSES.has(c.status)).length;
     const closedCount = filtered.filter((c) => CLOSED_STATUSES.has(c.status)).length;
 
+    // Compute MTTR from closed cases: (lastSeenAt - firstSeenAt) for resolved cases
+    const closedCases = filtered.filter((c) => CLOSED_STATUSES.has(c.status));
+    let mttrStr = 'N/A';
+    if (closedCases.length > 0) {
+      const totalDays = closedCases.reduce((sum, c) => {
+        const first = new Date(c.firstSeenAt).getTime();
+        const last = new Date(c.lastSeenAt).getTime();
+        const diffDays = (last - first) / (1000 * 60 * 60 * 24);
+        return sum + Math.max(0, diffDays);
+      }, 0);
+      const avgDays = totalDays / closedCases.length;
+      mttrStr = `${avgDays.toFixed(1)} days`;
+    }
+
     return {
       organizationName: orgName,
       reportDate: new Date().toISOString().slice(0, 10),
@@ -144,7 +177,7 @@ export function ExecutiveReport() {
       infoCount,
       kevCount: kevCases.length,
       avgEpssScore: avgEpss,
-      meanTimeToRemediate: '12.4 days',
+      meanTimeToRemediate: mttrStr,
       topCriticalCases: topCritical,
       kevExposure,
       epssHighRisk,

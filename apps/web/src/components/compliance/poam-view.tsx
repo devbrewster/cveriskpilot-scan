@@ -73,16 +73,23 @@ export function POAMView({
   }, [fetchPOAM]);
 
   const handleExport = async (format: 'csv' | 'json-download') => {
-    const url = `/api/compliance/poam?clientId=${clientId}&organizationId=${orgId}&format=${format}`;
-    const res = await fetch(url);
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const ext = format === 'csv' ? 'csv' : 'json';
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `poam-${clientId}-${new Date().toISOString().slice(0, 10)}.${ext}`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    try {
+      const url = `/api/compliance/poam?clientId=${clientId}&organizationId=${orgId}&format=${format}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        setError(`Failed to export POAM as ${format === 'csv' ? 'CSV' : 'JSON'}`);
+        return;
+      }
+      const blob = await res.blob();
+      const ext = format === 'csv' ? 'csv' : 'json';
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `poam-${clientId}-${new Date().toISOString().slice(0, 10)}.${ext}`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch {
+      setError(`Failed to export POAM as ${format === 'csv' ? 'CSV' : 'JSON'}`);
+    }
   };
 
   const [xlsxExporting, setXlsxExporting] = useState(false);
@@ -95,13 +102,18 @@ export function POAMView({
       if (filterStatus !== 'ALL') params.set('status', filterStatus);
       const url = `/api/export/poam?${params.toString()}`;
       const res = await fetch(url);
-      if (!res.ok) return;
+      if (!res.ok) {
+        setError('Failed to export POAM as XLSX');
+        return;
+      }
       const blob = await res.blob();
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `FedRAMP-POAM-${clientId}-${new Date().toISOString().slice(0, 10)}.xlsx`;
       a.click();
       URL.revokeObjectURL(a.href);
+    } catch {
+      setError('Failed to export POAM as XLSX');
     } finally {
       setXlsxExporting(false);
     }

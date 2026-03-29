@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession, requireRole, WRITE_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 import { getOrgTier, checkBillingGate, trackUpload } from '@/lib/billing';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -301,6 +302,15 @@ export async function POST(request: NextRequest) {
     } catch {
       console.info(`[API] Upload job ${jobId} created but consumer not available`);
     }
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'CREATE',
+      entityType: 'UploadJob',
+      entityId: jobId,
+      details: { artifactId, parserFormat: parserFormat ?? 'auto', checksumSha256 },
+    });
 
     return NextResponse.json({
       artifactId,

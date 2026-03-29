@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
 // GET /api/exceptions/[id] — Get exception details
@@ -200,6 +201,7 @@ export async function PUT(
         // Record workflow lineage
         await tx.workflowLineage.create({
           data: {
+            organizationId: session.organizationId,
             vulnerabilityCaseId: existing.vulnerabilityCaseId,
             fromStatus: previousStatus,
             toStatus: newStatus,
@@ -210,6 +212,15 @@ export async function PUT(
         });
 
         return updated;
+      });
+
+      logAudit({
+        organizationId: session.organizationId,
+        actorId: session.userId,
+        action: 'RISK_EXCEPTION',
+        entityType: 'RiskException',
+        entityId: id,
+        details: { decision: 'APPROVED', durationDays, caseId: existing.vulnerabilityCaseId },
       });
 
       return NextResponse.json({ ...result, derivedStatus: 'APPROVED' });
@@ -236,6 +247,15 @@ export async function PUT(
             select: { id: true, name: true, email: true },
           },
         },
+      });
+
+      logAudit({
+        organizationId: session.organizationId,
+        actorId: session.userId,
+        action: 'RISK_EXCEPTION',
+        entityType: 'RiskException',
+        entityId: id,
+        details: { decision: 'REJECTED', caseId: existing.vulnerabilityCaseId },
       });
 
       return NextResponse.json({ ...updated, derivedStatus: 'REJECTED' });

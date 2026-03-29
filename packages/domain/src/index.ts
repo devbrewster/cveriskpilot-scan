@@ -29,6 +29,11 @@ export type {
   GlobalCveRecord,
   GlobalEpssScore,
   GlobalKevRecord,
+  ScannerConnector,
+  SyncJob,
+  SyncLog,
+  ReportSchedule,
+  BrandConfig,
 } from '@prisma/client';
 
 // Re-export enums (as values, not just types)

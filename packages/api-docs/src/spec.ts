@@ -21,7 +21,7 @@ export const openApiSpec: OpenAPISpec = {
       'Vulnerability Management SaaS platform API. Provides endpoints for managing vulnerability cases, findings, uploads, AI-powered remediation, and real-time streaming.',
     contact: {
       name: 'CVERiskPilot Support',
-      email: 'support@cveriskpilot.io',
+      email: 'support@cveriskpilot.com',
     },
     license: {
       name: 'Proprietary',
@@ -33,7 +33,7 @@ export const openApiSpec: OpenAPISpec = {
       description: 'CVERiskPilot API Server',
       variables: {
         protocol: { default: 'https', enum: ['https', 'http'] },
-        host: { default: 'app.cveriskpilot.io' },
+        host: { default: 'app.cveriskpilot.com' },
       },
     },
   ],

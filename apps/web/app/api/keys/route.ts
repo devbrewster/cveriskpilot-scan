@@ -6,6 +6,7 @@ import {
   requireRole,
   MANAGE_ROLES,
   checkCsrf,
+  getSensitiveWriteLimiter,
 } from '@cveriskpilot/auth';
 
 /**
@@ -64,6 +65,20 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(request);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting — 10 req/min per user
+    try {
+      const limiter = getSensitiveWriteLimiter();
+      const rl = await limiter.check(`apikey_create:${session.userId}`);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+        );
+      }
+    } catch {
+      // Redis not available — skip rate limiting
     }
 
     const roleError = requireRole(session.role, MANAGE_ROLES);

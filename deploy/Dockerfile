@@ -35,6 +35,9 @@ COPY packages/stamps/package.json ./packages/stamps/
 COPY packages/storage/package.json ./packages/storage/
 COPY packages/streaming/package.json ./packages/streaming/
 COPY packages/whitelabel/package.json ./packages/whitelabel/
+COPY packages/audit/package.json ./packages/audit/
+COPY packages/connectors/package.json ./packages/connectors/
+COPY packages/scan/package.json ./packages/scan/
 
 RUN npm ci --ignore-scripts
 

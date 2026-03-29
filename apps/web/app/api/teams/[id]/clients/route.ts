@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -7,6 +8,11 @@ interface RouteContext {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id: teamId } = await context.params;
     const body = await request.json();
     const { clientId } = body;
@@ -18,9 +24,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Check team exists
+    // Check team exists and belongs to the user's organization
     const team = await prisma.team.findUnique({ where: { id: teamId } });
-    if (!team) {
+    if (!team || team.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
@@ -56,7 +62,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id: teamId } = await context.params;
+
+    // Verify team belongs to user's organization
+    const team = await prisma.team.findUnique({ where: { id: teamId } });
+    if (!team || team.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+    }
+
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
 

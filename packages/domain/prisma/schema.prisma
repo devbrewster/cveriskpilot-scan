@@ -190,6 +190,12 @@ model Organization {
   uploadJobs         UploadJob[]
   brandConfig        BrandConfig?
   reportSchedules    ReportSchedule[]
+  pipelineScans      PipelineScan[]
+  comments           Comment[]
+  workflowLineages   WorkflowLineage[]
+  riskExceptions     RiskException[]
+  tickets            Ticket[]
+  notifications      Notification[]
 
   @@map("organizations")
 }
@@ -210,7 +216,7 @@ model Client {
   updatedAt      DateTime  @updatedAt @map("updated_at")
   deletedAt      DateTime? @map("deleted_at")
 
-  organization          Organization           @relation(fields: [organizationId], references: [id])
+  organization          Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   findings              Finding[]
   vulnerabilityCases    VulnerabilityCase[]
   assets                Asset[]
@@ -242,7 +248,7 @@ model User {
   updatedAt          DateTime   @updatedAt @map("updated_at")
   deletedAt          DateTime?  @map("deleted_at")
 
-  organization           Organization        @relation(fields: [organizationId], references: [id])
+  organization           Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   teamMemberships        TeamMembership[]
   comments               Comment[]
   notifications          Notification[]
@@ -265,7 +271,7 @@ model Team {
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
-  organization      Organization           @relation(fields: [organizationId], references: [id])
+  organization      Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   memberships       TeamMembership[]
   clientAssignments ClientTeamAssignment[]
 
@@ -280,8 +286,8 @@ model TeamMembership {
   role      TeamRole @default(MEMBER) @map("role")
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id])
-  team Team @relation(fields: [teamId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([userId, teamId])
   @@map("team_memberships")
@@ -293,8 +299,8 @@ model ClientTeamAssignment {
   clientId  String   @map("client_id")
   createdAt DateTime @default(now()) @map("created_at")
 
-  team   Team   @relation(fields: [teamId], references: [id])
-  client Client @relation(fields: [clientId], references: [id])
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, clientId])
   @@map("client_team_assignments")
@@ -319,11 +325,14 @@ model Asset {
   updatedAt       DateTime    @updatedAt @map("updated_at")
   deletedAt       DateTime?   @map("deleted_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  client       Client       @relation(fields: [clientId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
   findings     Finding[]
 
   @@index([organizationId, clientId])
+  @@index([organizationId, type])
+  @@index([organizationId, environment])
+  @@index([clientId])
   @@map("assets")
 }
 
@@ -343,13 +352,16 @@ model Finding {
   createdAt           DateTime    @default(now()) @map("created_at")
   updatedAt           DateTime    @updatedAt @map("updated_at")
 
-  organization      Organization       @relation(fields: [organizationId], references: [id])
-  client            Client             @relation(fields: [clientId], references: [id])
-  asset             Asset              @relation(fields: [assetId], references: [id])
-  vulnerabilityCase VulnerabilityCase? @relation(fields: [vulnerabilityCaseId], references: [id])
-  artifact          ScanArtifact?      @relation(fields: [artifactId], references: [id])
+  organization      Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client            Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  asset             Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  vulnerabilityCase VulnerabilityCase? @relation(fields: [vulnerabilityCaseId], references: [id], onDelete: SetNull)
+  artifact          ScanArtifact?      @relation(fields: [artifactId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, clientId, createdAt])
+  @@index([organizationId, scannerType])
+  @@index([clientId])
+  @@index([assetId])
   @@index([dedupKey])
   @@index([vulnerabilityCaseId])
   @@index([artifactId])
@@ -384,10 +396,10 @@ model VulnerabilityCase {
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
-  organization     Organization      @relation(fields: [organizationId], references: [id])
-  client           Client            @relation(fields: [clientId], references: [id])
-  assignedTo       User?             @relation("AssignedCases", fields: [assignedToId], references: [id])
-  slaPolicy        SlaPolicy?        @relation(fields: [slaPolicyId], references: [id])
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client           Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  assignedTo       User?             @relation("AssignedCases", fields: [assignedToId], references: [id], onDelete: SetNull)
+  slaPolicy        SlaPolicy?        @relation(fields: [slaPolicyId], references: [id], onDelete: SetNull)
   findings         Finding[]
   comments         Comment[]
   workflowLineages WorkflowLineage[]
@@ -396,6 +408,10 @@ model VulnerabilityCase {
 
   @@index([organizationId, clientId])
   @@index([organizationId, clientId, status])
+  @@index([organizationId, status])
+  @@index([organizationId, severity])
+  @@index([organizationId, dueAt])
+  @@index([clientId])
   @@index([assignedToId])
   @@index([slaPolicyId])
   @@map("vulnerability_cases")
@@ -419,9 +435,9 @@ model ScanArtifact {
   uploadedById   String       @map("uploaded_by_id")
   createdAt      DateTime     @default(now()) @map("created_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  client       Client       @relation(fields: [clientId], references: [id])
-  uploadedBy   User         @relation(fields: [uploadedById], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
   findings     Finding[]
   uploadJobs   UploadJob[]
 
@@ -446,11 +462,13 @@ model UploadJob {
   updatedAt          DateTime        @updatedAt @map("updated_at")
   completedAt        DateTime?       @map("completed_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id])
-  client       Client       @relation(fields: [clientId], references: [id])
-  artifact     ScanArtifact @relation(fields: [artifactId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client       Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  artifact     ScanArtifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, clientId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
   @@index([artifactId])
   @@map("upload_jobs")
 }
@@ -461,6 +479,7 @@ model UploadJob {
 
 model Comment {
   id                  String    @id @default(cuid()) @map("id")
+  organizationId      String    @map("organization_id")
   vulnerabilityCaseId String    @map("vulnerability_case_id")
   userId              String    @map("user_id")
   content             String    @map("content")
@@ -469,15 +488,18 @@ model Comment {
   updatedAt           DateTime  @updatedAt @map("updated_at")
   deletedAt           DateTime? @map("deleted_at")
 
-  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
-  user              User              @relation(fields: [userId], references: [id])
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id], onDelete: Cascade)
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([vulnerabilityCaseId])
   @@map("comments")
 }
 
 model WorkflowLineage {
   id                  String     @id @default(cuid()) @map("id")
+  organizationId      String     @map("organization_id")
   vulnerabilityCaseId String     @map("vulnerability_case_id")
   fromStatus          CaseStatus @map("from_status")
   toStatus            CaseStatus @map("to_status")
@@ -486,15 +508,18 @@ model WorkflowLineage {
   metadata            Json?      @map("metadata")
   createdAt           DateTime   @default(now()) @map("created_at")
 
-  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
-  changedBy         User?             @relation(fields: [changedById], references: [id])
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id], onDelete: Cascade)
+  changedBy         User?             @relation(fields: [changedById], references: [id], onDelete: SetNull)
 
+  @@index([organizationId])
   @@index([vulnerabilityCaseId])
   @@map("workflow_lineages")
 }
 
 model RiskException {
   id                  String        @id @default(cuid()) @map("id")
+  organizationId      String        @map("organization_id")
   vulnerabilityCaseId String        @map("vulnerability_case_id")
   type                ExceptionType @map("type")
   decidedById         String        @map("decided_by_id")
@@ -506,16 +531,19 @@ model RiskException {
   createdAt           DateTime      @default(now()) @map("created_at")
   updatedAt           DateTime      @updatedAt @map("updated_at")
 
-  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
-  decidedBy         User              @relation("ExceptionDecidedBy", fields: [decidedById], references: [id])
-  approvedBy        User?             @relation("ExceptionApprovedBy", fields: [approvedById], references: [id])
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id], onDelete: Cascade)
+  decidedBy         User              @relation("ExceptionDecidedBy", fields: [decidedById], references: [id], onDelete: Cascade)
+  approvedBy        User?             @relation("ExceptionApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
+  @@index([organizationId])
   @@index([vulnerabilityCaseId])
   @@map("risk_exceptions")
 }
 
 model Ticket {
   id                  String    @id @default(cuid()) @map("id")
+  organizationId      String    @map("organization_id")
   vulnerabilityCaseId String    @map("vulnerability_case_id")
   system              String    @map("system")
   ticketKey           String    @map("ticket_key")
@@ -528,8 +556,10 @@ model Ticket {
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")
 
-  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id])
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([vulnerabilityCaseId])
   @@map("tickets")
 }
@@ -552,7 +582,7 @@ model SlaPolicy {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
-  organization       Organization        @relation(fields: [organizationId], references: [id])
+  organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   vulnerabilityCases VulnerabilityCase[]
 
   @@index([organizationId])
@@ -570,7 +600,7 @@ model ApiKey {
   lastUsedAt      DateTime? @map("last_used_at")
   createdAt       DateTime  @default(now()) @map("created_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([keyHash])
@@ -594,16 +624,18 @@ model AuditLog {
   previousHash   String?     @map("previous_hash")
   createdAt      DateTime    @default(now()) @map("created_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([organizationId, entityType, entityId])
   @@index([organizationId, createdAt])
+  @@index([organizationId, action])
   @@map("audit_logs")
 }
 
 model Notification {
   id                String    @id @default(cuid()) @map("id")
+  organizationId    String    @map("organization_id")
   userId            String    @map("user_id")
   type              String    @map("type")
   title             String    @map("title")
@@ -614,8 +646,10 @@ model Notification {
   createdAt         DateTime  @default(now()) @map("created_at")
   readAt            DateTime? @map("read_at")
 
-  user User @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([userId, isRead])
   @@index([userId, createdAt])
   @@map("notifications")
@@ -780,7 +814,7 @@ model SyncJob {
   createdAt            DateTime       @default(now()) @map("created_at")
   updatedAt            DateTime       @updatedAt @map("updated_at")
 
-  connector ScannerConnector @relation(fields: [connectorId], references: [id])
+  connector ScannerConnector @relation(fields: [connectorId], references: [id], onDelete: Cascade)
   logs      SyncLog[]
 
   @@index([connectorId])
@@ -801,4 +835,59 @@ model SyncLog {
 
   @@index([syncJobId, createdAt])
   @@map("sync_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline Scan Model (w21t8)
+// ---------------------------------------------------------------------------
+
+enum PipelineScanType {
+  SAST
+  SCA
+  CONTAINER
+  SECRETS
+}
+
+enum PipelineScanStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum PipelineScanTrigger {
+  PUSH
+  PR
+  SCHEDULE
+  MANUAL
+}
+
+model PipelineScan {
+  id             String              @id @default(cuid()) @map("id")
+  organizationId String              @map("organization_id")
+  repository     String              @map("repository")
+  branch         String              @map("branch")
+  commitSha      String              @map("commit_sha")
+  scanType       PipelineScanType    @map("scan_type")
+  status         PipelineScanStatus  @default(QUEUED) @map("status")
+  startedAt      DateTime?           @map("started_at")
+  completedAt    DateTime?           @map("completed_at")
+  findingsCount  Int                 @default(0) @map("findings_count")
+  criticalCount  Int                 @default(0) @map("critical_count")
+  highCount      Int                 @default(0) @map("high_count")
+  mediumCount    Int                 @default(0) @map("medium_count")
+  lowCount       Int                 @default(0) @map("low_count")
+  triggeredBy    PipelineScanTrigger @default(PUSH) @map("triggered_by")
+  prNumber       Int?                @map("pr_number")
+  errorMessage   String?             @map("error_message")
+  metadata       Json?               @map("metadata")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, repository])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@map("pipeline_scans")
 }

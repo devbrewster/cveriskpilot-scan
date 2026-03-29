@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
 import { getOrgTier, checkBillingGate, trackAiCall } from '@/lib/billing';
 import type { RemediationRequest, RemediationResult } from '@cveriskpilot/ai';
 
@@ -20,6 +20,17 @@ export async function POST(request: NextRequest) {
   // --- Auth check ---
   const session = await getServerSession(request);
   if (!session) return errorResponse(401, 'Unauthorized');
+
+  // Rate limiting — 10 req/min per user
+  try {
+    const limiter = getSensitiveWriteLimiter();
+    const rl = await limiter.check(`ai_remediation:${session.userId}`);
+    if (!rl.allowed) {
+      return errorResponse(429, 'Too many requests. Please try again later.');
+    }
+  } catch {
+    // Redis not available — skip rate limiting
+  }
 
   let body: { caseId?: string; caseData?: Partial<RemediationRequest> };
   try {

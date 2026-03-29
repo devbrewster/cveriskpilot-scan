@@ -91,6 +91,7 @@ export async function pushCaseToJira(
 
   const ticket = await prisma.ticket.create({
     data: {
+      organizationId: vulnCase.organizationId,
       vulnerabilityCaseId: caseId,
       system: 'jira',
       ticketKey: created.key,

@@ -1,4 +1,7 @@
 import type { NvdCveData, NvdCvssData } from '../types';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('enrichment:nvd');
 
 const NVD_API_BASE = 'https://services.nvd.nist.gov/rest/json/cves/2.0';
 const BATCH_SIZE = 100;
@@ -167,7 +170,7 @@ async function fetchSingleCve(cveId: string): Promise<NvdCveData | null> {
 
       if (response.status === 429 || response.status === 503) {
         const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt);
-        console.warn(
+        logger.warn(
           `NVD API returned ${response.status} for ${cveId}, retrying in ${backoff}ms (attempt ${attempt + 1}/${MAX_RETRIES})`,
         );
         await sleepMs(backoff);
@@ -175,7 +178,7 @@ async function fetchSingleCve(cveId: string): Promise<NvdCveData | null> {
       }
 
       if (!response.ok) {
-        console.warn(
+        logger.warn(
           `NVD API returned ${response.status} for ${cveId}, skipping`,
         );
         return null;
@@ -189,12 +192,12 @@ async function fetchSingleCve(cveId: string): Promise<NvdCveData | null> {
     } catch (err) {
       if (attempt < MAX_RETRIES - 1) {
         const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt);
-        console.warn(
+        logger.warn(
           `NVD API error for ${cveId}: ${String(err)}, retrying in ${backoff}ms`,
         );
         await sleepMs(backoff);
       } else {
-        console.error(`NVD API failed for ${cveId} after ${MAX_RETRIES} attempts:`, err);
+        logger.error(`NVD API failed for ${cveId} after ${MAX_RETRIES} attempts`, { error: String(err) });
       }
     }
   }

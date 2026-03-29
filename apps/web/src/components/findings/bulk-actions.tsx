@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ui/toast';
-import type { CaseStatus } from '@/lib/mock-findings';
+import type { CaseStatus } from '@/lib/types';
 
 interface BulkActionsProps {
   selectedCount: number;

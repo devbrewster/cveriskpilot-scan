@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@cveriskpilot/auth';
 import { isValidTransition, getValidNextStatuses } from '@/lib/workflow';
+import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
 // GET /api/cases/[id] — Single case with full details
@@ -155,6 +156,7 @@ export async function PATCH(
       if (status && status !== current.status) {
         await tx.workflowLineage.create({
           data: {
+            organizationId: session.organizationId,
             vulnerabilityCaseId: id,
             fromStatus: current.status,
             toStatus: status,
@@ -164,6 +166,20 @@ export async function PATCH(
       }
 
       return updated;
+    });
+
+    // Audit log for case updates
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: status && status !== current.status ? 'STATE_CHANGE' : 'UPDATE',
+      entityType: 'VulnerabilityCase',
+      entityId: id,
+      details: {
+        ...(status && status !== current.status ? { fromStatus: current.status, toStatus: status } : {}),
+        ...(assignedToId !== undefined ? { assignedToId } : {}),
+        ...(reason ? { reason } : {}),
+      },
     });
 
     return NextResponse.json({

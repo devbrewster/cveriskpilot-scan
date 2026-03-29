@@ -1,6 +1,6 @@
 'use client';
 
-import type { Severity, CaseStatus, ScannerType } from '@/lib/mock-findings';
+import type { Severity, CaseStatus, ScannerType } from '@/lib/types';
 
 const severityStyles: Record<Severity, string> = {
   CRITICAL: 'bg-red-100 text-red-800 ring-red-600/20',

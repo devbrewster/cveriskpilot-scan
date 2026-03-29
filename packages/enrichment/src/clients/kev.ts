@@ -1,4 +1,7 @@
 import type { KevData, KevMatch } from '../types';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('enrichment:kev');
 
 const KEV_CATALOG_URL =
   'https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json';
@@ -61,7 +64,7 @@ export async function loadKevCatalog(): Promise<Map<string, KevData>> {
     });
 
     if (!response.ok) {
-      console.error(`KEV catalog fetch failed with status ${response.status}`);
+      logger.error(`KEV catalog fetch failed with status ${response.status}`);
       // Return stale cache if available
       if (cachedCatalog) return cachedCatalog;
       return new Map();
@@ -79,10 +82,10 @@ export async function loadKevCatalog(): Promise<Map<string, KevData>> {
     cachedCatalog = catalog;
     lastFetchTimestamp = now;
 
-    console.log(`KEV catalog loaded: ${catalog.size} entries`);
+    logger.info(`KEV catalog loaded: ${catalog.size} entries`);
     return catalog;
   } catch (err) {
-    console.error('Failed to load KEV catalog:', err);
+    logger.error('Failed to load KEV catalog', { error: String(err) });
     // Return stale cache if available
     if (cachedCatalog) return cachedCatalog;
     return new Map();

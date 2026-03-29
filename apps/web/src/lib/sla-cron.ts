@@ -57,6 +57,7 @@ export async function checkSlaBreaches(
         },
         select: {
           id: true,
+          organizationId: true,
           title: true,
           severity: true,
           dueAt: true,
@@ -73,6 +74,7 @@ export async function checkSlaBreaches(
         },
         select: {
           id: true,
+          organizationId: true,
           title: true,
           severity: true,
           dueAt: true,
@@ -90,6 +92,7 @@ export async function checkSlaBreaches(
 
         await prisma.notification.create({
           data: {
+            organizationId: c.organizationId,
             userId: c.assignedToId,
             type: 'SLA_BREACH',
             title: `SLA Breached: ${c.title}`,
@@ -111,6 +114,7 @@ export async function checkSlaBreaches(
 
         await prisma.notification.create({
           data: {
+            organizationId: c.organizationId,
             userId: c.assignedToId,
             type: 'SLA_APPROACHING',
             title: `SLA Deadline Approaching: ${c.title}`,
@@ -187,6 +191,7 @@ export async function checkExpiredExceptions(
           // Record workflow lineage
           await tx.workflowLineage.create({
             data: {
+              organizationId: ex.organizationId,
               vulnerabilityCaseId: ex.vulnerabilityCaseId,
               fromStatus: caseStatus,
               toStatus: 'REOPENED',

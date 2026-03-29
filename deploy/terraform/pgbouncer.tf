@@ -147,28 +147,8 @@ resource "google_cloud_run_v2_service" "pgbouncer" {
   ]
 }
 
-# Secret for the database password (used by PgBouncer)
-resource "google_secret_manager_secret" "db_password" {
-  count     = var.environment == "prod" || var.environment == "dev" ? 1 : 0
-  secret_id = "cveriskpilot-${var.environment}-db-password"
-
-  replication {
-    auto {}
-  }
-
-  labels = {
-    environment = var.environment
-    app         = "cveriskpilot"
-    component   = "pgbouncer"
-  }
-}
-
-resource "google_secret_manager_secret_iam_member" "pgbouncer_db_password" {
-  count     = var.environment == "prod" || var.environment == "dev" ? 1 : 0
-  secret_id = google_secret_manager_secret.db_password[0].id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.cloudrun.email}"
-}
+# DB password secret is defined in database.tf (google_secret_manager_secret.db_password_main).
+# PgBouncer reuses that secret — IAM access is granted there as well.
 
 # -----------------------------------------------------------------------------
 # Outputs

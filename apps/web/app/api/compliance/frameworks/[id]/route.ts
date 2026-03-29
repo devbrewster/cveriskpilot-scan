@@ -5,9 +5,13 @@ import {
   SOC2_FRAMEWORK,
   SSDF_FRAMEWORK,
   ASVS_FRAMEWORK,
+  CMMC_FRAMEWORK,
+  FEDRAMP_FRAMEWORK,
   assessSOC2,
   assessSSDF,
   assessASVS,
+  assessCMMC,
+  assessFedRAMP,
 } from '@cveriskpilot/compliance';
 import type { ComplianceAssessmentInput, ComplianceFramework, ComplianceEvidence } from '@cveriskpilot/compliance';
 
@@ -15,12 +19,16 @@ const FRAMEWORKS: Record<string, ComplianceFramework> = {
   'soc2-type2': SOC2_FRAMEWORK,
   'nist-ssdf': SSDF_FRAMEWORK,
   'owasp-asvs': ASVS_FRAMEWORK,
+  'cmmc-l2': CMMC_FRAMEWORK,
+  'fedramp-moderate': FEDRAMP_FRAMEWORK,
 };
 
 const ASSESSORS: Record<string, (input: ComplianceAssessmentInput) => ComplianceEvidence[]> = {
   'soc2-type2': assessSOC2,
   'nist-ssdf': assessSSDF,
   'owasp-asvs': assessASVS,
+  'cmmc-l2': assessCMMC,
+  'fedramp-moderate': assessFedRAMP,
 };
 
 // ---------------------------------------------------------------------------

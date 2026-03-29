@@ -12,6 +12,9 @@
   "dependencies": {
     "@cveriskpilot/connectors": "*",
     "@cveriskpilot/domain": "*",
+    "@cveriskpilot/enrichment": "*",
+    "@cveriskpilot/notifications": "*",
+    "@cveriskpilot/parsers": "*",
     "@cveriskpilot/storage": "*"
   },
   "devDependencies": {

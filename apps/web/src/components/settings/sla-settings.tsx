@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Dialog } from '@/components/ui/dialog';
 
 interface SlaPolicy {
   id: string;
@@ -51,6 +52,10 @@ export function SlaSettings({ organizationId }: SlaSettingsProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<SlaPolicyFormData>(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    onConfirm: () => void;
+  }>({ open: false, onConfirm: () => {} });
 
   const fetchPolicies = useCallback(async () => {
     try {
@@ -133,19 +138,22 @@ export function SlaSettings({ organizationId }: SlaSettingsProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this SLA policy?')) return;
-
-    try {
-      const res = await fetch(`/api/sla/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? 'Failed to delete policy');
-      }
-      await fetchPolicies();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
-    }
+  const handleDelete = (id: string) => {
+    setConfirmDialog({
+      open: true,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/sla/${id}`, { method: 'DELETE' });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error ?? 'Failed to delete policy');
+          }
+          await fetchPolicies();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Delete failed');
+        }
+      },
+    });
   };
 
   const severityFields = [
@@ -407,6 +415,17 @@ export function SlaSettings({ organizationId }: SlaSettingsProps) {
           </table>
         </div>
       )}
+
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        title="Delete SLA Policy"
+        onConfirm={confirmDialog.onConfirm}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+      >
+        <p>Are you sure you want to delete this SLA policy?</p>
+      </Dialog>
     </div>
   );
 }

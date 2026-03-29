@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -83,6 +83,9 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
 
     const organizationId = session.organizationId;
     const body = await request.json();

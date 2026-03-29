@@ -127,7 +127,7 @@ export function CommentThread({ caseId, currentUserId }: CommentThreadProps) {
   useEffect(() => {
     async function loadUsers() {
       try {
-        const res = await fetch('/api/auth/users');
+        const res = await fetch('/api/users');
         if (res.ok) {
           const data = await res.json();
           setOrgUsers(Array.isArray(data) ? data : data.users || []);

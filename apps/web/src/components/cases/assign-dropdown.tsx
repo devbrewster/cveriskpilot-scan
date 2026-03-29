@@ -51,7 +51,7 @@ export function AssignDropdown({
   useEffect(() => {
     if (!open || members.length > 0) return;
     setLoading(true);
-    fetch('/api/auth/users')
+    fetch('/api/users')
       .then((res) => res.json())
       .then((data) => {
         setMembers(Array.isArray(data) ? data : data.users || []);

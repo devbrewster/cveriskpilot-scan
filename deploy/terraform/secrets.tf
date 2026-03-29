@@ -12,6 +12,11 @@ locals {
     "stripe-secret-key",
     "stripe-webhook-secret",
     "nvd-api-key",
+    "master-encryption-key",
+    "smtp-pass",
+    "cron-secret",
+    "workos-api-key",
+    "workos-client-id",
   ]
 }
 

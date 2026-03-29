@@ -87,6 +87,7 @@ export async function PATCH(request: NextRequest) {
       await tx.workflowLineage.createMany({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: validCases.map((c: any) => ({
+          organizationId: session.organizationId,
           vulnerabilityCaseId: c.id,
           fromStatus: c.status,
           toStatus: status as any,

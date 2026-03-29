@@ -15,7 +15,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@cveriskpilot/domain": "*"
+    "@cveriskpilot/domain": "*",
+    "@cveriskpilot/parsers": "*"
   },
   "devDependencies": {}
 }

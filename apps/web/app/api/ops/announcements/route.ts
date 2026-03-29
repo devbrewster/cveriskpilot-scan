@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import crypto from 'node:crypto';
+
+// ---------------------------------------------------------------------------
+// Ops auth helper
+// ---------------------------------------------------------------------------
+async function requireOpsAuth(request: NextRequest) {
+  const session = await getServerSession(request);
+  if (!session) {
+    return { error: NextResponse.json({ error: 'Authentication required' }, { status: 401 }) };
+  }
+  if (!session.email?.endsWith('@cveriskpilot.com')) {
+    return { error: NextResponse.json({ error: 'Internal staff only' }, { status: 403 }) };
+  }
+  return { session };
+}
 
 // ---------------------------------------------------------------------------
 // /api/ops/announcements — Announcement banner management (mock)
@@ -84,7 +99,10 @@ const announcements: Announcement[] = [
 // ---------------------------------------------------------------------------
 // GET — List all announcements
 // ---------------------------------------------------------------------------
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const auth = await requireOpsAuth(request);
+  if ('error' in auth) return auth.error;
+
   try {
     return NextResponse.json({ announcements });
   } catch (error) {
@@ -100,6 +118,9 @@ export async function GET() {
 // POST — Create a new announcement
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
+  const auth = await requireOpsAuth(request);
+  if ('error' in auth) return auth.error;
+
   try {
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== 'object') {
@@ -173,6 +194,9 @@ export async function POST(request: NextRequest) {
 // PUT — Update announcement status
 // ---------------------------------------------------------------------------
 export async function PUT(request: NextRequest) {
+  const auth = await requireOpsAuth(request);
+  if ('error' in auth) return auth.error;
+
   try {
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== 'object') {

@@ -74,6 +74,36 @@ variable "vertex_region" {
   default     = "us-central1"
 }
 
+variable "google_oidc_client_id" {
+  description = "Google OAuth client ID for OIDC login"
+  type        = string
+  default     = ""
+}
+
+variable "smtp_host" {
+  description = "SMTP server hostname for outbound email"
+  type        = string
+  default     = ""
+}
+
+variable "smtp_port" {
+  description = "SMTP server port"
+  type        = string
+  default     = "587"
+}
+
+variable "smtp_user" {
+  description = "SMTP authentication username"
+  type        = string
+  default     = ""
+}
+
+variable "smtp_from" {
+  description = "Default sender address for outbound email"
+  type        = string
+  default     = "noreply@cveriskpilot.com"
+}
+
 variable "github_owner" {
   description = "GitHub repository owner"
   type        = string

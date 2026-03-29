@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 
 /**
  * GET /api/ops/customers/:id
@@ -118,9 +119,17 @@ const MOCK_CUSTOMERS: Record<string, CustomerDetail> = {
 };
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const session = await getServerSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+  if (!session.email?.endsWith('@cveriskpilot.com')) {
+    return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
+  }
+
   try {
     const { id } = await params;
 

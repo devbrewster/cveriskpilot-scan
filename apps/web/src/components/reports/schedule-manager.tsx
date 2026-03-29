@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Dialog } from '@/components/ui/dialog';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -71,6 +72,12 @@ export function ScheduleManager() {
   const [saving, setSaving] = useState(false);
   const [runningId, setRunningId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // -----------------------------------------------------------------------
   // Data fetching
@@ -176,16 +183,21 @@ export function ScheduleManager() {
   // Delete
   // -----------------------------------------------------------------------
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this scheduled report?')) return;
-
-    try {
-      const res = await fetch(`/api/reports/schedules/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete');
-      await fetchSchedules();
-    } catch {
-      setError('Failed to delete schedule');
-    }
+  function handleDelete(id: string) {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Scheduled Report',
+      message: 'Delete this scheduled report?',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/reports/schedules/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete');
+          await fetchSchedules();
+        } catch {
+          setError('Failed to delete schedule');
+        }
+      },
+    });
   }
 
   // -----------------------------------------------------------------------
@@ -516,6 +528,17 @@ export function ScheduleManager() {
           ))}
         </div>
       )}
+
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        onConfirm={confirmDialog.onConfirm}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+      >
+        <p>{confirmDialog.message}</p>
+      </Dialog>
     </div>
   );
 }

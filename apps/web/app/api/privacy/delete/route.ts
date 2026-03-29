@@ -38,9 +38,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Only allow users to delete their own account, or PLATFORM_ADMIN to delete any
-    if (user.email !== session.email && session.role !== 'PLATFORM_ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // Only allow users to delete their own account, or PLATFORM_ADMIN/ORG_OWNER for their org
+    if (user.email !== session.email) {
+      if (session.role === 'PLATFORM_ADMIN') {
+        // Platform admin can delete any user
+      } else if (session.role === 'ORG_OWNER' && user.organizationId === session.organizationId) {
+        // Org owner can delete users in their own org
+      } else {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
     }
 
     // Validate confirmation

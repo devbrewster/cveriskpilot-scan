@@ -173,6 +173,7 @@ export async function POST(request: NextRequest) {
 
     const exception = await prisma.riskException.create({
       data: {
+        organizationId: session.organizationId,
         vulnerabilityCaseId,
         type: type as 'ACCEPTED_RISK' | 'FALSE_POSITIVE' | 'NOT_APPLICABLE',
         decidedById: session.userId,

@@ -105,6 +105,9 @@ export function FrameworkDashboard({
   const [nistCoverage, setNistCoverage] = useState<NistFamilyCoverage[]>([]);
   const [nistLoading, setNistLoading] = useState(false);
   const [expandedNistFamily, setExpandedNistFamily] = useState<string | null>(null);
+  const [frameworkError, setFrameworkError] = useState<string | null>(null);
+  const [assessmentError, setAssessmentError] = useState<string | null>(null);
+  const [nistError, setNistError] = useState<string | null>(null);
 
   const orgId = organizationId ?? '';
 
@@ -118,9 +121,11 @@ export function FrameworkDashboard({
           if (data.frameworks?.length > 0) {
             setSelectedId(data.frameworks[0].id);
           }
+        } else {
+          setFrameworkError('Failed to load compliance frameworks');
         }
       } catch {
-        // ignore
+        setFrameworkError('Failed to load compliance frameworks');
       } finally {
         setLoading(false);
       }
@@ -129,15 +134,18 @@ export function FrameworkDashboard({
 
   const fetchAssessment = useCallback(async (fwId: string) => {
     setAssessmentLoading(true);
+    setAssessmentError(null);
     try {
       const res = await fetch(
         `/api/compliance/frameworks/${fwId}?organizationId=${orgId}`,
       );
       if (res.ok) {
         setAssessment(await res.json());
+      } else {
+        setAssessmentError('Failed to load framework assessment');
       }
     } catch {
-      // ignore
+      setAssessmentError('Failed to load framework assessment');
     } finally {
       setAssessmentLoading(false);
     }
@@ -151,6 +159,7 @@ export function FrameworkDashboard({
   useEffect(() => {
     (async () => {
       setNistLoading(true);
+      setNistError(null);
       try {
         const res = await fetch(
           `/api/compliance/frameworks/nist-800-53-mapping?organizationId=${orgId}`,
@@ -158,9 +167,11 @@ export function FrameworkDashboard({
         if (res.ok) {
           const data = await res.json();
           setNistCoverage(data.families ?? []);
+        } else {
+          setNistError('Failed to load NIST 800-53 control mapping');
         }
       } catch {
-        // ignore — section will show empty state
+        setNistError('Failed to load NIST 800-53 control mapping');
       } finally {
         setNistLoading(false);
       }
@@ -186,6 +197,12 @@ export function FrameworkDashboard({
           Auto-assessed compliance posture based on your vulnerability management data.
         </p>
       </div>
+
+      {frameworkError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          {frameworkError}
+        </div>
+      )}
 
       {/* Framework Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
@@ -218,6 +235,10 @@ export function FrameworkDashboard({
             </div>
           </div>
           <div className="h-64 rounded bg-gray-100 dark:bg-gray-800" />
+        </div>
+      ) : assessmentError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          {assessmentError}
         </div>
       ) : assessment ? (
         <div className="space-y-6">
@@ -365,7 +386,11 @@ export function FrameworkDashboard({
           </p>
         </div>
 
-        {nistLoading ? (
+        {nistError ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            {nistError}
+          </div>
+        ) : nistLoading ? (
           <div className="animate-pulse space-y-3">
             {[1, 2, 3, 4].map((i) => (
               <div

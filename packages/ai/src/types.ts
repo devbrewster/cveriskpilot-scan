@@ -103,6 +103,7 @@ export interface AiUsageStats {
 /** Subscription tiers with their AI call limits */
 export const AI_TIER_LIMITS: Record<string, number> = {
   FREE: 50,
+  FOUNDERS_BETA: 250,
   PRO: 500,
   ENTERPRISE: 5000,
   MSSP: 10000,

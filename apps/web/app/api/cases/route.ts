@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@cveriskpilot/auth';
 import { CursorPaginator } from '@cveriskpilot/db-scale';
+import { resolveClientScope } from '@/lib/client-scope';
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,13 +30,19 @@ export async function GET(request: NextRequest) {
     const cursorDirection = (searchParams.get('cursorDirection') ?? 'forward') as 'forward' | 'backward';
     const useCursorPagination = !!cursor || searchParams.has('cursor');
 
-    // Build where clause — always scope to the user's organization
+    // Build where clause — always scope to the user's organization + client scope
+    const clientScope = await resolveClientScope(session);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: Record<string, any> = {
       organizationId: session.organizationId,
+      ...clientScope.where,
     };
 
+    // Allow further filtering by clientId param (if within accessible scope)
     if (clientId) {
+      if (clientScope.clientIds && !clientScope.clientIds.includes(clientId)) {
+        return NextResponse.json({ items: [], total: 0, page, totalPages: 0 });
+      }
       where.clientId = clientId;
     }
 

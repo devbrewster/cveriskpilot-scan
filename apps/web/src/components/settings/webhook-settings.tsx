@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Dialog } from '@/components/ui/dialog';
 
 const WEBHOOK_EVENTS = [
   { value: 'scan.completed', label: 'Scan Completed', group: 'Scans' },
@@ -55,6 +56,12 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<{ id: string; success: boolean; message: string } | null>(null);
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, message: '', onConfirm: () => {} });
 
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -161,26 +168,28 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
     }
   };
 
-  const handleDelete = async (id: string, url: string) => {
-    if (!confirm(`Delete webhook for ${url}? This cannot be undone.`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/webhooks/config', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizationId, endpointId: id }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? 'Failed to delete webhook');
-      }
-      if (editingId === id) resetForm();
-      await fetchWebhooks();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete webhook');
-    }
+  const handleDelete = (id: string, url: string) => {
+    setConfirmDialog({
+      open: true,
+      message: `Delete webhook for ${url}? This cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          const res = await fetch('/api/webhooks/config', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ organizationId, endpointId: id }),
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error ?? 'Failed to delete webhook');
+          }
+          if (editingId === id) resetForm();
+          await fetchWebhooks();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to delete webhook');
+        }
+      },
+    });
   };
 
   const handleTest = async (id: string) => {
@@ -571,6 +580,17 @@ export function WebhookSettings({ organizationId }: WebhookSettingsProps) {
           .
         </p>
       )}
+
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        title="Delete Webhook"
+        onConfirm={confirmDialog.onConfirm}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+      >
+        <p>{confirmDialog.message}</p>
+      </Dialog>
     </div>
   );
 }

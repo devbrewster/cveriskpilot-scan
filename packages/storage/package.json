@@ -17,6 +17,8 @@
   "dependencies": {
     "@cveriskpilot/domain": "*",
     "@cveriskpilot/parsers": "*",
+    "@cveriskpilot/shared": "*",
+    "@cveriskpilot/enrichment": "*",
     "@google-cloud/storage": "^7.19.0",
     "@google-cloud/tasks": "^5.0.0"
   },

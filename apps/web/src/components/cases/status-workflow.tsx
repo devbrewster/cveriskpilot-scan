@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { StatusBadge, getStatusLabel } from '@/components/ui/badges';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
-import type { CaseStatus } from '@/lib/mock-findings';
+import type { CaseStatus } from '@/lib/types';
 
 // Valid transitions map
 const VALID_TRANSITIONS: Record<CaseStatus, { status: CaseStatus; label: string; variant?: 'primary' | 'danger' }[]> = {

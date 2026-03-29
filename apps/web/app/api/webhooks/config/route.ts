@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession, validateExternalUrl, checkCsrf, encryptForTenant, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { getServerSession, validateExternalUrl, checkCsrf, encryptForTenant, requireRole, ADMIN_ROLES, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
 import type { EncryptedPayload } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -74,6 +74,20 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(request);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting — 10 req/min per user
+    try {
+      const limiter = getSensitiveWriteLimiter();
+      const rl = await limiter.check(`webhook_config:${session.userId}`);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+        );
+      }
+    } catch {
+      // Redis not available — skip rate limiting
     }
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
@@ -182,6 +196,20 @@ export async function PUT(request: NextRequest) {
     const session = await getServerSession(request);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting — 10 req/min per user
+    try {
+      const limiter = getSensitiveWriteLimiter();
+      const rl = await limiter.check(`webhook_config:${session.userId}`);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+        );
+      }
+    } catch {
+      // Redis not available — skip rate limiting
     }
 
     const roleError2 = requireRole(session.role, ADMIN_ROLES);

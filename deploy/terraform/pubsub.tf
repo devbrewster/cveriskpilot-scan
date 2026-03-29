@@ -64,7 +64,7 @@ resource "google_pubsub_subscription" "pipeline" {
   message_retention_duration = "604800s" # 7 days
 
   push_config {
-    push_endpoint = "${google_cloud_run_v2_service.worker.uri}/api/jobs/${each.key}"
+    push_endpoint = "${google_cloud_run_v2_service.worker.uri}/jobs/process"
 
     oidc_token {
       service_account_email = google_service_account.cloudrun.email

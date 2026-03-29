@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@cveriskpilot/domain": "*",
+    "@cveriskpilot/shared": "*",
     "stripe": "^17.0.0",
     "ioredis": "^5.4.0"
   },

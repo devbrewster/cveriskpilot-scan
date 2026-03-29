@@ -79,8 +79,11 @@ const API_PUBLIC_PATHS = [
   '/api/auth/google/callback',
   '/api/auth/mfa/verify',
   '/api/auth/dev-session',
-  '/api/webhooks',        // webhooks have their own HMAC auth
-  '/api/pipeline/scan',   // uses API key auth, not session
+  '/api/webhooks',                          // webhooks have their own HMAC auth
+  '/api/integrations/jira/webhook',         // Jira webhook (HMAC auth)
+  '/api/connectors/webhook/',               // Scanner webhooks (HMAC auth)
+  '/api/billing/webhook',                   // Stripe webhook (signature verification)
+  '/api/pipeline/scan',                     // uses API key auth, not session
   '/api/health',
   '/api/docs',
 ];
@@ -234,16 +237,27 @@ export function middleware(request: NextRequest) {
         : NextResponse.redirect(new URL(`/login?callbackUrl=${pathname}`, request.url));
     }
 
-    // Attempt to read email from session cookie (base64-encoded JSON)
+    // Attempt to read email from session cookie (base64-encoded JSON).
+    // When Redis-backed sessions are active, the cookie is an opaque UUID
+    // and JSON.parse will fail. In that case, route-level auth (getServerSession)
+    // handles domain verification, but we still block at middleware as defense-in-depth.
     let email: string | null = null;
+    let isOpaqueToken = false;
     try {
       const payload = JSON.parse(atob(sessionCookie.value));
       email = typeof payload.email === 'string' ? payload.email : null;
     } catch {
-      // Opaque token — can't verify domain. Block page routes, allow API routes to self-auth.
-      if (!pathname.startsWith('/api/')) {
-        return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
-      }
+      // Opaque token (Redis session UUID) — can't verify domain at middleware layer.
+      // Block both page and API routes. Route-level auth is the primary gate,
+      // but ops routes should not be reachable without domain verification.
+      isOpaqueToken = true;
+    }
+
+    // For opaque tokens, let route-level getServerSession handle auth.
+    // The route-level handlers (added in Wave 22a) will verify the staff domain.
+    // We still block page routes since they don't have route-level auth.
+    if (isOpaqueToken && !pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
     }
 
     if (email && !email.endsWith('@cveriskpilot.com')) {
@@ -292,6 +306,53 @@ export function middleware(request: NextRequest) {
             { status: 403 },
           );
         }
+      }
+    }
+  }
+
+  // --- CSRF protection for state-changing API requests ---
+  // Uses double-submit cookie pattern: crp_csrf cookie must match X-CSRF-Token header.
+  // Exemptions: routes with their own auth (webhooks, cron, pipeline, SCIM, auth flows).
+  if (
+    pathname.startsWith('/api/') &&
+    !['GET', 'HEAD', 'OPTIONS'].includes(request.method)
+  ) {
+    const CSRF_EXEMPT_PREFIXES = [
+      '/api/auth/',           // Login/signup flows
+      '/api/webhooks/',       // External webhooks (HMAC auth)
+      '/api/billing/webhook', // Stripe webhooks
+      '/api/jobs/',           // Cloud Tasks (internal)
+      '/api/cron/',           // Cloud Scheduler (internal)
+      '/api/pipeline/',       // API key auth
+      '/api/scim/',           // SCIM token auth
+      '/api/health',          // Health checks
+      '/api/integrations/jira/webhook',     // Jira webhooks
+      '/api/integrations/servicenow/sync',  // ServiceNow sync (API-initiated)
+      '/api/connectors/webhook/',           // Scanner webhooks
+    ];
+
+    // Also exempt heartbeat endpoint (connector agents, not browsers)
+    const isCsrfExempt =
+      CSRF_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p)) ||
+      pathname.match(/^\/api\/connectors\/[^/]+\/heartbeat$/);
+
+    if (!isCsrfExempt) {
+      const csrfCookie = request.cookies.get('crp_csrf')?.value;
+      const csrfHeader = request.headers.get('x-csrf-token');
+
+      if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+        const duration_ms = Date.now() - start;
+        writeRequestLog('WARNING', `${request.method} ${pathname} 403 ${duration_ms}ms (CSRF failed)`, {
+          method: request.method,
+          path: pathname,
+          status: 403,
+          duration_ms,
+        });
+
+        return NextResponse.json(
+          { error: 'CSRF validation failed' },
+          { status: 403 },
+        );
       }
     }
   }

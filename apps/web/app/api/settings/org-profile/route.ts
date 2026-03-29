@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
 // In-memory org profile store (per org)
@@ -78,6 +79,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, ADMIN_ROLES);
+    if (roleError) return roleError;
+
     const organizationId = session.organizationId;
     const body = await request.json();
 
@@ -118,6 +122,15 @@ export async function PUT(request: NextRequest) {
     const profile = getOrCreateProfile(organizationId);
     if (name !== undefined) profile.name = name.trim();
     if (contactEmail !== undefined) profile.contactEmail = contactEmail.trim();
+
+    logAudit({
+      organizationId,
+      actorId: session.userId,
+      action: 'UPDATE',
+      entityType: 'Organization',
+      entityId: organizationId,
+      details: { ...(name !== undefined ? { name } : {}), ...(contactEmail !== undefined ? { contactEmail } : {}) },
+    });
 
     return NextResponse.json({
       organizationId,

@@ -28,6 +28,15 @@ alert_email = ""
 # Geo-blocking (ISO 3166-1 alpha-2 codes)
 blocked_countries = []
 
+# Google OAuth
+google_oidc_client_id = ""  # From Google Cloud Console > APIs & Services > Credentials
+
+# SMTP (outbound email)
+smtp_host = ""              # e.g. smtp.resend.com
+smtp_port = "587"
+smtp_user = ""
+smtp_from = "noreply@cveriskpilot.com"
+
 # GitHub (for Cloud Build triggers)
 github_owner = "cveriskpilot"
 github_repo  = "cveriskpilot"

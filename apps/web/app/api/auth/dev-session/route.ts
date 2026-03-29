@@ -9,8 +9,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
-  // Block in non-development environments
-  if (process.env.NODE_ENV !== 'development') {
+  // Block in non-development environments.
+  // Requires BOTH NODE_ENV=development AND explicit DEV_SESSION_ENABLED=true.
+  // This double-gate prevents accidental activation if NODE_ENV is misconfigured
+  // in a Cloud Run or staging environment.
+  if (
+    process.env.NODE_ENV !== 'development' ||
+    process.env.DEV_SESSION_ENABLED !== 'true'
+  ) {
     return NextResponse.json({ error: 'Not available' }, { status: 404 });
   }
 

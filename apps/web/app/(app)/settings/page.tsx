@@ -14,10 +14,12 @@ import { NotificationPreferences } from '@/components/settings/notification-pref
 import { WebhookSettings } from '@/components/settings/webhook-settings';
 import { OrgProfile } from '@/components/settings/org-profile';
 import { AiPrompts } from '@/components/settings/ai-prompts';
+import { MfaSetup } from '@/components/auth/mfa-setup';
 
 type TabId =
   | 'org-profile'
   | 'sso'
+  | 'mfa'
   | 'api-keys'
   | 'service-accounts'
   | 'ip-allowlist'
@@ -48,6 +50,7 @@ const tabGroups: TabGroup[] = [
     name: 'Security',
     tabs: [
       { id: 'sso', label: 'SSO' },
+      { id: 'mfa', label: 'MFA' },
       { id: 'api-keys', label: 'API Keys' },
       { id: 'service-accounts', label: 'Service Accounts' },
       { id: 'ip-allowlist', label: 'IP Allowlist' },
@@ -90,7 +93,15 @@ export default function SettingsPage() {
     );
   }
 
-  const orgId = organizationId ?? 'org-default';
+  if (!organizationId) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-red-600">No organization found. Please log in again.</div>
+      </div>
+    );
+  }
+
+  const orgId = organizationId;
   const orgTier = tier ?? 'PRO';
 
   function renderTab(tab: TabId) {
@@ -99,6 +110,8 @@ export default function SettingsPage() {
         return <OrgProfile organizationId={orgId} tier={orgTier} />;
       case 'sso':
         return <SsoSettings organizationId={orgId} tier={orgTier} />;
+      case 'mfa':
+        return <MfaSetup />;
       case 'api-keys':
         return <ApiKeys organizationId={orgId} />;
       case 'service-accounts':

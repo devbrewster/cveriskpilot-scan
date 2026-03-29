@@ -72,6 +72,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Poll unread count
@@ -97,10 +98,13 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   useEffect(() => {
     if (!open) return;
     setLoading(true);
+    setError(null);
     fetch(`/api/notifications?userId=${userId}&limit=10`)
       .then((res) => res.json())
       .then((data) => setNotifications(data.notifications || []))
-      .catch(() => {})
+      .catch(() => {
+        setError('Failed to load notifications');
+      })
       .finally(() => setLoading(false));
   }, [open, userId]);
 
@@ -158,6 +162,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
         type="button"
         onClick={() => setOpen(!open)}
         className="relative rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+        aria-label="Notifications"
+        aria-haspopup="true"
+        aria-expanded={open}
       >
         <svg
           className="h-5 w-5"
@@ -198,7 +205,9 @@ export function NotificationBell({ userId }: NotificationBellProps) {
 
           {/* Notification list */}
           <div className="max-h-96 overflow-auto">
-            {loading ? (
+            {error ? (
+              <p className="px-4 py-6 text-center text-sm text-red-600 dark:text-red-400">{error}</p>
+            ) : loading ? (
               <div className="flex justify-center py-8">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-blue-500" />
               </div>

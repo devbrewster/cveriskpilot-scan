@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import {
   ServiceNowClient,
@@ -54,6 +55,11 @@ function buildClientConfig(stored: StoredServiceNowConfig): ServiceNowConfig {
  */
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { caseId } = body as { caseId?: string };
 
@@ -138,6 +144,7 @@ export async function POST(request: NextRequest) {
     // Store a Ticket record linking the case to the ServiceNow incident
     const ticket = await prisma.ticket.create({
       data: {
+        organizationId: session.organizationId,
         vulnerabilityCaseId: caseId,
         system: 'servicenow',
         ticketKey: incident.number,

@@ -18,8 +18,7 @@ import {
   demoComplianceScores,
   demoTimeline,
 } from '@/lib/demo-data';
-import type { Severity, UploadJob } from '@/lib/types';
-import type { VulnerabilityCase } from '@/lib/mock-data';
+import type { Severity, UploadJob, VulnerabilityCase } from '@/lib/types';
 
 
 // Derive severity counts from demoCases, scaled to 587 total

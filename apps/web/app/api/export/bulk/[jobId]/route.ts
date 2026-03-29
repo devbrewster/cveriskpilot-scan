@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@cveriskpilot/auth';
-import { exportJobStore } from '../route';
+import { getExportJob } from '../route';
 
 // ---------------------------------------------------------------------------
 // GET /api/export/bulk/[jobId] — Check export status and download
@@ -17,7 +17,7 @@ export async function GET(
     }
 
     const { jobId } = await params;
-    const job = exportJobStore.get(jobId);
+    const job = await getExportJob(jobId);
 
     if (!job || job.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Export job not found' }, { status: 404 });

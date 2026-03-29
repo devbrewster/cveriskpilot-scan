@@ -24,34 +24,35 @@ steps:
     args: ['push', '--all-tags', 'gcr.io/$PROJECT_ID/cveriskpilot-web']
     waitFor: ['build']
 
-  # ── Deploy web service to Cloud Run ──────────────────────────────────────
+  # ── Update web service image on Cloud Run ─────────────────────────────────
+  # Use `services update` instead of `deploy` to avoid overriding Terraform-managed
+  # settings (ingress, scaling, env vars, VPC connector, etc.).
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'deploy-web'
     args:
       - 'gcloud'
       - 'run'
-      - 'deploy'
+      - 'services'
+      - 'update'
       - 'cveriskpilot-web-${_ENV}'
       - '--region=${_REGION}'
       - '--image=gcr.io/$PROJECT_ID/cveriskpilot-web:$SHORT_SHA'
       - '--platform=managed'
-      - '--ingress=all'
-      - '--allow-unauthenticated'
     waitFor: ['push']
 
-  # ── Deploy worker service to Cloud Run ───────────────────────────────────
+  # ── Update worker service image on Cloud Run ─────────────────────────────
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'deploy-worker'
     allowFailure: true
     args:
       - 'gcloud'
       - 'run'
-      - 'deploy'
+      - 'services'
+      - 'update'
       - 'cveriskpilot-worker-${_ENV}'
       - '--region=${_REGION}'
       - '--image=gcr.io/$PROJECT_ID/cveriskpilot-web:$SHORT_SHA'
       - '--platform=managed'
-      - '--no-allow-unauthenticated'
     waitFor: ['push']
 
 substitutions:

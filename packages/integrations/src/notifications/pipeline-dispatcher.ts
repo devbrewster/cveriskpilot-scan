@@ -9,6 +9,9 @@ import type {
 } from './pipeline-types';
 import { SlackNotifier } from '../slack/slack-notifier';
 import { TeamsNotifier } from '../teams/teams-notifier';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('integrations:pipeline-dispatcher');
 
 export interface DispatchResult {
   channelId: string;
@@ -36,14 +39,14 @@ export class PipelineNotificationDispatcher {
       enabled.map(async (config): Promise<DispatchResult> => {
         try {
           await this.sendToChannel(config, result);
-          console.info(
-            `[pipeline-dispatcher] Delivered scan result to ${config.channel} channel "${config.label ?? config.id}"`,
+          logger.info(
+            `Delivered scan result to ${config.channel} channel "${config.label ?? config.id}"`,
           );
           return { channelId: config.id, channel: config.channel, success: true };
         } catch (err) {
           const error = err instanceof Error ? err.message : String(err);
-          console.error(
-            `[pipeline-dispatcher] Failed to deliver to ${config.channel} channel "${config.label ?? config.id}": ${error}`,
+          logger.error(
+            `Failed to deliver to ${config.channel} channel "${config.label ?? config.id}": ${error}`,
           );
           return { channelId: config.id, channel: config.channel, success: false, error };
         }
@@ -75,14 +78,14 @@ export class PipelineNotificationDispatcher {
       enabled.map(async (config): Promise<DispatchResult> => {
         try {
           await this.sendComplianceAlertToChannel(config, alert);
-          console.info(
-            `[pipeline-dispatcher] Delivered compliance alert to ${config.channel} channel "${config.label ?? config.id}"`,
+          logger.info(
+            `Delivered compliance alert to ${config.channel} channel "${config.label ?? config.id}"`,
           );
           return { channelId: config.id, channel: config.channel, success: true };
         } catch (err) {
           const error = err instanceof Error ? err.message : String(err);
-          console.error(
-            `[pipeline-dispatcher] Failed compliance alert to ${config.channel} channel "${config.label ?? config.id}": ${error}`,
+          logger.error(
+            `Failed compliance alert to ${config.channel} channel "${config.label ?? config.id}": ${error}`,
           );
           return { channelId: config.id, channel: config.channel, success: false, error };
         }
@@ -119,8 +122,8 @@ export class PipelineNotificationDispatcher {
       case 'webhook':
         // Generic webhook channels are handled by the existing webhook-sender
         // infrastructure. This dispatcher focuses on Slack/Teams rich formatting.
-        console.warn(
-          `[pipeline-dispatcher] Generic webhook channel "${config.id}" should use emitWebhookEvent() instead.`,
+        logger.warn(
+          `Generic webhook channel "${config.id}" should use emitWebhookEvent() instead.`,
         );
         return;
       default:
@@ -144,8 +147,8 @@ export class PipelineNotificationDispatcher {
         return;
       }
       case 'webhook':
-        console.warn(
-          `[pipeline-dispatcher] Generic webhook channel "${config.id}" should use emitWebhookEvent() instead.`,
+        logger.warn(
+          `Generic webhook channel "${config.id}" should use emitWebhookEvent() instead.`,
         );
         return;
       default:

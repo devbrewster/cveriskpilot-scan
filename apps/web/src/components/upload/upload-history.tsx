@@ -3,6 +3,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { UploadJob, UploadJobStatus } from '@/lib/types';
 import { formatRelativeTime, formatNumber } from '@/lib/format';
+import { Pagination } from '@/components/ui/pagination';
+
+const ITEMS_PER_PAGE = 15;
 
 /* ------------------------------------------------------------------ */
 /* Status & Format Badge Colors                                       */
@@ -47,6 +50,7 @@ export function UploadHistory() {
   const [uploads, setUploads] = useState<UploadJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchUploads = useCallback(async () => {
     try {
@@ -68,6 +72,12 @@ export function UploadHistory() {
   useEffect(() => {
     fetchUploads();
   }, [fetchUploads]);
+
+  const totalPages = Math.ceil(uploads.length / ITEMS_PER_PAGE);
+  const paginatedUploads = uploads.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="mt-8">
@@ -124,7 +134,7 @@ export function UploadHistory() {
                 </td>
               </tr>
             )}
-            {!loading && uploads.map((job) => (
+            {!loading && paginatedUploads.map((job) => (
               <tr key={job.id} className="hover:bg-gray-50 transition-colors">
                 <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                   {job.filename}
@@ -161,6 +171,13 @@ export function UploadHistory() {
           </tbody>
         </table>
       </div>
+      {!loading && uploads.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 }

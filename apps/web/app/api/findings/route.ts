@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@cveriskpilot/auth';
+import { resolveClientScope } from '@/lib/client-scope';
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,11 +26,17 @@ export async function GET(request: NextRequest) {
     const sortOrder = (searchParams.get('sortOrder') ?? 'desc') as 'asc' | 'desc';
 
     // Build where clause — always scope to the user's organization
+    const clientScope = await resolveClientScope(session);
     const where: Prisma.FindingWhereInput = {
       organizationId: session.organizationId,
+      ...clientScope.where,
     };
 
+    // Allow further filtering by clientId param (if within accessible scope)
     if (clientId) {
+      if (clientScope.clientIds && !clientScope.clientIds.includes(clientId)) {
+        return NextResponse.json({ items: [], total: 0, page, totalPages: 0 });
+      }
       where.clientId = clientId;
     }
 

@@ -88,6 +88,7 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>('all');
   const [page, setPage] = useState(1);
 
@@ -108,9 +109,12 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
         const data = await res.json();
         setNotifications(data.notifications || []);
         setPagination(data.pagination || null);
+        setError(null);
+      } else {
+        setError('Failed to load notifications');
       }
     } catch {
-      console.error('Failed to load notifications');
+      setError('Failed to load notifications');
     } finally {
       setLoading(false);
     }
@@ -167,6 +171,16 @@ export function NotificationPanel({ userId }: NotificationPanelProps) {
           </button>
         ))}
       </div>
+
+      {/* Error state */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          {error}
+          <button type="button" onClick={fetchNotifications} className="ml-2 font-medium underline hover:no-underline">
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Notification list */}
       {loading ? (

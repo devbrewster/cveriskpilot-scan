@@ -28,6 +28,11 @@ export async function GET(request: NextRequest) {
     const organizationId = session.organizationId;
     const clientId = searchParams.get('clientId');
 
+    // MTTR date range: default 90 days, customizable via ?mttrDays=N
+    const mttrDaysParam = parseInt(searchParams.get('mttrDays') ?? '90', 10);
+    const mttrWindow = Math.max(1, Number.isFinite(mttrDaysParam) ? mttrDaysParam : 90);
+    const mttrSince = new Date(Date.now() - mttrWindow * 86_400_000);
+
     // Build filter: org-scoped, optionally narrowed to a single client
     const baseFilter: Record<string, string> = { organizationId };
     if (clientId) baseFilter.clientId = clientId;
@@ -112,11 +117,12 @@ export async function GET(request: NextRequest) {
         select: { kevDueDate: true },
       }),
 
-      // Resolved cases for MTTR calculation (VERIFIED_CLOSED)
+      // Resolved cases for MTTR calculation (VERIFIED_CLOSED, within date window)
       prisma.vulnerabilityCase.findMany({
         where: {
           ...orgFilter,
           status: 'VERIFIED_CLOSED',
+          createdAt: { gte: mttrSince },
         },
         select: {
           createdAt: true,

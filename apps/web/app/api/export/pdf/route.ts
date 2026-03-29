@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "@cveriskpilot/auth";
+import { getServerSession, getExportLimiter } from "@cveriskpilot/auth";
 import { renderToBuffer } from "@react-pdf/renderer";
 import {
   generatePdfDocument,
@@ -463,6 +463,20 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(request);
     if (!session) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
+    // Rate limiting — 5 req/min per user
+    try {
+      const limiter = getExportLimiter();
+      const rl = await limiter.check(`export_pdf:${session.userId}`);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: "Too many export requests. Please try again later." },
+          { status: 429, headers: { "Retry-After": String(rl.retryAfter ?? 60) } },
+        );
+      }
+    } catch {
+      // Redis not available — skip rate limiting
     }
 
     const body = (await request.json()) as ExportRequest;

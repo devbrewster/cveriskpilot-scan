@@ -6,7 +6,7 @@ import {
   validateEmail,
   createSession,
   setSessionCookie,
-  getLoginLimiter,
+  getSignupLimiter,
 } from '@cveriskpilot/auth';
 import { UserRole } from '@cveriskpilot/domain';
 
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   // Rate limit by IP to prevent mass account creation and email enumeration
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   try {
-    const limiter = getLoginLimiter();
+    const limiter = getSignupLimiter();
     const rl = await limiter.check(`signup:${ip}`);
     if (!rl.allowed) {
       return NextResponse.json(

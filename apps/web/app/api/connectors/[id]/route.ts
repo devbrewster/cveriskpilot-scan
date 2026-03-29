@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { logAudit } from '@/lib/audit';
 import {
   getConnector,
   updateConnector,
@@ -74,6 +75,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
+
     // Verify connector belongs to the user's organization
     const existing = await getConnector(prisma, id);
     if (!existing) {
@@ -108,6 +112,19 @@ export async function PUT(
     } else {
       connector = existing;
     }
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'UPDATE',
+      entityType: 'Connector',
+      entityId: id,
+      details: {
+        ...(name !== undefined ? { name } : {}),
+        ...(endpoint !== undefined ? { endpoint } : {}),
+        ...(rotateKey ? { keyRotated: true } : {}),
+      },
+    });
 
     const response: Record<string, unknown> = { connector };
     if (newAuthKey) {
@@ -145,6 +162,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
+
     // Verify connector belongs to the user's organization
     const existing = await getConnector(prisma, id);
     if (!existing) {
@@ -155,6 +175,15 @@ export async function DELETE(
     }
 
     await deleteConnector(prisma, id);
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'DELETE',
+      entityType: 'Connector',
+      entityId: id,
+    });
+
     return NextResponse.json({ message: 'Connector deleted' });
   } catch (error) {
     console.error('[API] DELETE /api/connectors/[id] error:', error);

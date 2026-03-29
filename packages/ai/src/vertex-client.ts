@@ -76,9 +76,10 @@ export function createVertexClient(): Anthropic {
   const baseURL = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/anthropic/models`;
 
   _vertexClient = new Anthropic({
-    // Vertex AI uses bearer tokens, not API keys. We set a placeholder here
-    // and override the auth header per-request via the authToken fetch.
-    apiKey: 'vertex-ai-placeholder',
+    // Vertex AI uses bearer tokens, not API keys. The Anthropic SDK requires
+    // an apiKey to be set; we use a dummy value since auth is handled via
+    // the Authorization header override with a fresh ADC token per request.
+    apiKey: process.env['VERTEX_AI_API_KEY'] ?? 'vertex-ai-unused',
     baseURL,
   });
 
@@ -134,13 +135,14 @@ export async function generateRemediationVertex(
   const client = createVertexClient();
   const { system, userMessage } = buildRemediationPrompt(params);
 
-  // Fetch a fresh access token for each request (tokens expire after ~1hr)
-  const accessToken = await getAccessToken();
-
   let lastError: unknown;
 
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
+      // Fetch a fresh access token for each attempt so retries don't reuse
+      // a potentially expired token (ADC tokens expire after ~1hr).
+      const accessToken = await getAccessToken();
+
       const response = await client.messages.create(
         {
           model: MODEL,

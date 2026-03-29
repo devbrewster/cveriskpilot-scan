@@ -440,16 +440,25 @@ async function handleSendNotification(payload: Record<string, unknown>): Promise
 
     // Create an in-app notification record if userId is provided and notificationId is not
     if (userId && !notificationId) {
-      await prisma.notification.create({
-        data: {
-          userId,
-          type: notificationType,
-          title: (payload.title as string) ?? notificationType,
-          message: (payload.message as string) ?? '',
-          relatedEntityType: payload.entityType as string | undefined,
-          relatedEntityId: payload.entityId as string | undefined,
-        },
-      });
+      // Resolve organizationId from payload or user record
+      let orgId = payload.organizationId as string | undefined;
+      if (!orgId && userId) {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { organizationId: true } });
+        orgId = user?.organizationId;
+      }
+      if (orgId) {
+        await prisma.notification.create({
+          data: {
+            organizationId: orgId,
+            userId,
+            type: notificationType,
+            title: (payload.title as string) ?? notificationType,
+            message: (payload.message as string) ?? '',
+            relatedEntityType: payload.entityType as string | undefined,
+            relatedEntityId: payload.entityId as string | undefined,
+          },
+        });
+      }
     }
 
     // Resolve user email for sending

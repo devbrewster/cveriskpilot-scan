@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, getRedisClient, getBulkExportLimiter } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
-// In-memory export job tracking.
-// In production, use a DB table or cloud storage for job state.
+// Redis-backed export job tracking.
+// Jobs are stored as JSON strings under `crp:export_job:<jobId>` with a
+// 1-hour TTL so they auto-expire and don't grow unbounded.
 // ---------------------------------------------------------------------------
 
 export interface ExportJob {
@@ -26,9 +27,25 @@ export interface ExportJob {
   completedAt: string | null;
 }
 
-const exportJobStore = new Map<string, ExportJob>();
+const EXPORT_JOB_TTL = 3600; // 1 hour
 
-export { exportJobStore };
+function redisKey(jobId: string): string {
+  return `crp:export_job:${jobId}`;
+}
+
+async function getExportJob(jobId: string): Promise<ExportJob | null> {
+  const redis = getRedisClient();
+  const raw = await redis.get(redisKey(jobId));
+  if (!raw) return null;
+  return JSON.parse(raw) as ExportJob;
+}
+
+async function setExportJob(job: ExportJob): Promise<void> {
+  const redis = getRedisClient();
+  await redis.set(redisKey(job.id), JSON.stringify(job), 'EX', EXPORT_JOB_TTL);
+}
+
+export { getExportJob };
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -62,13 +79,13 @@ function escapeCSV(value: string): string {
 const MAX_EXPORT_RECORDS = 10000;
 
 async function processExportJob(jobId: string): Promise<void> {
-  const job = exportJobStore.get(jobId);
+  const job = await getExportJob(jobId);
   if (!job) return;
 
   try {
     job.status = 'processing';
     job.progress = 10;
-    exportJobStore.set(jobId, { ...job });
+    await setExportJob(job);
 
     const where: Record<string, unknown> = { organizationId: job.organizationId };
     if (job.clientId) where.clientId = job.clientId;
@@ -105,7 +122,7 @@ async function processExportJob(jobId: string): Promise<void> {
 
         job.totalRecords = findings.length;
         job.progress = 50;
-        exportJobStore.set(jobId, { ...job });
+        await setExportJob(job);
 
         if (job.format === 'csv') {
           const headers = ['Finding ID', 'Scanner Type', 'Scanner Name', 'Asset', 'Severity', 'Status', 'CVE IDs', 'CVSS', 'EPSS', 'KEV', 'Discovered At'];
@@ -139,7 +156,7 @@ async function processExportJob(jobId: string): Promise<void> {
 
         job.totalRecords = cases.length;
         job.progress = 50;
-        exportJobStore.set(jobId, { ...job });
+        await setExportJob(job);
 
         if (job.format === 'csv') {
           const headers = ['Case ID', 'Title', 'Severity', 'Status', 'CVE IDs', 'CVSS', 'EPSS', 'KEV', 'Assigned To', 'Due At', 'Finding Count', 'First Seen', 'Last Seen'];
@@ -172,7 +189,7 @@ async function processExportJob(jobId: string): Promise<void> {
 
         job.totalRecords = assets.length;
         job.progress = 50;
-        exportJobStore.set(jobId, { ...job });
+        await setExportJob(job);
 
         if (job.format === 'csv') {
           const headers = ['Asset ID', 'Name', 'Type', 'Environment', 'Criticality', 'Internet Exposed', 'Tags', 'Created At'];
@@ -201,13 +218,13 @@ async function processExportJob(jobId: string): Promise<void> {
     job.result = result;
     job.filename = filename;
     job.completedAt = new Date().toISOString();
-    exportJobStore.set(jobId, { ...job });
+    await setExportJob(job);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(`[export-bulk] Job ${jobId} failed:`, message);
     job.status = 'failed';
     job.error = message;
-    exportJobStore.set(jobId, { ...job });
+    await setExportJob(job);
   }
 }
 
@@ -220,6 +237,20 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(request);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting — 3 req/min per user
+    try {
+      const limiter = getBulkExportLimiter();
+      const rl = await limiter.check(`bulk_export:${session.userId}`);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: 'Too many export requests. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+        );
+      }
+    } catch {
+      // Redis not available — skip rate limiting
     }
 
     const body = await request.json();
@@ -263,7 +294,7 @@ export async function POST(request: NextRequest) {
       completedAt: null,
     };
 
-    exportJobStore.set(job.id, job);
+    await setExportJob(job);
 
     // Fire and forget — process in background
     processExportJob(job.id).catch((err) => {

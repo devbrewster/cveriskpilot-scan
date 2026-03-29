@@ -2,6 +2,9 @@ import type { PrismaClient } from '@cveriskpilot/domain';
 import { downloadFromGCS } from '../gcs/upload';
 import { downloadFromLocal } from '../gcs/local-upload';
 import { buildCases } from '../case-builder/case-builder';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('storage:job-consumer');
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -139,14 +142,13 @@ export async function processUploadJob(
       },
     });
 
-    console.log(
-      `[job-consumer] Job ${jobId} completed: ` +
-        `${deduplicated.length} findings parsed, ` +
-        `${uniqueCves.size} CVEs enriched, ` +
-        `${totalCasesCreated} cases created, ` +
-        `${totalCasesUpdated} cases updated, ` +
-        `${totalFindingsLinked} findings linked`,
-    );
+    logger.info(`Job ${jobId} completed`, {
+      findingsParsed: deduplicated.length,
+      cvesEnriched: uniqueCves.size,
+      casesCreated: totalCasesCreated,
+      casesUpdated: totalCasesUpdated,
+      findingsLinked: totalFindingsLinked,
+    });
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : String(error);

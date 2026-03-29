@@ -1,11 +1,10 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
 // Domain gate helper — only @cveriskpilot.com emails may access ops APIs.
-// In production this would decode the session JWT; here we read the mock
-// session cookie set by /api/auth/session.
 // ---------------------------------------------------------------------------
 
 async function getStaffEmail(_req: NextRequest): Promise<string | null> {
@@ -14,16 +13,11 @@ async function getStaffEmail(_req: NextRequest): Promise<string | null> {
   if (!session?.value) return null;
 
   try {
-    // Session cookie is base64-encoded JSON (matches auth-context-provider flow)
     const payload = JSON.parse(
       Buffer.from(session.value, 'base64').toString('utf-8'),
     );
     return typeof payload.email === 'string' ? payload.email : null;
   } catch {
-    // If the cookie isn't base64 JSON, treat it as an opaque token and
-    // fall back to fetching from the session API internally.
-    // For the MVP mock, we allow access if the cookie exists (middleware
-    // already validated the domain).
     return null;
   }
 }
@@ -34,27 +28,88 @@ function isStaffEmail(email: string | null): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// GET /api/ops/overview — platform-wide mock stats
+// GET /api/ops/overview — platform-wide stats from database
 // ---------------------------------------------------------------------------
 
 export async function GET(req: NextRequest) {
-  // Domain-gate: only internal staff
   const email = await getStaffEmail(req);
   if (!isStaffEmail(email)) {
-    // Middleware already handles redirection / 403 for /ops/* pages,
-    // but API routes should also self-protect.
     return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
   }
 
-  // Mock data — replace with real Prisma aggregation queries in production
-  const overview = {
-    totalOrgs: 47,
-    activeUsers30d: 312,
-    mrr: 18_450,
-    totalScans: 1_284,
-    openCases: 763,
-    avgMttrDays: 4.2,
-  };
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  return NextResponse.json(overview);
+    const [totalOrgs, activeUsers30d, totalScans, openCases] = await Promise.all([
+      prisma.organization.count({ where: { deletedAt: null } }),
+      prisma.user.count({
+        where: {
+          lastLoginAt: { gte: thirtyDaysAgo },
+          deletedAt: null,
+        },
+      }),
+      prisma.uploadJob.count(),
+      prisma.vulnerabilityCase.count({
+        where: {
+          status: { in: ['NEW', 'TRIAGE', 'IN_REMEDIATION', 'REOPENED'] },
+        },
+      }),
+    ]);
+
+    // Compute average MTTR (mean time to remediate) for cases closed in the last 90 days
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+    const closedCases = await prisma.vulnerabilityCase.findMany({
+      where: {
+        status: 'VERIFIED_CLOSED',
+        updatedAt: { gte: ninetyDaysAgo },
+      },
+      select: {
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    let avgMttrDays = 0;
+    if (closedCases.length > 0) {
+      const totalDays = closedCases.reduce((sum, c) => {
+        const days = (c.updatedAt.getTime() - c.createdAt.getTime()) / (1000 * 60 * 60 * 24);
+        return sum + days;
+      }, 0);
+      avgMttrDays = Math.round((totalDays / closedCases.length) * 10) / 10;
+    }
+
+    // MRR estimate: count orgs by tier and multiply by approximate tier prices
+    const tierCounts = await prisma.organization.groupBy({
+      by: ['tier'],
+      _count: true,
+      where: { deletedAt: null },
+    });
+
+    const tierPrices: Record<string, number> = {
+      FREE: 0,
+      FOUNDERS_BETA: 0,
+      PRO: 99,
+      ENTERPRISE: 2499,
+      MSSP: 4999,
+    };
+
+    const mrr = tierCounts.reduce((sum, t) => {
+      return sum + (tierPrices[t.tier] ?? 0) * t._count;
+    }, 0);
+
+    return NextResponse.json({
+      totalOrgs,
+      activeUsers30d,
+      mrr,
+      totalScans,
+      openCases,
+      avgMttrDays,
+    });
+  } catch (error) {
+    console.error('[API] GET /api/ops/overview error:', error);
+    return NextResponse.json({ error: 'Failed to load overview' }, { status: 500 });
+  }
 }

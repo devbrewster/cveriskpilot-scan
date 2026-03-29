@@ -3,8 +3,8 @@ import { getServerSession, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskp
 import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
-// In-memory retention policy store (per org)
-// In production, this would be stored in a database model or settings table.
+// Retention policy store — persisted in the Organization.entitlements JSON
+// field under the key "retentionPolicy".
 // ---------------------------------------------------------------------------
 
 interface RetentionPolicy {
@@ -23,8 +23,12 @@ const DEFAULT_POLICY: RetentionPolicy = {
   updatedAt: new Date().toISOString(),
 };
 
-// Simple in-memory store keyed by organizationId
-const retentionPolicies: Record<string, RetentionPolicy> = {};
+function getRetentionFromEntitlements(entitlements: unknown): RetentionPolicy | null {
+  if (!entitlements || typeof entitlements !== 'object') return null;
+  const ent = entitlements as Record<string, unknown>;
+  if (!ent.retentionPolicy || typeof ent.retentionPolicy !== 'object') return null;
+  return ent.retentionPolicy as RetentionPolicy;
+}
 
 // ---------------------------------------------------------------------------
 // GET /api/settings/retention — current retention policy
@@ -39,7 +43,12 @@ export async function GET(request: NextRequest) {
 
     const organizationId = session.organizationId;
 
-    const policy = retentionPolicies[organizationId] ?? DEFAULT_POLICY;
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { entitlements: true },
+    });
+
+    const policy = getRetentionFromEntitlements(org?.entitlements) ?? DEFAULT_POLICY;
 
     return NextResponse.json({ organizationId, policy });
   } catch (error) {
@@ -98,7 +107,23 @@ export async function PUT(request: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    retentionPolicies[organizationId] = policy;
+    // Persist in Organization.entitlements JSON field
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { entitlements: true },
+    });
+
+    const entitlements = {
+      ...(typeof org?.entitlements === 'object' && org.entitlements !== null
+        ? org.entitlements
+        : {}),
+      retentionPolicy: policy,
+    };
+
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { entitlements: entitlements as any },
+    });
 
     // Audit log for retention policy change
     try {

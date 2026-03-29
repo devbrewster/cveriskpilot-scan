@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, getExportLimiter } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/export/findings — Export findings as CSV
@@ -12,6 +12,20 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(request);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting — 5 req/min per user
+    try {
+      const limiter = getExportLimiter();
+      const rl = await limiter.check(`export_findings:${session.userId}`);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: 'Too many export requests. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+        );
+      }
+    } catch {
+      // Redis not available — skip rate limiting
     }
 
     const { searchParams } = new URL(request.url);

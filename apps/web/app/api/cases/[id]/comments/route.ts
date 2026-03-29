@@ -125,6 +125,7 @@ export async function POST(
     const comment = await prisma.$transaction(async (tx: any) => {
       const created = await tx.comment.create({
         data: {
+          organizationId: session.organizationId,
           vulnerabilityCaseId: id,
           userId,
           content,
@@ -143,6 +144,7 @@ export async function POST(
           data: mentionedUsers
             .filter((u) => u.id !== userId) // don't notify the author
             .map((u: any) => ({
+              organizationId: session.organizationId,
               userId: u.id,
               type: 'mention',
               title: `${commentAuthor?.name ?? 'Someone'} mentioned you`,

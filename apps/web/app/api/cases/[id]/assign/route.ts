@@ -69,6 +69,7 @@ export async function PUT(
       if (assignedToId && assignedToId !== existing.assignedToId) {
         await tx.notification.create({
           data: {
+            organizationId: session.organizationId,
             userId: assignedToId,
             type: 'assignment',
             title: 'Case assigned to you',

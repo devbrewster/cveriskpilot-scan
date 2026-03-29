@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/components/ui/toast';
+import { Dialog } from '@/components/ui/dialog';
 import { ApiConnectorWizard } from './api-connector-wizard';
 import { SyncHistory } from './sync-history';
 
@@ -349,6 +351,9 @@ function AgentConnectorsTab({
   const [newAuthKey, setNewAuthKey] = useState<string | null>(null);
   const [showInstructions, setShowInstructions] = useState<string | null>(null);
   const [rotatingKey, setRotatingKey] = useState<string | null>(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const { addToast } = useToast();
 
   const agentConnectors = connectors.filter((c) => !c.isApiConnector);
 
@@ -369,21 +374,30 @@ function AgentConnectorsTab({
       if (res.ok) {
         const data = await res.json();
         setNewAuthKey(data.authKey);
+      } else {
+        addToast('error', 'Failed to rotate authentication key');
       }
     } catch {
-      // silent
+      addToast('error', 'Failed to rotate authentication key');
     } finally {
       setRotatingKey(null);
     }
   };
 
-  const handleDelete = async (connectorId: string) => {
-    if (!confirm('Are you sure you want to delete this connector?')) return;
+  const handleDelete = (connectorId: string) => {
+    setPendingDeleteId(connectorId);
+    setConfirmDeleteOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!pendingDeleteId) return;
     try {
-      await fetch(`/api/connectors/${connectorId}`, { method: 'DELETE' });
+      await fetch(`/api/connectors/${pendingDeleteId}`, { method: 'DELETE' });
       onRefresh();
     } catch {
-      // silent
+      addToast('error', 'Failed to delete connector');
+    } finally {
+      setPendingDeleteId(null);
     }
   };
 
@@ -514,6 +528,17 @@ function AgentConnectorsTab({
           ))}
         </div>
       )}
+
+      <Dialog
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        title="Delete Connector"
+        onConfirm={executeDelete}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+      >
+        <p>Are you sure you want to delete this connector?</p>
+      </Dialog>
     </div>
   );
 }
@@ -535,6 +560,7 @@ function ApiConnectorsTab({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ConnectorRecord | null>(null);
+  const { addToast } = useToast();
 
   const apiConnectors = connectors.filter((c) => c.isApiConnector);
 
@@ -548,7 +574,7 @@ function ApiConnectorsTab({
       });
       setTimeout(onRefresh, 2000);
     } catch {
-      // silent
+      addToast('error', 'Failed to trigger sync');
     } finally {
       setSyncingId(null);
     }
@@ -560,7 +586,7 @@ function ApiConnectorsTab({
       await fetch(`/api/connectors/${deleteTarget.id}`, { method: 'DELETE' });
       onRefresh();
     } catch {
-      // silent
+      addToast('error', 'Failed to delete connector');
     } finally {
       setDeleteTarget(null);
     }
@@ -714,16 +740,20 @@ export function ConnectorSettings({ organizationId }: ConnectorSettingsProps) {
   const [connectors, setConnectors] = useState<ConnectorRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>('api');
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchConnectors = useCallback(async () => {
     try {
+      setFetchError(null);
       const res = await fetch(`/api/connectors?organizationId=${organizationId}`);
       if (res.ok) {
         const data = await res.json();
         setConnectors(data.connectors);
+      } else {
+        setFetchError('Failed to load connectors');
       }
     } catch {
-      // silent
+      setFetchError('Failed to load connectors');
     } finally {
       setLoading(false);
     }
@@ -752,6 +782,15 @@ export function ConnectorSettings({ organizationId }: ConnectorSettingsProps) {
           Manage scanner integrations for automated vulnerability data collection.
         </p>
       </div>
+
+      {fetchError && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          {fetchError}
+          <button type="button" onClick={fetchConnectors} className="ml-2 font-medium underline hover:no-underline">
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">

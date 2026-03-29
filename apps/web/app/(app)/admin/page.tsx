@@ -3,6 +3,7 @@
 import { RoleGuard } from '@/components/auth/role-guard';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card } from '@/components/ui/card';
+import { OnboardingWizard } from '@/components/admin/onboarding-wizard';
 
 const FEATURE_FLAGS = [
   { name: 'AI Remediation', enabled: true },
@@ -115,6 +116,14 @@ export default function AdminPage() {
               </div>
             ))}
           </div>
+        </Card>
+
+        {/* Tenant Onboarding */}
+        <Card
+          title="Onboard New Tenant"
+          description="Step-by-step wizard to create a new organization, owner account, and configure billing tier"
+        >
+          <OnboardingWizard />
         </Card>
       </div>
     </RoleGuard>

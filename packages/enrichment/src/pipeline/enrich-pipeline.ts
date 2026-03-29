@@ -1,4 +1,8 @@
 import type { CanonicalFinding } from '@cveriskpilot/parsers';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('enrichment:pipeline');
+
 import type {
   EnrichedFinding,
   EnrichmentStats,
@@ -66,7 +70,7 @@ async function enrichNvd(
       }
     }
   } catch (err) {
-    console.error('NVD enrichment failed (partial):', err);
+    logger.error('NVD enrichment failed (partial)', { error: String(err) });
   }
 
   return allNvd;
@@ -107,7 +111,7 @@ async function enrichEpss(
       }
     }
   } catch (err) {
-    console.error('EPSS enrichment failed (partial):', err);
+    logger.error('EPSS enrichment failed (partial)', { error: String(err) });
   }
 
   return allEpss;
@@ -133,7 +137,7 @@ async function enrichKev(
       kevMap.set(match.cveId, match.kevData);
     }
   } catch (err) {
-    console.error('KEV enrichment failed (partial):', err);
+    logger.error('KEV enrichment failed (partial)', { error: String(err) });
   }
 
   return kevMap;
@@ -210,13 +214,15 @@ export async function enrichFindings(
 
   stats.enrichmentTimeMs = Date.now() - startTime;
 
-  console.log(
-    `Enrichment complete: ${stats.totalCves} CVEs, ` +
-      `NVD cache=${stats.nvdCacheHits} api=${stats.nvdApiCalls}, ` +
-      `EPSS cache=${stats.epssCacheHits} api=${stats.epssApiCalls}, ` +
-      `KEV matches=${stats.kevMatches}, ` +
-      `time=${stats.enrichmentTimeMs}ms`,
-  );
+  logger.info('Enrichment complete', {
+    totalCves: stats.totalCves,
+    nvdCacheHits: stats.nvdCacheHits,
+    nvdApiCalls: stats.nvdApiCalls,
+    epssCacheHits: stats.epssCacheHits,
+    epssApiCalls: stats.epssApiCalls,
+    kevMatches: stats.kevMatches,
+    enrichmentTimeMs: stats.enrichmentTimeMs,
+  });
 
   return enriched;
 }

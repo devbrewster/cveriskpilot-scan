@@ -1,10 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 
 /**
  * GET /api/ops/billing
  * Returns mock billing operations data for the ops dashboard.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+  if (!session.email?.endsWith('@cveriskpilot.com')) {
+    return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
+  }
   const mrr = 42_850;
   const arr = mrr * 12;
   const customerCount = 365;

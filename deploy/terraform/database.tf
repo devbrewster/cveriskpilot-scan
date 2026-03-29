@@ -67,6 +67,40 @@ resource "google_sql_user" "cveriskpilot" {
 }
 
 # -----------------------------------------------------------------------------
+# Secret Manager — Store DB password for Cloud Run consumption
+# -----------------------------------------------------------------------------
+# The password is still provided via var.db_password for the Cloud SQL user
+# resource above, but we also store it in Secret Manager so Cloud Run can
+# reference it securely via secret_key_ref instead of having Terraform
+# interpolate it into DATABASE_URL at plan time.
+# -----------------------------------------------------------------------------
+
+resource "google_secret_manager_secret" "db_password_main" {
+  secret_id = "cveriskpilot-${var.environment}-db-password"
+
+  replication {
+    auto {}
+  }
+
+  labels = {
+    environment = var.environment
+    app         = "cveriskpilot"
+    component   = "database"
+  }
+}
+
+resource "google_secret_manager_secret_version" "db_password_main" {
+  secret      = google_secret_manager_secret.db_password_main.id
+  secret_data = var.db_password
+}
+
+resource "google_secret_manager_secret_iam_member" "cloudrun_db_password" {
+  secret_id = google_secret_manager_secret.db_password_main.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.cloudrun.email}"
+}
+
+# -----------------------------------------------------------------------------
 # Cloud SQL — Read Replica (production only)
 # -----------------------------------------------------------------------------
 

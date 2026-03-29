@@ -1,4 +1,7 @@
 import type { EpssData } from '../types';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('enrichment:epss');
 
 const EPSS_API_BASE = 'https://api.first.org/data/v1/epss';
 const BATCH_SIZE = 100;
@@ -39,7 +42,7 @@ export async function fetchEpssScores(
       });
 
       if (!response.ok) {
-        console.warn(`EPSS API returned ${response.status}, skipping batch`);
+        logger.warn(`EPSS API returned ${response.status}, skipping batch`);
         continue;
       }
 
@@ -63,7 +66,7 @@ export async function fetchEpssScores(
         });
       }
     } catch (err) {
-      console.error('EPSS API error:', err);
+      logger.error('EPSS API error', { error: String(err) });
     }
   }
 

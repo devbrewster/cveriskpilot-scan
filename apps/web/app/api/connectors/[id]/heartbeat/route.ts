@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { processHeartbeat } from '@cveriskpilot/integrations/connectors/connector-manager';
 
 interface RouteContext {
@@ -16,7 +17,21 @@ export async function POST(
   context: RouteContext,
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id } = await context.params;
+
+    // Verify connector belongs to user's organization
+    const existing = await prisma.scannerConnector.findUnique({
+      where: { id },
+      select: { organizationId: true },
+    });
+    if (!existing || existing.organizationId !== session.organizationId) {
+      return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
+    }
     const body = await request.json();
     const { version, scannerVersion, status, metrics } = body;
 

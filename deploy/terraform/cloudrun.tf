@@ -15,6 +15,11 @@ locals {
     STRIPE_SECRET_KEY         = "cveriskpilot-${var.environment}-stripe-secret-key"
     STRIPE_WEBHOOK_SECRET     = "cveriskpilot-${var.environment}-stripe-webhook-secret"
     NVD_API_KEY               = "cveriskpilot-${var.environment}-nvd-api-key"
+    MASTER_ENCRYPTION_KEY     = "cveriskpilot-${var.environment}-master-encryption-key"
+    SMTP_PASS                 = "cveriskpilot-${var.environment}-smtp-pass"
+    CRON_SECRET               = "cveriskpilot-${var.environment}-cron-secret"
+    WORKOS_API_KEY            = "cveriskpilot-${var.environment}-workos-api-key"
+    WORKOS_CLIENT_ID          = "cveriskpilot-${var.environment}-workos-client-id"
   }
 }
 
@@ -121,6 +126,36 @@ resource "google_cloud_run_v2_service" "web" {
         value = google_cloud_tasks_queue.scan_pipeline.name
       }
 
+      env {
+        name  = "GOOGLE_OIDC_CLIENT_ID"
+        value = var.google_oidc_client_id
+      }
+
+      env {
+        name  = "SMTP_HOST"
+        value = var.smtp_host
+      }
+
+      env {
+        name  = "SMTP_PORT"
+        value = var.smtp_port
+      }
+
+      env {
+        name  = "SMTP_USER"
+        value = var.smtp_user
+      }
+
+      env {
+        name  = "SMTP_FROM"
+        value = var.smtp_from
+      }
+
+      env {
+        name  = "WORKOS_REDIRECT_URI"
+        value = "${var.app_url}/api/auth/sso/callback"
+      }
+
       # Secret-backed environment variables
       dynamic "env" {
         for_each = local.secret_env_vars
@@ -184,7 +219,7 @@ resource "google_cloud_run_v2_service" "worker" {
       image = local.image
 
       ports {
-        container_port = 3000
+        container_port = 8080
       }
 
       resources {
@@ -244,6 +279,31 @@ resource "google_cloud_run_v2_service" "worker" {
       env {
         name  = "CLOUD_TASKS_QUEUE"
         value = google_cloud_tasks_queue.scan_pipeline.name
+      }
+
+      env {
+        name  = "NEXT_PUBLIC_APP_URL"
+        value = var.app_url
+      }
+
+      env {
+        name  = "SMTP_HOST"
+        value = var.smtp_host
+      }
+
+      env {
+        name  = "SMTP_PORT"
+        value = var.smtp_port
+      }
+
+      env {
+        name  = "SMTP_USER"
+        value = var.smtp_user
+      }
+
+      env {
+        name  = "SMTP_FROM"
+        value = var.smtp_from
       }
 
       dynamic "env" {

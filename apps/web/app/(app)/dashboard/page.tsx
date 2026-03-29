@@ -223,7 +223,13 @@ export default function DashboardPage() {
       {/* Row 4: SLA Status + Recent Scans */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div>
-          <SlaWidget organizationId={organizationId ?? 'org-default'} />
+          {organizationId ? (
+            <SlaWidget organizationId={organizationId} />
+          ) : (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-sm text-gray-400">SLA data unavailable</div>
+            </div>
+          )}
         </div>
         <div className="lg:col-span-2">
           <Card title="Recent Scans" description="Latest upload jobs and their processing status">

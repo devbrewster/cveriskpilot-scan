@@ -1,10 +1,18 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@cveriskpilot/auth';
 
 /**
  * GET /api/ops/analytics
  * Returns mock usage analytics for the ops dashboard.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(request);
+  if (!session) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+  if (!session.email?.endsWith('@cveriskpilot.com')) {
+    return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
+  }
   // Generate mock scans-per-day for the last 30 days
   const now = new Date();
   const scansPerDay: Array<{ date: string; count: number }> = [];

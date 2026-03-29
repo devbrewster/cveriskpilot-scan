@@ -17,6 +17,7 @@
   "dependencies": {
     "@cveriskpilot/domain": "*",
     "@cveriskpilot/parsers": "*",
+    "@cveriskpilot/shared": "*",
     "ioredis": "^5.4.0"
   },
   "devDependencies": {}

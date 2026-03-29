@@ -4,6 +4,9 @@
 
 import { createHmac, timingSafeEqual } from 'crypto';
 import type { WebhookPayload } from './types';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('integrations:webhook-sender');
 
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 1000;
@@ -80,6 +83,6 @@ export async function sendWebhook(
     }
   }
 
-  console.error(`[webhook] Failed after ${MAX_RETRIES} attempts to ${url}: ${lastError}`);
+  logger.error(`Failed after ${MAX_RETRIES} attempts to ${url}: ${lastError}`);
   return { success: false, statusCode: lastStatus, error: lastError, attempts: MAX_RETRIES };
 }

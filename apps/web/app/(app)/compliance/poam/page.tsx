@@ -14,7 +14,15 @@ export default function POAMPage() {
     );
   }
 
-  const orgId = organizationId ?? 'org-default';
+  if (!organizationId) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-sm text-red-600">No organization found. Please log in again.</div>
+      </div>
+    );
+  }
+
+  const orgId = organizationId;
   const cId = clientId ?? 'client-default';
 
   return (

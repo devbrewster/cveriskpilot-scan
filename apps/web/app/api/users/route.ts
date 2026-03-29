@@ -1,112 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { prisma } from '@/lib/prisma';
+import { logAudit } from '@/lib/audit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-// Mock org users for development — will be replaced with Prisma queries
-const MOCK_USERS = [
-  {
-    id: 'usr_001',
-    email: 'admin@acmesec.com',
-    name: 'Sarah Chen',
-    role: 'ORG_OWNER',
-    isActive: true,
-    mfaEnabled: true,
-    lastLoginAt: '2026-03-28T08:15:00Z',
-    createdAt: '2025-11-01T00:00:00Z',
-  },
-  {
-    id: 'usr_002',
-    email: 'mike.r@acmesec.com',
-    name: 'Mike Rodriguez',
-    role: 'SECURITY_ADMIN',
-    isActive: true,
-    mfaEnabled: true,
-    lastLoginAt: '2026-03-27T16:42:00Z',
-    createdAt: '2025-11-15T00:00:00Z',
-  },
-  {
-    id: 'usr_003',
-    email: 'priya.k@acmesec.com',
-    name: 'Priya Kumar',
-    role: 'ANALYST',
-    isActive: true,
-    mfaEnabled: true,
-    lastLoginAt: '2026-03-28T09:01:00Z',
-    createdAt: '2025-12-01T00:00:00Z',
-  },
-  {
-    id: 'usr_004',
-    email: 'james.w@acmesec.com',
-    name: 'James Wilson',
-    role: 'ANALYST',
-    isActive: true,
-    mfaEnabled: false,
-    lastLoginAt: '2026-03-26T11:30:00Z',
-    createdAt: '2026-01-10T00:00:00Z',
-  },
-  {
-    id: 'usr_005',
-    email: 'dev-bot@acmesec.com',
-    name: 'CI/CD Service Account',
-    role: 'SERVICE_ACCOUNT',
-    isActive: true,
-    mfaEnabled: false,
-    lastLoginAt: '2026-03-28T06:00:00Z',
-    createdAt: '2025-12-20T00:00:00Z',
-  },
-  {
-    id: 'usr_006',
-    email: 'lisa.t@acmesec.com',
-    name: 'Lisa Thompson',
-    role: 'DEVELOPER',
-    isActive: true,
-    mfaEnabled: false,
-    lastLoginAt: '2026-03-25T14:20:00Z',
-    createdAt: '2026-02-01T00:00:00Z',
-  },
-  {
-    id: 'usr_007',
-    email: 'raj.p@acmesec.com',
-    name: 'Raj Patel',
-    role: 'VIEWER',
-    isActive: false,
-    mfaEnabled: false,
-    lastLoginAt: '2026-02-14T09:00:00Z',
-    createdAt: '2026-01-15T00:00:00Z',
-  },
-  {
-    id: 'usr_008',
-    email: 'client-admin@partner.com',
-    name: 'Dana Ortiz',
-    role: 'CLIENT_ADMIN',
-    isActive: true,
-    mfaEnabled: true,
-    lastLoginAt: '2026-03-27T10:45:00Z',
-    createdAt: '2026-02-15T00:00:00Z',
-  },
-  {
-    id: 'usr_009',
-    email: 'viewer@partner.com',
-    name: 'Alex Kim',
-    role: 'CLIENT_VIEWER',
-    isActive: true,
-    mfaEnabled: false,
-    lastLoginAt: '2026-03-20T08:30:00Z',
-    createdAt: '2026-03-01T00:00:00Z',
-  },
-  {
-    id: 'usr_010',
-    email: 'support@cveriskpilot.com',
-    name: 'Platform Support',
-    role: 'PLATFORM_SUPPORT',
-    isActive: true,
-    mfaEnabled: true,
-    lastLoginAt: '2026-03-28T07:00:00Z',
-    createdAt: '2025-10-01T00:00:00Z',
-  },
-];
 
 export async function GET(request: NextRequest) {
   try {
@@ -120,32 +18,59 @@ export async function GET(request: NextRequest) {
     const roleFilter = searchParams.get('role');
     const statusFilter = searchParams.get('status');
 
-    let users = [...MOCK_USERS];
+    // Build Prisma where clause, scoped to organization
+    const where: Record<string, unknown> = {
+      organizationId: session.organizationId,
+      deletedAt: null,
+    };
 
-    // Filter by search term (name or email)
     if (search) {
-      users = users.filter(
-        (u) =>
-          u.name.toLowerCase().includes(search) ||
-          u.email.toLowerCase().includes(search),
-      );
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
-    // Filter by role
     if (roleFilter) {
-      users = users.filter((u) => u.role === roleFilter);
+      where.role = roleFilter;
     }
 
-    // Filter by active status
     if (statusFilter === 'active') {
-      users = users.filter((u) => u.isActive);
+      where.status = 'ACTIVE';
     } else if (statusFilter === 'inactive') {
-      users = users.filter((u) => !u.isActive);
+      where.status = 'DEACTIVATED';
     }
+
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        status: true,
+        mfaEnabled: true,
+        lastLoginAt: true,
+        createdAt: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    // Map to response shape matching what the frontend expects
+    const mapped = users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      role: u.role,
+      isActive: u.status === 'ACTIVE',
+      mfaEnabled: u.mfaEnabled,
+      lastLoginAt: u.lastLoginAt?.toISOString() ?? null,
+      createdAt: u.createdAt.toISOString(),
+    }));
 
     return NextResponse.json({
-      users,
-      total: users.length,
+      users: mapped,
+      total: mapped.length,
     });
   } catch (error) {
     console.error('[API] GET /api/users error:', error);
@@ -163,6 +88,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Only admins can invite users
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
+
     const body = await request.json();
     const { email, role, name } = body;
 
@@ -173,11 +102,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate role against known UserRole values
-    const validRoles = [
-      'PLATFORM_ADMIN',
-      'PLATFORM_SUPPORT',
-      'ORG_OWNER',
+    // Org-level roles that tenant admins can assign
+    const ASSIGNABLE_ROLES = [
       'SECURITY_ADMIN',
       'ANALYST',
       'DEVELOPER',
@@ -187,21 +113,67 @@ export async function POST(request: NextRequest) {
       'CLIENT_VIEWER',
     ];
 
+    // Only PLATFORM_ADMIN can assign platform-level or owner roles
+    const PLATFORM_ONLY_ROLES = ['PLATFORM_ADMIN', 'PLATFORM_SUPPORT', 'ORG_OWNER'];
+    if (PLATFORM_ONLY_ROLES.includes(role) && session.role !== 'PLATFORM_ADMIN') {
+      return NextResponse.json(
+        { error: `Only platform administrators can assign the ${role} role` },
+        { status: 403 },
+      );
+    }
+
+    const validRoles = [...ASSIGNABLE_ROLES, ...PLATFORM_ONLY_ROLES];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
-        { error: `Invalid role. Must be one of: ${validRoles.join(', ')}` },
+        { error: `Invalid role. Must be one of: ${ASSIGNABLE_ROLES.join(', ')}` },
         { status: 400 },
       );
     }
 
-    // Mock: return success with a generated invite record
+    // Check for existing user with this email in the org
+    const existing = await prisma.user.findUnique({
+      where: {
+        organizationId_email: {
+          organizationId: session.organizationId,
+          email,
+        },
+      },
+    });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: 'A user with this email already exists in your organization' },
+        { status: 409 },
+      );
+    }
+
+    // Create user with PENDING_INVITE status
+    const newUser = await prisma.user.create({
+      data: {
+        organizationId: session.organizationId,
+        email,
+        name: name || email.split('@')[0],
+        role,
+        status: 'PENDING_INVITE',
+      },
+    });
+
+    logAudit({
+      organizationId: session.organizationId,
+      actorId: session.userId,
+      action: 'CREATE',
+      entityType: 'User',
+      entityId: newUser.id,
+      details: { email, role, invitedBy: session.email },
+    });
+
     const invite = {
-      id: `inv_${Date.now()}`,
-      email,
-      name: name || null,
-      role,
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
       status: 'pending',
-      invitedAt: new Date().toISOString(),
+      invitedAt: newUser.createdAt.toISOString(),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     };
 

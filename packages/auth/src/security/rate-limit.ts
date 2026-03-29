@@ -127,6 +127,10 @@ let _loginLimiter: RateLimiter | undefined;
 let _apiLimiter: RateLimiter | undefined;
 let _uploadLimiter: RateLimiter | undefined;
 let _aiLimiter: RateLimiter | undefined;
+let _sensitiveWriteLimiter: RateLimiter | undefined;
+let _exportLimiter: RateLimiter | undefined;
+let _bulkExportLimiter: RateLimiter | undefined;
+let _signupLimiter: RateLimiter | undefined;
 
 /** 5 attempts per 15 minutes per IP */
 export function getLoginLimiter(): RateLimiter {
@@ -174,4 +178,52 @@ export function getAiLimiter(): RateLimiter {
     });
   }
   return _aiLimiter;
+}
+
+/** 10 requests per minute — for sensitive write endpoints (API key creation, webhook config) */
+export function getSensitiveWriteLimiter(): RateLimiter {
+  if (!_sensitiveWriteLimiter) {
+    _sensitiveWriteLimiter = createRateLimiter({
+      windowMs: 60 * 1000,
+      maxRequests: 10,
+      keyPrefix: 'sensitive_write',
+    });
+  }
+  return _sensitiveWriteLimiter;
+}
+
+/** 5 requests per minute — for export endpoints (findings CSV, PDF) */
+export function getExportLimiter(): RateLimiter {
+  if (!_exportLimiter) {
+    _exportLimiter = createRateLimiter({
+      windowMs: 60 * 1000,
+      maxRequests: 5,
+      keyPrefix: 'export',
+    });
+  }
+  return _exportLimiter;
+}
+
+/** 3 requests per minute — for bulk export (heavy DB + memory) */
+export function getBulkExportLimiter(): RateLimiter {
+  if (!_bulkExportLimiter) {
+    _bulkExportLimiter = createRateLimiter({
+      windowMs: 60 * 1000,
+      maxRequests: 3,
+      keyPrefix: 'bulk_export',
+    });
+  }
+  return _bulkExportLimiter;
+}
+
+/** 5 requests per 15 minutes — for signup */
+export function getSignupLimiter(): RateLimiter {
+  if (!_signupLimiter) {
+    _signupLimiter = createRateLimiter({
+      windowMs: 15 * 60 * 1000,
+      maxRequests: 5,
+      keyPrefix: 'signup',
+    });
+  }
+  return _signupLimiter;
 }

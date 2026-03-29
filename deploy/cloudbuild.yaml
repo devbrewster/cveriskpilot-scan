@@ -12,26 +12,33 @@ steps:
     entrypoint: 'npm'
     args: ['ci']
 
+  # Generate Prisma client (required before type-check and tests)
+  - name: 'node:20'
+    id: 'prisma-generate'
+    entrypoint: 'npx'
+    args: ['prisma', 'generate', '--schema=packages/domain/prisma/schema.prisma']
+    waitFor: ['install']
+
   # Type check
   - name: 'node:20'
     id: 'type-check'
     entrypoint: 'npm'
     args: ['run', 'type-check']
-    waitFor: ['install']
+    waitFor: ['prisma-generate']
 
   # Lint
   - name: 'node:20'
     id: 'lint'
     entrypoint: 'npm'
     args: ['run', 'lint']
-    waitFor: ['install']
+    waitFor: ['prisma-generate']
 
   # Test
   - name: 'node:20'
     id: 'test'
     entrypoint: 'npm'
     args: ['run', 'test']
-    waitFor: ['install']
+    waitFor: ['prisma-generate']
 
 options:
   logging: CLOUD_LOGGING_ONLY

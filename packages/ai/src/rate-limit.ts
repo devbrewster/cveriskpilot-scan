@@ -5,6 +5,9 @@
 import Redis from 'ioredis';
 import { AI_TIER_LIMITS } from './types';
 import type { RateLimitResult, AiUsageStats } from './types';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('ai:rate-limit');
 
 // ---------------------------------------------------------------------------
 // Redis singleton
@@ -12,15 +15,13 @@ import type { RateLimitResult, AiUsageStats } from './types';
 
 let _redis: Redis | null = null;
 
-function getRedis(): Redis {
+function getRedis(): Redis | null {
   if (_redis) return _redis;
 
   const url = process.env['REDIS_URL'];
   if (!url) {
-    throw new Error(
-      'REDIS_URL environment variable is not set. ' +
-        'Rate limiting requires a Redis instance.',
-    );
+    logger.warn('REDIS_URL not set — AI rate limiting disabled (fail-open)');
+    return null;
   }
 
   _redis = new Redis(url, {
@@ -84,61 +85,84 @@ function getLimitForTier(tier: string): number {
 
 /**
  * Check whether an organization is allowed to make another AI call.
+ * Fails open (allows request) if Redis is unavailable.
  */
 export async function checkAiRateLimit(
   orgId: string,
   tier: string,
 ): Promise<RateLimitResult> {
-  const redis = getRedis();
-  const key = todayKey(orgId);
   const limit = getLimitForTier(tier);
 
-  const currentStr = await redis.get(key);
-  const current = currentStr ? parseInt(currentStr, 10) : 0;
+  try {
+    const redis = getRedis();
+    if (!redis) {
+      return { allowed: true, remaining: limit, limit, resetAt: midnightUtc() };
+    }
 
-  return {
-    allowed: current < limit,
-    remaining: Math.max(0, limit - current),
-    limit,
-    resetAt: midnightUtc(),
-  };
+    const key = todayKey(orgId);
+    const currentStr = await redis.get(key);
+    const current = currentStr ? parseInt(currentStr, 10) : 0;
+
+    return {
+      allowed: current < limit,
+      remaining: Math.max(0, limit - current),
+      limit,
+      resetAt: midnightUtc(),
+    };
+  } catch (err) {
+    logger.warn('Redis error in checkAiRateLimit — failing open', { error: String(err), orgId });
+    return { allowed: true, remaining: limit, limit, resetAt: midnightUtc() };
+  }
 }
 
 /**
  * Increment the daily AI usage counter for an organization.
- * Returns the new count.
+ * Returns the new count. Returns 0 if Redis is unavailable.
  */
 export async function incrementAiUsage(orgId: string): Promise<number> {
-  const redis = getRedis();
-  const key = todayKey(orgId);
-  const ttl = secondsUntilMidnightUtc();
+  try {
+    const redis = getRedis();
+    if (!redis) return 0;
 
-  const newCount = await redis.incr(key);
-  // Set expiry only on first increment (when count becomes 1)
-  if (newCount === 1) {
-    await redis.expire(key, ttl);
+    const key = todayKey(orgId);
+    const ttl = secondsUntilMidnightUtc();
+
+    const newCount = await redis.incr(key);
+    // Set expiry only on first increment (when count becomes 1)
+    if (newCount === 1) {
+      await redis.expire(key, ttl);
+    }
+
+    return newCount;
+  } catch (err) {
+    logger.warn('Redis error in incrementAiUsage — skipping increment', { error: String(err), orgId });
+    return 0;
   }
-
-  return newCount;
 }
 
 /**
  * Get current AI usage stats for an organization.
+ * Returns zero usage if Redis is unavailable.
  */
 export async function getAiUsage(
   orgId: string,
   tier = 'FREE',
 ): Promise<AiUsageStats> {
-  const redis = getRedis();
-  const key = todayKey(orgId);
   const limit = getLimitForTier(tier);
 
-  const currentStr = await redis.get(key);
-  const used = currentStr ? parseInt(currentStr, 10) : 0;
+  try {
+    const redis = getRedis();
+    if (!redis) {
+      return { used: 0, limit, resetAt: midnightUtc() };
+    }
 
-  return {
-    used,
-    limit,
-    resetAt: midnightUtc(),
-  };
+    const key = todayKey(orgId);
+    const currentStr = await redis.get(key);
+    const used = currentStr ? parseInt(currentStr, 10) : 0;
+
+    return { used, limit, resetAt: midnightUtc() };
+  } catch (err) {
+    logger.warn('Redis error in getAiUsage — returning zero usage', { error: String(err), orgId });
+    return { used: 0, limit, resetAt: midnightUtc() };
+  }
 }

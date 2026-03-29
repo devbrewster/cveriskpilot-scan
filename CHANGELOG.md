@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.5 (2026-03-29)
+
+### Features
+
+- **Update notifier** — CLI checks npm registry for newer versions and shows an upgrade notice (suppressed in `--ci` mode and non-TTY environments)
+- **Enterprise preset** — new `--preset enterprise` bundles NIST 800-53 + SOC 2 + ASVS + SSDF
+
+### Fixes
+
+- **Corrected framework control counts** — NIST 45 (was 39), SOC 2 7 (was 6), FedRAMP 35 (was 47), ASVS 7 (was 6), SSDF 8 (was 7)
+- **Install docs** — all commands now recommend `@latest` suffix
+
 ## 0.1.4 (2026-03-29)
 
 ### Performance

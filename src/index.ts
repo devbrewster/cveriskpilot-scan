@@ -2,7 +2,7 @@
  * @cveriskpilot/scan — CLI scanner + library exports
  *
  * Usage as CLI:
- *   npx @cveriskpilot/scan [flags]
+ *   npx @cveriskpilot/scan@latest [flags]
  *
  * Usage as library:
  *   import { scanDependencies, scanSecrets, scanIaC } from '@cveriskpilot/scan';

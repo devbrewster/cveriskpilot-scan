@@ -4,7 +4,7 @@
  * CVERiskPilot CLI Scanner
  *
  * Usage:
- *   npx @cveriskpilot/scan [command] [flags]
+ *   npx @cveriskpilot/scan@latest [command] [flags]
  *
  * Commands:
  *   scan (default)       Run all enabled scanners on current directory
@@ -32,6 +32,7 @@
 
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import * as https from 'node:https';
 import { scanDependencies } from './scanners/sbom-scanner.js';
 import { scanSecrets } from './scanners/secrets-scanner.js';
 import { scanIaC } from './scanners/iac-scanner.js';
@@ -55,6 +56,52 @@ import {
 // ---------------------------------------------------------------------------
 
 const VERSION = '0.1.0';
+const PKG_NAME = '@cveriskpilot/scan';
+
+// ---------------------------------------------------------------------------
+// Update Check — non-blocking, best-effort
+// ---------------------------------------------------------------------------
+
+function checkForUpdate(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => resolve(null), 3000);
+    const req = https.get(
+      `https://registry.npmjs.org/${PKG_NAME}/latest`,
+      { headers: { Accept: 'application/json' } },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk: Buffer) => { data += chunk; });
+        res.on('end', () => {
+          clearTimeout(timeout);
+          try {
+            const latest = JSON.parse(data).version as string;
+            if (latest && latest !== VERSION) {
+              resolve(latest);
+            } else {
+              resolve(null);
+            }
+          } catch {
+            resolve(null);
+          }
+        });
+      },
+    );
+    req.on('error', () => { clearTimeout(timeout); resolve(null); });
+    req.end();
+  });
+}
+
+function printUpdateNotice(latest: string): void {
+  const yellow = '\x1b[33m';
+  const cyan = '\x1b[36m';
+  const bold = '\x1b[1m';
+  const reset = '\x1b[0m';
+  console.error('');
+  console.error(`  ${yellow}${bold}Update available${reset} ${VERSION} → ${cyan}${bold}${latest}${reset}`);
+  console.error(`  Run ${cyan}npm i -g ${PKG_NAME}@latest${reset} to update`);
+  console.error(`  Or use ${cyan}npx ${PKG_NAME}@latest${reset} for one-off runs`);
+  console.error('');
+}
 
 // ---------------------------------------------------------------------------
 // Argument Parsing
@@ -230,16 +277,17 @@ ${bold('UPLOAD FLAGS')}
   --no-upload          Scan locally only, don't upload results
 
 ${bold('FRAMEWORKS (6 implemented)')}
-  nist-800-53          NIST 800-53 Rev 5 (39 controls)     aliases: nist, nist800
-  soc2-type2           SOC 2 Type II (6 controls)           aliases: soc2, soc
+  nist-800-53          NIST 800-53 Rev 5 (45 controls)     aliases: nist, nist800
+  soc2-type2           SOC 2 Type II (7 controls)           aliases: soc2, soc
   cmmc-level2          CMMC Level 2 (33 controls)           aliases: cmmc, cmmc2
-  fedramp-moderate     FedRAMP Moderate (47 controls)       aliases: fedramp
-  owasp-asvs           OWASP ASVS 4.0 (6 controls)         aliases: asvs, owasp
-  nist-ssdf            NIST SSDF 1.1 (7 controls)           aliases: ssdf
+  fedramp-moderate     FedRAMP Moderate (35 controls)       aliases: fedramp
+  owasp-asvs           OWASP ASVS 4.0 (7 controls)         aliases: asvs, owasp
+  nist-ssdf            NIST SSDF 1.1 (8 controls)           aliases: ssdf
 
 ${bold('PRESETS')}
   federal              NIST 800-53 + FedRAMP + SSDF
   defense              NIST 800-53 + CMMC + SSDF
+  enterprise           NIST 800-53 + SOC 2 + ASVS + SSDF
   startup              SOC 2 + ASVS
   devsecops            ASVS + SSDF
   all                  All 6 frameworks
@@ -469,6 +517,9 @@ function filterFindings(
 
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv);
+
+  // Fire update check early (non-blocking, resolves in background)
+  const updateCheck = (!opts.ci && process.stderr.isTTY) ? checkForUpdate() : Promise.resolve(null);
 
   if (opts.command === 'help') {
     printHelp();
@@ -713,6 +764,12 @@ async function main(): Promise<void> {
   // ---- Upload if API key provided ----
   if (opts.apiKey && !opts.noUpload && filteredFindings.length > 0) {
     await uploadResults(filteredFindings, opts.apiKey, opts.apiUrl, activeFrameworks ?? [], opts.verbose);
+  }
+
+  // ---- Update notice (non-blocking, only in TTY) ----
+  const latestVersion = await updateCheck;
+  if (latestVersion) {
+    printUpdateNotice(latestVersion);
   }
 
   process.exit(exitCode);

@@ -310,6 +310,12 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // --- Security headers ---
+  const nonce = crypto.randomUUID();
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  const response = NextResponse.next();
+
   // --- CSRF cookie seeder ---
   // Set a crp_csrf cookie on every response so the client can read it and send
   // it back as X-CSRF-Token on sensitive mutations. Enforcement happens at the
@@ -319,18 +325,12 @@ export function middleware(request: NextRequest) {
   if (!request.cookies.get('crp_csrf')?.value) {
     const token = crypto.randomUUID();
     response.cookies.set('crp_csrf', token, {
-      httpOnly: false, // Client JS must read this
+      httpOnly: false,
       sameSite: 'lax',
       secure: !isDev,
       path: '/',
     });
   }
-
-  // --- Security headers ---
-  const nonce = crypto.randomUUID();
-  const isDev = process.env.NODE_ENV !== 'production';
-
-  const response = NextResponse.next();
 
   // CSP
   response.headers.set('Content-Security-Policy', buildCsp(nonce, isDev));

@@ -15,8 +15,13 @@ import {
   createCheckoutSession,
   createSetupCheckoutSession,
 } from '@cveriskpilot/billing';
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 
 export async function POST(request: NextRequest) {
+  // IP-based auth rate limit (10 req/min) — runs before any other logic
+  const rateLimited = await checkAuthRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   // Rate limit by IP to prevent mass account creation and email enumeration
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   try {

@@ -23,8 +23,11 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
-    const exception = await prisma.riskException.findUnique({
-      where: { id },
+    const exception = await prisma.riskException.findFirst({
+      where: {
+        id,
+        organizationId: session.organizationId,
+      },
       include: {
         vulnerabilityCase: {
           select: {
@@ -46,11 +49,6 @@ export async function GET(
     });
 
     if (!exception) {
-      return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
-    }
-
-    // Verify the exception belongs to the user's organization
-    if (exception.vulnerabilityCase?.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
     }
 
@@ -133,8 +131,8 @@ export async function PUT(
       );
     }
 
-    const existing = await prisma.riskException.findUnique({
-      where: { id },
+    const existing = await prisma.riskException.findFirst({
+      where: { id, organizationId: session.organizationId },
       include: {
         vulnerabilityCase: {
           select: { id: true, status: true, organizationId: true },
@@ -143,11 +141,6 @@ export async function PUT(
     });
 
     if (!existing) {
-      return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
-    }
-
-    // Verify the exception belongs to the user's organization
-    if (existing.vulnerabilityCase?.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
     }
 

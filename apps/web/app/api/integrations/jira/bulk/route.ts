@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
     // Filter out cases that already have a Jira ticket
     const existingTickets = await prisma.ticket.findMany({
       where: {
+        organizationId,
         system: 'jira',
         vulnerabilityCaseId: { in: caseIds },
       },

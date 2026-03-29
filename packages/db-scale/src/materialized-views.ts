@@ -146,6 +146,14 @@ const VIEW_CONFIGS: MaterializedViewConfig[] = [
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+const SAFE_NAME_RE = /^[a-z_][a-z0-9_]{0,62}$/;
+
+function assertSafeIdentifier(name: string): void {
+  if (!SAFE_NAME_RE.test(name)) {
+    throw new Error(`Unsafe SQL identifier: ${name}`);
+  }
+}
+
 /**
  * Raw SQL executor interface — callers inject a function that runs arbitrary
  * SQL (e.g. prisma.$executeRawUnsafe or pg Pool.query).
@@ -201,6 +209,7 @@ export async function refreshView(
     throw new Error(`Unknown materialized view: ${name}`);
   }
 
+  assertSafeIdentifier(name);
   const concurrently = config.concurrent ? ' CONCURRENTLY' : '';
   await exec(`REFRESH MATERIALIZED VIEW${concurrently} ${name};`);
 
@@ -265,6 +274,7 @@ export async function refreshStaleViews(exec: SqlExecutor): Promise<Materialized
 export async function dropMaterializedViews(exec: SqlExecutor): Promise<void> {
   // Drop in reverse order to avoid dependency issues
   for (const view of [...VIEW_CONFIGS].reverse()) {
+    assertSafeIdentifier(view.name);
     await exec(`DROP MATERIALIZED VIEW IF EXISTS ${view.name} CASCADE;`);
     refreshTimestamps.delete(view.name);
   }

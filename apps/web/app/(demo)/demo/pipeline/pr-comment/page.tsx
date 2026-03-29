@@ -5,6 +5,49 @@ import Link from 'next/link';
 import { demoPRCommentMarkdown } from '@/lib/demo-data';
 
 // ---------------------------------------------------------------------------
+// Helpers — render inline markdown as React elements (no dangerouslySetInnerHTML)
+// ---------------------------------------------------------------------------
+
+/** Convert **bold** and `code` markdown to React inline elements. */
+function renderInline(text: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  // Match **bold**, `code`, and <a href="...">text</a>
+  const TOKEN_RE = /\*\*(.+?)\*\*|`([^`]+)`|<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>|<sub>|<\/sub>/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = TOKEN_RE.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    if (match[1] !== undefined) {
+      nodes.push(<strong key={key++}>{match[1]}</strong>);
+    } else if (match[2] !== undefined) {
+      nodes.push(
+        <code key={key++} className="rounded bg-gray-100 px-1 py-0.5 text-[11px] font-mono text-gray-800">
+          {match[2]}
+        </code>,
+      );
+    } else if (match[3] !== undefined && match[4] !== undefined) {
+      nodes.push(
+        <a key={key++} href={match[3]} className="text-blue-600 hover:underline">
+          {match[4]}
+        </a>,
+      );
+    }
+    // skip bare <sub> / </sub> tags — we wrap the whole line
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes;
+}
+
+// ---------------------------------------------------------------------------
 // Verdict variants with realistic data matching the formatter output
 // ---------------------------------------------------------------------------
 
@@ -108,10 +151,13 @@ function renderMarkdown(md: string): React.ReactNode[] {
       continue;
     }
 
-    // <sub> line
+    // <sub> line — render as React elements instead of raw HTML
     if (line.trim().startsWith('<sub>')) {
+      const inner = line.trim().replace(/^<sub>/, '').replace(/<\/sub>$/, '');
       nodes.push(
-        <p key={`sub-${i}`} className="text-xs text-gray-500" dangerouslySetInnerHTML={{ __html: line.trim() }} />,
+        <p key={`sub-${i}`} className="text-xs text-gray-500">
+          {renderInline(inner)}
+        </p>,
       );
       i++;
       continue;
@@ -150,8 +196,9 @@ function renderMarkdown(md: string): React.ReactNode[] {
                 ? 'border-yellow-500 bg-yellow-50 text-yellow-800'
                 : 'border-green-500 bg-green-50 text-green-800'
           }`}
-          dangerouslySetInnerHTML={{ __html: text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
-        />,
+        >
+          {renderInline(text)}
+        </div>,
       );
       i++;
       continue;
@@ -191,12 +238,9 @@ function renderMarkdown(md: string): React.ReactNode[] {
                       <td
                         key={ci}
                         className="px-3 py-1.5 text-gray-600"
-                        dangerouslySetInnerHTML={{
-                          __html: cell
-                            .replace(/`([^`]+)`/g, '<code class="rounded bg-gray-100 px-1 py-0.5 text-[11px] font-mono text-gray-800">$1</code>')
-                            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>'),
-                        }}
-                      />
+                      >
+                        {renderInline(cell)}
+                      </td>
                     ))}
                   </tr>
                 );
@@ -211,11 +255,9 @@ function renderMarkdown(md: string): React.ReactNode[] {
     // Bold paragraph
     if (line.startsWith('**') && !line.startsWith('**Triage')) {
       nodes.push(
-        <p
-          key={`bold-${i}`}
-          className="my-1 text-sm font-semibold text-gray-800"
-          dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
-        />,
+        <p key={`bold-${i}`} className="my-1 text-sm font-semibold text-gray-800">
+          {renderInline(line)}
+        </p>,
       );
       i++;
       continue;
@@ -224,11 +266,9 @@ function renderMarkdown(md: string): React.ReactNode[] {
     // Triage line
     if (line.startsWith('**Triage')) {
       nodes.push(
-        <p
-          key={`triage-${i}`}
-          className="my-1 text-sm text-gray-600"
-          dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
-        />,
+        <p key={`triage-${i}`} className="my-1 text-sm text-gray-600">
+          {renderInline(line)}
+        </p>,
       );
       i++;
       continue;
@@ -237,11 +277,9 @@ function renderMarkdown(md: string): React.ReactNode[] {
     // Severity badge line (emoji + counts)
     if (line.includes('🔴') && line.includes('Critical')) {
       nodes.push(
-        <p
-          key={`sev-${i}`}
-          className="my-2 text-sm"
-          dangerouslySetInnerHTML={{ __html: line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
-        />,
+        <p key={`sev-${i}`} className="my-2 text-sm">
+          {renderInline(line)}
+        </p>,
       );
       i++;
       continue;
@@ -255,7 +293,7 @@ function renderMarkdown(md: string): React.ReactNode[] {
 
     // Default paragraph
     nodes.push(
-      <p key={`p-${i}`} className="my-1 text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: line }} />,
+      <p key={`p-${i}`} className="my-1 text-sm text-gray-700">{renderInline(line)}</p>,
     );
     i++;
   }

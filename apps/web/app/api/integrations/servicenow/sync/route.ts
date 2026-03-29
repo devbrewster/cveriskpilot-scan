@@ -187,11 +187,12 @@ export async function POST(request: NextRequest) {
         });
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error(`[servicenow/sync] Ticket ${ticket.ticketKey} sync error:`, errorMessage);
         results.push({
           ticketId: ticket.id,
           ticketKey: ticket.ticketKey,
           success: false,
-          error: errorMessage,
+          error: 'Sync failed for this ticket',
         });
 
         await prisma.ticket.update({
@@ -213,7 +214,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[API] POST /api/integrations/servicenow/sync error:', error);
     return NextResponse.json(
-      { error: (error as Error).message ?? 'Failed to sync ServiceNow incidents' },
+      { error: 'Failed to sync ServiceNow incidents' },
       { status: 500 },
     );
   }

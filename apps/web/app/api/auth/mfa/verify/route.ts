@@ -14,8 +14,13 @@ import {
   getLoginLimiter,
   getRedisClient,
 } from '@cveriskpilot/auth';
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 
 export async function POST(request: NextRequest) {
+  // IP-based auth rate limit (10 req/min) — runs before any other logic
+  const rateLimited = await checkAuthRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     let body: Record<string, unknown>;
     try {

@@ -273,6 +273,5 @@ export class BackupService {
 
 function generateJobId(): string {
   const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 10);
-  return `bkp_${timestamp}_${random}`;
+  return `bkp_${timestamp}_${crypto.randomUUID().slice(0, 8)}`;
 }

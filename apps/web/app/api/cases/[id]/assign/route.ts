@@ -23,12 +23,12 @@ export async function PUT(
     };
 
     // Verify the case exists and belongs to the user's organization
-    const existing = await prisma.vulnerabilityCase.findUnique({
-      where: { id },
+    const existing = await prisma.vulnerabilityCase.findFirst({
+      where: { id, organizationId: session.organizationId },
       select: { id: true, title: true, organizationId: true, assignedToId: true },
     });
 
-    if (!existing || existing.organizationId !== session.organizationId) {
+    if (!existing) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 

@@ -87,7 +87,7 @@ export async function writeAuditEntry(
 ): Promise<AuditLogEntry> {
   const fullEntry: AuditLogEntry = {
     ...entry,
-    id: `audit_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+    id: `audit_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`,
     timestamp: new Date().toISOString(),
   };
 

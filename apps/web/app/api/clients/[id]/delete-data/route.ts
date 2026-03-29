@@ -21,17 +21,13 @@ export async function POST(
 
     const { confirmationText, reason } = body;
 
-    // Fetch the client
-    const client = await prisma.client.findUnique({
-      where: { id: clientId },
+    // Fetch the client (scoped to org)
+    const client = await prisma.client.findFirst({
+      where: { id: clientId, organizationId: session.organizationId },
       select: { id: true, name: true, organizationId: true },
     });
 
     if (!client) {
-      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
-    }
-
-    if (client.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 

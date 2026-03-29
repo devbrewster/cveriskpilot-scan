@@ -103,6 +103,7 @@ const localBusinessJsonLd = {
 export default function LandingPage() {
   return (
     <div className="dark">
+      {/* Safe: static JSON-LD structured data, no user input */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}

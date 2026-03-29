@@ -116,6 +116,6 @@ export async function POST(request: NextRequest) {
       return errorResponse(500, 'AI service not configured');
     }
 
-    return errorResponse(500, message);
+    return errorResponse(500, 'Failed to generate remediation guidance');
   }
 }

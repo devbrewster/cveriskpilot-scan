@@ -87,9 +87,10 @@ export async function POST(request: NextRequest) {
         const result = await reportUsageToStripe(org.id, meteredItemId);
         results.push({ orgId: org.id, ...result });
       } catch (err) {
+        console.error(`[cron/report-usage] Org ${org.id} error:`, err instanceof Error ? err.message : String(err));
         errors.push({
           orgId: org.id,
-          error: err instanceof Error ? err.message : String(err),
+          error: 'Usage reporting failed',
         });
       }
     }

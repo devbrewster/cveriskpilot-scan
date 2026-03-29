@@ -113,7 +113,7 @@ export async function PUT(
     }
 
     const schedule = await prisma.reportSchedule.update({
-      where: { id },
+      where: { id, organizationId: session.organizationId },
       data,
     });
 
@@ -148,7 +148,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
     }
 
-    await prisma.reportSchedule.delete({ where: { id } });
+    await prisma.reportSchedule.delete({ where: { id, organizationId: session.organizationId } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

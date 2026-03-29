@@ -19,12 +19,12 @@ export async function GET(
     const { id } = await params;
 
     // Verify the case belongs to the user's organization
-    const vuln = await prisma.vulnerabilityCase.findUnique({
-      where: { id },
+    const vuln = await prisma.vulnerabilityCase.findFirst({
+      where: { id, organizationId: session.organizationId },
       select: { id: true, organizationId: true },
     });
 
-    if (!vuln || vuln.organizationId !== session.organizationId) {
+    if (!vuln) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
@@ -85,12 +85,12 @@ export async function POST(
     }
 
     // Verify the case exists and belongs to the user's organization
-    const vuln = await prisma.vulnerabilityCase.findUnique({
-      where: { id },
+    const vuln = await prisma.vulnerabilityCase.findFirst({
+      where: { id, organizationId: session.organizationId },
       select: { id: true, title: true, organizationId: true },
     });
 
-    if (!vuln || vuln.organizationId !== session.organizationId) {
+    if (!vuln) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 

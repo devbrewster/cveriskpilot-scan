@@ -132,10 +132,7 @@ export async function GET(request: NextRequest) {
     console.error('[API] GET /api/auth/sso/callback error:', error);
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('error', 'sso_failed');
-    loginUrl.searchParams.set(
-      'message',
-      error instanceof Error ? error.message : 'SSO authentication failed',
-    );
+    loginUrl.searchParams.set('message', 'SSO authentication failed');
     return NextResponse.redirect(loginUrl);
   }
 }

@@ -25,11 +25,11 @@ export async function POST(
     const { id } = await context.params;
 
     // Verify connector belongs to user's organization
-    const existing = await prisma.scannerConnector.findUnique({
-      where: { id },
+    const existing = await prisma.scannerConnector.findFirst({
+      where: { id, organizationId: session.organizationId },
       select: { organizationId: true },
     });
-    if (!existing || existing.organizationId !== session.organizationId) {
+    if (!existing) {
       return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
     }
     const body = await request.json();

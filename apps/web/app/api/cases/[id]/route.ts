@@ -24,8 +24,8 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
-    const vuln = await prisma.vulnerabilityCase.findUnique({
-      where: { id },
+    const vuln = await prisma.vulnerabilityCase.findFirst({
+      where: { id, organizationId: session.organizationId },
       include: {
         assignedTo: {
           select: { id: true, name: true, email: true },
@@ -60,11 +60,6 @@ export async function GET(
     });
 
     if (!vuln) {
-      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
-    }
-
-    // Verify the case belongs to the user's organization
-    if (vuln.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
@@ -107,17 +102,12 @@ export async function PATCH(
     const { status, assignedToId, remediationNotes, reason } = body;
 
     // Fetch current case
-    const current = await prisma.vulnerabilityCase.findUnique({
-      where: { id },
+    const current = await prisma.vulnerabilityCase.findFirst({
+      where: { id, organizationId: session.organizationId },
       select: { id: true, status: true, organizationId: true },
     });
 
     if (!current) {
-      return NextResponse.json({ error: 'Case not found' }, { status: 404 });
-    }
-
-    // Verify the case belongs to the user's organization
-    if (current.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 

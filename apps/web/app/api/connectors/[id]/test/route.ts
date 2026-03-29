@@ -33,18 +33,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Load connector and verify org ownership
-    const connector = await prisma.scannerConnector.findUnique({
-      where: { id },
+    const connector = await prisma.scannerConnector.findFirst({
+      where: { id, organizationId: session.organizationId },
     });
 
     if (!connector) {
-      return NextResponse.json(
-        { error: 'Connector not found' },
-        { status: 404 },
-      );
-    }
-
-    if (connector.organizationId !== session.organizationId) {
       return NextResponse.json(
         { error: 'Connector not found' },
         { status: 404 },
@@ -57,8 +50,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       credentials = await resolveCredentials(connector, connector.organizationId, prisma);
     } catch (error) {
       if (error instanceof CredentialResolutionError) {
+        console.error('[API] Credential resolution error:', error.message);
         return NextResponse.json(
-          { ok: false, message: `Credential error: ${error.message}` },
+          { ok: false, message: 'Failed to resolve connector credentials' },
           { status: 200 },
         );
       }
@@ -84,16 +78,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Unknown connection error';
+      console.error('[API] Connector test connection error:', message);
 
-      // Classify common error types
+      // Classify common error types — return generic messages without internal details
       if (message.includes('ECONNREFUSED') || message.includes('ENOTFOUND')) {
-        result = { ok: false, message: `Network error: Unable to reach endpoint. ${message}` };
+        result = { ok: false, message: 'Network error: Unable to reach endpoint' };
       } else if (message.includes('timeout') || message.includes('ETIMEDOUT')) {
-        result = { ok: false, message: `Connection timed out: ${message}` };
+        result = { ok: false, message: 'Connection timed out' };
       } else if (message.includes('401') || message.includes('403') || message.includes('Unauthorized')) {
-        result = { ok: false, message: `Authentication failed: ${message}` };
+        result = { ok: false, message: 'Authentication failed' };
       } else {
-        result = { ok: false, message: `Connection test failed: ${message}` };
+        result = { ok: false, message: 'Connection test failed' };
       }
     }
 

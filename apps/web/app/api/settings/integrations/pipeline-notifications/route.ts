@@ -1,5 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
+import crypto from 'node:crypto';
 import { requireAuth } from '@cveriskpilot/auth';
 import { isValidSlackWebhookUrl } from '@cveriskpilot/integrations';
 import { isValidTeamsWebhookUrl } from '@cveriskpilot/integrations';
@@ -22,7 +23,7 @@ interface StoredChannel {
 const channelStore: Record<string, StoredChannel[]> = {};
 
 function generateId(): string {
-  return `pnc_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  return `pnc_${Date.now().toString(36)}_${crypto.randomUUID().slice(0, 8)}`;
 }
 
 // ---------------------------------------------------------------------------

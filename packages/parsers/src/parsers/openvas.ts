@@ -31,6 +31,8 @@ export async function parseOpenvas(
 
   const sanitizedXml = xml.replace(/<!DOCTYPE[^>]*>/gi, '');
 
+  // XXE-safe: processEntities=false prevents entity expansion (billion laughs),
+  // and DTD declarations are stripped above via regex.
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',

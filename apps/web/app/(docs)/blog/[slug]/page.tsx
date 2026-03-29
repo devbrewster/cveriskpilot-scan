@@ -168,6 +168,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      {/* Safe: static JSON-LD from hardcoded metadata, no user input */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
@@ -203,7 +204,9 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Body */}
+        {/* Body — Safe: HTML generated from local trusted markdown files (docs/blog/*.md),
+           not from user input or external CMS. The markdownToHtml() function above
+           escapes code block content. No external/untrusted content flows here. */}
         <div
           className="space-y-1"
           dangerouslySetInnerHTML={{ __html: html }}

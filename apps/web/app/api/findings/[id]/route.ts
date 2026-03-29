@@ -18,8 +18,8 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
-    const finding = await prisma.finding.findUnique({
-      where: { id },
+    const finding = await prisma.finding.findFirst({
+      where: { id, organizationId: session.organizationId },
       include: {
         asset: true,
         vulnerabilityCase: {
@@ -43,11 +43,6 @@ export async function GET(
     });
 
     if (!finding) {
-      return NextResponse.json({ error: 'Finding not found' }, { status: 404 });
-    }
-
-    // Verify the finding belongs to the user's organization
-    if (finding.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Finding not found' }, { status: 404 });
     }
 

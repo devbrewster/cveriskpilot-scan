@@ -179,12 +179,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate that the client belongs to the user's organization
-    const client = await prisma.client.findUnique({
-      where: { id: clientId },
-      select: { organizationId: true },
+    const client = await prisma.client.findFirst({
+      where: { id: clientId, organizationId },
+      select: { id: true },
     });
 
-    if (!client || client.organizationId !== organizationId) {
+    if (!client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 

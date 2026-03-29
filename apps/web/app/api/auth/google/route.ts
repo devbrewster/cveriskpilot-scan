@@ -2,6 +2,7 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { getGoogleOIDCConfig } from '@cveriskpilot/auth';
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,10 @@ function getSafeOrigin(request: NextRequest): string {
  * Redirects the user to Google's consent screen.
  */
 export async function GET(request: NextRequest) {
+  // IP-based auth rate limit (10 req/min) — runs before any other logic
+  const rateLimited = await checkAuthRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     const config = getGoogleOIDCConfig();
 

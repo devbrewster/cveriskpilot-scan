@@ -160,11 +160,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify the case exists and belongs to the user's organization
-    const vulnCase = await prisma.vulnerabilityCase.findUnique({
-      where: { id: vulnerabilityCaseId },
+    const vulnCase = await prisma.vulnerabilityCase.findFirst({
+      where: { id: vulnerabilityCaseId, organizationId: session.organizationId },
     });
 
-    if (!vulnCase || vulnCase.organizationId !== session.organizationId) {
+    if (!vulnCase) {
       return NextResponse.json(
         { error: 'Vulnerability case not found' },
         { status: 404 },

@@ -97,5 +97,13 @@ export function createAuditEntry(params: AuditParams): AuditEntry {
 export function verifyAuditEntry(entry: AuditEntry): boolean {
   const { hash, ...rest } = entry;
   const expected = computeHash(rest);
-  return hash === expected;
+  // Use timing-safe comparison to prevent timing attacks on hash verification
+  try {
+    return crypto.timingSafeEqual(
+      Buffer.from(hash, 'utf-8'),
+      Buffer.from(expected, 'utf-8'),
+    );
+  } catch {
+    return false;
+  }
 }

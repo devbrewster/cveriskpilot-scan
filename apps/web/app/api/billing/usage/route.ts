@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
       const clientUsage = await getClientUsage(organizationId, clientId, period);
 
       // Enrich with client name
-      const client = await prisma.client.findUnique({
-        where: { id: clientId },
+      const client = await prisma.client.findFirst({
+        where: { id: clientId, organizationId },
         select: { name: true },
       });
       clientUsage.clientName = client?.name;
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     if (summary.clients.length > 0) {
       const clientIds = summary.clients.map((c: any) => c.clientId);
       const clients = await prisma.client.findMany({
-        where: { id: { in: clientIds } },
+        where: { id: { in: clientIds }, organizationId },
         select: { id: true, name: true },
       });
       const nameMap = new Map(clients.map((c: any) => [c.id, c.name]));

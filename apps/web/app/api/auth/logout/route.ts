@@ -4,10 +4,15 @@ import {
   SESSION_COOKIE_NAME,
   clearSessionCookie,
   destroySession,
+  requireAuth,
 } from '@cveriskpilot/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    // Require a valid session so we know who is logging out
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+
     const sessionId = request.cookies.get(SESSION_COOKIE_NAME)?.value;
 
     // Destroy session in Redis if it exists (graceful fallback)

@@ -52,6 +52,6 @@ export async function POST(request: NextRequest) {
 
     // Return 200 so Cloud Tasks doesn't retry on application-level errors.
     // The job status is already set to FAILED inside processUploadJob.
-    return NextResponse.json({ status: 'failed', error: message });
+    return NextResponse.json({ status: 'failed', error: 'Job processing failed' });
   }
 }

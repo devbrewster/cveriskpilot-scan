@@ -11,21 +11,17 @@ const logger = createLogger('observability:tracing');
 // ID generation
 // ---------------------------------------------------------------------------
 
-function generateId(length: number): string {
-  const chars = '0123456789abcdef';
-  let id = '';
-  for (let i = 0; i < length; i++) {
-    id += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return id;
-}
-
 function generateTraceId(): string {
-  return generateId(32);
+  // Use crypto.getRandomValues for trace IDs (security-grade randomness)
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 function generateSpanId(): string {
-  return generateId(16);
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 // ---------------------------------------------------------------------------

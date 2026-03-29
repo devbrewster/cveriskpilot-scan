@@ -26,12 +26,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Load the case and verify it belongs to the user's org
-    const vulnCase = await prisma.vulnerabilityCase.findUnique({
-      where: { id: caseId },
+    const vulnCase = await prisma.vulnerabilityCase.findFirst({
+      where: { id: caseId, organizationId },
       select: { organizationId: true },
     });
 
-    if (!vulnCase || vulnCase.organizationId !== organizationId) {
+    if (!vulnCase) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 

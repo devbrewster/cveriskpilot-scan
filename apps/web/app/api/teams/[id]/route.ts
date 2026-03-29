@@ -71,7 +71,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     if (name !== undefined) data.name = name;
     if (description !== undefined) data.description = description;
 
-    const team = await prisma.team.update({ where: { id }, data });
+    const team = await prisma.team.update({ where: { id, organizationId: session.organizationId }, data });
 
     return NextResponse.json({ team });
   } catch (error) {
@@ -103,7 +103,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     await prisma.$transaction([
       prisma.clientTeamAssignment.deleteMany({ where: { teamId: id } }),
       prisma.teamMembership.deleteMany({ where: { teamId: id } }),
-      prisma.team.delete({ where: { id } }),
+      prisma.team.delete({ where: { id, organizationId: session.organizationId } }),
     ]);
 
     return NextResponse.json({ success: true });

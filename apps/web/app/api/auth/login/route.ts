@@ -8,8 +8,13 @@ import {
   setSessionCookie,
   getLoginLimiter,
 } from '@cveriskpilot/auth';
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 
 export async function POST(request: NextRequest) {
+  // IP-based auth rate limit (10 req/min) — runs before any other logic
+  const rateLimited = await checkAuthRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     // Rate limiting (graceful fallback if Redis unavailable)
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';

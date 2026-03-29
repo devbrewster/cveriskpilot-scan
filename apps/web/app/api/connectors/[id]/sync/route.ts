@@ -46,18 +46,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Load connector and verify org ownership
-    const connector = await prisma.scannerConnector.findUnique({
-      where: { id },
+    const connector = await prisma.scannerConnector.findFirst({
+      where: { id, organizationId: session.organizationId },
     });
 
     if (!connector) {
-      return NextResponse.json(
-        { error: 'Connector not found' },
-        { status: 404 },
-      );
-    }
-
-    if (connector.organizationId !== session.organizationId) {
       return NextResponse.json(
         { error: 'Connector not found' },
         { status: 404 },

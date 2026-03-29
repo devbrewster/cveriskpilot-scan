@@ -176,6 +176,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={cn("antialiased", "font-sans", geist.variable)} suppressHydrationWarning>
       <head>
+        {/* Safe: static JSON-LD structured data, no user input */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

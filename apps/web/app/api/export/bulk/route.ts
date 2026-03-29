@@ -53,7 +53,7 @@ export { getExportJob };
 // ---------------------------------------------------------------------------
 
 function generateJobId(): string {
-  return `exp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  return `exp_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
 }
 
 /** Prefix formula-triggering characters with a single quote to prevent Excel formula injection */
@@ -224,7 +224,7 @@ async function processExportJob(jobId: string): Promise<void> {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(`[export-bulk] Job ${jobId} failed:`, message);
     job.status = 'failed';
-    job.error = message;
+    job.error = 'Export failed. Please try again or contact support.';
     await setExportJob(job);
   }
 }

@@ -19,19 +19,14 @@ export async function GET(
 
     const { id } = await params;
 
-    const policy = await prisma.slaPolicy.findUnique({
-      where: { id },
+    const policy = await prisma.slaPolicy.findFirst({
+      where: { id, organizationId: session.organizationId },
       include: {
         _count: { select: { vulnerabilityCases: true } },
       },
     });
 
     if (!policy) {
-      return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
-    }
-
-    // Verify the policy belongs to the user's organization
-    if (policy.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
     }
 
@@ -84,13 +79,10 @@ export async function PUT(
       isDefault?: boolean;
     };
 
-    const existing = await prisma.slaPolicy.findUnique({ where: { id } });
+    const existing = await prisma.slaPolicy.findFirst({
+      where: { id, organizationId: session.organizationId },
+    });
     if (!existing) {
-      return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
-    }
-
-    // Verify the policy belongs to the user's organization
-    if (existing.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
     }
 
@@ -157,13 +149,10 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const existing = await prisma.slaPolicy.findUnique({ where: { id } });
+    const existing = await prisma.slaPolicy.findFirst({
+      where: { id, organizationId: session.organizationId },
+    });
     if (!existing) {
-      return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
-    }
-
-    // Verify the policy belongs to the user's organization
-    if (existing.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
     }
 

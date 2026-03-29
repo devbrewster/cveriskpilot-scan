@@ -35,13 +35,17 @@ export function validateEmail(email: string): boolean {
 // Slug (e.g. organisation slugs)
 // ---------------------------------------------------------------------------
 
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// Rewritten to avoid nested quantifiers (ReDoS-safe).
+// Matches lowercase alphanumeric with non-consecutive hyphens, no leading/trailing hyphen.
+const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
 /**
  * Validate a URL slug: lowercase alphanumeric with hyphens, 3-63 characters.
  */
 export function validateSlug(slug: string): boolean {
   if (!slug || slug.length < 3 || slug.length > 63) return false;
+  // Reject consecutive hyphens (original nested quantifier enforced this)
+  if (slug.includes('--')) return false;
   return SLUG_RE.test(slug);
 }
 

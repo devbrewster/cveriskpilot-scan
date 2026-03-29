@@ -25,9 +25,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     // Check team exists and belongs to the user's organization
-    const team = await prisma.team.findUnique({ where: { id: teamId } });
-    if (!team || team.organizationId !== session.organizationId) {
+    const team = await prisma.team.findFirst({
+      where: { id: teamId, organizationId: session.organizationId },
+    });
+    if (!team) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+    }
+
+    // Verify client belongs to the same organization
+    const client = await prisma.client.findFirst({
+      where: { id: clientId, organizationId: session.organizationId },
+      select: { id: true },
+    });
+    if (!client) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
     // Check if already assigned
@@ -69,8 +80,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const { id: teamId } = await context.params;
 
     // Verify team belongs to user's organization
-    const team = await prisma.team.findUnique({ where: { id: teamId } });
-    if (!team || team.organizationId !== session.organizationId) {
+    const team = await prisma.team.findFirst({
+      where: { id: teamId, organizationId: session.organizationId },
+    });
+    if (!team) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 

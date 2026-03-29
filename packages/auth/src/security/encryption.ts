@@ -105,8 +105,8 @@ function getAppEncryptionKey(): Buffer {
     );
   }
 
-  // Derive a consistent 32-byte key from the secret
-  return crypto.createHash('sha256').update(keyHex).digest();
+  // Derive a consistent 32-byte key from the secret using scrypt for computational cost
+  return crypto.scryptSync(keyHex, 'cveriskpilot-encryption-key-v1', 32);
 }
 
 function encryptLocal(data: string): EncryptedPayload {

@@ -14,6 +14,7 @@ import {
   verifyTOTPToken,
   getRedisClient,
 } from '@cveriskpilot/auth';
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 
 /**
  * GET — Generate a new TOTP secret and return setup data.
@@ -75,6 +76,10 @@ export async function GET() {
  * stores the encrypted MFA secret.
  */
 export async function POST(request: NextRequest) {
+  // IP-based auth rate limit (10 req/min) — runs before any other logic
+  const rateLimited = await checkAuthRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     const cookieStore = await cookies();
     const session = await getServerSessionFromCookies(

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, Number(searchParams.get('limit') || '20')));
     const filter = searchParams.get('filter'); // all | unread | mention | assignment | sla
 
-    const where: Record<string, unknown> = { userId };
+    const where: Record<string, unknown> = { userId, organizationId: session.organizationId };
 
     if (filter === 'unread') {
       where.isRead = false;
@@ -81,7 +81,7 @@ export async function PUT(request: NextRequest) {
 
     if (markAllRead) {
       await prisma.notification.updateMany({
-        where: { userId, isRead: false },
+        where: { userId, organizationId: session.organizationId, isRead: false },
         data: { isRead: true, readAt: now },
       });
     } else if (notificationIds && notificationIds.length > 0) {
@@ -89,6 +89,7 @@ export async function PUT(request: NextRequest) {
         where: {
           id: { in: notificationIds },
           userId, // ensure the user owns these notifications
+          organizationId: session.organizationId,
         },
         data: { isRead: true, readAt: now },
       });

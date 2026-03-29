@@ -66,8 +66,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     let scanResult: Record<string, unknown> | null = null;
 
     try {
-      scanResult = await prisma.pipelineScanResult.findUnique({
-        where: { id: scanId },
+      scanResult = await prisma.pipelineScanResult.findFirst({
+        where: { id: scanId, organizationId },
       });
     } catch (err) {
       console.error('[pipeline/results] Failed to query scan result:', err);
@@ -78,14 +78,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     if (!scanResult) {
-      return NextResponse.json(
-        { error: 'Scan result not found' },
-        { status: 404 },
-      );
-    }
-
-    // Verify org ownership
-    if (scanResult['organizationId'] !== organizationId) {
       return NextResponse.json(
         { error: 'Scan result not found' },
         { status: 404 },

@@ -240,8 +240,7 @@ export class RestoreService {
 
 function generateRestoreId(): string {
   const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 10);
-  return `rst_${timestamp}_${random}`;
+  return `rst_${timestamp}_${crypto.randomUUID().slice(0, 8)}`;
 }
 
 function formatBytes(bytes: number): string {

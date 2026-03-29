@@ -68,8 +68,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Load the case to discover the org
-    const vulnCase = await prisma.vulnerabilityCase.findUnique({
-      where: { id: caseId },
+    const vulnCase = await prisma.vulnerabilityCase.findFirst({
+      where: { id: caseId, organizationId: session.organizationId },
       include: { findings: { take: 5 } },
     });
 

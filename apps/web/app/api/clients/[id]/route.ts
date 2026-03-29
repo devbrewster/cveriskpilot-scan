@@ -20,8 +20,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
-    const client = await prisma.client.findUnique({
-      where: { id },
+    const client = await prisma.client.findFirst({
+      where: { id, organizationId: session.organizationId, deletedAt: null },
       include: {
         _count: {
           select: {
@@ -41,11 +41,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     });
 
-    if (!client || client.deletedAt) {
-      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
-    }
-
-    if (client.organizationId !== session.organizationId) {
+    if (!client) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
@@ -77,12 +73,10 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const body = await request.json();
     const { name, isActive } = body;
 
-    const existing = await prisma.client.findUnique({ where: { id } });
-    if (!existing || existing.deletedAt) {
-      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
-    }
-
-    if (existing.organizationId !== session.organizationId) {
+    const existing = await prisma.client.findFirst({
+      where: { id, organizationId: session.organizationId, deletedAt: null },
+    });
+    if (!existing) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
@@ -140,12 +134,10 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
-    const existing = await prisma.client.findUnique({ where: { id } });
-    if (!existing || existing.deletedAt) {
-      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
-    }
-
-    if (existing.organizationId !== session.organizationId) {
+    const existing = await prisma.client.findFirst({
+      where: { id, organizationId: session.organizationId, deletedAt: null },
+    });
+    if (!existing) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 

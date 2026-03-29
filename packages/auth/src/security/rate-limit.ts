@@ -123,6 +123,7 @@ export function createRateLimiter(
 // Pre-configured limiters (lazy-initialised)
 // ---------------------------------------------------------------------------
 
+let _authLimiter: RateLimiter | undefined;
 let _loginLimiter: RateLimiter | undefined;
 let _apiLimiter: RateLimiter | undefined;
 let _uploadLimiter: RateLimiter | undefined;
@@ -131,6 +132,25 @@ let _sensitiveWriteLimiter: RateLimiter | undefined;
 let _exportLimiter: RateLimiter | undefined;
 let _bulkExportLimiter: RateLimiter | undefined;
 let _signupLimiter: RateLimiter | undefined;
+
+/** 10 requests per minute per IP — generic auth endpoint limiter */
+export function getAuthRateLimiter(): RateLimiter {
+  if (!_authLimiter) {
+    _authLimiter = createRateLimiter({
+      windowMs: 60 * 1000,
+      maxRequests: 10,
+      keyPrefix: 'auth',
+    });
+  }
+  return _authLimiter;
+}
+
+/** Pre-configured auth limiter instance (lazy singleton) */
+export const authRateLimiter: RateLimiter = {
+  check(key: string) {
+    return getAuthRateLimiter().check(key);
+  },
+};
 
 /** 5 attempts per 15 minutes per IP */
 export function getLoginLimiter(): RateLimiter {

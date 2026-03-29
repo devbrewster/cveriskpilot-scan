@@ -50,19 +50,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { page, limit } = parseResult.data;
 
     // Verify connector exists and belongs to this org
-    const connector = await prisma.scannerConnector.findUnique({
-      where: { id },
+    const connector = await prisma.scannerConnector.findFirst({
+      where: { id, organizationId: session.organizationId },
       select: { id: true, organizationId: true },
     });
 
     if (!connector) {
-      return NextResponse.json(
-        { error: 'Connector not found' },
-        { status: 404 },
-      );
-    }
-
-    if (connector.organizationId !== session.organizationId) {
       return NextResponse.json(
         { error: 'Connector not found' },
         { status: 404 },

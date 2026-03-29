@@ -5,6 +5,8 @@ export interface TierEntitlements {
   max_assets: number | 'unlimited';
   max_monthly_uploads: number | 'unlimited';
   max_ai_calls: number | 'unlimited';
+  /** API requests per minute per org */
+  api_rate_limit: number | 'unlimited';
   features?: readonly string[];
 }
 

@@ -1,6 +1,7 @@
 // Billing middleware helpers for API route handlers
 // Wires @cveriskpilot/billing gate checks and metering into Next.js routes
 
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
   checkFeatureGate,
@@ -8,6 +9,8 @@ import {
   incrementAiCount,
   recordUsageEvent,
 } from '@cveriskpilot/billing';
+import { getTierApiLimiter } from '@cveriskpilot/auth';
+import { getEntitlements } from '@cveriskpilot/billing';
 import type { GateResult, UsageMetric } from '@cveriskpilot/billing';
 
 // In-memory tier cache: orgId → { tier, expiresAt }
@@ -76,4 +79,52 @@ export async function trackUpload(orgId: string, clientId: string): Promise<void
 export async function trackAiCall(orgId: string, clientId: string): Promise<void> {
   await incrementAiCount(orgId);
   trackUsage(orgId, clientId, 'ai_calls', 1);
+}
+
+// ---------------------------------------------------------------------------
+// Tier-aware API rate limiting
+// ---------------------------------------------------------------------------
+
+/**
+ * Check the tier-aware API rate limit for an organization.
+ * Returns a 429 NextResponse if the limit is exceeded, or null if allowed.
+ *
+ * Rate limits per tier (req/min per org):
+ *   FREE=60, FOUNDERS_BETA=200, PRO=500, ENTERPRISE=2000, MSSP=unlimited
+ */
+export async function checkApiRateLimit(
+  organizationId: string,
+): Promise<NextResponse | null> {
+  try {
+    const tier = await getOrgTier(organizationId);
+    const limiter = getTierApiLimiter(tier);
+
+    // null = unlimited (MSSP)
+    if (!limiter) return null;
+
+    const result = await limiter.check(organizationId);
+
+    if (!result.allowed) {
+      const entitlements = getEntitlements(tier);
+      const limit = entitlements.api_rate_limit === 'unlimited' ? 0 : entitlements.api_rate_limit;
+
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Upgrade your plan for higher limits.' },
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(result.retryAfter ?? 60),
+            'X-RateLimit-Limit': String(limit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': result.resetAt.toISOString(),
+          },
+        },
+      );
+    }
+
+    return null;
+  } catch {
+    // Redis unavailable — don't block requests
+    return null;
+  }
 }

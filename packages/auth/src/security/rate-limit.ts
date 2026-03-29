@@ -144,7 +144,7 @@ export function getLoginLimiter(): RateLimiter {
   return _loginLimiter;
 }
 
-/** 100 requests per minute per org */
+/** 100 requests per minute per org (default — use getTierApiLimiter for plan-aware limits) */
 export function getApiLimiter(): RateLimiter {
   if (!_apiLimiter) {
     _apiLimiter = createRateLimiter({
@@ -154,6 +154,45 @@ export function getApiLimiter(): RateLimiter {
     });
   }
   return _apiLimiter;
+}
+
+// ---------------------------------------------------------------------------
+// Tier-aware API rate limiter
+// ---------------------------------------------------------------------------
+
+const _tierApiLimiters = new Map<number, RateLimiter>();
+
+/**
+ * API rate limits by billing tier (req/min per org).
+ * Falls back to 60 req/min for unknown tiers.
+ */
+const TIER_API_LIMITS: Record<string, number> = {
+  FREE: 60,
+  FOUNDERS_BETA: 200,
+  PRO: 500,
+  ENTERPRISE: 2000,
+  // MSSP is unlimited — skip rate limiting entirely
+};
+
+/**
+ * Returns a rate limiter scoped to the given tier's API limit.
+ * For MSSP (unlimited), returns null — caller should skip rate limiting.
+ */
+export function getTierApiLimiter(tier: string): RateLimiter | null {
+  const upperTier = tier.toUpperCase();
+  if (upperTier === 'MSSP') return null; // unlimited
+
+  const limit = TIER_API_LIMITS[upperTier] ?? 60;
+  let limiter = _tierApiLimiters.get(limit);
+  if (!limiter) {
+    limiter = createRateLimiter({
+      windowMs: 60 * 1000,
+      maxRequests: limit,
+      keyPrefix: `api:${limit}`,
+    });
+    _tierApiLimiters.set(limit, limiter);
+  }
+  return limiter;
 }
 
 /** 10 uploads per hour per org */

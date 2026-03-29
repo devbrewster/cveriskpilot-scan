@@ -8,6 +8,7 @@ export const TIER_ENTITLEMENTS = {
     max_assets: 50,
     max_monthly_uploads: 3,
     max_ai_calls: 50,
+    api_rate_limit: 60,       // 60 req/min
     features: ['api_access'],
   },
   FOUNDERS_BETA: {
@@ -15,6 +16,7 @@ export const TIER_ENTITLEMENTS = {
     max_assets: 250,
     max_monthly_uploads: 'unlimited',
     max_ai_calls: 250,
+    api_rate_limit: 200,      // 200 req/min
     features: ['api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view'],
   },
   PRO: {
@@ -22,6 +24,7 @@ export const TIER_ENTITLEMENTS = {
     max_assets: 500,
     max_monthly_uploads: 'unlimited',
     max_ai_calls: 500,
+    api_rate_limit: 500,      // 500 req/min
     features: ['api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view', 'scheduled_reports'],
   },
   ENTERPRISE: {
@@ -29,6 +32,7 @@ export const TIER_ENTITLEMENTS = {
     max_assets: 5000,
     max_monthly_uploads: 'unlimited',
     max_ai_calls: 5000,
+    api_rate_limit: 2000,     // 2,000 req/min
     features: [
       'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',
       'scheduled_reports', 'sso', 'custom_parsers', 'multi_client',
@@ -39,6 +43,7 @@ export const TIER_ENTITLEMENTS = {
     max_assets: 'unlimited',
     max_monthly_uploads: 'unlimited',
     max_ai_calls: 'unlimited',
+    api_rate_limit: 'unlimited',
     features: [
       'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',
       'scheduled_reports', 'sso', 'custom_parsers', 'multi_client', 'white_label',

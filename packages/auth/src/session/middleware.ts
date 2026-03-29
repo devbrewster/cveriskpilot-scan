@@ -80,9 +80,23 @@ export type AuthenticatedHandler = (
   session: Session,
 ) => Promise<NextResponse> | NextResponse;
 
+/** Optional hook for tier-aware API rate limiting, injected by the app layer */
+let _rateLimitHook: ((orgId: string) => Promise<NextResponse | null>) | null = null;
+
+/**
+ * Register a rate-limit hook to be called by withAuth on every request.
+ * Called once at app startup from the Next.js layer with the billing helper.
+ */
+export function setRateLimitHook(
+  hook: (organizationId: string) => Promise<NextResponse | null>,
+): void {
+  _rateLimitHook = hook;
+}
+
 /**
  * Wrap a Next.js API route handler to require authentication.
  * Returns 401 if no valid session exists.
+ * Applies tier-aware API rate limiting when a rate-limit hook is registered.
  *
  * Usage:
  * ```ts
@@ -100,6 +114,12 @@ export function withAuth(handler: AuthenticatedHandler) {
         { error: 'Unauthorized', message: 'Valid session required' },
         { status: 401 },
       );
+    }
+
+    // Tier-aware API rate limiting (if hook registered)
+    if (_rateLimitHook) {
+      const rateLimitResponse = await _rateLimitHook(session.organizationId);
+      if (rateLimitResponse) return rateLimitResponse;
     }
 
     return handler(request, session);

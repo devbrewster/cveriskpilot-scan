@@ -4,7 +4,7 @@
  * CVERiskPilot CLI Scanner
  *
  * Usage:
- *   npx @cveriskpilot/scan [command] [flags]
+ *   npx @cveriskpilot/scan@latest [command] [flags]
  *
  * Commands:
  *   scan (default)       Run all enabled scanners on current directory
@@ -14,7 +14,7 @@
  *   --secrets-only       Secrets scan only
  *   --iac-only           IaC scan only
  *   --frameworks <list>  Comma-separated framework IDs (aliases OK)
- *   --preset <name>      Framework preset: federal, defense, startup, devsecops, all
+ *   --preset <name>      Framework preset: federal, defense, enterprise, startup, devsecops, all
  *   --severity <level>   Min severity to display: CRITICAL, HIGH, MEDIUM, LOW, INFO
  *   --exclude <glob>     Exclude paths (repeatable)
  *   --exclude-cwe <id>   Exclude CWE IDs (repeatable)
@@ -32,17 +32,17 @@
 
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import * as https from 'node:https';
 import { scanDependencies } from './scanners/sbom-scanner.js';
 import { scanSecrets } from './scanners/secrets-scanner.js';
 import { scanIaC } from './scanners/iac-scanner.js';
 import { formatOutput, severityRank } from './output.js';
 import type { OutputFormat, ScanSummary } from './output.js';
-import type { CanonicalFinding } from '@cveriskpilot/parsers/types';
+import type { CanonicalFinding } from './vendor/parsers/types.js';
 import {
   IMPLEMENTED_FRAMEWORKS,
   FRAMEWORK_PRESETS,
   PLANNED_FRAMEWORKS,
-  SEVERITY_ORDER,
   EXIT_PASS,
   EXIT_VIOLATION,
   EXIT_ERROR,
@@ -54,7 +54,53 @@ import {
 // Version
 // ---------------------------------------------------------------------------
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.7';
+const PKG_NAME = '@cveriskpilot/scan';
+
+// ---------------------------------------------------------------------------
+// Update Check — non-blocking, best-effort
+// ---------------------------------------------------------------------------
+
+function checkForUpdate(): Promise<string | null> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => resolve(null), 3000);
+    const req = https.get(
+      `https://registry.npmjs.org/${PKG_NAME}/latest`,
+      { headers: { Accept: 'application/json' } },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk: Buffer) => { data += chunk; });
+        res.on('end', () => {
+          clearTimeout(timeout);
+          try {
+            const latest = JSON.parse(data).version as string;
+            if (latest && latest !== VERSION) {
+              resolve(latest);
+            } else {
+              resolve(null);
+            }
+          } catch {
+            resolve(null);
+          }
+        });
+      },
+    );
+    req.on('error', () => { clearTimeout(timeout); resolve(null); });
+    req.end();
+  });
+}
+
+function printUpdateNotice(latest: string): void {
+  const yellow = '\x1b[33m';
+  const cyan = '\x1b[36m';
+  const bold = '\x1b[1m';
+  const reset = '\x1b[0m';
+  console.error('');
+  console.error(`  ${yellow}${bold}Update available${reset} ${VERSION} → ${cyan}${bold}${latest}${reset}`);
+  console.error(`  Run ${cyan}npm i -g ${PKG_NAME}@latest${reset} to update`);
+  console.error(`  Or use ${cyan}npx ${PKG_NAME}@latest${reset} for one-off runs`);
+  console.error('');
+}
 
 // ---------------------------------------------------------------------------
 // Argument Parsing
@@ -230,16 +276,17 @@ ${bold('UPLOAD FLAGS')}
   --no-upload          Scan locally only, don't upload results
 
 ${bold('FRAMEWORKS (6 implemented)')}
-  nist-800-53          NIST 800-53 Rev 5 (39 controls)     aliases: nist, nist800
-  soc2-type2           SOC 2 Type II (6 controls)           aliases: soc2, soc
+  nist-800-53          NIST 800-53 Rev 5 (45 controls)     aliases: nist, nist800
+  soc2-type2           SOC 2 Type II (7 controls)           aliases: soc2, soc
   cmmc-level2          CMMC Level 2 (33 controls)           aliases: cmmc, cmmc2
-  fedramp-moderate     FedRAMP Moderate (47 controls)       aliases: fedramp
-  owasp-asvs           OWASP ASVS 4.0 (6 controls)         aliases: asvs, owasp
-  nist-ssdf            NIST SSDF 1.1 (7 controls)           aliases: ssdf
+  fedramp-moderate     FedRAMP Moderate (35 controls)       aliases: fedramp
+  owasp-asvs           OWASP ASVS 4.0 (7 controls)         aliases: asvs, owasp
+  nist-ssdf            NIST SSDF 1.1 (8 controls)           aliases: ssdf
 
 ${bold('PRESETS')}
   federal              NIST 800-53 + FedRAMP + SSDF
   defense              NIST 800-53 + CMMC + SSDF
+  enterprise           NIST 800-53 + SOC 2 + ASVS + SSDF
   startup              SOC 2 + ASVS
   devsecops            ASVS + SSDF
   all                  All 6 frameworks
@@ -470,6 +517,9 @@ function filterFindings(
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv);
 
+  // Fire update check early (non-blocking, resolves in background)
+  const updateCheck = (!opts.ci && process.stderr.isTTY) ? checkForUpdate() : Promise.resolve(null);
+
   if (opts.command === 'help') {
     printHelp();
     process.exit(EXIT_PASS);
@@ -556,6 +606,26 @@ async function main(): Promise<void> {
   const runSecrets = runAll || opts.secretsOnly;
   const runIaC = runAll || opts.iacOnly;
 
+  // ---- Progress display ----
+  const isTTY = process.stderr.isTTY && !opts.ci;
+  const spinChars = ['|', '/', '-', '\\'];
+  let spinIdx = 0;
+  const status: Record<string, string> = {};
+
+  function updateProgress(): void {
+    if (!isTTY) return;
+    const spin = spinChars[spinIdx++ % spinChars.length];
+    const parts = Object.entries(status).map(([k, v]) => `${k}: ${v}`).join('  ');
+    process.stderr.write(`\r  ${spin} ${parts}  `);
+  }
+
+  const progressInterval = isTTY ? setInterval(updateProgress, 120) : undefined;
+
+  function clearProgress(): void {
+    if (progressInterval) clearInterval(progressInterval);
+    if (isTTY) process.stderr.write('\r' + ' '.repeat(80) + '\r');
+  }
+
   // ---- Run scanners in parallel ----
   const scanPromises: Promise<void>[] = [];
 
@@ -564,6 +634,7 @@ async function main(): Promise<void> {
   let ecosystems: string[] | undefined;
 
   if (runDeps) {
+    status['deps'] = 'scanning...';
     scanPromises.push(
       (async () => {
         if (opts.verbose) console.log('  Running dependency scanner...');
@@ -573,11 +644,13 @@ async function main(): Promise<void> {
           scannersRun.push('sbom');
           depsCount = result.dependencies.length;
           ecosystems = result.ecosystems;
+          status['deps'] = `${result.dependencies.length} pkgs`;
           if (opts.verbose) {
             console.log(`    Found ${result.dependencies.length} dependencies across ${result.ecosystems.join(', ') || 'no'} ecosystems`);
             console.log(`    ${result.findings.length} vulnerable dependencies detected`);
           }
         } catch (err) {
+          status['deps'] = 'error';
           if (opts.verbose) console.error(`    Dependency scan error: ${err instanceof Error ? err.message : String(err)}`);
         }
       })(),
@@ -588,19 +661,25 @@ async function main(): Promise<void> {
   let secretsFilesScanned: number | undefined;
 
   if (runSecrets) {
+    status['secrets'] = 'scanning...';
     scanPromises.push(
       (async () => {
         if (opts.verbose) console.log('  Running secrets scanner...');
         try {
-          const result = await scanSecrets(opts.targetDir);
+          const result = await scanSecrets(opts.targetDir, {
+            exclude: opts.exclude,
+            onProgress: (n) => { status['secrets'] = `${n} files...`; },
+          });
           allFindings.push(...result.findings);
           scannersRun.push('secrets');
           secretsFilesScanned = result.filesScanned;
+          status['secrets'] = `${result.filesScanned} files`;
           if (opts.verbose) {
             console.log(`    Scanned ${result.filesScanned} files (${result.filesSkipped} skipped)`);
             console.log(`    ${result.findings.length} secrets detected`);
           }
         } catch (err) {
+          status['secrets'] = 'error';
           if (opts.verbose) console.error(`    Secrets scan error: ${err instanceof Error ? err.message : String(err)}`);
         }
       })(),
@@ -613,22 +692,25 @@ async function main(): Promise<void> {
   let iacRulesFailed: number | undefined;
 
   if (runIaC) {
+    status['iac'] = 'scanning...';
     scanPromises.push(
       (async () => {
         if (opts.verbose) console.log('  Running IaC scanner...');
         try {
-          const result = await scanIaC(opts.targetDir);
+          const result = await scanIaC(opts.targetDir, { exclude: opts.exclude });
           allFindings.push(...result.findings);
           scannersRun.push('iac');
           iacFilesScanned = result.filesScanned;
           iacRulesPassed = result.rulesPassed;
           iacRulesFailed = result.rulesFailed;
+          status['iac'] = `${result.filesScanned} files`;
           if (opts.verbose) {
             console.log(`    Scanned ${result.filesScanned} IaC files`);
             console.log(`    ${result.rulesFailed} rules failed, ${result.rulesPassed} rules passed`);
             console.log(`    ${result.findings.length} violations found`);
           }
         } catch (err) {
+          status['iac'] = 'error';
           if (opts.verbose) console.error(`    IaC scan error: ${err instanceof Error ? err.message : String(err)}`);
         }
       })(),
@@ -637,6 +719,7 @@ async function main(): Promise<void> {
 
   // Wait for all scanners
   await Promise.all(scanPromises);
+  clearProgress();
 
   const durationMs = Date.now() - startTime;
 
@@ -680,6 +763,12 @@ async function main(): Promise<void> {
   // ---- Upload if API key provided ----
   if (opts.apiKey && !opts.noUpload && filteredFindings.length > 0) {
     await uploadResults(filteredFindings, opts.apiKey, opts.apiUrl, activeFrameworks ?? [], opts.verbose);
+  }
+
+  // ---- Update notice (non-blocking, only in TTY) ----
+  const latestVersion = await updateCheck;
+  if (latestVersion) {
+    printUpdateNotice(latestVersion);
   }
 
   process.exit(exitCode);

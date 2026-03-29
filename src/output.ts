@@ -5,9 +5,9 @@
  * and exit code explanations.
  */
 
-import type { CanonicalFinding } from '@cveriskpilot/parsers/types';
-import { mapFindingsToComplianceImpact } from '@cveriskpilot/compliance/mapping/cross-framework';
-import type { ComplianceImpactReport } from '@cveriskpilot/compliance/mapping/cross-framework';
+import type { CanonicalFinding } from './vendor/parsers/types.js';
+import { mapFindingsToComplianceImpact } from './vendor/compliance/mapping/cross-framework.js';
+import type { ComplianceImpactReport } from './vendor/compliance/mapping/cross-framework.js';
 
 // ---------------------------------------------------------------------------
 // ANSI Color Codes
@@ -114,7 +114,8 @@ function formatTable(summary: ScanSummary): string {
   const counts = countBySeverity(summary.findings);
   lines.push(c(BOLD, '  Summary'));
   lines.push(`  ${c(RED + BOLD, `${counts.CRITICAL}`)} critical  ${c(RED, `${counts.HIGH}`)} high  ${c(YELLOW, `${counts.MEDIUM}`)} medium  ${c(BLUE, `${counts.LOW}`)} low  ${c(DIM, `${counts.INFO}`)} info`);
-  lines.push(`  ${c(DIM, `Total: ${summary.findings.length} findings`)}`);
+  const verdictCounts = countByVerdict(summary.findings);
+  lines.push(`  ${c(DIM, `Total: ${summary.findings.length} findings`)}  ${c(GREEN + BOLD, `${verdictCounts.TRUE_POSITIVE} actionable`)}  ${c(YELLOW, `${verdictCounts.NEEDS_REVIEW} review`)}  ${c(DIM, `${verdictCounts.FALSE_POSITIVE} auto-dismissed`)}`);
   lines.push('');
 
   if (summary.depsCount !== undefined) {
@@ -141,9 +142,15 @@ function formatTable(summary: ScanSummary): string {
       const location = f.filePath ? `${f.filePath}${f.lineNumber ? `:${f.lineNumber}` : ''}` : f.packageName ?? '';
       const scanner = f.scannerType;
       const cwe = f.cweIds.length > 0 ? f.cweIds[0] : '';
+      const verdictTag = f.verdict === 'FALSE_POSITIVE' ? c(DIM, ' [FP]')
+        : f.verdict === 'NEEDS_REVIEW' ? c(YELLOW, ' [REVIEW]')
+        : c(GREEN, ' [TP]');
       lines.push(
-        `  ${severityBadge(f.severity)} ${c(BOLD, truncate(f.title, 45))} ${c(DIM, truncate(cwe, 10))} ${c(DIM, truncate(location, 25))} ${c(MAGENTA, scanner)}`,
+        `  ${severityBadge(f.severity)}${verdictTag} ${c(BOLD, truncate(f.title, 40))} ${c(DIM, truncate(cwe, 10))} ${c(DIM, truncate(location, 25))} ${c(MAGENTA, scanner)}`,
       );
+      if (f.verdictReason) {
+        lines.push(`  ${c(DIM, '           → ' + truncate(f.verdictReason, 90))}`);
+      }
     }
 
     if (summary.findings.length > displayLimit) {
@@ -205,9 +212,12 @@ function formatJson(summary: ScanSummary): string {
       durationMs: summary.durationMs,
       dependencies: summary.depsCount,
       ecosystems: summary.ecosystems,
+      verdictSummary: countByVerdict(summary.findings),
       findings: summary.findings.map((f) => ({
         title: f.title,
         severity: f.severity,
+        verdict: f.verdict ?? 'TRUE_POSITIVE',
+        verdictReason: f.verdictReason ?? '',
         scanner: f.scannerType,
         filePath: f.filePath,
         lineNumber: f.lineNumber,
@@ -272,14 +282,15 @@ function formatMarkdown(summary: ScanSummary): string {
   if (summary.findings.length > 0) {
     lines.push('## Findings');
     lines.push('');
-    lines.push('| Severity | Title | CWE | Location | Scanner |');
-    lines.push('|----------|-------|-----|----------|---------|');
+    lines.push('| Severity | Verdict | Title | CWE | Location | Scanner |');
+    lines.push('|----------|---------|-------|-----|----------|---------|');
 
     const sorted = [...summary.findings].sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
     for (const f of sorted.slice(0, 100)) {
       const location = f.filePath ? `${f.filePath}${f.lineNumber ? `:${f.lineNumber}` : ''}` : f.packageName ?? '';
       const cwe = f.cweIds.length > 0 ? f.cweIds.join(', ') : '-';
-      lines.push(`| ${f.severity} | ${f.title} | ${cwe} | ${location} | ${f.scannerType} |`);
+      const verdict = f.verdict === 'FALSE_POSITIVE' ? 'FP' : f.verdict === 'NEEDS_REVIEW' ? 'REVIEW' : 'TP';
+      lines.push(`| ${f.severity} | ${verdict} | ${f.title} | ${cwe} | ${location} | ${f.scannerType} |`);
     }
     lines.push('');
   }
@@ -386,6 +397,8 @@ function formatSarif(summary: ScanSummary): string {
               : [],
             properties: {
               severity: f.severity,
+              verdict: f.verdict ?? 'TRUE_POSITIVE',
+              verdictReason: f.verdictReason ?? '',
               scanner: f.scannerType,
               ...(f.packageName && { packageName: f.packageName }),
               ...(f.packageVersion && { packageVersion: f.packageVersion }),
@@ -409,6 +422,15 @@ function countBySeverity(findings: CanonicalFinding[]): Record<string, number> {
   const counts: Record<string, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 };
   for (const f of findings) {
     counts[f.severity] = (counts[f.severity] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function countByVerdict(findings: CanonicalFinding[]): Record<string, number> {
+  const counts: Record<string, number> = { TRUE_POSITIVE: 0, FALSE_POSITIVE: 0, NEEDS_REVIEW: 0 };
+  for (const f of findings) {
+    const v = f.verdict ?? 'TRUE_POSITIVE';
+    counts[v] = (counts[v] ?? 0) + 1;
   }
   return counts;
 }

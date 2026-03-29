@@ -7,8 +7,7 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import * as readline from 'node:readline';
-import type { CanonicalFinding } from '@cveriskpilot/parsers/types';
+import type { CanonicalFinding } from '../vendor/parsers/types.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -843,13 +842,54 @@ const EXCLUDED_DIRS = new Set([
   '.git',
   'node_modules',
   '.next',
+  '.next-dev',
+  '.open-next',
   'dist',
   'build',
+  'out',
   '.cache',
   '.turbo',
   'vendor',
   '__pycache__',
+  '.wrangler',
+  '.data',
+  'coverage',
 ]);
+
+// ---------------------------------------------------------------------------
+// Gitignore Support
+// ---------------------------------------------------------------------------
+
+async function loadGitignorePatterns(projectDir: string): Promise<string[]> {
+  try {
+    const content = await fs.promises.readFile(path.join(projectDir, '.gitignore'), 'utf-8');
+    return content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#') && !line.startsWith('!'));
+  } catch {
+    return [];
+  }
+}
+
+function matchesGitignore(relativePath: string, patterns: string[]): boolean {
+  const normalized = relativePath.replace(/\\/g, '/');
+  for (const pattern of patterns) {
+    // Exact filename match
+    if (normalized === pattern || normalized.endsWith('/' + pattern)) return true;
+    // Directory-prefixed (e.g., ".env.local" matches a file named .env.local anywhere)
+    const basename = path.basename(normalized);
+    if (basename === pattern) return true;
+    // Glob-like: pattern ending with /* or /**
+    if (pattern.endsWith('/*') || pattern.endsWith('/**')) {
+      const dir = pattern.replace(/\/\*+$/, '');
+      if (normalized.startsWith(dir + '/') || normalized === dir) return true;
+    }
+    // Pattern with directory prefix
+    if (pattern.includes('/') && normalized.startsWith(pattern)) return true;
+  }
+  return false;
+}
 
 async function* walkIacFiles(dir: string): AsyncGenerator<string> {
   let entries: fs.Dirent[];
@@ -916,13 +956,27 @@ function nistToCweIds(nistControls: string[]): string[] {
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function scanIaC(projectDir: string): Promise<IacScanResult> {
+export async function scanIaC(projectDir: string, opts?: { exclude?: string[]; onProgress?: (scanned: number) => void }): Promise<IacScanResult> {
   const allViolations: IacViolation[] = [];
   let filesScanned = 0;
   const ruleHits = new Set<string>();
   const now = new Date();
+  const gitignorePatterns = await loadGitignorePatterns(projectDir);
+
+  // Pre-compile exclude regexes once
+  const excludeRegexes = (opts?.exclude ?? []).map(glob =>
+    new RegExp('^' + glob.replace(/\*/g, '.*').replace(/\?/g, '.') + '$')
+  );
 
   for await (const filePath of walkIacFiles(projectDir)) {
+    const relativePath = path.relative(projectDir, filePath);
+
+    // Skip gitignored files
+    if (matchesGitignore(relativePath, gitignorePatterns)) continue;
+
+    // Skip --exclude patterns
+    if (excludeRegexes.length > 0 && excludeRegexes.some(re => re.test(relativePath))) continue;
+
     let content: string;
     try {
       const stat = await fs.promises.stat(filePath);
@@ -962,6 +1016,8 @@ export async function scanIaC(projectDir: string): Promise<IacScanResult> {
       cveIds: [],
       cweIds: nistToCweIds(rule.nistControls),
       severity: rule.severity,
+      verdict: 'TRUE_POSITIVE' as const,
+      verdictReason: 'IaC misconfiguration directly detected by rule check',
       scannerType: 'iac',
       scannerName: 'cveriskpilot-scan/iac',
       assetName: projectDir,

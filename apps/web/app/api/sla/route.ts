@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/sla — List SLA policies for an organization
@@ -7,15 +8,12 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const { organizationId } = session;
 
     const policies = await prisma.slaPolicy.findMany({
       where: { organizationId },
@@ -41,10 +39,16 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const { organizationId } = session;
+
     const body = await request.json();
 
     const {
-      organizationId,
       name,
       description,
       criticalDays,
@@ -54,7 +58,6 @@ export async function POST(request: NextRequest) {
       kevCriticalDays,
       isDefault,
     } = body as {
-      organizationId?: string;
       name?: string;
       description?: string;
       criticalDays?: number;
@@ -64,13 +67,6 @@ export async function POST(request: NextRequest) {
       kevCriticalDays?: number;
       isDefault?: boolean;
     };
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
-    }
 
     if (!name) {
       return NextResponse.json(

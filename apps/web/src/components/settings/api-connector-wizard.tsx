@@ -407,8 +407,6 @@ export function ApiConnectorWizard({
     setCreating(true);
     setCreateError(null);
 
-    const scannerOption = SCANNER_OPTIONS.find((s) => s.type === data.scannerType);
-
     try {
       const res = await fetch('/api/connectors', {
         method: 'POST',

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession, validateExternalUrl, encryptForTenant } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -23,15 +24,12 @@ interface StoredServiceNowConfig {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId query param is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const { organizationId } = session;
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -67,9 +65,15 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const { organizationId } = session;
+
     const body = await request.json();
     const {
-      organizationId,
       instanceUrl,
       authType,
       username,
@@ -80,7 +84,6 @@ export async function PUT(request: NextRequest) {
       assignmentGroup,
       category,
     } = body as {
-      organizationId?: string;
       instanceUrl?: string;
       authType?: 'basic' | 'oauth2';
       username?: string;
@@ -91,13 +94,6 @@ export async function PUT(request: NextRequest) {
       assignmentGroup?: string;
       category?: string;
     };
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
-    }
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -110,14 +106,43 @@ export async function PUT(request: NextRequest) {
     const settings = (org.entitlements ?? {}) as Record<string, unknown>;
     const existing = (settings.servicenow ?? {}) as Partial<StoredServiceNowConfig>;
 
+    // SSRF protection — validate instanceUrl
+    const effectiveUrl = instanceUrl ?? existing.instanceUrl ?? '';
+    if (effectiveUrl) {
+      const urlCheck = validateExternalUrl(effectiveUrl);
+      if (!urlCheck.valid) {
+        return NextResponse.json({ error: `Invalid instanceUrl: ${urlCheck.reason}` }, { status: 400 });
+      }
+    }
+
+    // Encrypt sensitive fields before storing
+    let encryptedPassword = existing.password ?? '';
+    let encryptedClientSecret = existing.clientSecret ?? '';
+
+    try {
+      if (password) {
+        const encrypted = await encryptForTenant(password, organizationId);
+        encryptedPassword = JSON.stringify(encrypted);
+      }
+      if (clientSecret) {
+        const encrypted = await encryptForTenant(clientSecret, organizationId);
+        encryptedClientSecret = JSON.stringify(encrypted);
+      }
+    } catch {
+      // If encryption is unavailable (e.g., dev without keys), store as-is
+      console.warn('[servicenow/config] Encryption unavailable — storing credentials in plaintext');
+      if (password) encryptedPassword = password;
+      if (clientSecret) encryptedClientSecret = clientSecret;
+    }
+
     // Merge — only overwrite provided fields
     const updated: StoredServiceNowConfig = {
-      instanceUrl: instanceUrl ?? existing.instanceUrl ?? '',
+      instanceUrl: effectiveUrl,
       authType: authType ?? existing.authType ?? 'basic',
       username: username ?? existing.username ?? '',
-      password: password ?? existing.password ?? '',
+      password: encryptedPassword,
       clientId: clientId ?? existing.clientId ?? '',
-      clientSecret: clientSecret ?? existing.clientSecret ?? '',
+      clientSecret: encryptedClientSecret,
       tokenUrl: tokenUrl ?? existing.tokenUrl ?? '',
       assignmentGroup: assignmentGroup ?? existing.assignmentGroup ?? '',
       category: category ?? existing.category ?? 'Security',
@@ -156,15 +181,12 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId query param is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const { organizationId } = session;
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, validateExternalUrl, checkCsrf, encryptForTenant, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import type { EncryptedPayload } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
@@ -75,6 +76,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, ADMIN_ROLES);
+    if (roleError) return roleError;
+
     const organizationId = session.organizationId;
     const body = await request.json();
     const { url, secret, events } = body as {
@@ -90,6 +94,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SSRF protection — validate webhook URL
+    const urlCheck = validateExternalUrl(url);
+    if (!urlCheck.valid) {
+      return NextResponse.json({ error: `Invalid URL: ${urlCheck.reason}` }, { status: 400 });
+    }
+
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
       select: { entitlements: true },
@@ -99,11 +113,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     }
 
+    // Encrypt the webhook signing secret before storing
+    let storedSecret: string | EncryptedPayload = secret;
+    try {
+      storedSecret = await encryptForTenant(secret, organizationId);
+    } catch {
+      // If encryption is unavailable (e.g., dev without keys), store as-is
+      console.warn('[webhooks/config] Encryption unavailable — storing secret in plaintext');
+    }
+
     const existing = getEndpoints(org.entitlements);
     const newEndpoint: WebhookEndpointConfig = {
       id: crypto.randomUUID(),
       url,
-      secret,
+      secret: typeof storedSecret === 'string' ? storedSecret : JSON.stringify(storedSecret),
       events,
       isActive: true,
       createdAt: new Date().toISOString(),
@@ -122,6 +145,23 @@ export async function POST(request: NextRequest) {
       where: { id: organizationId },
       data: { entitlements: entitlements as any },
     });
+
+    // Audit log for webhook creation
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId,
+          actorId: session.userId,
+          action: 'CREATE',
+          entityType: 'WebhookEndpoint',
+          entityId: newEndpoint.id,
+          details: { url, events },
+          hash: `create-webhook-${newEndpoint.id}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
 
     return NextResponse.json(
       { ...newEndpoint, secret: undefined, secretLast4: '****' + secret.slice(-4) },
@@ -144,6 +184,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError2 = requireRole(session.role, ADMIN_ROLES);
+    if (roleError2) return roleError2;
+
     const organizationId = session.organizationId;
     const body = await request.json();
     const { endpointId, url, events, active } = body as {
@@ -159,6 +202,18 @@ export async function PUT(request: NextRequest) {
         { status: 400 },
       );
     }
+
+    // SSRF protection — validate webhook URL if being updated
+    if (url !== undefined) {
+      const urlCheck = validateExternalUrl(url);
+      if (!urlCheck.valid) {
+        return NextResponse.json({ error: `Invalid URL: ${urlCheck.reason}` }, { status: 400 });
+      }
+    }
+
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -196,6 +251,23 @@ export async function PUT(request: NextRequest) {
       data: { entitlements: entitlements as any },
     });
 
+    // Audit log for webhook update
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId,
+          actorId: session.userId,
+          action: 'UPDATE',
+          entityType: 'WebhookEndpoint',
+          entityId: endpointId,
+          details: { url, events, active },
+          hash: `update-webhook-${endpointId}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
+
     const { secret: _s, ...safe } = updated[idx];
     return NextResponse.json({ ...safe, secretLast4: _s ? '****' + _s.slice(-4) : null });
   } catch (error) {
@@ -214,6 +286,13 @@ export async function DELETE(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleError3 = requireRole(session.role, ADMIN_ROLES);
+    if (roleError3) return roleError3;
 
     const organizationId = session.organizationId;
     const body = await request.json();
@@ -255,6 +334,23 @@ export async function DELETE(request: NextRequest) {
       where: { id: organizationId },
       data: { entitlements: entitlements as any },
     });
+
+    // Audit log for webhook deletion
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId,
+          actorId: session.userId,
+          action: 'DELETE',
+          entityType: 'WebhookEndpoint',
+          entityId: endpointId,
+          details: {},
+          hash: `delete-webhook-${endpointId}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

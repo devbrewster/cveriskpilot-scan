@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/exceptions/[id] — Get exception details
 // ---------------------------------------------------------------------------
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
@@ -39,6 +45,11 @@ export async function GET(
     });
 
     if (!exception) {
+      return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
+    }
+
+    // Verify the exception belongs to the user's organization
+    if (exception.vulnerabilityCase?.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
     }
 
@@ -77,6 +88,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
@@ -85,22 +101,17 @@ export async function PUT(
 
     const body = await request.json();
 
-    const { action, approvedById, durationDays } = body as {
+    const { action, durationDays } = body as {
       action?: 'approve' | 'reject';
-      approvedById?: string;
       durationDays?: number;
     };
+
+    // Use the authenticated user as the approver instead of accepting from body
+    const approvedById = session.userId;
 
     if (!action || !['approve', 'reject'].includes(action)) {
       return NextResponse.json(
         { error: 'action must be "approve" or "reject"' },
-        { status: 400 },
-      );
-    }
-
-    if (!approvedById) {
-      return NextResponse.json(
-        { error: 'approvedById is required' },
         { status: 400 },
       );
     }
@@ -126,12 +137,17 @@ export async function PUT(
       where: { id },
       include: {
         vulnerabilityCase: {
-          select: { id: true, status: true },
+          select: { id: true, status: true, organizationId: true },
         },
       },
     });
 
     if (!existing) {
+      return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
+    }
+
+    // Verify the exception belongs to the user's organization
+    if (existing.vulnerabilityCase?.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Exception not found' }, { status: 404 });
     }
 

@@ -15,8 +15,6 @@
       }
     ],
     "rootDir": ".",
-    "outDir": "dist",
-    "composite": true,
     "paths": {
       "@/*": [
         "./src/*"
@@ -33,7 +31,6 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "dist",
     "node_modules",
     ".next"
   ]

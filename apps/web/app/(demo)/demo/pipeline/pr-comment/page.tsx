@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { demoPRCommentMarkdown, demoPipelinePOAMs } from '@/lib/demo-data';
+import { demoPRCommentMarkdown } from '@/lib/demo-data';
 
 // ---------------------------------------------------------------------------
 // Verdict variants
@@ -51,7 +51,7 @@ type ViewType = 'github' | 'gitlab';
 // Simple markdown line renderer
 // ---------------------------------------------------------------------------
 
-function MarkdownLine({ line, index }: { line: string; index: number }) {
+function MarkdownLine({ line, index: _index }: { line: string; index: number }) {
   if (line.startsWith('## ')) return <h3 className="mb-2 mt-4 text-base font-bold text-gray-900">{line.replace('## ', '')}</h3>;
   if (line.startsWith('### ')) return <h4 className="mb-2 mt-3 text-sm font-semibold text-gray-800">{line.replace('### ', '')}</h4>;
   if (line.startsWith('**')) return <p className="mb-2 text-sm font-semibold text-gray-800">{line.replace(/\*\*/g, '')}</p>;

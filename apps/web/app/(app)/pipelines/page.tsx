@@ -174,7 +174,7 @@ const severityBadgeColors: Record<Severity, string> = {
 
 export default function PipelinesPage() {
   const router = useRouter();
-  const { organizationId } = useAuth();
+  useAuth();
 
   const [scans, setScans] = useState<PipelineScan[]>([]);
   const [loading, setLoading] = useState(true);

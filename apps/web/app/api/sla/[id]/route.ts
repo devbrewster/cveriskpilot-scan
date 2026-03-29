@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/sla/[id] — Get a specific SLA policy
 // ---------------------------------------------------------------------------
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const policy = await prisma.slaPolicy.findUnique({
@@ -20,6 +26,11 @@ export async function GET(
     });
 
     if (!policy) {
+      return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
+    }
+
+    // Verify the policy belongs to the user's organization
+    if (policy.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
     }
 
@@ -42,6 +53,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id } = await params;
     const body = await request.json();
 
@@ -67,6 +83,11 @@ export async function PUT(
 
     const existing = await prisma.slaPolicy.findUnique({ where: { id } });
     if (!existing) {
+      return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
+    }
+
+    // Verify the policy belongs to the user's organization
+    if (existing.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
     }
 
@@ -111,14 +132,24 @@ export async function PUT(
 // ---------------------------------------------------------------------------
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const existing = await prisma.slaPolicy.findUnique({ where: { id } });
     if (!existing) {
+      return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
+    }
+
+    // Verify the policy belongs to the user's organization
+    if (existing.organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'SLA policy not found' }, { status: 404 });
     }
 

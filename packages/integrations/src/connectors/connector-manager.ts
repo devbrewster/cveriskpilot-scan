@@ -273,7 +273,12 @@ export async function triggerScan(
       };
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as {
+      connectorId?: string;
+      scanId?: string;
+      status?: 'queued' | 'started' | 'failed';
+      message?: string;
+    };
     return {
       connectorId: data.connectorId ?? '',
       scanId: data.scanId ?? crypto.randomUUID(),

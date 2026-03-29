@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="720" viewBox="0 0 820 720">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;display=swap');
+      .bg { fill: #1a1b26; }
+      .titlebar { fill: #24283b; }
+      .dot-red { fill: #f7768e; }
+      .dot-yellow { fill: #e0af68; }
+      .dot-green { fill: #9ece6a; }
+      .title-text { fill: #a9b1d6; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+      .text { fill: #a9b1d6; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .text-bold { fill: #c0caf5; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 700; }
+      .text-dim { fill: #565f89; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .text-cyan { fill: #7dcfff; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .text-cyan-bold { fill: #7dcfff; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 700; }
+      .text-red { fill: #f7768e; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .text-red-bold { fill: #f7768e; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 700; }
+      .text-yellow { fill: #e0af68; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .text-green { fill: #9ece6a; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .text-magenta { fill: #bb9af7; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .text-white-bold { fill: #ffffff; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 700; }
+      .badge-crit { fill: #f7768e; }
+      .badge-high { fill: #ff9e64; }
+      .badge-text { fill: #1a1b26; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 11px; font-weight: 700; }
+      .prompt { fill: #9ece6a; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 700; }
+      .cmd { fill: #c0caf5; font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace; font-size: 13px; }
+      .separator { stroke: #3b4261; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <!-- Window frame -->
+  <rect class="bg" width="820" height="720" rx="10" ry="10"/>
+  <rect class="titlebar" width="820" height="36" rx="10" ry="10"/>
+  <rect class="titlebar" y="26" width="820" height="10"/>
+
+  <!-- Traffic lights -->
+  <circle class="dot-red" cx="20" cy="18" r="6"/>
+  <circle class="dot-yellow" cx="40" cy="18" r="6"/>
+  <circle class="dot-green" cx="60" cy="18" r="6"/>
+  <text class="title-text" x="410" y="22" text-anchor="middle">crp-scan --preset startup /home/user/myproject</text>
+
+  <!-- Command prompt -->
+  <text class="prompt" x="20" y="60">$</text>
+  <text class="cmd" x="35" y="60">crp-scan --preset startup --severity HIGH</text>
+
+  <!-- Header -->
+  <text class="text-cyan-bold" x="20" y="92">  CVERiskPilot Scan Results</text>
+  <text class="text-dim" x="20" y="110">  2026-03-28T14:32:01.847Z  |  sbom, iac, secrets  |  1.2s</text>
+
+  <!-- Summary section -->
+  <text class="text-bold" x="20" y="140">  Summary</text>
+  <text y="160">
+    <tspan class="text-red-bold" x="20">  28</tspan>
+    <tspan class="text"> critical  </tspan>
+    <tspan class="text-red">3</tspan>
+    <tspan class="text"> high  </tspan>
+    <tspan class="text-yellow">0</tspan>
+    <tspan class="text"> medium  </tspan>
+    <tspan class="text-cyan">0</tspan>
+    <tspan class="text"> low  </tspan>
+    <tspan class="text-dim">0</tspan>
+    <tspan class="text"> info</tspan>
+  </text>
+  <text class="text-dim" x="20" y="178">  Total: 31 findings</text>
+
+  <text class="text-cyan" x="20" y="200">  Dependencies:</text>
+  <text class="text" x="155" y="200">842 packages (npm)</text>
+  <text class="text-cyan" x="20" y="218">  Secrets scan:</text>
+  <text class="text" x="148" y="218">873 files scanned</text>
+  <text class="text-cyan" x="20" y="236">  IaC scan:</text>
+  <text class="text" x="115" y="236">22 files, 28 rules passed, 1 failed</text>
+
+  <!-- Findings section -->
+  <text class="text-bold" x="20" y="268">  Findings</text>
+  <line class="separator" x1="20" y1="278" x2="800" y2="278"/>
+
+  <!-- Finding rows -->
+  <!-- Row 1 -->
+  <rect class="badge-crit" x="20" y="286" width="72" height="17" rx="3"/>
+  <text class="badge-text" x="28" y="299">CRITICAL</text>
+  <text class="text-white-bold" x="100" y="299">Prototype Pollution in lodash</text>
+  <text class="text-dim" x="380" y="299">CWE-77</text>
+  <text class="text-dim" x="450" y="299">lodash.merge</text>
+  <text class="text-magenta" x="570" y="299">sbom</text>
+
+  <!-- Row 2 -->
+  <rect class="badge-crit" x="20" y="308" width="72" height="17" rx="3"/>
+  <text class="badge-text" x="28" y="321">CRITICAL</text>
+  <text class="text-white-bold" x="100" y="321">Prototype Pollution in lodash</text>
+  <text class="text-dim" x="380" y="321">CWE-77</text>
+  <text class="text-dim" x="450" y="321">lodash.defaults</text>
+  <text class="text-magenta" x="570" y="321">sbom</text>
+
+  <!-- Row 3 -->
+  <rect class="badge-crit" x="20" y="330" width="72" height="17" rx="3"/>
+  <text class="badge-text" x="28" y="343">CRITICAL</text>
+  <text class="text-white-bold" x="100" y="343">Prototype Pollution in lodash</text>
+  <text class="text-dim" x="380" y="343">CWE-77</text>
+  <text class="text-dim" x="450" y="343">lodash.flatten</text>
+  <text class="text-magenta" x="570" y="343">sbom</text>
+
+  <!-- Row 4 -->
+  <rect class="badge-crit" x="20" y="352" width="72" height="17" rx="3"/>
+  <text class="badge-text" x="28" y="365">CRITICAL</text>
+  <text class="text-white-bold" x="100" y="365">Database Connection String...</text>
+  <text class="text-dim" x="380" y="365">CWE-798</text>
+  <text class="text-dim" x="450" y="365">.env.local:2</text>
+  <text class="text-magenta" x="570" y="365">secrets</text>
+
+  <!-- Row 5 -->
+  <rect class="badge-crit" x="20" y="374" width="72" height="17" rx="3"/>
+  <text class="badge-text" x="28" y="387">CRITICAL</text>
+  <text class="text-white-bold" x="100" y="387">Stripe Secret Key detected...</text>
+  <text class="text-dim" x="380" y="387">CWE-798</text>
+  <text class="text-dim" x="450" y="387">.env.local:25</text>
+  <text class="text-magenta" x="570" y="387">secrets</text>
+
+  <!-- Row 6 -->
+  <rect class="badge-crit" x="20" y="396" width="72" height="17" rx="3"/>
+  <text class="badge-text" x="28" y="409">CRITICAL</text>
+  <text class="text-white-bold" x="100" y="409">RSA Private Key detected...</text>
+  <text class="text-dim" x="380" y="409">CWE-321</text>
+  <text class="text-dim" x="450" y="409">config/key.pem</text>
+  <text class="text-magenta" x="570" y="409">secrets</text>
+
+  <!-- Row 7 -->
+  <rect class="badge-high" x="20" y="418" width="55" height="17" rx="3"/>
+  <text class="badge-text" x="30" y="431">HIGH</text>
+  <text class="text-white-bold" x="100" y="431">Anthropic API Key detected...</text>
+  <text class="text-dim" x="380" y="431">CWE-798</text>
+  <text class="text-dim" x="450" y="431">.env.local:24</text>
+  <text class="text-magenta" x="570" y="431">secrets</text>
+
+  <!-- Row 8 -->
+  <rect class="badge-high" x="20" y="440" width="55" height="17" rx="3"/>
+  <text class="badge-text" x="30" y="453">HIGH</text>
+  <text class="text-white-bold" x="100" y="453">S3 bucket lacks encryption</text>
+  <text class="text-dim" x="380" y="453">CWE-311</text>
+  <text class="text-dim" x="450" y="453">infra/main.tf:42</text>
+  <text class="text-magenta" x="570" y="453">iac</text>
+
+  <!-- More indicator -->
+  <text class="text-dim" x="20" y="478">  ... 23 more findings</text>
+
+  <!-- Compliance Impact section -->
+  <text class="text-bold" x="20" y="512">  Compliance Impact</text>
+  <line class="separator" x1="20" y1="522" x2="800" y2="522"/>
+
+  <!-- SOC 2 row -->
+  <text class="text-cyan" x="20" y="544">  SOC 2 Type II</text>
+  <text class="text-yellow" x="200" y="544">3 controls affected</text>
+  <text class="text-dim" x="390" y="544">CC6.8, CC6.1, CC8.1</text>
+
+  <!-- ASVS row -->
+  <text class="text-cyan" x="20" y="566">  OWASP ASVS</text>
+  <text class="text-yellow" x="200" y="566">6 controls affected</text>
+  <text class="text-dim" x="390" y="566">V5.1, V10.3, V1.2, V14.2, V1.1, V9.1</text>
+
+  <text class="text-dim" x="20" y="592">  Total: 9 controls affected across 2 frameworks</text>
+
+  <!-- Verdict -->
+  <text class="text-bold" x="20" y="624">  Exit Status</text>
+  <text class="text-red-bold" x="20" y="646">  FAIL</text>
+  <text class="text" x="62" y="646"> 28 finding(s) at or above CRITICAL severity.</text>
+  <text class="text-dim" x="20" y="664">  Exit code: 1</text>
+
+  <!-- Bottom prompt -->
+  <text class="prompt" x="20" y="698">$</text>
+  <rect class="text-green" x="35" y="688" width="8" height="14" opacity="0.7"/>
+</svg>

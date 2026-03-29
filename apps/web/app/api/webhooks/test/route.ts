@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, validateExternalUrl } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { sendWebhook } from '@cveriskpilot/integrations';
 import type { WebhookPayload } from '@cveriskpilot/integrations';
@@ -47,6 +47,12 @@ export async function POST(request: NextRequest) {
     const endpoint = endpoints.find((e) => e.id === endpointId);
     if (!endpoint) {
       return NextResponse.json({ error: 'Endpoint not found' }, { status: 404 });
+    }
+
+    // SSRF protection — validate the stored URL before sending
+    const urlCheck = validateExternalUrl(endpoint.url);
+    if (!urlCheck.valid) {
+      return NextResponse.json({ error: `Invalid webhook URL: ${urlCheck.reason}` }, { status: 400 });
     }
 
     const testPayload: WebhookPayload = {

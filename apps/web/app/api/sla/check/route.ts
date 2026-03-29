@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // Closed statuses — cases in these statuses are not checked for SLA breach
@@ -19,15 +20,12 @@ const CLOSED_STATUSES = [
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { organizationId } = body as { organizationId?: string };
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const { organizationId } = session;
 
     const now = new Date();
     const approachingThreshold = new Date(

@@ -17,6 +17,7 @@
   "dependencies": {
     "@cveriskpilot/domain": "*",
     "@anthropic-ai/sdk": "^0.39.0",
+    "google-auth-library": "^9.14.0",
     "ioredis": "^5.4.0"
   },
   "devDependencies": {}

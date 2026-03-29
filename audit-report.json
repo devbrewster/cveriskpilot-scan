@@ -1,0 +1,2659 @@
+{
+  "timestamp": "2026-03-28T23:56:26.851Z",
+  "duration_ms": 282,
+  "checks": [
+    {
+      "name": "auth-checks",
+      "findings": [
+        {
+          "id": "auth-missing-apps/web/app/api/uploads/route.ts-GET",
+          "severity": "HIGH",
+          "category": "auth",
+          "title": "GET handler missing authentication",
+          "detail": "No auth check found in GET handler. Data endpoints should verify session.",
+          "file": "apps/web/app/api/uploads/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/auth/logout/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/auth/logout/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/auth/sso/route.ts-GET",
+          "severity": "HIGH",
+          "category": "auth",
+          "title": "GET handler missing authentication",
+          "detail": "No auth check found in GET handler. Data endpoints should verify session.",
+          "file": "apps/web/app/api/auth/sso/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/billing/webhook/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/billing/webhook/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/pipeline/scan/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/pipeline/scan/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/auth/sso/callback/route.ts-GET",
+          "severity": "HIGH",
+          "category": "auth",
+          "title": "GET handler missing authentication",
+          "detail": "No auth check found in GET handler. Data endpoints should verify session.",
+          "file": "apps/web/app/api/auth/sso/callback/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/connectors/[id]/heartbeat/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/connectors/[id]/heartbeat/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/connectors/webhook/snyk/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/connectors/webhook/snyk/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/integrations/jira/webhook/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/integrations/jira/webhook/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/integrations/servicenow/push/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/integrations/servicenow/push/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/teams/[id]/clients/route.ts-POST",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "POST handler missing authentication",
+          "detail": "No auth check found in POST handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/teams/[id]/clients/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        },
+        {
+          "id": "auth-missing-apps/web/app/api/teams/[id]/clients/route.ts-DELETE",
+          "severity": "CRITICAL",
+          "category": "auth",
+          "title": "DELETE handler missing authentication",
+          "detail": "No auth check found in DELETE handler. State-changing endpoints must verify session.",
+          "file": "apps/web/app/api/teams/[id]/clients/route.ts",
+          "fix": "Add `const session = await getServerSession(request);` and return 401 if null."
+        }
+      ],
+      "duration_ms": 93
+    },
+    {
+      "name": "org-scoping",
+      "findings": [
+        {
+          "id": "org-scope-apps/web/app/api/cases/route.ts-L104",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findMany(` at line 104 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/route.ts",
+          "line": 104,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/cases/route.ts-L129",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findMany(` at line 129 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/route.ts",
+          "line": 129,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/cases/route.ts-L141",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.count(` at line 141 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/route.ts",
+          "line": 141,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L52",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.groupBy(` at line 52 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 52,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L59",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.count(` at line 59 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 59,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L64",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findMany(` at line 64 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 64,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L84",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.uploadJob.findMany(` at line 84 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 84,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L99",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.finding.count(` at line 99 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 99,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L102",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.count(` at line 102 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 102,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L105",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findFirst(` at line 105 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 105,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L116",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findMany(` at line 116 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 116,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/dashboard/route.ts-L128",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.auditLog.findMany(` at line 128 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/dashboard/route.ts",
+          "line": 128,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/exceptions/route.ts-L75",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.riskException.count(` at line 75 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/exceptions/route.ts",
+          "line": 75,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/findings/route.ts-L84",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.finding.findMany(` at line 84 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/findings/route.ts",
+          "line": 84,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/findings/route.ts-L112",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.finding.count(` at line 112 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/findings/route.ts",
+          "line": 112,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/notifications/route.ts-L39",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.notification.findMany(` at line 39 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/notifications/route.ts",
+          "line": 39,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/notifications/route.ts-L45",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.notification.count(` at line 45 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/notifications/route.ts",
+          "line": 45,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/notifications/route.ts-L84",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.notification.updateMany(` at line 84 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/notifications/route.ts",
+          "line": 84,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/notifications/route.ts-L89",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.notification.updateMany(` at line 89 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/notifications/route.ts",
+          "line": 89,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/uploads/route.ts-L27",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.uploadJob.findMany(` at line 27 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/uploads/route.ts",
+          "line": 27,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/uploads/route.ts-L42",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.uploadJob.count(` at line 42 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/uploads/route.ts",
+          "line": 42,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/billing/usage/route.ts-L37",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.client.findUnique(` at line 37 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/billing/usage/route.ts",
+          "line": 37,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/billing/usage/route.ts-L52",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.client.findMany(` at line 52 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/billing/usage/route.ts",
+          "line": 52,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/cases/[id]/route.ts-L26",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findUnique(` at line 26 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/[id]/route.ts",
+          "line": 26,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/clients/[id]/route.ts-L22",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.client.findUnique(` at line 22 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/clients/[id]/route.ts",
+          "line": 22,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/export/findings/route.ts-L74",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.finding.findMany(` at line 74 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/export/findings/route.ts",
+          "line": 74,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/export/poam/route.ts-L342",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findMany(` at line 342 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/export/poam/route.ts",
+          "line": 342,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/exceptions/[id]/route.ts-L120",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.user.findUnique(` at line 120 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/exceptions/[id]/route.ts",
+          "line": 120,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/findings/[id]/route.ts-L21",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.finding.findUnique(` at line 21 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/findings/[id]/route.ts",
+          "line": 21,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/notifications/count/route.ts-L19",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.notification.count(` at line 19 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/notifications/count/route.ts",
+          "line": 19,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/privacy/export/route.ts-L22",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.user.findUnique(` at line 22 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/privacy/export/route.ts",
+          "line": 22,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/privacy/export/route.ts-L45",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.comment.findMany(` at line 45 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/privacy/export/route.ts",
+          "line": 45,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/privacy/export/route.ts-L55",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.notification.findMany(` at line 55 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/privacy/export/route.ts",
+          "line": 55,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/privacy/export/route.ts-L80",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.teamMembership.findMany(` at line 80 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/privacy/export/route.ts",
+          "line": 80,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/sla/[id]/route.ts-L21",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.slaPolicy.findUnique(` at line 21 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/sla/[id]/route.ts",
+          "line": 21,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/teams/[id]/route.ts-L106",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.clientTeamAssignment.deleteMany(` at line 106 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/teams/[id]/route.ts",
+          "line": 106,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/teams/[id]/route.ts-L107",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.teamMembership.deleteMany(` at line 107 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/teams/[id]/route.ts",
+          "line": 107,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/cases/[id]/assign/route.ts-L49",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.user.findUnique(` at line 49 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/[id]/assign/route.ts",
+          "line": 49,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/cases/[id]/assign/route.ts-L109",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.user.findUnique(` at line 109 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/[id]/assign/route.ts",
+          "line": 109,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/cases/[id]/comments/route.ts-L34",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.comment.findMany(` at line 34 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/[id]/comments/route.ts",
+          "line": 34,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/cases/[id]/comments/route.ts-L118",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.user.findUnique(` at line 118 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/cases/[id]/comments/route.ts",
+          "line": 118,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/clients/[id]/delete-data/route.ts-L60",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.finding.count(` at line 60 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/clients/[id]/delete-data/route.ts",
+          "line": 60,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/clients/[id]/delete-data/route.ts-L61",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.count(` at line 61 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/clients/[id]/delete-data/route.ts",
+          "line": 61,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/clients/[id]/delete-data/route.ts-L62",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.asset.count(` at line 62 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/clients/[id]/delete-data/route.ts",
+          "line": 62,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/clients/[id]/delete-data/route.ts-L63",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.scanArtifact.count(` at line 63 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/clients/[id]/delete-data/route.ts",
+          "line": 63,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/clients/[id]/delete-data/route.ts-L64",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.comment.count(` at line 64 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/clients/[id]/delete-data/route.ts",
+          "line": 64,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/connectors/[id]/sync/route.ts-L76",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.syncJob.findFirst(` at line 76 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/connectors/[id]/sync/route.ts",
+          "line": 76,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/connectors/[id]/sync-history/route.ts-L76",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.syncJob.findMany(` at line 76 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/connectors/[id]/sync-history/route.ts",
+          "line": 76,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/connectors/[id]/sync-history/route.ts-L97",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.syncJob.count(` at line 97 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/connectors/[id]/sync-history/route.ts",
+          "line": 97,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/connectors/webhook/snyk/route.ts-L87",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.scannerConnector.findFirst(` at line 87 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/connectors/webhook/snyk/route.ts",
+          "line": 87,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/connectors/webhook/snyk/route.ts-L96",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.scannerConnector.findFirst(` at line 96 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/connectors/webhook/snyk/route.ts",
+          "line": 96,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/integrations/jira/bulk/route.ts-L71",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.ticket.findMany(` at line 71 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/integrations/jira/bulk/route.ts",
+          "line": 71,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/integrations/servicenow/push/route.ts-L65",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.vulnerabilityCase.findUnique(` at line 65 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/integrations/servicenow/push/route.ts",
+          "line": 65,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/teams/[id]/clients/route.ts-L22",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.team.findUnique(` at line 22 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/teams/[id]/clients/route.ts",
+          "line": 22,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/teams/[id]/clients/route.ts-L28",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.clientTeamAssignment.findUnique(` at line 28 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/teams/[id]/clients/route.ts",
+          "line": 28,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/teams/[id]/clients/route.ts-L70",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.clientTeamAssignment.findUnique(` at line 70 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/teams/[id]/clients/route.ts",
+          "line": 70,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/teams/[id]/members/route.ts-L37",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.teamMembership.findUnique(` at line 37 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/teams/[id]/members/route.ts",
+          "line": 37,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/teams/[id]/members/route.ts-L97",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.teamMembership.findUnique(` at line 97 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/teams/[id]/members/route.ts",
+          "line": 97,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        },
+        {
+          "id": "org-scope-apps/web/app/api/connectors/[id]/sync-history/[jobId]/route.ts-L58",
+          "severity": "HIGH",
+          "category": "org-scoping",
+          "title": "Prisma query without organizationId scoping",
+          "detail": "`prisma.syncJob.findFirst(` at line 58 does not include organizationId in the where clause, risking cross-tenant data leakage.",
+          "file": "apps/web/app/api/connectors/[id]/sync-history/[jobId]/route.ts",
+          "line": 58,
+          "fix": "Add `organizationId: session.organizationId` to the where clause."
+        }
+      ],
+      "duration_ms": 85
+    },
+    {
+      "name": "mock-data",
+      "findings": [
+        {
+          "id": "mock-var-apps/web/app/api/assets/route.ts-L22",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const mockAssets: MockAsset[] = [`",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 22,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/assets/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "mock-var-apps/web/app/api/audit-logs/route.ts-L32",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const MOCK_ACTORS = [`",
+          "file": "apps/web/app/api/audit-logs/route.ts",
+          "line": 32,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/audit-logs/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/audit-logs/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/service-accounts/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/service-accounts/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "mock-var-apps/web/app/api/users/route.ts-L8",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const MOCK_USERS = [`",
+          "file": "apps/web/app/api/users/route.ts",
+          "line": 8,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/users/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/users/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/ai/remediation/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/ai/remediation/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/billing/webhook/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/billing/webhook/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/cases/build/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/cases/build/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/compliance/frameworks/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/compliance/frameworks/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/connectors/[id]/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/connectors/[id]/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/export/pdf/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/export/pdf/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/jobs/process/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/jobs/process/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "mock-var-apps/web/app/api/ops/audit/route.ts-L30",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const MOCK_AUDIT_LOG: AuditEntry[] = [`",
+          "file": "apps/web/app/api/ops/audit/route.ts",
+          "line": 30,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "mock-var-apps/web/app/api/ops/customers/route.ts-L23",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const MOCK_CUSTOMERS: CustomerOrg[] = [`",
+          "file": "apps/web/app/api/ops/customers/route.ts",
+          "line": 23,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "mock-var-apps/web/app/api/ops/onboarding/route.ts-L20",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const MOCK_SIGNUPS: RecentSignup[] = [`",
+          "file": "apps/web/app/api/ops/onboarding/route.ts",
+          "line": 20,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/pipeline/policy/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/pipeline/policy/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/pipeline/scan/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/pipeline/scan/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "mock-var-apps/web/app/api/pipeline/scans/route.ts-L8",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const MOCK_SCANS = [`",
+          "file": "apps/web/app/api/pipeline/scans/route.ts",
+          "line": 8,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/pipeline/scans/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/pipeline/scans/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/reports/generate/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/reports/generate/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/scim/[...path]/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/scim/[...path]/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/settings/ai-prompts/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/settings/ai-prompts/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/settings/ip-allowlist/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/settings/ip-allowlist/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/settings/notifications/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/settings/notifications/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/settings/org-profile/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/settings/org-profile/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/webhooks/deliveries/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/webhooks/deliveries/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/connectors/[id]/heartbeat/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/connectors/[id]/heartbeat/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/export/bulk/[jobId]/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/export/bulk/[jobId]/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "mock-var-apps/web/app/api/ops/customers/[id]/route.ts-L51",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock/fake data variable in API route",
+          "detail": "Variable with mock/fake/dummy in name: `const MOCK_CUSTOMERS: Record<string, CustomerDetail> = {`",
+          "file": "apps/web/app/api/ops/customers/[id]/route.ts",
+          "line": 51,
+          "fix": "Replace with real data from database."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/pipeline/results/[scanId]/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/pipeline/results/[scanId]/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/settings/integrations/jira/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/settings/integrations/jira/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/settings/integrations/pipeline-notifications/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/settings/integrations/pipeline-notifications/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "no-prisma-apps/web/app/api/settings/integrations/jira/test/route.ts",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "API route with no Prisma queries",
+          "detail": "Route handler never calls Prisma — may be returning hardcoded/mock data.",
+          "file": "apps/web/app/api/settings/integrations/jira/test/route.ts",
+          "fix": "Verify the route reads from the database instead of returning static data."
+        },
+        {
+          "id": "mock-import-apps/web/src/components/cases/status-workflow.tsx-L7",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock data import in component",
+          "detail": "Component imports mock/demo data: `import type { CaseStatus } from '@/lib/mock-findings';`",
+          "file": "apps/web/src/components/cases/status-workflow.tsx",
+          "line": 7,
+          "fix": "Replace mock data with real API calls or props."
+        },
+        {
+          "id": "mock-import-apps/web/src/components/findings/bulk-actions.tsx-L5",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock data import in component",
+          "detail": "Component imports mock/demo data: `import type { CaseStatus } from '@/lib/mock-findings';`",
+          "file": "apps/web/src/components/findings/bulk-actions.tsx",
+          "line": 5,
+          "fix": "Replace mock data with real API calls or props."
+        },
+        {
+          "id": "mock-import-apps/web/src/components/ui/badges.tsx-L3",
+          "severity": "MEDIUM",
+          "category": "mock-data",
+          "title": "Mock data import in component",
+          "detail": "Component imports mock/demo data: `import type { Severity, CaseStatus, ScannerType } from '@/lib/mock-findings';`",
+          "file": "apps/web/src/components/ui/badges.tsx",
+          "line": 3,
+          "fix": "Replace mock data with real API calls or props."
+        }
+      ],
+      "duration_ms": 142
+    },
+    {
+      "name": "barrel-exports",
+      "findings": [
+        {
+          "id": "barrel-broken-reexport-packages/scan/src/index.ts-scanners/sbom-scanner.js",
+          "severity": "HIGH",
+          "category": "barrel-exports",
+          "title": "Broken re-export in barrel",
+          "detail": "Re-export target `scanners/sbom-scanner.js` does not exist in the package.",
+          "file": "packages/scan/src/index.ts",
+          "fix": "Create the missing module or remove the re-export."
+        },
+        {
+          "id": "barrel-broken-reexport-packages/scan/src/index.ts-scanners/secrets-scanner.js",
+          "severity": "HIGH",
+          "category": "barrel-exports",
+          "title": "Broken re-export in barrel",
+          "detail": "Re-export target `scanners/secrets-scanner.js` does not exist in the package.",
+          "file": "packages/scan/src/index.ts",
+          "fix": "Create the missing module or remove the re-export."
+        },
+        {
+          "id": "barrel-broken-reexport-packages/scan/src/index.ts-scanners/iac-scanner.js",
+          "severity": "HIGH",
+          "category": "barrel-exports",
+          "title": "Broken re-export in barrel",
+          "detail": "Re-export target `scanners/iac-scanner.js` does not exist in the package.",
+          "file": "packages/scan/src/index.ts",
+          "fix": "Create the missing module or remove the re-export."
+        },
+        {
+          "id": "barrel-broken-reexport-packages/scan/src/index.ts-output.js",
+          "severity": "HIGH",
+          "category": "barrel-exports",
+          "title": "Broken re-export in barrel",
+          "detail": "Re-export target `output.js` does not exist in the package.",
+          "file": "packages/scan/src/index.ts",
+          "fix": "Create the missing module or remove the re-export."
+        },
+        {
+          "id": "barrel-broken-reexport-packages/scan/src/index.ts-constants.js",
+          "severity": "HIGH",
+          "category": "barrel-exports",
+          "title": "Broken re-export in barrel",
+          "detail": "Re-export target `constants.js` does not exist in the package.",
+          "file": "packages/scan/src/index.ts",
+          "fix": "Create the missing module or remove the re-export."
+        }
+      ],
+      "duration_ms": 55
+    },
+    {
+      "name": "broken-imports",
+      "findings": [],
+      "duration_ms": 246
+    },
+    {
+      "name": "hardcoded-values",
+      "findings": [
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L25",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 25.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 25,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L40",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 40.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 40,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L55",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 55.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 55,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L70",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 70.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 70,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L85",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 85.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 85,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L100",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 100.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 100,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L115",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 115.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 115,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L130",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 130.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 130,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L145",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 145.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 145,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L160",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 160.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 160,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/assets/route.ts-L252",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "Hardcoded org-default value",
+          "detail": "Found `'org-default'` at line 252.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "line": 252,
+          "fix": "Use session.organizationId instead of hardcoded org-default."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/auth/login/route.ts-L67",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "organizationId with hardcoded fallback",
+          "detail": "Found `organizationId ?? '` at line 67.",
+          "file": "apps/web/app/api/auth/login/route.ts",
+          "line": 67,
+          "fix": "Require organizationId from session; do not fall back to a string literal."
+        },
+        {
+          "id": "hardcoded-apps/web/app/api/auth/session/route.ts-L53",
+          "severity": "MEDIUM",
+          "category": "hardcoded-values",
+          "title": "Billing tier with hardcoded fallback",
+          "detail": "Found `tier ?? 'FREE'` at line 53.",
+          "file": "apps/web/app/api/auth/session/route.ts",
+          "line": 53,
+          "fix": "Read the tier from the organization record, not a string fallback."
+        },
+        {
+          "id": "hardcoded-apps/web/src/components/compliance/framework-dashboard.tsx-L109",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "organizationId with hardcoded fallback",
+          "detail": "Found `organizationId ?? '` at line 109.",
+          "file": "apps/web/src/components/compliance/framework-dashboard.tsx",
+          "line": 109,
+          "fix": "Require organizationId from session; do not fall back to a string literal."
+        },
+        {
+          "id": "hardcoded-apps/web/src/components/compliance/poam-view.tsx-L52",
+          "severity": "HIGH",
+          "category": "hardcoded-values",
+          "title": "organizationId with hardcoded fallback",
+          "detail": "Found `organizationId ?? '` at line 52.",
+          "file": "apps/web/src/components/compliance/poam-view.tsx",
+          "line": 52,
+          "fix": "Require organizationId from session; do not fall back to a string literal."
+        }
+      ],
+      "duration_ms": 107
+    },
+    {
+      "name": "silent-catches",
+      "findings": [
+        {
+          "id": "silent-catch-apps/web/app/(app)/notifications/page.tsx-L18",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 18 has only a brief comment: `// silently fail`.",
+          "file": "apps/web/app/(app)/notifications/page.tsx",
+          "line": 18,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/(app)/notifications/page.tsx-L39",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 39 has only a brief comment: `// silently fail`.",
+          "file": "apps/web/app/(app)/notifications/page.tsx",
+          "line": 39,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/keys/route.ts-L143",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 143 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/keys/route.ts",
+          "line": 143,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/compliance/framework-dashboard.tsx-L122",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 122 has only a brief comment: `// ignore`.",
+          "file": "apps/web/src/components/compliance/framework-dashboard.tsx",
+          "line": 122,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/compliance/framework-dashboard.tsx-L139",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 139 has only a brief comment: `// ignore`.",
+          "file": "apps/web/src/components/compliance/framework-dashboard.tsx",
+          "line": 139,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/dashboard/connector-health-widget.tsx-L141",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 141 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/dashboard/connector-health-widget.tsx",
+          "line": 141,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/dashboard/connector-health-widget.tsx-L162",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 162 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/dashboard/connector-health-widget.tsx",
+          "line": 162,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/notifications/notification-bell.tsx-L85",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 85 has only a brief comment: `// silently ignore`.",
+          "file": "apps/web/src/components/notifications/notification-bell.tsx",
+          "line": 85,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/notifications/notification-bell.tsx-L128",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 128 has only a brief comment: `// ignore`.",
+          "file": "apps/web/src/components/notifications/notification-bell.tsx",
+          "line": 128,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/ai-prompts.tsx-L63",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 63 has only a brief comment: `// use defaults`.",
+          "file": "apps/web/src/components/settings/ai-prompts.tsx",
+          "line": 63,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/connector-settings.tsx-L373",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 373 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/settings/connector-settings.tsx",
+          "line": 373,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/connector-settings.tsx-L385",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 385 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/settings/connector-settings.tsx",
+          "line": 385,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/connector-settings.tsx-L550",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 550 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/settings/connector-settings.tsx",
+          "line": 550,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/connector-settings.tsx-L562",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 562 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/settings/connector-settings.tsx",
+          "line": 562,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/connector-settings.tsx-L725",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 725 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/settings/connector-settings.tsx",
+          "line": 725,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/retention-settings.tsx-L77",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 77 has only a brief comment: `// use defaults`.",
+          "file": "apps/web/src/components/settings/retention-settings.tsx",
+          "line": 77,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/sync-history.tsx-L172",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 172 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/settings/sync-history.tsx",
+          "line": 172,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/src/components/settings/sync-history.tsx-L191",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 191 has only a brief comment: `// silent`.",
+          "file": "apps/web/src/components/settings/sync-history.tsx",
+          "line": 191,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/(ops)/ops/customers/page.tsx-L167",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 167 has only a brief comment: `// silent`.",
+          "file": "apps/web/app/(ops)/ops/customers/page.tsx",
+          "line": 167,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/keys/[id]/route.ts-L68",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 68 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/keys/[id]/route.ts",
+          "line": 68,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/keys/[id]/route.ts-L133",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 133 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/keys/[id]/route.ts",
+          "line": 133,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/settings/retention/route.ts-L116",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 116 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/settings/retention/route.ts",
+          "line": 116,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/webhooks/config/route.ts-L162",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 162 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 162,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/webhooks/config/route.ts-L267",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 267 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 267,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/webhooks/config/route.ts-L351",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 351 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 351,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/auth/mfa/verify/route.ts-L136",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 136 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/auth/mfa/verify/route.ts",
+          "line": 136,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-apps/web/app/api/auth/mfa/verify/route.ts-L186",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 186 has only a brief comment: `// Non-fatal`.",
+          "file": "apps/web/app/api/auth/mfa/verify/route.ts",
+          "line": 186,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/scan/src/cli.ts-L359",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 359 has only a brief comment: `// ignore`.",
+          "file": "packages/scan/src/cli.ts",
+          "line": 359,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/scan/src/cli.ts-L374",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 374 has only a brief comment: `// ignore`.",
+          "file": "packages/scan/src/cli.ts",
+          "line": 374,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/streaming/src/progress-tracker.ts-L236",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 236 has only a brief comment: `// Swallow`.",
+          "file": "packages/streaming/src/progress-tracker.ts",
+          "line": 236,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/audit/src/checks/broken-imports.ts-L36",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 36 has only a brief comment: `// skip`.",
+          "file": "packages/audit/src/checks/broken-imports.ts",
+          "line": 36,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/audit/src/checks/silent-catches.ts-L8",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Empty catch block at line 8 silently discards errors.",
+          "file": "packages/audit/src/checks/silent-catches.ts",
+          "line": 8,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/audit/src/checks/silent-catches.ts-L8",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Empty catch block at line 8 silently discards errors.",
+          "file": "packages/audit/src/checks/silent-catches.ts",
+          "line": 8,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/audit/src/checks/silent-catches.ts-L8",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 8 has only a brief comment: `// ignored`.",
+          "file": "packages/audit/src/checks/silent-catches.ts",
+          "line": 8,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        },
+        {
+          "id": "silent-catch-packages/auth/src/session/redis-store.ts-L303",
+          "severity": "MEDIUM",
+          "category": "silent-catches",
+          "title": "Empty catch block swallows errors",
+          "detail": "Catch block at line 303 has only a brief comment: `// Non-fatal`.",
+          "file": "packages/auth/src/session/redis-store.ts",
+          "line": 303,
+          "fix": "Log the error or re-throw it. Use `console.error(err)` at minimum."
+        }
+      ],
+      "duration_ms": 223
+    },
+    {
+      "name": "ssrf-vectors",
+      "findings": [],
+      "duration_ms": 123
+    },
+    {
+      "name": "secrets-plaintext",
+      "findings": [
+        {
+          "id": "secrets-plaintext-apps/web/app/api/keys/route.ts-L119",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`apiKey =` at line 119 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/keys/route.ts",
+          "line": 119,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/cron/report-usage/route.ts-L23",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`Secret =` at line 23 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/cron/report-usage/route.ts",
+          "line": 23,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L17",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`secret:` at line 17 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 17,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L56",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`secret:` at line 56 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 56,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L86",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`secret:` at line 86 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 86,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L119",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`Secret =` at line 119 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 119,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L129",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`secret:` at line 129 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 129,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L129",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`Secret =` at line 129 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 129,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L129",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`Secret :` at line 129 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 129,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L167",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`secret:` at line 167 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 167,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/webhooks/config/route.ts-L271",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`secret:` at line 271 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/webhooks/config/route.ts",
+          "line": 271,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/auth/mfa/verify/route.ts-L106",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`Secret:` at line 106 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/auth/mfa/verify/route.ts",
+          "line": 106,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/jira/config/route.ts-L36",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`ApiToken:` at line 36 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/jira/config/route.ts",
+          "line": 36,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/jira/config/route.ts-L97",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`ApiToken =` at line 97 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/jira/config/route.ts",
+          "line": 97,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/jira/config/route.ts-L105",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`ApiToken =` at line 105 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/jira/config/route.ts",
+          "line": 105,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/jira/config/route.ts-L113",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`apiToken:` at line 113 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/jira/config/route.ts",
+          "line": 113,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/jira/config/route.ts-L133",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`ApiToken:` at line 133 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/jira/config/route.ts",
+          "line": 133,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/config/route.ts-L51",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`Password:` at line 51 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/config/route.ts",
+          "line": 51,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/config/route.ts-L52",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`ClientSecret:` at line 52 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/config/route.ts",
+          "line": 52,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/config/route.ts-L167",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`Password:` at line 167 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/config/route.ts",
+          "line": 167,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/config/route.ts-L168",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`ClientSecret:` at line 168 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/config/route.ts",
+          "line": 168,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/push/route.ts-L34",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`clientSecret:` at line 34 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/push/route.ts",
+          "line": 34,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/push/route.ts-L45",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`password:` at line 45 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/push/route.ts",
+          "line": 45,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/sync/route.ts-L32",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`clientSecret:` at line 32 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/sync/route.ts",
+          "line": 32,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        },
+        {
+          "id": "secrets-plaintext-apps/web/app/api/integrations/servicenow/sync/route.ts-L43",
+          "severity": "CRITICAL",
+          "category": "secrets-plaintext",
+          "title": "Sensitive field stored without encryption",
+          "detail": "`password:` at line 43 appears to store a secret in plaintext.",
+          "file": "apps/web/app/api/integrations/servicenow/sync/route.ts",
+          "line": 43,
+          "fix": "Encrypt the value using `encrypt()` from @cveriskpilot/auth before storing."
+        }
+      ],
+      "duration_ms": 116
+    },
+    {
+      "name": "missing-deps",
+      "findings": [
+        {
+          "id": "missing-dep-apps/web/package.json-@/components",
+          "severity": "HIGH",
+          "category": "missing-deps",
+          "title": "Undeclared dependency: @/components",
+          "detail": "Package `@/components` is imported but not listed in apps/web/package.json.",
+          "file": "apps/web/package.json",
+          "fix": "Add `@/components` to dependencies in apps/web/package.json."
+        },
+        {
+          "id": "missing-dep-apps/web/package.json-@/lib",
+          "severity": "HIGH",
+          "category": "missing-deps",
+          "title": "Undeclared dependency: @/lib",
+          "detail": "Package `@/lib` is imported but not listed in apps/web/package.json.",
+          "file": "apps/web/package.json",
+          "fix": "Add `@/lib` to dependencies in apps/web/package.json."
+        },
+        {
+          "id": "missing-dep-apps/web/package.json-stripe",
+          "severity": "HIGH",
+          "category": "missing-deps",
+          "title": "Undeclared dependency: stripe",
+          "detail": "Package `stripe` is imported but not listed in apps/web/package.json.",
+          "file": "apps/web/package.json",
+          "fix": "Add `stripe` to dependencies in apps/web/package.json."
+        },
+        {
+          "id": "missing-dep-packages/ai/package.json-google-auth-library",
+          "severity": "HIGH",
+          "category": "missing-deps",
+          "title": "Undeclared dependency: google-auth-library",
+          "detail": "Package `google-auth-library` is imported but not listed in packages/ai/package.json.",
+          "file": "packages/ai/package.json",
+          "fix": "Add `google-auth-library` to dependencies in packages/ai/package.json."
+        },
+        {
+          "id": "missing-dep-packages/auth/package.json-next",
+          "severity": "HIGH",
+          "category": "missing-deps",
+          "title": "Undeclared dependency: next",
+          "detail": "Package `next` is imported but not listed in packages/auth/package.json.",
+          "file": "packages/auth/package.json",
+          "fix": "Add `next` to dependencies in packages/auth/package.json."
+        }
+      ],
+      "duration_ms": 273
+    },
+    {
+      "name": "dead-components",
+      "findings": [
+        {
+          "id": "dead-component-apps/web/src/components/admin/onboarding-wizard.tsx",
+          "severity": "MEDIUM",
+          "category": "dead-components",
+          "title": "Unused component: OnboardingWizard",
+          "detail": "Component `OnboardingWizard` in `apps/web/src/components/admin/onboarding-wizard.tsx` is never imported by any page or component.",
+          "file": "apps/web/src/components/admin/onboarding-wizard.tsx",
+          "fix": "Remove the component or wire it into a page."
+        },
+        {
+          "id": "dead-component-apps/web/src/components/shared/feature-gate.tsx",
+          "severity": "MEDIUM",
+          "category": "dead-components",
+          "title": "Unused component: FeatureGate",
+          "detail": "Component `FeatureGate` in `apps/web/src/components/shared/feature-gate.tsx` is never imported by any page or component.",
+          "file": "apps/web/src/components/shared/feature-gate.tsx",
+          "fix": "Remove the component or wire it into a page."
+        }
+      ],
+      "duration_ms": 189
+    },
+    {
+      "name": "csrf-check",
+      "findings": [
+        {
+          "id": "csrf-missing-apps/web/app/api/assets/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/assets/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/clients/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/clients/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/connectors/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/connectors/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/exceptions/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/exceptions/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/notifications/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/notifications/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/service-accounts/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/service-accounts/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/sla/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/sla/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/upload/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/upload/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/users/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/users/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/ai/remediation/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/ai/remediation/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/admin/onboard/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/admin/onboard/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/auth/logout/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/auth/logout/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/billing/portal/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/billing/portal/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/cases/[id]/route.ts-PATCH",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PATCH handler without CSRF protection",
+          "detail": "No CSRF token validation found in PATCH handler.",
+          "file": "apps/web/app/api/cases/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/billing/webhook/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/billing/webhook/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/cases/build/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/cases/build/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/cases/bulk/route.ts-PATCH",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PATCH handler without CSRF protection",
+          "detail": "No CSRF token validation found in PATCH handler.",
+          "file": "apps/web/app/api/cases/bulk/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/clients/[id]/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/clients/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/clients/[id]/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/clients/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/connectors/[id]/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/connectors/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/connectors/[id]/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/connectors/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/exceptions/[id]/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/exceptions/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/export/bulk/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/export/bulk/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/export/pdf/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/export/pdf/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/jobs/process/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/jobs/process/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/keys/[id]/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/keys/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/keys/[id]/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/keys/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/pipeline/policy/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/pipeline/policy/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/pipeline/scan/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/pipeline/scan/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/privacy/delete/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/privacy/delete/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/reports/generate/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/reports/generate/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/reports/schedules/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/reports/schedules/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/session/client/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/session/client/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/ai-prompts/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/settings/ai-prompts/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/ip-allowlist/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/settings/ip-allowlist/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/notifications/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/settings/notifications/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/org-profile/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/settings/org-profile/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/sla/[id]/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/sla/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/sla/[id]/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/sla/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/sla/check/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/sla/check/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/teams/[id]/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/teams/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/teams/[id]/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/teams/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/auth/mfa/setup/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/auth/mfa/setup/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/auth/mfa/verify/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/auth/mfa/verify/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/cases/[id]/assign/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/cases/[id]/assign/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/cases/[id]/comments/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/cases/[id]/comments/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/clients/[id]/delete-data/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/clients/[id]/delete-data/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/connectors/[id]/heartbeat/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/connectors/[id]/heartbeat/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/connectors/[id]/sync/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/connectors/[id]/sync/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/connectors/[id]/test/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/connectors/[id]/test/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/connectors/webhook/snyk/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/connectors/webhook/snyk/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/jira/bulk/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/integrations/jira/bulk/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/jira/config/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/integrations/jira/config/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/jira/push/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/integrations/jira/push/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/jira/sync/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/integrations/jira/sync/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/jira/webhook/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/integrations/jira/webhook/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/servicenow/config/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/integrations/servicenow/config/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/servicenow/config/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/integrations/servicenow/config/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/servicenow/push/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/integrations/servicenow/push/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/integrations/servicenow/sync/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/integrations/servicenow/sync/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/reports/schedules/[id]/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/reports/schedules/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/reports/schedules/[id]/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/reports/schedules/[id]/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/integrations/jira/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/settings/integrations/jira/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/integrations/jira/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/settings/integrations/jira/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/integrations/pipeline-notifications/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/settings/integrations/pipeline-notifications/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/teams/[id]/clients/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/teams/[id]/clients/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/teams/[id]/clients/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/teams/[id]/clients/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/teams/[id]/members/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/teams/[id]/members/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/teams/[id]/members/route.ts-DELETE",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "DELETE handler without CSRF protection",
+          "detail": "No CSRF token validation found in DELETE handler.",
+          "file": "apps/web/app/api/teams/[id]/members/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/auth/mfa/passkeys/authenticate/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/auth/mfa/passkeys/authenticate/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/auth/mfa/passkeys/authenticate/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/auth/mfa/passkeys/authenticate/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/auth/mfa/passkeys/register/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/auth/mfa/passkeys/register/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/auth/mfa/passkeys/register/route.ts-PUT",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "PUT handler without CSRF protection",
+          "detail": "No CSRF token validation found in PUT handler.",
+          "file": "apps/web/app/api/auth/mfa/passkeys/register/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        },
+        {
+          "id": "csrf-missing-apps/web/app/api/settings/integrations/jira/test/route.ts-POST",
+          "severity": "MEDIUM",
+          "category": "csrf-check",
+          "title": "POST handler without CSRF protection",
+          "detail": "No CSRF token validation found in POST handler.",
+          "file": "apps/web/app/api/settings/integrations/jira/test/route.ts",
+          "fix": "Add CSRF token validation or document why it is not needed (e.g., API-only route with bearer auth)."
+        }
+      ],
+      "duration_ms": 128
+    }
+  ],
+  "summary": {
+    "CRITICAL": 34,
+    "HIGH": 86,
+    "MEDIUM": 150,
+    "LOW": 0,
+    "INFO": 0
+  },
+  "totalFindings": 270
+}

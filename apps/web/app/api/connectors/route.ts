@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, validateExternalUrl } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import {
   getConnectorStatus,
@@ -51,6 +51,12 @@ export async function POST(request: NextRequest) {
         { error: 'name, type, and endpoint are required' },
         { status: 400 },
       );
+    }
+
+    // SSRF protection — validate connector endpoint URL
+    const urlCheck = validateExternalUrl(endpoint);
+    if (!urlCheck.valid) {
+      return NextResponse.json({ error: `Invalid endpoint URL: ${urlCheck.reason}` }, { status: 400 });
     }
 
     const validTypes = ['nessus', 'qualys', 'openvas', 'generic'];

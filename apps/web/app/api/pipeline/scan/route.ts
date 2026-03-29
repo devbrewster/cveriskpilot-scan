@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { validateApiKey, hasScope } from '@cveriskpilot/auth';
-import { parse, detectFormat } from '@cveriskpilot/parsers';
+import { parse } from '@cveriskpilot/parsers';
 import type { ParserFormat } from '@cveriskpilot/parsers';
 import {
   mapFindingsToComplianceImpact,

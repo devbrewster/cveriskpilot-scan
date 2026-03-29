@@ -72,8 +72,9 @@
       "platforms": {
         "x": {
           "status": "draft",
-          "content": "npx @cveriskpilot/scan\n\nKnow your compliance impact before you push. NIST, CMMC, SOC 2, and FedRAMP controls checked locally in seconds. Free tier, no credit card.",
-          "character_count": 171
+          "content": "npx crp-scan --preset startup\n\n28 critical, 3 high, 23 medium across 842 dependencies, 873 files, and 22 IaC templates. SBOM, secrets, and infrastructure — one command.\n\nFree tier. No credit card.\n\n#CVERiskPilot #DevSecOps",
+          "character_count": 224,
+          "media": "social/assets/screenshot-crp-scan-terminal.png"
         }
       },
       "tags": ["pipeline-compliance", "cli", "developer-experience"],

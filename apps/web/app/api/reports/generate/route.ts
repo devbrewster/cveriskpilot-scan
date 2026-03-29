@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import {
   generateFindingsReport,
   generateExecutiveReport,
@@ -13,15 +14,15 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { clientId, reportType, format, dateRange, organizationId } = body;
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const { organizationId } = session;
+
+    const body = await request.json();
+    const { clientId, reportType, format, dateRange } = body;
 
     if (!reportType || !['executive', 'findings', 'sla'].includes(reportType)) {
       return NextResponse.json(

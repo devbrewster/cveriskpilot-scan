@@ -26,6 +26,9 @@ const DEFAULT_SESSION_TTL_SECONDS = 24 * 60 * 60;
 /** Redis key prefix for sessions */
 const SESSION_KEY_PREFIX = 'crp:session:';
 
+/** Redis key prefix for per-user session tracking sets */
+const USER_SESSIONS_PREFIX = 'crp:user_sessions:';
+
 let redisInstance: Redis | null = null;
 
 /** In-memory session store for local dev when Redis is unavailable */
@@ -56,6 +59,9 @@ export function getRedisClient(): Redis {
   return redisInstance;
 }
 
+/** In-memory set store for local dev when Redis is unavailable */
+const memorySetStore = new Map<string, Set<string>>();
+
 /**
  * Creates a proxy object that implements the subset of Redis methods
  * used by the session store, backed by an in-memory Map.
@@ -76,9 +82,36 @@ function createMemoryRedisProxy(): Redis {
       }
       return entry.value;
     },
-    async del(key: string) {
-      memoryStore.delete(key);
-      return 1;
+    async del(...keys: string[]) {
+      let count = 0;
+      for (const key of keys) {
+        if (memoryStore.delete(key)) count++;
+        if (memorySetStore.delete(key)) count++;
+      }
+      return count;
+    },
+    async sadd(key: string, ...members: string[]) {
+      if (!memorySetStore.has(key)) memorySetStore.set(key, new Set());
+      const s = memorySetStore.get(key)!;
+      let added = 0;
+      for (const m of members) {
+        if (!s.has(m)) { s.add(m); added++; }
+      }
+      return added;
+    },
+    async smembers(key: string) {
+      const s = memorySetStore.get(key);
+      return s ? Array.from(s) : [];
+    },
+    async srem(key: string, ...members: string[]) {
+      const s = memorySetStore.get(key);
+      if (!s) return 0;
+      let removed = 0;
+      for (const m of members) {
+        if (s.delete(m)) removed++;
+      }
+      if (s.size === 0) memorySetStore.delete(key);
+      return removed;
     },
   } as unknown as Redis;
 
@@ -125,6 +158,13 @@ export async function createSession(
     ttlSeconds,
   );
 
+  // Track this session in the user's session set for bulk invalidation
+  try {
+    await redis.sadd(`${USER_SESSIONS_PREFIX}${data.userId}`, sessionId);
+  } catch {
+    // Non-fatal: session still works, just won't be bulk-invalidatable
+  }
+
   return sessionId;
 }
 
@@ -151,9 +191,22 @@ export async function getSession(sessionId: string): Promise<Session | null> {
 
 /**
  * Destroy (invalidate) a session.
+ * Also removes the session from the user's tracking set.
  */
 export async function destroySession(sessionId: string): Promise<void> {
   const redis = getRedisClient();
+
+  // Look up userId before deleting so we can clean the tracking set
+  try {
+    const raw = await redis.get(sessionKey(sessionId));
+    if (raw) {
+      const session = JSON.parse(raw) as Session;
+      await redis.srem(`${USER_SESSIONS_PREFIX}${session.userId}`, sessionId);
+    }
+  } catch {
+    // Non-fatal: proceed with session deletion
+  }
+
   await redis.del(sessionKey(sessionId));
 }
 
@@ -213,4 +266,43 @@ export async function updateSession(
   );
 
   return updatedSession;
+}
+
+/**
+ * Destroy all sessions for a given user.
+ * Useful after password change, role change, or account deactivation
+ * to ensure no stale sessions remain valid.
+ */
+export async function destroyAllUserSessions(userId: string): Promise<number> {
+  const redis = getRedisClient();
+  const setKey = `${USER_SESSIONS_PREFIX}${userId}`;
+
+  let sessionIds: string[];
+  try {
+    sessionIds = await redis.smembers(setKey);
+  } catch {
+    return 0;
+  }
+
+  if (sessionIds.length === 0) return 0;
+
+  // Delete each session key
+  let destroyed = 0;
+  for (const sid of sessionIds) {
+    try {
+      await redis.del(sessionKey(sid));
+      destroyed++;
+    } catch {
+      // Continue destroying remaining sessions
+    }
+  }
+
+  // Delete the tracking set itself
+  try {
+    await redis.del(setKey);
+  } catch {
+    // Non-fatal
+  }
+
+  return destroyed;
 }

@@ -38,11 +38,20 @@ function generateJobId(): string {
   return `exp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function escapeCSV(value: string): string {
-  if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
-    return `"${value.replace(/"/g, '""')}"`;
+/** Prefix formula-triggering characters with a single quote to prevent Excel formula injection */
+function sanitizeCsvCell(value: string): string {
+  if (/^[=+\-@\t\r]/.test(value)) {
+    return `'${value}`;
   }
   return value;
+}
+
+function escapeCSV(value: string): string {
+  const safe = sanitizeCsvCell(value);
+  if (safe.includes(',') || safe.includes('"') || safe.includes('\n') || safe.includes('\r')) {
+    return `"${safe.replace(/"/g, '""')}"`;
+  }
+  return safe;
 }
 
 // ---------------------------------------------------------------------------

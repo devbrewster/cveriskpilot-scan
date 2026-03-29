@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
 // In-memory retention policy store (per org)
@@ -61,6 +62,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleError = requireRole(session.role, ADMIN_ROLES);
+    if (roleError) return roleError;
+
     const organizationId = session.organizationId;
 
     const body = await request.json();
@@ -91,6 +99,23 @@ export async function PUT(request: NextRequest) {
     };
 
     retentionPolicies[organizationId] = policy;
+
+    // Audit log for retention policy change
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId,
+          actorId: session.userId,
+          action: 'UPDATE',
+          entityType: 'RetentionPolicy',
+          entityId: organizationId,
+          details: { findingsDays, artifactsDays, auditLogsDays, reportsDays },
+          hash: `update-retention-${organizationId}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
 
     return NextResponse.json({
       organizationId,

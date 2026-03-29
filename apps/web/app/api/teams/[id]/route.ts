@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
 
     const team = await prisma.team.findUnique({
-      where: { id },
+      where: { id, organizationId: session.organizationId },
       include: {
         memberships: {
           include: {
@@ -56,11 +56,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
+
     const { id } = await context.params;
     const body = await request.json();
     const { name, description } = body;
 
-    const existing = await prisma.team.findUnique({ where: { id } });
+    const existing = await prisma.team.findUnique({ where: { id, organizationId: session.organizationId } });
     if (!existing) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
@@ -88,9 +91,12 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError2 = requireRole(session.role, MANAGE_ROLES);
+    if (roleError2) return roleError2;
+
     const { id } = await context.params;
 
-    const existing = await prisma.team.findUnique({ where: { id } });
+    const existing = await prisma.team.findUnique({ where: { id, organizationId: session.organizationId } });
     if (!existing) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }

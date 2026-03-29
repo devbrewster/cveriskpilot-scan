@@ -40,7 +40,6 @@ export default function DemoMSSPPage() {
   // Aggregate stats
   const totalScans = demoPipelineMSSPClients.reduce((sum, c) => sum + c.scanCount, 0);
   const totalFindings = demoPipelineMSSPClients.reduce((sum, c) => sum + c.openFindings, 0);
-  const totalPoams = demoPipelineMSSPClients.reduce((sum, c) => sum + c.poamItems, 0);
   const avgCompliance = Math.round(
     demoPipelineMSSPClients.reduce((sum, c) => sum + c.complianceScore, 0) / demoPipelineMSSPClients.length,
   );

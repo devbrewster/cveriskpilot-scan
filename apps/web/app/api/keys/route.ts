@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import {
   getServerSession,
   generateApiKey,
+  requireRole,
+  MANAGE_ROLES,
+  checkCsrf,
 } from '@cveriskpilot/auth';
 
 /**
@@ -63,6 +66,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
+
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
     let body: Record<string, unknown>;
     try {
       body = await request.json();
@@ -116,6 +126,23 @@ export async function POST(request: NextRequest) {
         expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
     });
+
+    // Audit log for API key creation
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId: session.organizationId,
+          actorId: session.userId,
+          action: 'CREATE',
+          entityType: 'ApiKey',
+          entityId: apiKey.id,
+          details: { name, scope: scopeStr },
+          hash: `create-apikey-${apiKey.id}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
 
     return NextResponse.json(
       {

@@ -150,7 +150,7 @@ function ClockIcon({ className = 'h-4 w-4' }: { className?: string }) {
 // SyncHistory component
 // ---------------------------------------------------------------------------
 
-export function SyncHistory({ connectorId, organizationId }: SyncHistoryProps) {
+export function SyncHistory({ connectorId, organizationId: _organizationId }: SyncHistoryProps) {
   const [jobs, setJobs] = useState<SyncJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);

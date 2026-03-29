@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession, validateExternalUrl, encryptForTenant } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { DEFAULT_JIRA_TO_CASE_STATUS } from '@cveriskpilot/integrations';
 import type { JiraOrgConfig } from '@cveriskpilot/integrations';
@@ -6,21 +7,16 @@ import type { JiraOrgConfig } from '@cveriskpilot/integrations';
 /**
  * GET  — retrieve the org's current Jira integration config.
  * PUT  — update the org's Jira integration config.
- *
- * Both expect `organizationId` as a query param (GET) or body field (PUT).
  */
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const organizationId = searchParams.get('organizationId');
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId query param is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const { organizationId } = session;
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -53,9 +49,15 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const { organizationId } = session;
+
     const body = await request.json();
     const {
-      organizationId,
       baseUrl,
       email,
       apiToken,
@@ -63,7 +65,6 @@ export async function PUT(request: NextRequest) {
       issueType,
       statusMapping,
     } = body as {
-      organizationId?: string;
       baseUrl?: string;
       email?: string;
       apiToken?: string;
@@ -71,13 +72,6 @@ export async function PUT(request: NextRequest) {
       issueType?: string;
       statusMapping?: Record<string, string>;
     };
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
-    }
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -90,11 +84,33 @@ export async function PUT(request: NextRequest) {
     const settings = (org.entitlements ?? {}) as Record<string, unknown>;
     const existingJira = (settings.jira ?? {}) as Partial<JiraOrgConfig>;
 
+    // SSRF protection — validate baseUrl
+    const effectiveBaseUrl = baseUrl ?? existingJira.baseUrl ?? '';
+    if (effectiveBaseUrl) {
+      const urlCheck = validateExternalUrl(effectiveBaseUrl);
+      if (!urlCheck.valid) {
+        return NextResponse.json({ error: `Invalid baseUrl: ${urlCheck.reason}` }, { status: 400 });
+      }
+    }
+
+    // Encrypt API token before storing
+    let storedApiToken = existingJira.apiToken ?? '';
+    if (apiToken) {
+      try {
+        const encrypted = await encryptForTenant(apiToken, organizationId);
+        storedApiToken = JSON.stringify(encrypted);
+      } catch {
+        // If encryption is unavailable (e.g., dev without keys), store as-is
+        console.warn('[jira/config] Encryption unavailable — storing apiToken in plaintext');
+        storedApiToken = apiToken;
+      }
+    }
+
     // Merge — only overwrite provided fields
     const updatedJira: JiraOrgConfig = {
-      baseUrl: baseUrl ?? existingJira.baseUrl ?? '',
+      baseUrl: effectiveBaseUrl,
       email: email ?? existingJira.email ?? '',
-      apiToken: apiToken ?? existingJira.apiToken ?? '',
+      apiToken: storedApiToken,
       projectKey: projectKey ?? existingJira.projectKey ?? '',
       issueType: issueType ?? existingJira.issueType ?? 'Bug',
       statusMapping:

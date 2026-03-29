@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 import {
   STRIPE_PRICES,
   getEntitlements,
@@ -18,6 +18,13 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleError = requireRole(session.role, ADMIN_ROLES);
+    if (roleError) return roleError;
 
     const body = await request.json();
     const { targetTier, billingInterval = 'monthly' } = body;

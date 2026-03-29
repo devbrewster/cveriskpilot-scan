@@ -13,10 +13,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 function buildCsp(nonce: string, isDev: boolean): string {
   // Next.js standalone output does not inject nonce attributes into prerendered
-  // script tags, so we must allow 'unsafe-inline' for scripts in production.
+  // script tags, so we must keep 'unsafe-inline' for now. The nonce is added as
+  // defense-in-depth — once Next.js supports nonce injection in standalone mode,
+  // removing 'unsafe-inline' becomes a one-line change.
   const scriptSrc = isDev
-    ? `'self' 'unsafe-eval' 'unsafe-inline'`
-    : `'self' 'unsafe-inline'`;
+    ? `'self' 'unsafe-eval' 'unsafe-inline' 'nonce-${nonce}'`
+    : `'self' 'unsafe-inline' 'nonce-${nonce}'`;
 
   const connectSrc = isDev
     ? `'self' https://api.first.org https://services.nvd.nist.gov ws://localhost:* wss://localhost:*`
@@ -59,13 +61,27 @@ const PUBLIC_PATHS = [
   '/pricing',
   '/privacy',
   '/terms',
+  '/government',
 ];
 
 const PUBLIC_PREFIXES = [
-  '/api/',
   '/demo',
   '/portal',     // portal has its own auth via crp_portal_session
   '/_next',
+];
+
+/** API routes that are genuinely public (use their own auth mechanisms). */
+const API_PUBLIC_PATHS = [
+  '/api/auth/login',
+  '/api/auth/signup',
+  '/api/auth/google',
+  '/api/auth/google/callback',
+  '/api/auth/mfa/verify',
+  '/api/auth/dev-session',
+  '/api/webhooks',        // webhooks have their own HMAC auth
+  '/api/pipeline/scan',   // uses API key auth, not session
+  '/api/health',
+  '/api/docs',
 ];
 
 function shouldSkip(pathname: string): boolean {
@@ -76,6 +92,10 @@ function shouldSkip(pathname: string): boolean {
 function isPublicPage(pathname: string): boolean {
   if (PUBLIC_PATHS.includes(pathname)) return true;
   return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
+function isPublicApiPath(pathname: string): boolean {
+  return API_PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 }
 
 // ---------------------------------------------------------------------------
@@ -163,9 +183,29 @@ export function middleware(request: NextRequest) {
     return new NextResponse(null, { status: 404 });
   }
 
-  // --- Session gate for protected pages ---
-  // All pages that are not explicitly public require an active session.
-  if (!isPublicPage(pathname)) {
+  // --- Session gate for protected routes ---
+  // API routes that are not in the public API list require a session cookie.
+  // Return 401 JSON (not a redirect) so API clients get a proper error.
+  if (pathname.startsWith('/api/') && !isPublicApiPath(pathname)) {
+    const sessionCookie = request.cookies.get('crp_session');
+    if (!sessionCookie?.value) {
+      const duration_ms = Date.now() - start;
+      writeRequestLog('INFO', `${request.method} ${pathname} 401 ${duration_ms}ms`, {
+        method: request.method,
+        path: pathname,
+        status: 401,
+        duration_ms,
+      });
+
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 },
+      );
+    }
+  }
+
+  // Non-API pages that are not explicitly public require an active session.
+  if (!pathname.startsWith('/api/') && !isPublicPage(pathname)) {
     const sessionCookie = request.cookies.get('crp_session');
     if (!sessionCookie?.value) {
       const loginUrl = new URL('/login', request.url);
@@ -187,11 +227,10 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/ops') || pathname.startsWith('/api/ops')) {
     const sessionCookie = request.cookies.get('crp_session');
     if (!sessionCookie?.value) {
-      // No session at all — redirect to login (should already be caught above,
-      // but /api/ops/* paths are in PUBLIC_PREFIXES via /api/ so gate them here).
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
-      return NextResponse.redirect(loginUrl);
+      // No session — already caught by the session gate above, but guard defensively.
+      return pathname.startsWith('/api/')
+        ? NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+        : NextResponse.redirect(new URL(`/login?callbackUrl=${pathname}`, request.url));
     }
 
     // Attempt to read email from session cookie (base64-encoded JSON)
@@ -200,8 +239,10 @@ export function middleware(request: NextRequest) {
       const payload = JSON.parse(atob(sessionCookie.value));
       email = typeof payload.email === 'string' ? payload.email : null;
     } catch {
-      // Opaque token — cannot verify domain at middleware level.
-      // The API route will enforce its own check; let it through.
+      // Opaque token — can't verify domain. Block page routes, allow API routes to self-auth.
+      if (!pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
+      }
     }
 
     if (email && !email.endsWith('@cveriskpilot.com')) {

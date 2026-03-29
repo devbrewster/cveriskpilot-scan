@@ -9,7 +9,11 @@
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@cveriskpilot/connectors": "*",
+    "@cveriskpilot/domain": "*",
+    "@cveriskpilot/storage": "*"
+  },
   "devDependencies": {
     "typescript": "^5.9.0",
     "tsx": "^4.19.0"

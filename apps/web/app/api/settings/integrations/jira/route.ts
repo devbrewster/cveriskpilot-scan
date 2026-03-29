@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, validateExternalUrl } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // In-memory Jira configuration store (per org)
@@ -93,12 +93,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Basic URL validation
-    try {
-      new URL(cloudUrl);
-    } catch {
+    // SSRF protection — validate cloudUrl
+    const urlCheck = validateExternalUrl(cloudUrl);
+    if (!urlCheck.valid) {
       return NextResponse.json(
-        { error: 'cloudUrl must be a valid URL' },
+        { error: `Invalid cloudUrl: ${urlCheck.reason}` },
         { status: 400 },
       );
     }

@@ -93,6 +93,14 @@ export async function GET(request: NextRequest) {
       take: 50000, // Safety cap
     });
 
+    // CSV formula injection protection — prefix formula-triggering characters
+    function sanitizeCsvCell(value: string): string {
+      if (/^[=+\-@\t\r]/.test(value)) {
+        return `'${value}`;
+      }
+      return value;
+    }
+
     // Build CSV
     const headers = [
       'Finding ID',
@@ -117,15 +125,15 @@ export async function GET(request: NextRequest) {
     const rows = findings.map((f: any) => [
       f.id,
       f.scannerType,
-      f.scannerName,
-      f.asset?.name ?? '',
+      sanitizeCsvCell(f.scannerName ?? ''),
+      sanitizeCsvCell(f.asset?.name ?? ''),
       f.asset?.type ?? '',
-      f.asset?.environment ?? '',
+      sanitizeCsvCell(f.asset?.environment ?? ''),
       f.asset?.criticality ?? '',
-      f.vulnerabilityCase?.title ?? '',
+      sanitizeCsvCell(f.vulnerabilityCase?.title ?? ''),
       f.vulnerabilityCase?.severity ?? '',
       f.vulnerabilityCase?.status ?? '',
-      (f.vulnerabilityCase?.cveIds ?? []).join('; '),
+      sanitizeCsvCell((f.vulnerabilityCase?.cveIds ?? []).join('; ')),
       f.vulnerabilityCase?.cvssScore?.toString() ?? '',
       f.vulnerabilityCase?.epssScore?.toString() ?? '',
       f.vulnerabilityCase?.kevListed ? 'Yes' : 'No',

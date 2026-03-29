@@ -17,6 +17,7 @@
   "dependencies": {
     "@cveriskpilot/domain": "*",
     "@cveriskpilot/shared": "*",
+    "@simplewebauthn/server": "^13.3.0",
     "bcryptjs": "^2.4.3",
     "ioredis": "^5.4.0",
     "otpauth": "^9.3.0"

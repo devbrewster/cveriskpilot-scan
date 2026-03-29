@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/card';
 import { Table, type ColumnDef } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+
 
 export const dynamic = 'force-dynamic';
 
@@ -303,8 +303,6 @@ export default function RepoScorecardPage() {
   ];
 
   // Trend chart
-  const trendMax = Math.max(...data.scoreTrend, 1);
-
   return (
     <div className="space-y-6">
       {/* Back link + Header */}

@@ -11,6 +11,7 @@ import {
   createSession,
   setSessionCookie,
   getLoginLimiter,
+  getRedisClient,
 } from '@cveriskpilot/auth';
 
 export async function POST(request: NextRequest) {
@@ -64,24 +65,35 @@ export async function POST(request: NextRequest) {
       // Redis not available — skip rate limiting
     }
 
-    // Look up the temp session to get the userId
-    // tempSessionId format: mfa:<userId>:<nonce> (stored in Redis in production)
-    // For now, extract userId from the tempSessionId format
-    const parts = tempSessionId.split(':');
-    if (parts.length < 2 || parts[0] !== 'mfa') {
+    // Look up the temp session from Redis (server-side validation)
+    const redis = getRedisClient();
+    const redisKey = `crp:mfa_temp:${tempSessionId}`;
+    let tempData: { userId: string; organizationId: string } | null = null;
+
+    try {
+      const raw = await redis.get(redisKey);
+      if (!raw) {
+        return NextResponse.json(
+          { error: 'Invalid or expired temporary session' },
+          { status: 401 },
+        );
+      }
+      tempData = JSON.parse(raw);
+    } catch {
       return NextResponse.json(
-        { error: 'Invalid temporary session' },
-        { status: 400 },
+        { error: 'Session service unavailable. Please try again.' },
+        { status: 503 },
       );
     }
 
-    const userId = parts[1];
-    if (!userId) {
+    if (!tempData || !tempData.userId) {
       return NextResponse.json(
         { error: 'Invalid temporary session' },
-        { status: 400 },
+        { status: 401 },
       );
     }
+
+    const userId = tempData.userId;
 
     // Fetch user from database to get MFA secret
     const user = await (prisma as any).user.findUnique({
@@ -106,13 +118,39 @@ export async function POST(request: NextRequest) {
     // Verify the TOTP token against the user's secret
     const isValid = verifyTOTPToken(token, user.mfaSecret);
     if (!isValid) {
+      // Audit log for failed MFA attempt
+      try {
+        const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+        await prisma.auditLog.create({
+          data: {
+            organizationId: user.organizationId,
+            actorId: user.id,
+            actorIp: ip,
+            action: 'LOGIN',
+            entityType: 'MFA',
+            entityId: user.id,
+            details: { success: false, method: 'TOTP' },
+            hash: `mfa-fail-${user.id}-${Date.now()}`,
+          },
+        });
+      } catch {
+        // Non-fatal
+      }
+
       return NextResponse.json(
         { error: 'Invalid verification code' },
         { status: 401 },
       );
     }
 
-    // TOTP verified — create a real session
+    // TOTP verified — delete the temp session key from Redis
+    try {
+      await redis.del(redisKey);
+    } catch {
+      // Non-fatal: key will expire via TTL anyway
+    }
+
+    // Create a real session
     let sessionId: string | null = null;
     try {
       sessionId = await createSession({
@@ -128,6 +166,25 @@ export async function POST(request: NextRequest) {
         { error: 'Session service unavailable. Please try again.' },
         { status: 503 },
       );
+    }
+
+    // Audit log for successful MFA verification
+    try {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+      await prisma.auditLog.create({
+        data: {
+          organizationId: user.organizationId,
+          actorId: user.id,
+          actorIp: ip,
+          action: 'LOGIN',
+          entityType: 'MFA',
+          entityId: user.id,
+          details: { success: true, method: 'TOTP' },
+          hash: `mfa-success-${user.id}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
     }
 
     const response = NextResponse.json({

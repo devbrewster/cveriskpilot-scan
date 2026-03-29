@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   demoCWEMappings,
   demoPipelineFindings,
-  demoPipelinePOAMs,
+
   demoPRCommentMarkdown,
 } from '@/lib/demo-data';
 

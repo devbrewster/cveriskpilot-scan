@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { JiraClient, pushCaseToJira } from '@cveriskpilot/integrations';
 import type { JiraOrgConfig } from '@cveriskpilot/integrations';
 
@@ -13,23 +14,22 @@ interface BulkItemResult {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const { organizationId } = session;
+
     const body = await request.json();
-    const { caseIds, projectKey, organizationId } = body as {
+    const { caseIds, projectKey } = body as {
       caseIds?: string[];
       projectKey?: string;
-      organizationId?: string;
     };
 
     if (!caseIds || !Array.isArray(caseIds) || caseIds.length === 0) {
       return NextResponse.json(
         { error: 'caseIds array is required and must not be empty' },
-        { status: 400 },
-      );
-    }
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
         { status: 400 },
       );
     }

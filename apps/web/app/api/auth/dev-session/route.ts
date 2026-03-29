@@ -2,21 +2,15 @@
 // POST /api/auth/dev-session — Development-only session bootstrap
 // Creates a session cookie backed by REAL database records.
 // Seeds the database with dev data if no organization exists yet.
-// ONLY available when NODE_ENV !== 'production'.
+// This endpoint is development-only. The NODE_ENV check is the sole gate.
 // ---------------------------------------------------------------------------
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
-  // Block in production
-  if (process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Not available' }, { status: 404 });
-  }
-
-  // Block non-localhost requests
-  const host = request.headers.get('host') || '';
-  if (!host.startsWith('localhost') && !host.startsWith('127.0.0.1')) {
+  // Block in non-development environments
+  if (process.env.NODE_ENV !== 'development') {
     return NextResponse.json({ error: 'Not available' }, { status: 404 });
   }
 

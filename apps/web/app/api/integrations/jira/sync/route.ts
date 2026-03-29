@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { JiraClient, syncAllTickets } from '@cveriskpilot/integrations';
 import type { JiraOrgConfig } from '@cveriskpilot/integrations';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { organizationId } = body as { organizationId?: string };
-
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: 'organizationId is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    const { organizationId } = session;
 
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },

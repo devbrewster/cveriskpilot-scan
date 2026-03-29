@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 import { JiraClient, pushCaseToJira } from '@cveriskpilot/integrations';
 import type { JiraOrgConfig } from '@cveriskpilot/integrations';
 
@@ -7,6 +8,13 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const { organizationId } = session;
+
     const body = await request.json();
     const { caseId, projectKey } = body as {
       caseId?: string;
@@ -17,19 +25,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'caseId is required' }, { status: 400 });
     }
 
-    // Load the case to discover the org
+    // Load the case and verify it belongs to the user's org
     const vulnCase = await prisma.vulnerabilityCase.findUnique({
       where: { id: caseId },
       select: { organizationId: true },
     });
 
-    if (!vulnCase) {
+    if (!vulnCase || vulnCase.organizationId !== organizationId) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
     // Load Jira config from org settings
     const org = await prisma.organization.findUniqueOrThrow({
-      where: { id: vulnCase.organizationId },
+      where: { id: organizationId },
     });
 
     const settings = (org.entitlements ?? {}) as Record<string, unknown>;

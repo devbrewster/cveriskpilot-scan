@@ -5,31 +5,58 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { cookies } from 'next/headers';
+import { prisma } from '@/lib/prisma';
+import {
+  getServerSessionFromCookies,
+  generateTOTPSecret,
+  verifyTOTPToken,
+  getRedisClient,
+} from '@cveriskpilot/auth';
 
 /**
  * GET — Generate a new TOTP secret and return setup data.
- * In production this would call generateTOTPSecret() from @cveriskpilot/auth
- * and store the pending secret in the session/DB.
+ * Requires an authenticated session. Stores the pending secret in Redis
+ * with a 10-minute TTL so it can be confirmed via POST.
  */
 export async function GET() {
   try {
-    // TODO: Use real session to get userEmail, then call:
-    //   import { generateTOTPSecret } from '@cveriskpilot/auth';
-    //   const { secret, uri } = generateTOTPSecret(userEmail);
+    const cookieStore = await cookies();
+    const session = await getServerSessionFromCookies(
+      (name: string) => cookieStore.get(name)?.value,
+    );
 
-    // Mock data for now
-    const mockSecret = 'JBSWY3DPEHPK3PXP'; // example base32 secret
-    const mockQrCodeUri =
-      'otpauth://totp/CVERiskPilot:george.ontiveros@cveriskpilot.com?secret=JBSWY3DPEHPK3PXP&issuer=CVERiskPilot&algorithm=SHA1&digits=6&period=30';
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Generate mock backup codes
+    // Generate a real TOTP secret
+    const { secret, uri } = generateTOTPSecret(session.email);
+
+    // Store the pending secret in Redis with 10-minute TTL
+    const redis = getRedisClient();
+    try {
+      await redis.set(
+        `crp:mfa_setup:${session.userId}`,
+        JSON.stringify({ secret, createdAt: new Date().toISOString() }),
+        'EX',
+        600, // 10 minutes
+      );
+    } catch {
+      return NextResponse.json(
+        { error: 'Session service unavailable. Please try again.' },
+        { status: 503 },
+      );
+    }
+
+    // Generate backup codes
     const backupCodes = Array.from({ length: 8 }, () =>
       crypto.randomBytes(4).toString('hex').toUpperCase(),
     );
 
     return NextResponse.json({
-      secret: mockSecret,
-      qrCodeUri: mockQrCodeUri,
+      secret,
+      qrCodeUri: uri,
       backupCodes,
     });
   } catch (error) {
@@ -43,10 +70,20 @@ export async function GET() {
 
 /**
  * POST — Confirm MFA setup by verifying the first TOTP token.
- * On success, marks the user's mfaEnabled = true in the database.
+ * On success, marks the user's mfaEnabled = true in the database and
+ * stores the encrypted MFA secret.
  */
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const session = await getServerSessionFromCookies(
+      (name: string) => cookieStore.get(name)?.value,
+    );
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     let body: Record<string, unknown>;
     try {
       body = await request.json();
@@ -70,11 +107,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: In production:
-    // 1. Retrieve the pending secret from session/DB
-    // 2. Call verifyTOTPToken(token, pendingSecret)
-    // 3. If valid, set user.mfaEnabled = true, user.mfaSecret = encrypt(pendingSecret)
-    // For now, accept any valid 6-digit code as confirmation.
+    // Retrieve the pending secret from Redis
+    const redis = getRedisClient();
+    const redisKey = `crp:mfa_setup:${session.userId}`;
+    let pendingSecret: string | null = null;
+
+    try {
+      const raw = await redis.get(redisKey);
+      if (!raw) {
+        return NextResponse.json(
+          { error: 'MFA setup session expired. Please start setup again.' },
+          { status: 400 },
+        );
+      }
+      const data = JSON.parse(raw);
+      pendingSecret = data.secret;
+    } catch {
+      return NextResponse.json(
+        { error: 'Session service unavailable. Please try again.' },
+        { status: 503 },
+      );
+    }
+
+    if (!pendingSecret) {
+      return NextResponse.json(
+        { error: 'MFA setup session expired. Please start setup again.' },
+        { status: 400 },
+      );
+    }
+
+    // Verify the TOTP token against the pending secret
+    const isValid = verifyTOTPToken(token, pendingSecret);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: 'Invalid verification code. Please try again.' },
+        { status: 400 },
+      );
+    }
+
+    // Token is valid — enable MFA for the user
+    await (prisma as any).user.update({
+      where: { id: session.userId },
+      data: {
+        mfaEnabled: true,
+        mfaSecret: pendingSecret,
+      },
+    });
+
+    // Clean up the pending setup key
+    try {
+      await redis.del(redisKey);
+    } catch {
+      // Non-fatal: key will expire via TTL anyway
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,14 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
+import { PrismaClient } from '@cveriskpilot/domain';
+
+// ---------------------------------------------------------------------------
+// Prisma singleton — the domain package exports the class, not an instance.
+// ---------------------------------------------------------------------------
+
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DATABASE_URL,
+  log: process.env.NODE_ENV === 'production' ? ['error'] : ['query', 'error', 'warn'],
+});
 
 // ---------------------------------------------------------------------------
 // Job types and handler stubs
@@ -59,9 +69,8 @@ async function handleSyncConnector(payload: Record<string, unknown>): Promise<st
 
   console.log(`[SYNC_CONNECTOR] Running sync for job ${syncJobId}`);
 
-  // Lazy imports to avoid loading heavy dependencies at startup
+  // Lazy import to avoid loading heavy dependencies at startup
   const { SyncOrchestrator } = await import('@cveriskpilot/connectors');
-  const { prisma } = await import('@cveriskpilot/domain');
 
   const orchestrator = new SyncOrchestrator(prisma);
   await orchestrator.runSync(syncJobId);
@@ -73,7 +82,6 @@ async function handleConnectorTick(_payload: Record<string, unknown>): Promise<s
   console.log('[CONNECTOR_TICK] Processing scheduler tick — fan-out to due connectors');
 
   const { SyncOrchestrator } = await import('@cveriskpilot/connectors');
-  const { prisma } = await import('@cveriskpilot/domain');
   const { enqueueSyncJob } = await import('@cveriskpilot/storage/jobs/job-producer');
 
   const now = new Date();
@@ -220,8 +228,9 @@ server.listen(PORT, () => {
 
 function shutdown(signal: string) {
   console.log(`[worker] ${signal} received — shutting down`);
-  server.close(() => {
+  server.close(async () => {
     console.log('[worker] HTTP server closed');
+    await prisma.$disconnect();
     process.exit(0);
   });
   // Force exit after 10 seconds if connections are hanging

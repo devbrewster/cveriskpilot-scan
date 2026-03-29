@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -13,6 +13,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
+
     const { id: teamId } = await context.params;
     const body = await request.json();
     const { userId, role } = body;
@@ -24,8 +27,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Check team exists
-    const team = await prisma.team.findUnique({ where: { id: teamId } });
+    // Check team exists and belongs to user's org
+    const team = await prisma.team.findUnique({ where: { id: teamId, organizationId: session.organizationId } });
     if (!team) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
@@ -71,6 +74,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError2 = requireRole(session.role, MANAGE_ROLES);
+    if (roleError2) return roleError2;
+
     const { id: teamId } = await context.params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -80,6 +86,12 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
         { error: 'userId query param is required' },
         { status: 400 },
       );
+    }
+
+    // Verify team belongs to user's org before modifying membership
+    const team = await prisma.team.findUnique({ where: { id: teamId, organizationId: session.organizationId } });
+    if (!team) {
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
     const existing = await prisma.teamMembership.findUnique({

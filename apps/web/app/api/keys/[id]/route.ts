@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession, generateApiKey } from '@cveriskpilot/auth';
+import { getServerSession, generateApiKey, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
 
 /**
  * PUT /api/keys/[id] — Rotate an API key.
@@ -15,6 +15,9 @@ export async function PUT(
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, MANAGE_ROLES);
+    if (roleError) return roleError;
 
     const { id } = await params;
 
@@ -49,6 +52,23 @@ export async function PUT(
       },
     });
 
+    // Audit log for key rotation
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId: session.organizationId,
+          actorId: session.userId,
+          action: 'UPDATE',
+          entityType: 'ApiKey',
+          entityId: id,
+          details: { action: 'rotate', name: existing.name },
+          hash: `rotate-apikey-${id}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
+
     return NextResponse.json({
       id,
       name: existing.name,
@@ -77,6 +97,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const roleError2 = requireRole(session.role, MANAGE_ROLES);
+    if (roleError2) return roleError2;
+
     const { id } = await params;
 
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
@@ -93,6 +116,23 @@ export async function DELETE(
     }
 
     await (prisma as any).apiKey.delete({ where: { id } });
+
+    // Audit log for key deletion
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId: session.organizationId,
+          actorId: session.userId,
+          action: 'DELETE',
+          entityType: 'ApiKey',
+          entityId: id,
+          details: { name: existing.name },
+          hash: `delete-apikey-${id}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal
+    }
 
     return NextResponse.json({ success: true, message: 'API key revoked' });
   } catch (error) {

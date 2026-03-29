@@ -60,6 +60,24 @@ export async function POST(request: NextRequest) {
       const isLocked = result.error?.includes('locked');
       const status = isLocked ? 423 : 401;
 
+      // Audit log for failed login attempt
+      try {
+        await prisma.auditLog.create({
+          data: {
+            organizationId: result.organizationId ?? 'unknown',
+            actorId: result.userId ?? 'unknown',
+            actorIp: ip,
+            action: 'LOGIN',
+            entityType: 'User',
+            entityId: result.userId ?? email,
+            details: { success: false, reason: result.error },
+            hash: `login-fail-${email}-${Date.now()}`,
+          },
+        });
+      } catch {
+        // Non-fatal: don't block login flow for audit failures
+      }
+
       return NextResponse.json(
         { error: result.error },
         { status },
@@ -74,9 +92,29 @@ export async function POST(request: NextRequest) {
 
     // If MFA is enabled, return a challenge instead of a full session
     if (user?.mfaEnabled) {
-      // Generate a cryptographically random temp session ID
-      const nonce = crypto.randomBytes(16).toString('hex');
-      const tempSessionId = `mfa:${result.userId}:${nonce}`;
+      // Generate a cryptographically random temp session ID — opaque to the client
+      const tempSessionId = crypto.randomUUID();
+
+      // Store the temp session in Redis with 5-minute TTL
+      try {
+        const { getRedisClient } = await import('@cveriskpilot/auth');
+        const redis = getRedisClient();
+        await redis.set(
+          `crp:mfa_temp:${tempSessionId}`,
+          JSON.stringify({
+            userId: result.userId,
+            organizationId: result.organizationId,
+            createdAt: new Date().toISOString(),
+          }),
+          'EX',
+          300, // 5 minutes
+        );
+      } catch {
+        return NextResponse.json(
+          { error: 'Session service unavailable. Please try again.' },
+          { status: 503 },
+        );
+      }
 
       return NextResponse.json({
         mfaRequired: true,
@@ -104,6 +142,24 @@ export async function POST(request: NextRequest) {
         { error: 'Session service unavailable. Please try again.' },
         { status: 503 },
       );
+    }
+
+    // Audit log for successful login
+    try {
+      await prisma.auditLog.create({
+        data: {
+          organizationId: result.organizationId!,
+          actorId: result.userId!,
+          actorIp: ip,
+          action: 'LOGIN',
+          entityType: 'User',
+          entityId: result.userId!,
+          details: { success: true, mfaRequired: false },
+          hash: `login-success-${result.userId}-${Date.now()}`,
+        },
+      });
+    } catch {
+      // Non-fatal: don't block login flow for audit failures
     }
 
     const response = NextResponse.json({

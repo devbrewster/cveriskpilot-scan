@@ -119,6 +119,7 @@ enum ParserFormat {
 
 enum AuditAction {
   CREATE
+  READ
   UPDATE
   DELETE
   STATE_CHANGE

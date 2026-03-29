@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@cveriskpilot/auth';
+import { getServerSession, requireRole, WRITE_ROLES } from '@cveriskpilot/auth';
 import { getOrgTier, checkBillingGate, trackUpload } from '@/lib/billing';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -33,6 +33,72 @@ function getFileExtension(name: string): string {
   const dot = name.lastIndexOf('.');
   return dot >= 0 ? name.slice(dot).toLowerCase() : '';
 }
+
+// ---------------------------------------------------------------------------
+// Filename sanitization — prevent path traversal
+// ---------------------------------------------------------------------------
+
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[\\/]/g, '_')    // Remove path separators
+    .replace(/\.\./g, '_')     // Remove directory traversal
+    .replace(/\0/g, '')        // Remove null bytes
+    .replace(/^\.+/, '');       // Remove leading dots
+}
+
+// ---------------------------------------------------------------------------
+// Magic byte validation — verify file content matches expected format
+// ---------------------------------------------------------------------------
+
+const MAGIC_BYTES: Record<string, number[][]> = {
+  '.nessus': [[0x3C, 0x3F, 0x78, 0x6D, 0x6C]], // <?xml
+  '.xml': [[0x3C, 0x3F, 0x78, 0x6D, 0x6C], [0x3C, 0x21]], // <?xml or <!
+  '.json': [[0x7B], [0x5B]], // { or [
+  '.cdx.json': [[0x7B], [0x5B]], // { or [
+  '.sarif': [[0x7B]], // {
+  '.csv': [], // No magic bytes for CSV
+  '.xlsx': [[0x50, 0x4B]], // PK (ZIP)
+};
+
+function validateMagicBytes(buffer: Buffer, ext: string): boolean {
+  const expected = MAGIC_BYTES[ext];
+  if (!expected || expected.length === 0) return true; // No validation for this type
+
+  // Check first bytes against each valid magic byte sequence
+  for (const magic of expected) {
+    if (buffer.length >= magic.length) {
+      const match = magic.every((byte, i) => buffer[i] === byte);
+      if (match) return true;
+    }
+  }
+
+  // Also allow BOM (UTF-8 BOM: 0xEF, 0xBB, 0xBF) followed by expected bytes
+  if (buffer.length >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+    const afterBom = buffer.subarray(3);
+    for (const magic of expected) {
+      if (afterBom.length >= magic.length) {
+        const match = magic.every((byte, i) => afterBom[i] === byte);
+        if (match) return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// MIME type derivation from extension (don't trust client)
+// ---------------------------------------------------------------------------
+
+const EXT_TO_MIME: Record<string, string> = {
+  '.nessus': 'application/xml',
+  '.xml': 'application/xml',
+  '.json': 'application/json',
+  '.cdx.json': 'application/json',
+  '.sarif': 'application/json',
+  '.csv': 'text/csv',
+  '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+};
 
 // ---------------------------------------------------------------------------
 // Local filesystem fallback (uses scan-based path when jobId is provided)
@@ -79,6 +145,9 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const roleError = requireRole(session.role, WRITE_ROLES);
+    if (roleError) return roleError;
 
     const organizationId = session.organizationId;
     const uploadedById = session.userId;
@@ -136,9 +205,25 @@ export async function POST(request: NextRequest) {
 
     const resolvedFormat = parserFormat ?? 'JSON_FORMAT';
 
+    // Sanitize filename to prevent path traversal
+    const safeFilename = sanitizeFilename(file.name);
+    if (!safeFilename || safeFilename.length === 0) {
+      return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Validate magic bytes match expected file type
+    if (!validateMagicBytes(buffer, ext)) {
+      return NextResponse.json(
+        { error: `File content does not match expected format for ${ext}` },
+        { status: 400 },
+      );
+    }
+
     const checksumSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
-    const mimeType = file.type || 'application/octet-stream';
+    // Derive MIME type from extension — never trust client-provided type
+    const mimeType = EXT_TO_MIME[ext] || 'application/octet-stream';
 
     // Step 1: Create the UploadJob record first so we have a jobId for
     // the GCS path pattern {orgId}/scans/{jobId}/{filename}
@@ -161,7 +246,7 @@ export async function POST(request: NextRequest) {
 
       const artifact = await createArtifact(prisma, {
         file: buffer,
-        filename: file.name,
+        filename: safeFilename,
         mimeType,
         organizationId,
         clientId,
@@ -175,13 +260,13 @@ export async function POST(request: NextRequest) {
       // GCS unavailable — fall back to local filesystem
       console.warn('[API] Storage package upload failed, falling back to local:', storageErr);
 
-      const localResult = await saveToLocal(buffer, file.name, organizationId, jobId);
+      const localResult = await saveToLocal(buffer, safeFilename, organizationId, jobId);
 
       const artifact = await prisma.scanArtifact.create({
         data: {
           organizationId,
           clientId,
-          filename: file.name,
+          filename: safeFilename,
           mimeType,
           sizeBytes: buffer.length,
           gcsBucket: localResult.gcsBucket,

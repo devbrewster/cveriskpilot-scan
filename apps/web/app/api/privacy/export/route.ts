@@ -1,23 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/privacy/export — GDPR data export (all personal data for a user)
-// Query params: userId, organizationId
+// Uses authenticated session — users can only export their own data.
 // ---------------------------------------------------------------------------
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const organizationId = searchParams.get('organizationId') ?? 'org-default';
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'userId query parameter is required' },
-        { status: 400 },
-      );
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    // Users can only export their own data
+    const userId = session.userId;
+    const organizationId = session.organizationId;
 
     // Fetch the user and all associated personal data
     const user = await prisma.user.findUnique({

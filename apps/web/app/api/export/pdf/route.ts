@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "@cveriskpilot/auth";
 import { renderToBuffer } from "@react-pdf/renderer";
 import {
   generatePdfDocument,
@@ -315,8 +316,35 @@ function sampleCases(): PdfCase[] {
 
 function sampleFindings(): PdfFinding[] {
   const cases = sampleCases();
+  const scannerTypes = ["VM", "SCA", "DAST", "SAST", "CONTAINER", "VM", "SCA", "DAST"] as const;
+  const scannerNames = ["Nessus", "Snyk", "OWASP ZAP", "Semgrep", "Trivy", "Qualys", "Dependabot", "Burp Suite"];
   return cases.slice(0, 8).map((c, i) => ({
     id: `finding-${String(i + 1).padStart(3, "0")}`,
+    organizationId: "org-demo-001",
+    clientId: "client-demo-001",
+    assetId: `asset-${String(i + 1).padStart(3, "0")}`,
+    scannerType: scannerTypes[i],
+    scannerName: scannerNames[i] || "Unknown Scanner",
+    discoveredAt: "2026-03-15T10:00:00Z",
+    createdAt: "2026-03-15T10:00:00Z",
+    asset: {
+      id: `asset-${String(i + 1).padStart(3, "0")}`,
+      name: `host-${10 + i}.example.com`,
+      type: "SERVER",
+      environment: "PRODUCTION",
+      criticality: c.severity,
+    },
+    vulnerabilityCase: c.cveIds.length > 0
+      ? {
+          id: c.id,
+          title: c.title,
+          severity: c.severity as "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "INFO",
+          status: c.status as "NEW" | "TRIAGE" | "IN_REMEDIATION" | "FIXED_PENDING_VERIFICATION" | "VERIFIED_CLOSED" | "REOPENED" | "ACCEPTED_RISK" | "FALSE_POSITIVE" | "NOT_APPLICABLE" | "DUPLICATE",
+          cveIds: c.cveIds,
+          epssScore: c.epssScore,
+          kevListed: c.kevListed,
+        }
+      : null,
     title: c.title,
     cveId: c.cveIds[0] || null,
     description:
@@ -432,6 +460,11 @@ function sampleComplianceScores(): ComplianceScore[] {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request);
+    if (!session) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     const body = (await request.json()) as ExportRequest;
 
     // Validate type
@@ -468,21 +501,16 @@ export async function POST(request: NextRequest) {
     });
 
     // Render the React PDF document to an in-memory buffer
-    const nodeBuffer = await renderToBuffer(doc);
-    // Convert Node Buffer to Uint8Array for the Web Response constructor
-    const bytes = new Uint8Array(
-      nodeBuffer.buffer,
-      nodeBuffer.byteOffset,
-      nodeBuffer.byteLength,
-    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const nodeBuffer = await renderToBuffer(doc as any);
 
     // Return the PDF as a downloadable binary response
-    return new Response(bytes, {
+    return new Response(Buffer.from(nodeBuffer) as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="${filename}"`,
-        "Content-Length": String(bytes.byteLength),
+        "Content-Length": String(nodeBuffer.byteLength),
         "Cache-Control": "no-store",
         "X-Report-Type": body.type,
         "X-Generated-At": now.toISOString(),
@@ -501,7 +529,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(request);
+  if (!session) {
+    return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+  }
+
   return NextResponse.json({
     availableTypes: VALID_TYPES,
     description:

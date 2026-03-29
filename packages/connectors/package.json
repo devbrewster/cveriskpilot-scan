@@ -21,6 +21,6 @@
     "@cveriskpilot/parsers": "*",
     "@cveriskpilot/rollout": "*",
     "@cveriskpilot/storage": "*",
-    "fast-xml-parser": "^4.5.0"
+    "fast-xml-parser": "^5.5.9"
   }
 }

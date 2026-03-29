@@ -122,7 +122,7 @@ function AssetSection({ asset }: { asset: Asset }) {
       <div>
         <dt className="text-xs font-medium uppercase text-gray-500">Criticality</dt>
         <dd className="mt-1">
-          <SeverityBadge severity={asset.criticality} />
+          <SeverityBadge severity={asset.criticality as Severity} />
         </dd>
       </div>
       <div>

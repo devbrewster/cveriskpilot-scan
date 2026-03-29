@@ -2,8 +2,8 @@
 const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: false },
+  eslint: { ignoreDuringBuilds: false },
   serverExternalPackages: ['@prisma/client', 'prisma', 'bcryptjs', 'nodemailer', 'ioredis'],
   transpilePackages: [
     '@cveriskpilot/domain',
@@ -18,6 +18,7 @@ const nextConfig = {
     '@cveriskpilot/notifications',
     '@cveriskpilot/compliance',
     '@cveriskpilot/connectors',
+    '@cveriskpilot/scan',
     '@cveriskpilot/stamps',
     '@cveriskpilot/streaming',
     '@cveriskpilot/db-scale',

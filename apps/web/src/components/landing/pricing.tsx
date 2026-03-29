@@ -53,7 +53,7 @@ const plans = [
       'Scan-over-scan comparison',
       'SLA policy engine',
     ],
-    cta: 'Start Free Trial',
+    cta: 'Get Started',
     ctaHref: '/signup?plan=pro',
     highlighted: true,
   },

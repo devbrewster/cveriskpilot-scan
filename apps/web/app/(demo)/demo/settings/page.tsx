@@ -282,7 +282,7 @@ function PlaceholderContent({ tabName }: { tabName: string }) {
         href="/signup"
         className="mt-4 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition-colors"
       >
-        Start Free Trial
+        Get Started
       </Link>
     </div>
   );

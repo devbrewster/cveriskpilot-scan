@@ -64,7 +64,7 @@ const PLANS: PlanInfo[] = [
     ],
     highlighted: true,
     badge: 'Most Popular',
-    cta: 'Start Free Trial',
+    cta: 'Get Started',
     ctaHref: '/signup?plan=pro',
   },
   {

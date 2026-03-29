@@ -220,7 +220,7 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
           href="/signup"
           className="rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50"
         >
-          Start Free Trial
+          Get Started
         </Link>
       </div>
 

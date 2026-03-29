@@ -138,7 +138,7 @@ export default function DemoReportsPage() {
               disabled
               className="mt-4 w-full rounded-md border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
             >
-              Available in Free Trial
+              Available in Pro plan
             </button>
           </div>
 
@@ -157,7 +157,7 @@ export default function DemoReportsPage() {
               disabled
               className="mt-4 w-full rounded-md border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
             >
-              Available in Free Trial
+              Available in Pro plan
             </button>
           </div>
 
@@ -176,7 +176,7 @@ export default function DemoReportsPage() {
               disabled
               className="mt-4 w-full rounded-md border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
             >
-              Available in Free Trial
+              Available in Pro plan
             </button>
           </div>
         </div>

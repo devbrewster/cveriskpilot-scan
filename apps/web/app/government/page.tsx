@@ -351,7 +351,7 @@ export default function GovernmentPage() {
                   href="/signup?plan=pro"
                   className="mt-8 block w-full rounded-xl border border-gray-700 py-3 text-center text-sm font-semibold text-gray-300 transition-all hover:border-gray-600 hover:bg-gray-800"
                 >
-                  Start Free Trial
+                  Get Started
                 </Link>
               </div>
 

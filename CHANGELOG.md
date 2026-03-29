@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7 (2026-03-29)
+
+### Fixes
+
+- **VERSION constant** — fixed hardcoded `0.1.0` in CLI so update notifier compares correctly
+- **README accuracy** — corrected all framework control counts and added enterprise preset to docs
+
 ## 0.1.6 (2026-03-29)
 
 ### Features

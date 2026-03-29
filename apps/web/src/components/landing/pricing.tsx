@@ -17,9 +17,28 @@ const plans = [
       'Community support',
       'Standard reports',
     ],
-    cta: 'Get Started',
-    ctaHref: '/signup',
+    cta: 'Get Started Free',
+    ctaHref: '/signup?plan=free',
     highlighted: false,
+  },
+  {
+    name: 'Founders Beta',
+    monthlyPrice: 29,
+    annualPrice: 278,
+    description: 'Early adopter pricing. Locked in forever.',
+    features: [
+      '5 users',
+      'Unlimited uploads',
+      '250 AI remediation calls',
+      '250 assets',
+      'Email support',
+      'Jira integration',
+      'Custom SLA policies',
+    ],
+    cta: 'Join Founders Beta',
+    ctaHref: '/signup?plan=founders_beta',
+    highlighted: false,
+    badge: 'Limited',
   },
   {
     name: 'Pro',
@@ -136,7 +155,7 @@ export function Pricing() {
         </div>
 
         {/* Pricing Cards */}
-        <div className="mx-auto mt-12 grid max-w-7xl gap-6 lg:grid-cols-4">
+        <div className="mx-auto mt-12 grid max-w-7xl gap-6 lg:grid-cols-5">
           {plans.map((plan) => (
             <div
               key={plan.name}

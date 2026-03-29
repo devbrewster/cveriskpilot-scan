@@ -31,6 +31,7 @@ export type { TierName } from './config';
 
 export {
   createCheckoutSession,
+  createSetupCheckoutSession,
   createCustomerPortalSession,
 } from './checkout';
 

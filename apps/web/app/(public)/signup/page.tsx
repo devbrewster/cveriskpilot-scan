@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get('plan');
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -29,13 +31,19 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, orgName }),
+        body: JSON.stringify({ name, email, password, orgName, plan: planParam }),
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        router.push("/dashboard");
+        // If signup returns a Stripe checkout URL, redirect there for payment collection
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        } else {
+          router.push("/dashboard");
+        }
       } else {
-        const data = await res.json();
         setError(data.error || "Signup failed. Please try again.");
       }
     } catch {

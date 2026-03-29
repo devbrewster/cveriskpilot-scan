@@ -29,8 +29,26 @@ const PLANS: PlanInfo[] = [
     description: 'For individual security researchers getting started.',
     limits: { users: '1', assets: '50', uploads: '3/mo', aiCalls: '50/mo' },
     features: ['API access', 'Standard reports', 'Community support'],
-    cta: 'Get Started',
-    ctaHref: '/signup',
+    cta: 'Get Started Free',
+    ctaHref: '/signup?plan=free',
+  },
+  {
+    name: 'Founders Beta',
+    tier: 'FOUNDERS_BETA',
+    monthlyPrice: 29,
+    annualPrice: 278,
+    description: 'Early adopter pricing. Locked in forever.',
+    limits: { users: '5', assets: '250', uploads: 'Unlimited', aiCalls: '250/mo' },
+    features: [
+      'API access',
+      'Jira integration',
+      'Custom SLA policies',
+      'Webhooks',
+      'Email support',
+    ],
+    badge: 'Limited',
+    cta: 'Join Founders Beta',
+    ctaHref: '/signup?plan=founders_beta',
   },
   {
     name: 'Pro',
@@ -95,23 +113,23 @@ const PLANS: PlanInfo[] = [
 ];
 
 const FEATURE_MATRIX = [
-  { name: 'Users', free: '1', pro: '10', enterprise: '50', mssp: 'Unlimited' },
-  { name: 'Assets', free: '50', pro: '500', enterprise: '5,000', mssp: 'Unlimited' },
-  { name: 'Monthly uploads', free: '3', pro: 'Unlimited', enterprise: 'Unlimited', mssp: 'Unlimited' },
-  { name: 'AI remediation calls', free: '50/mo', pro: '500/mo', enterprise: '5,000/mo', mssp: 'Unlimited' },
-  { name: 'API access', free: true, pro: true, enterprise: true, mssp: true },
-  { name: 'Jira integration', free: false, pro: true, enterprise: true, mssp: true },
-  { name: 'Custom SLA policies', free: false, pro: true, enterprise: true, mssp: true },
-  { name: 'Webhooks', free: false, pro: true, enterprise: true, mssp: true },
-  { name: 'Portfolio dashboard', free: false, pro: true, enterprise: true, mssp: true },
-  { name: 'Scheduled reports', free: false, pro: true, enterprise: true, mssp: true },
-  { name: 'SSO / SAML', free: false, pro: false, enterprise: true, mssp: true },
-  { name: 'Custom parsers', free: false, pro: false, enterprise: true, mssp: true },
-  { name: 'Multi-client management', free: false, pro: false, enterprise: true, mssp: true },
-  { name: 'White-label branding', free: false, pro: false, enterprise: false, mssp: true },
-  { name: 'Per-client usage metering', free: false, pro: false, enterprise: false, mssp: true },
-  { name: 'Priority support', free: false, pro: true, enterprise: true, mssp: true },
-  { name: 'Dedicated support', free: false, pro: false, enterprise: true, mssp: true },
+  { name: 'Users', free: '1', founders: '5', pro: '10', enterprise: '50', mssp: 'Unlimited' },
+  { name: 'Assets', free: '50', founders: '250', pro: '500', enterprise: '5,000', mssp: 'Unlimited' },
+  { name: 'Monthly uploads', free: '3', founders: 'Unlimited', pro: 'Unlimited', enterprise: 'Unlimited', mssp: 'Unlimited' },
+  { name: 'AI remediation calls', free: '50/mo', founders: '250/mo', pro: '500/mo', enterprise: '5,000/mo', mssp: 'Unlimited' },
+  { name: 'API access', free: true, founders: true, pro: true, enterprise: true, mssp: true },
+  { name: 'Jira integration', free: false, founders: true, pro: true, enterprise: true, mssp: true },
+  { name: 'Custom SLA policies', free: false, founders: true, pro: true, enterprise: true, mssp: true },
+  { name: 'Webhooks', free: false, founders: true, pro: true, enterprise: true, mssp: true },
+  { name: 'Portfolio dashboard', free: false, founders: false, pro: true, enterprise: true, mssp: true },
+  { name: 'Scheduled reports', free: false, founders: false, pro: true, enterprise: true, mssp: true },
+  { name: 'SSO / SAML', free: false, founders: false, pro: false, enterprise: true, mssp: true },
+  { name: 'Custom parsers', free: false, founders: false, pro: false, enterprise: true, mssp: true },
+  { name: 'Multi-client management', free: false, founders: false, pro: false, enterprise: true, mssp: true },
+  { name: 'White-label branding', free: false, founders: false, pro: false, enterprise: false, mssp: true },
+  { name: 'Per-client usage metering', free: false, founders: false, pro: false, enterprise: false, mssp: true },
+  { name: 'Priority support', free: false, founders: false, pro: true, enterprise: true, mssp: true },
+  { name: 'Dedicated support', free: false, founders: false, pro: false, enterprise: true, mssp: true },
 ];
 
 // ---------------------------------------------------------------------------
@@ -179,7 +197,7 @@ export function TierComparison() {
       </div>
 
       {/* Plan cards */}
-      <div className="grid gap-6 lg:grid-cols-4">
+      <div className="grid gap-6 lg:grid-cols-5">
         {PLANS.map((plan) => (
           <div
             key={plan.tier}
@@ -272,7 +290,7 @@ export function TierComparison() {
             {FEATURE_MATRIX.map((row) => (
               <tr key={row.name}>
                 <td className="py-2.5 pr-6 text-gray-700 dark:text-gray-300">{row.name}</td>
-                {(['free', 'pro', 'enterprise', 'mssp'] as const).map((key) => {
+                {(['free', 'founders', 'pro', 'enterprise', 'mssp'] as const).map((key) => {
                   const val = row[key];
                   return (
                     <td key={key} className="px-4 py-2.5 text-center">

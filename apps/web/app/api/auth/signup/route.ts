@@ -9,6 +9,11 @@ import {
   getSignupLimiter,
 } from '@cveriskpilot/auth';
 import { UserRole } from '@cveriskpilot/domain';
+import {
+  STRIPE_PRICES,
+  createCheckoutSession,
+  createSetupCheckoutSession,
+} from '@cveriskpilot/billing';
 
 export async function POST(request: NextRequest) {
   // Rate limit by IP to prevent mass account creation and email enumeration
@@ -30,11 +35,12 @@ export async function POST(request: NextRequest) {
     // Parse body first before anything else
     const body = await request.json() as Record<string, unknown>;
 
-    const { name, email, password, orgName } = body as {
+    const { name, email, password, orgName, plan } = body as {
       name?: string;
       email?: string;
       password?: string;
       orgName?: string;
+      plan?: string;
     };
 
     // Validate required fields
@@ -99,10 +105,48 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Resolve Stripe checkout URL based on selected plan
+    let checkoutUrl: string | undefined;
+    const normalizedPlan = plan?.toUpperCase();
+
+    if (normalizedPlan && normalizedPlan !== 'FREE') {
+      // Paid plan — create a subscription checkout
+      const priceKey = `${normalizedPlan}_MONTHLY`;
+      const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
+      const priceId = priceGetter?.();
+
+      if (priceId) {
+        try {
+          const checkout = await createCheckoutSession({
+            organizationId: result.organizationId,
+            email: email!,
+            priceId,
+          });
+          checkoutUrl = checkout.url;
+        } catch (err) {
+          console.error('[signup] Stripe checkout creation failed:', err);
+          // Continue without checkout — they can upgrade later from billing page
+        }
+      }
+    } else {
+      // Free plan or no plan — collect payment method via Stripe setup mode
+      try {
+        const setup = await createSetupCheckoutSession({
+          organizationId: result.organizationId,
+          email: email!,
+        });
+        checkoutUrl = setup.url;
+      } catch (err) {
+        console.error('[signup] Stripe setup session failed:', err);
+        // Continue without checkout — payment method can be added later
+      }
+    }
+
     const response = NextResponse.json(
       {
         success: true,
         userId: result.userId,
+        ...(checkoutUrl ? { checkoutUrl } : {}),
       },
       { status: 201 },
     );

@@ -5,6 +5,7 @@ import {
   STRIPE_PRICES,
   getEntitlements,
   createCheckoutSession,
+  createSetupCheckoutSession,
 } from '@cveriskpilot/billing';
 
 /**
@@ -55,8 +56,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
     }
 
-    // Downgrade to FREE — cancel subscription
+    const email = org.users[0]?.email ?? '';
+
+    // FREE tier handling
     if (tier === 'FREE') {
+      // If they have an existing subscription, cancel it (downgrade)
       if (org.stripeSubscriptionId) {
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -65,10 +69,28 @@ export async function POST(request: NextRequest) {
         await stripe.subscriptions.update(org.stripeSubscriptionId, {
           cancel_at_period_end: true,
         });
+        return NextResponse.json({
+          tier: 'FREE',
+          message: 'Subscription will be cancelled at end of current period.',
+        });
       }
+
+      // New Free signup — collect payment method via Stripe setup mode
+      if (!org.stripeCustomerId) {
+        const { url } = await createSetupCheckoutSession({
+          organizationId,
+          email,
+        });
+        return NextResponse.json({
+          tier: 'FREE',
+          checkoutUrl: url,
+          message: 'Redirect to Stripe to add payment method.',
+        });
+      }
+
       return NextResponse.json({
         tier: 'FREE',
-        message: 'Subscription will be cancelled at end of current period.',
+        message: 'Already on Free tier with payment method on file.',
       });
     }
 
@@ -86,8 +108,6 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-
-    const email = org.users[0]?.email ?? '';
 
     // If they already have a subscription, update it via Stripe portal
     if (org.stripeSubscriptionId && org.stripeCustomerId) {

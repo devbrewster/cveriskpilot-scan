@@ -1,690 +1,606 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import {
-  demoCWEMappings,
-  demoPipelineFindings,
-
-  demoPRCommentMarkdown,
-} from '@/lib/demo-data';
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { StatCard } from '@/components/ui/stat-card';
+import { Card } from '@/components/ui/card';
+import { Table, type ColumnDef } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Pagination } from '@/components/ui/pagination';
+import { FilterDropdown } from '@/components/ui/filters';
+import { EmptyState } from '@/components/ui/empty-state';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-type PipelineStage = 'idle' | 'uploading' | 'parsing' | 'mapping' | 'evaluating' | 'generating' | 'complete';
+type Verdict = 'pass' | 'fail' | 'warn';
+type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
-interface PipelineStep {
-  stage: PipelineStage;
-  label: string;
-  durationMs: number;
+interface PipelineScan {
+  scanId: string;
+  repository: string;
+  branch: string;
+  commitSha: string;
+  prNumber: number | null;
+  verdict: Verdict;
+  totalFindings: number;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  controlsAffected: number;
+  frameworks: string[];
+  poamEntriesCreated: number;
+  createdAt: string;
 }
 
-const PIPELINE_STEPS: PipelineStep[] = [
-  { stage: 'uploading', label: 'Uploading scan results...', durationMs: 1500 },
-  { stage: 'parsing', label: 'Parsing findings...', durationMs: 1000 },
-  { stage: 'mapping', label: 'Mapping CWE to compliance controls...', durationMs: 2000 },
-  { stage: 'evaluating', label: 'Evaluating policy...', durationMs: 800 },
-  { stage: 'generating', label: 'Generating POAM entries...', durationMs: 1000 },
+interface ComplianceImpact {
+  framework: string;
+  control: string;
+  title: string;
+  cwes: string[];
+}
+
+interface RepoBreakdown {
+  name: string;
+  lastScan: string;
+  scanCount: number;
+  passRate: number;
+  worstSeverity: Severity | null;
+  complianceScore: number;
+}
+
+// ---------------------------------------------------------------------------
+// Verdict badge
+// ---------------------------------------------------------------------------
+
+const verdictColors: Record<Verdict, string> = {
+  pass: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800',
+  fail: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
+  warn: 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
+};
+
+function VerdictBadge({ verdict }: { verdict: Verdict }) {
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${verdictColors[verdict]}`}>
+      {verdict.toUpperCase()}
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mock data
+// ---------------------------------------------------------------------------
+
+const MOCK_SCANS: PipelineScan[] = [
+  { scanId: 'scan_01JQXYZ123456', repository: 'acmecorp/api-gateway', branch: 'feat/user-search', commitSha: 'a1b2c3d', prNumber: 342, verdict: 'fail', totalFindings: 12, critical: 2, high: 4, medium: 2, low: 4, controlsAffected: 8, frameworks: ['NIST 800-53', 'SOC 2', 'CMMC'], poamEntriesCreated: 4, createdAt: '2026-03-28T10:15:00Z' },
+  { scanId: 'scan_01JQXYZ123457', repository: 'acmecorp/api-gateway', branch: 'main', commitSha: 'e4f5g6h', prNumber: null, verdict: 'pass', totalFindings: 0, critical: 0, high: 0, medium: 0, low: 0, controlsAffected: 0, frameworks: ['NIST 800-53', 'SOC 2', 'CMMC'], poamEntriesCreated: 0, createdAt: '2026-03-27T18:30:00Z' },
+  { scanId: 'scan_01JQXYZ123458', repository: 'acmecorp/frontend-app', branch: 'fix/xss-sanitize', commitSha: 'i7j8k9l', prNumber: 187, verdict: 'warn', totalFindings: 3, critical: 0, high: 1, medium: 2, low: 0, controlsAffected: 3, frameworks: ['NIST 800-53', 'ASVS'], poamEntriesCreated: 1, createdAt: '2026-03-28T08:45:00Z' },
+  { scanId: 'scan_01JQXYZ123459', repository: 'acmecorp/infra-terraform', branch: 'main', commitSha: 'm0n1o2p', prNumber: null, verdict: 'pass', totalFindings: 1, critical: 0, high: 0, medium: 0, low: 1, controlsAffected: 0, frameworks: ['FedRAMP', 'NIST 800-53'], poamEntriesCreated: 0, createdAt: '2026-03-27T22:00:00Z' },
+  { scanId: 'scan_01JQXYZ123460', repository: 'acmecorp/payment-service', branch: 'feat/stripe-v3', commitSha: 'q3r4s5t', prNumber: 56, verdict: 'fail', totalFindings: 7, critical: 3, high: 2, medium: 1, low: 1, controlsAffected: 6, frameworks: ['SOC 2', 'ASVS', 'SSDF'], poamEntriesCreated: 3, createdAt: '2026-03-28T06:20:00Z' },
+  { scanId: 'scan_01JQXYZ123461', repository: 'acmecorp/auth-service', branch: 'main', commitSha: 'u5v6w7x', prNumber: null, verdict: 'pass', totalFindings: 0, critical: 0, high: 0, medium: 0, low: 0, controlsAffected: 0, frameworks: ['NIST 800-53', 'CMMC', 'FedRAMP'], poamEntriesCreated: 0, createdAt: '2026-03-26T14:10:00Z' },
+  { scanId: 'scan_01JQXYZ123462', repository: 'acmecorp/mobile-backend', branch: 'feat/push-notif', commitSha: 'y8z9a0b', prNumber: 412, verdict: 'warn', totalFindings: 5, critical: 0, high: 2, medium: 2, low: 1, controlsAffected: 4, frameworks: ['NIST 800-53', 'SOC 2'], poamEntriesCreated: 2, createdAt: '2026-03-27T11:30:00Z' },
+  { scanId: 'scan_01JQXYZ123463', repository: 'acmecorp/data-pipeline', branch: 'fix/sql-param', commitSha: 'c1d2e3f', prNumber: 89, verdict: 'pass', totalFindings: 2, critical: 0, high: 0, medium: 1, low: 1, controlsAffected: 1, frameworks: ['NIST 800-53', 'SSDF'], poamEntriesCreated: 0, createdAt: '2026-03-28T09:00:00Z' },
 ];
 
-const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: 'bg-red-100 text-red-700 border-red-200',
-  HIGH: 'bg-orange-100 text-orange-700 border-orange-200',
-  MEDIUM: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  LOW: 'bg-blue-100 text-blue-700 border-blue-200',
+const MOCK_COMPLIANCE_IMPACT: Record<string, ComplianceImpact[]> = {
+  scan_01JQXYZ123456: [
+    { framework: 'NIST 800-53', control: 'SI-10', title: 'Information Input Validation', cwes: ['CWE-89', 'CWE-502', 'CWE-78'] },
+    { framework: 'NIST 800-53', control: 'IA-5', title: 'Authenticator Management', cwes: ['CWE-798'] },
+    { framework: 'NIST 800-53', control: 'SI-2', title: 'Flaw Remediation', cwes: ['CWE-79'] },
+    { framework: 'NIST 800-53', control: 'AC-4', title: 'Information Flow Enforcement', cwes: ['CWE-22'] },
+    { framework: 'SOC 2', control: 'CC6.1', title: 'Logical and Physical Access Controls', cwes: ['CWE-89', 'CWE-79', 'CWE-798'] },
+    { framework: 'CMMC', control: 'SI.L2-3.14.2', title: 'Malicious Code Protection', cwes: ['CWE-89', 'CWE-502'] },
+    { framework: 'CMMC', control: 'IA.L2-3.5.10', title: 'Cryptographically-Protected Passwords', cwes: ['CWE-798'] },
+    { framework: 'CMMC', control: 'AC.L2-3.1.3', title: 'Control CUI Flow', cwes: ['CWE-22'] },
+  ],
+  scan_01JQXYZ123460: [
+    { framework: 'SOC 2', control: 'CC6.1', title: 'Logical and Physical Access Controls', cwes: ['CWE-89', 'CWE-287'] },
+    { framework: 'SOC 2', control: 'CC6.6', title: 'System Boundary Protection', cwes: ['CWE-918'] },
+    { framework: 'ASVS', control: 'V5.3.4', title: 'SQL Injection Prevention', cwes: ['CWE-89'] },
+    { framework: 'ASVS', control: 'V2.1.1', title: 'Password Security Requirements', cwes: ['CWE-287'] },
+    { framework: 'SSDF', control: 'PW.5.1', title: 'Verify Software Release Integrity', cwes: ['CWE-89', 'CWE-287'] },
+    { framework: 'SSDF', control: 'PO.5.2', title: 'Implement Roles and Responsibilities', cwes: ['CWE-798'] },
+  ],
 };
 
-const SEVERITY_LINE_COLORS: Record<string, string> = {
-  CRITICAL: '#ef4444',
-  HIGH: '#f97316',
-  MEDIUM: '#eab308',
-  LOW: '#3b82f6',
-};
+const MOCK_REPOS: RepoBreakdown[] = [
+  { name: 'acmecorp/api-gateway', lastScan: '2026-03-28T10:15:00Z', scanCount: 147, passRate: 72, worstSeverity: 'CRITICAL', complianceScore: 84 },
+  { name: 'acmecorp/frontend-app', lastScan: '2026-03-28T08:45:00Z', scanCount: 203, passRate: 88, worstSeverity: 'HIGH', complianceScore: 89 },
+  { name: 'acmecorp/payment-service', lastScan: '2026-03-28T06:20:00Z', scanCount: 89, passRate: 64, worstSeverity: 'CRITICAL', complianceScore: 76 },
+  { name: 'acmecorp/infra-terraform', lastScan: '2026-03-27T22:00:00Z', scanCount: 312, passRate: 95, worstSeverity: 'LOW', complianceScore: 96 },
+  { name: 'acmecorp/auth-service', lastScan: '2026-03-26T14:10:00Z', scanCount: 178, passRate: 91, worstSeverity: null, complianceScore: 91 },
+  { name: 'acmecorp/mobile-backend', lastScan: '2026-03-27T11:30:00Z', scanCount: 94, passRate: 78, worstSeverity: 'HIGH', complianceScore: 82 },
+  { name: 'acmecorp/data-pipeline', lastScan: '2026-03-28T09:00:00Z', scanCount: 56, passRate: 85, worstSeverity: 'MEDIUM', complianceScore: 88 },
+];
+
+// Mock trend data: last 30 days pass/fail
+const MOCK_DAILY_TRENDS = Array.from({ length: 30 }, (_, i) => {
+  const date = new Date('2026-02-27');
+  date.setDate(date.getDate() + i);
+  const total = Math.floor(Math.random() * 8) + 4;
+  const pass = Math.floor(total * (0.6 + Math.random() * 0.3));
+  return { date: date.toISOString().slice(0, 10), pass, fail: total - pass, total };
+});
+
+const MOCK_TOP_VIOLATIONS = [
+  { control: 'SI-10', framework: 'NIST 800-53', title: 'Information Input Validation', count: 34 },
+  { control: 'CC6.1', framework: 'SOC 2', title: 'Logical and Physical Access Controls', count: 28 },
+  { control: 'IA-5', framework: 'NIST 800-53', title: 'Authenticator Management', count: 21 },
+  { control: 'SI-2', framework: 'NIST 800-53', title: 'Flaw Remediation', count: 19 },
+  { control: 'AC-4', framework: 'NIST 800-53', title: 'Information Flow Enforcement', count: 16 },
+  { control: 'V5.3.4', framework: 'ASVS', title: 'SQL Injection Prevention', count: 14 },
+  { control: 'PW.5.1', framework: 'SSDF', title: 'Verify Software Release Integrity', count: 12 },
+  { control: 'SC-7', framework: 'NIST 800-53', title: 'Boundary Protection', count: 11 },
+  { control: 'CC6.6', framework: 'SOC 2', title: 'System Boundary Protection', count: 9 },
+  { control: 'IA-2', framework: 'NIST 800-53', title: 'Identification and Authentication', count: 8 },
+];
 
 // ---------------------------------------------------------------------------
-// Frameworks derived from CWE mappings
+// Helpers
 // ---------------------------------------------------------------------------
 
-function getFrameworkImpact() {
-  const frameworks: Record<string, { controls: Set<string>; verdict: string }> = {
-    'NIST 800-53': { controls: new Set(), verdict: 'pass' },
-    'SOC 2': { controls: new Set(), verdict: 'pass' },
-    'CMMC': { controls: new Set(), verdict: 'pass' },
-    'FedRAMP': { controls: new Set(), verdict: 'pass' },
-    'ASVS': { controls: new Set(), verdict: 'pass' },
-    'SSDF': { controls: new Set(), verdict: 'pass' },
-  };
-
-  for (const f of demoPipelineFindings) {
-    const mapping = demoCWEMappings.find((m) => m.cweId === f.cweId);
-    if (!mapping) continue;
-    mapping.nist80053.forEach((c) => frameworks['NIST 800-53'].controls.add(c));
-    mapping.soc2.forEach((c) => frameworks['SOC 2'].controls.add(c));
-    mapping.cmmc.forEach((c) => frameworks['CMMC'].controls.add(c));
-    mapping.fedramp.forEach((c) => frameworks['FedRAMP'].controls.add(c));
-    mapping.asvs.forEach((c) => frameworks['ASVS'].controls.add(c));
-    mapping.ssdf.forEach((c) => frameworks['SSDF'].controls.add(c));
-  }
-
-  // Mark fail if any critical/high
-  for (const f of demoPipelineFindings) {
-    const mapping = demoCWEMappings.find((m) => m.cweId === f.cweId);
-    if (!mapping) continue;
-    if (mapping.severity === 'CRITICAL' || mapping.severity === 'HIGH') {
-      if (mapping.nist80053.length) frameworks['NIST 800-53'].verdict = 'fail';
-      if (mapping.soc2.length) frameworks['SOC 2'].verdict = 'fail';
-      if (mapping.cmmc.length) frameworks['CMMC'].verdict = 'fail';
-      if (mapping.fedramp.length) frameworks['FedRAMP'].verdict = 'fail';
-      if (mapping.asvs.length) frameworks['ASVS'].verdict = 'fail';
-      if (mapping.ssdf.length) frameworks['SSDF'].verdict = 'fail';
-    }
-  }
-
-  return Object.entries(frameworks).map(([name, data]) => ({
-    name,
-    controlsAffected: data.controls.size,
-    controls: Array.from(data.controls),
-    verdict: data.verdict,
-  }));
+function formatDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
+
+function formatDateTime(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+const severityBadgeColors: Record<Severity, string> = {
+  CRITICAL: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  HIGH: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+  MEDIUM: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+  LOW: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+};
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export default function DemoPipelinePage() {
-  const [stage, setStage] = useState<PipelineStage>('idle');
-  const [progress, setProgress] = useState(0);
-  const [findingsCount, setFindingsCount] = useState(0);
-  const [mappedCount, setMappedCount] = useState(0);
-  const [verdict, setVerdict] = useState<string | null>(null);
-  const [poamCount, setPoamCount] = useState(0);
-  const [activeCwe, setActiveCwe] = useState<string | null>(null);
-  const [prView, setPrView] = useState<'github' | 'gitlab'>('github');
+  const router = useRouter();
 
-  const frameworkImpact = getFrameworkImpact();
+  const [page, setPage] = useState(1);
+  const [expandedScanId, setExpandedScanId] = useState<string | null>(null);
 
-  // Progress bar for upload step
-  useEffect(() => {
-    if (stage !== 'uploading') return;
-    let pct = 0;
-    const interval = setInterval(() => {
-      pct = Math.min(pct + 3, 95);
-      setProgress(pct);
-      if (pct >= 95) clearInterval(interval);
-    }, 40);
-    return () => clearInterval(interval);
-  }, [stage]);
+  // Filters
+  const [verdictFilter, setVerdictFilter] = useState('all');
+  const [repoFilter, setRepoFilter] = useState('all');
+  const [frameworkFilter, setFrameworkFilter] = useState('all');
 
-  // Counter for parsing step
-  useEffect(() => {
-    if (stage !== 'parsing') return;
-    let count = 0;
-    const interval = setInterval(() => {
-      count = Math.min(count + 1, 12);
-      setFindingsCount(count);
-      if (count >= 12) clearInterval(interval);
-    }, 75);
-    return () => clearInterval(interval);
-  }, [stage]);
+  // Client-side filtering of mock data
+  const scans = useMemo(() => {
+    let filtered = [...MOCK_SCANS];
+    if (verdictFilter !== 'all') filtered = filtered.filter((s) => s.verdict === verdictFilter);
+    if (repoFilter !== 'all') filtered = filtered.filter((s) => s.repository === repoFilter);
+    if (frameworkFilter !== 'all') filtered = filtered.filter((s) => s.frameworks.includes(frameworkFilter));
+    return filtered;
+  }, [verdictFilter, repoFilter, frameworkFilter]);
 
-  // Counter for mapping step
-  useEffect(() => {
-    if (stage !== 'mapping') return;
-    let count = 0;
-    const interval = setInterval(() => {
-      count = Math.min(count + 1, 8);
-      setMappedCount(count);
-      if (count >= 8) clearInterval(interval);
-    }, 200);
-    return () => clearInterval(interval);
-  }, [stage]);
+  const totalPages = Math.max(1, Math.ceil(scans.length / 10));
 
-  // Verdict flip for evaluating step
-  useEffect(() => {
-    if (stage !== 'evaluating') return;
-    const timer = setTimeout(() => setVerdict('FAIL'), 400);
-    return () => clearTimeout(timer);
-  }, [stage]);
+  // Stats
+  const totalScansMonth = MOCK_SCANS.length;
+  const passCount = MOCK_SCANS.filter((s) => s.verdict === 'pass').length;
+  const passRate = totalScansMonth > 0 ? Math.round((passCount / totalScansMonth) * 100) : 0;
+  const totalViolations = MOCK_SCANS.reduce((sum, s) => sum + s.controlsAffected, 0);
+  const totalPoams = MOCK_SCANS.reduce((sum, s) => sum + s.poamEntriesCreated, 0);
 
-  // POAM counter for generating step
-  useEffect(() => {
-    if (stage !== 'generating') return;
-    let count = 0;
-    const interval = setInterval(() => {
-      count = Math.min(count + 1, 4);
-      setPoamCount(count);
-      if (count >= 4) clearInterval(interval);
-    }, 200);
-    return () => clearInterval(interval);
-  }, [stage]);
+  // Unique repos and frameworks for filter options
+  const uniqueRepos = [...new Set(MOCK_SCANS.map((s) => s.repository))];
+  const uniqueFrameworks = [...new Set(MOCK_SCANS.flatMap((s) => s.frameworks))];
 
-  const runScan = useCallback(() => {
-    setProgress(0);
-    setFindingsCount(0);
-    setMappedCount(0);
-    setVerdict(null);
-    setPoamCount(0);
+  // Scan history table columns
+  const columns: ColumnDef<PipelineScan>[] = [
+    {
+      key: 'verdict',
+      header: 'Verdict',
+      width: '80px',
+      render: (row) => <VerdictBadge verdict={row.verdict} />,
+    },
+    {
+      key: 'repository',
+      header: 'Repository',
+      sortable: true,
+      render: (row) => (
+        <span className="font-medium text-gray-900 dark:text-white">{row.repository.split('/')[1]}</span>
+      ),
+    },
+    {
+      key: 'branch',
+      header: 'Branch',
+      render: (row) => (
+        <span className="font-mono text-xs text-gray-600 dark:text-gray-400">{row.branch}</span>
+      ),
+    },
+    {
+      key: 'commit',
+      header: 'Commit',
+      width: '90px',
+      render: (row) => (
+        <span className="font-mono text-xs text-blue-600 dark:text-blue-400">{row.commitSha}</span>
+      ),
+    },
+    {
+      key: 'frameworks',
+      header: 'Frameworks',
+      render: (row) => (
+        <div className="flex flex-wrap gap-1">
+          {row.frameworks.map((fw) => (
+            <Badge key={fw} variant="outline">{fw}</Badge>
+          ))}
+        </div>
+      ),
+    },
+    {
+      key: 'findings',
+      header: 'Findings',
+      sortable: true,
+      render: (row) => (
+        <div className="flex items-center gap-1.5">
+          <span className="font-medium">{row.totalFindings}</span>
+          {row.critical > 0 && (
+            <span className="rounded bg-red-100 px-1 py-0.5 text-[10px] font-bold text-red-700 dark:bg-red-900/30 dark:text-red-400">
+              {row.critical}C
+            </span>
+          )}
+          {row.high > 0 && (
+            <span className="rounded bg-orange-100 px-1 py-0.5 text-[10px] font-bold text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+              {row.high}H
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'poam',
+      header: 'POAM',
+      width: '60px',
+      render: (row) => (
+        <span className={row.poamEntriesCreated > 0 ? 'font-medium text-amber-700 dark:text-amber-400' : 'text-gray-400'}>
+          {row.poamEntriesCreated}
+        </span>
+      ),
+    },
+    {
+      key: 'triggeredBy',
+      header: 'Trigger',
+      width: '80px',
+      render: (row) => (
+        <span className="text-xs text-gray-500 dark:text-gray-400">
+          {row.prNumber ? `PR #${row.prNumber}` : 'Push'}
+        </span>
+      ),
+    },
+    {
+      key: 'date',
+      header: 'Date',
+      sortable: true,
+      render: (row) => (
+        <span className="text-xs text-gray-500 dark:text-gray-400">{formatDateTime(row.createdAt)}</span>
+      ),
+    },
+  ];
 
-    let delay = 0;
-    for (const step of PIPELINE_STEPS) {
-      const s = step.stage;
-      setTimeout(() => setStage(s), delay);
-      delay += step.durationMs;
-    }
-    setTimeout(() => {
-      setProgress(100);
-      setStage('complete');
-    }, delay);
-  }, []);
+  // Repo breakdown table columns
+  const repoColumns: ColumnDef<RepoBreakdown>[] = [
+    {
+      key: 'name',
+      header: 'Repository',
+      sortable: true,
+      render: (row) => <span className="font-medium text-gray-900 dark:text-white">{row.name}</span>,
+    },
+    {
+      key: 'scanCount',
+      header: 'Total Scans',
+      sortable: true,
+      render: (row) => <span>{row.scanCount}</span>,
+    },
+    {
+      key: 'passRate',
+      header: 'Pass Rate',
+      sortable: true,
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-16 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+            <div
+              className={`h-full rounded-full ${row.passRate >= 80 ? 'bg-green-500' : row.passRate >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+              style={{ width: `${row.passRate}%` }}
+            />
+          </div>
+          <span className="text-xs font-medium">{row.passRate}%</span>
+        </div>
+      ),
+    },
+    {
+      key: 'lastScan',
+      header: 'Last Scan',
+      sortable: true,
+      render: (row) => <span className="text-xs text-gray-500 dark:text-gray-400">{formatDate(row.lastScan)}</span>,
+    },
+    {
+      key: 'worstSeverity',
+      header: 'Worst Severity',
+      render: (row) =>
+        row.worstSeverity ? (
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${severityBadgeColors[row.worstSeverity]}`}>
+            {row.worstSeverity}
+          </span>
+        ) : (
+          <span className="text-xs text-gray-400">None</span>
+        ),
+    },
+    {
+      key: 'complianceScore',
+      header: 'Compliance',
+      sortable: true,
+      render: (row) => (
+        <span className={`text-sm font-bold ${row.complianceScore >= 80 ? 'text-green-600 dark:text-green-400' : row.complianceScore >= 60 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'}`}>
+          {row.complianceScore}%
+        </span>
+      ),
+    },
+  ];
 
-  const reset = useCallback(() => {
-    setStage('idle');
-    setProgress(0);
-    setFindingsCount(0);
-    setMappedCount(0);
-    setVerdict(null);
-    setPoamCount(0);
-  }, []);
+  // Compliance impact for expanded row
+  const expandedImpact = expandedScanId ? (MOCK_COMPLIANCE_IMPACT[expandedScanId] ?? []) : [];
 
-  const activeStepIdx = PIPELINE_STEPS.findIndex((s) => s.stage === stage);
-
-  // Get unique CWEs used in findings for visualization
-  const usedCweIds = [...new Set(demoPipelineFindings.map((f) => f.cweId))];
-  const usedMappings = demoCWEMappings.filter((m) => usedCweIds.includes(m.cweId));
+  // Trend chart max
+  const trendMax = Math.max(...MOCK_DAILY_TRENDS.map((d) => d.total), 1);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 p-6">
+    <div className="space-y-6">
+      {/* Demo info banner */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+        This is a read-only demo with sample data. Sign up for a free account to connect your CI/CD pipelines.
+      </div>
+
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Pipeline Compliance Scanner</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Automatically map code vulnerabilities to compliance controls on every PR &mdash; Demo Mode
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pipeline Compliance Scans</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Monitor CI/CD pipeline scan results, compliance violations, and POAM generation
         </p>
       </div>
 
-      {/* Demo mode banner */}
-      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2">
-        <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 14.5M14.25 3.104c.251.023.501.05.75.082M19.8 14.5l-2.147 2.146a2.25 2.25 0 01-1.591.659H7.938a2.25 2.25 0 01-1.591-.659L4.2 14.5m15.6 0l.147-.146a2.25 2.25 0 000-3.182l-.31-.31" />
-        </svg>
-        <span className="text-sm font-medium text-amber-800">
-          Demo Mode &mdash; This simulates the Pipeline Compliance Scanner experience.
-        </span>
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Scans (This Month)" value={totalScansMonth} />
+        <StatCard
+          label="Pass Rate"
+          value={`${passRate}%`}
+          accent={passRate >= 80 ? 'text-green-600' : passRate >= 60 ? 'text-yellow-600' : 'text-red-600'}
+        />
+        <StatCard
+          label="Compliance Violations"
+          value={totalViolations}
+          accent={totalViolations > 0 ? 'text-red-600' : 'text-green-600'}
+        />
+        <StatCard
+          label="POAM Entries Created"
+          value={totalPoams}
+          accent={totalPoams > 0 ? 'text-amber-600' : undefined}
+        />
       </div>
 
-      {/* ===== SECTION A: Interactive Scan Simulation ===== */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Interactive Scan Simulation</h2>
-
-        {stage === 'idle' && (
-          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-blue-300 bg-gray-50 px-6 py-12">
-            <svg className="mb-4 h-12 w-12 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
-            </svg>
-            <p className="mb-1 text-lg font-semibold text-gray-700">Run a Compliance Scan</p>
-            <p className="mb-4 text-sm text-gray-500">Simulate a CI/CD pipeline scan on a pull request</p>
-            <button
-              type="button"
-              onClick={runScan}
-              className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Run Compliance Scan
-            </button>
-            <p className="mt-3 text-xs text-gray-400">Scanning acmecorp/api-gateway PR #342</p>
+      {/* Scan History */}
+      <Card
+        title="Scan History"
+        description="Pipeline compliance scan results"
+        action={
+          <div className="flex flex-wrap items-center gap-3">
+            <FilterDropdown
+              label="Verdict"
+              value={verdictFilter}
+              onChange={(v) => { setVerdictFilter(v); setPage(1); }}
+              options={[
+                { value: 'all', label: 'All Verdicts' },
+                { value: 'pass', label: 'Pass' },
+                { value: 'fail', label: 'Fail' },
+                { value: 'warn', label: 'Warn' },
+              ]}
+            />
+            <FilterDropdown
+              label="Repository"
+              value={repoFilter}
+              onChange={(v) => { setRepoFilter(v); setPage(1); }}
+              options={[
+                { value: 'all', label: 'All Repos' },
+                ...uniqueRepos.map((r) => ({ value: r, label: r.split('/')[1] })),
+              ]}
+            />
+            <FilterDropdown
+              label="Framework"
+              value={frameworkFilter}
+              onChange={(v) => { setFrameworkFilter(v); setPage(1); }}
+              options={[
+                { value: 'all', label: 'All Frameworks' },
+                ...uniqueFrameworks.map((f) => ({ value: f, label: f })),
+              ]}
+            />
           </div>
-        )}
-
-        {stage !== 'idle' && stage !== 'complete' && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <svg className="h-5 w-5 animate-spin text-blue-600" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        }
+      >
+        {scans.length === 0 ? (
+          <EmptyState
+            icon={
+              <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
               </svg>
-              <span className="text-sm font-medium text-gray-700">
-                Scanning <span className="font-semibold text-gray-900">acmecorp/api-gateway</span> PR #342
-              </span>
-            </div>
+            }
+            title="No pipeline scans found"
+            description="Configure your CI/CD pipeline to run compliance scans, or adjust your filters."
+          />
+        ) : (
+          <>
+            <Table
+              columns={columns}
+              data={scans}
+              getRowId={(row) => row.scanId}
+              onRowClick={(row) => setExpandedScanId(expandedScanId === row.scanId ? null : row.scanId)}
+            />
 
-            <div className="space-y-3">
-              {PIPELINE_STEPS.map((step, idx) => {
-                const isActive = idx === activeStepIdx;
-                const isComplete = activeStepIdx > idx;
-                return (
-                  <div key={step.stage} className="flex items-center gap-3">
-                    {isComplete ? (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
-                        <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    ) : isActive ? (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
-                        <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-600" />
-                      </div>
-                    ) : (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100">
-                        <div className="h-2 w-2 rounded-full bg-gray-300" />
-                      </div>
-                    )}
-                    <span className={`text-sm ${isActive ? 'font-medium text-gray-900' : isComplete ? 'text-gray-500' : 'text-gray-400'}`}>
-                      {step.label}
-                    </span>
+            {/* Expanded row detail */}
+            {expandedScanId && (
+              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Compliance Impact &mdash; {scans.find((s) => s.scanId === expandedScanId)?.repository}
+                  </h4>
+                  <button
+                    onClick={() => setExpandedScanId(null)}
+                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    Close
+                  </button>
+                </div>
 
-                    {step.stage === 'uploading' && isActive && (
-                      <div className="ml-auto flex w-40 items-center gap-2">
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-200">
-                          <div className="h-full rounded-full bg-blue-600 transition-all duration-100" style={{ width: `${progress}%` }} />
+                {expandedImpact.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+                      <thead>
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Framework</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Control</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Title</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">CWEs</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                        {expandedImpact.map((item, idx) => (
+                          <tr key={`${item.control}-${idx}`}>
+                            <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{item.framework}</td>
+                            <td className="px-3 py-2 font-mono text-xs font-bold text-gray-900 dark:text-white">{item.control}</td>
+                            <td className="px-3 py-2 text-gray-600 dark:text-gray-400">{item.title}</td>
+                            <td className="px-3 py-2">
+                              <div className="flex flex-wrap gap-1">
+                                {item.cwes.map((cwe) => (
+                                  <span key={cwe} className="rounded bg-gray-200 px-1.5 py-0.5 text-[10px] font-mono font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                    {cwe}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No compliance impact data available for this scan.</p>
+                )}
+
+                {/* Findings summary by severity */}
+                {(() => {
+                  const scan = scans.find((s) => s.scanId === expandedScanId);
+                  if (!scan || scan.totalFindings === 0) return null;
+                  return (
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {scan.critical > 0 && (
+                        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-center dark:border-red-800 dark:bg-red-900/20">
+                          <p className="text-lg font-bold text-red-700 dark:text-red-400">{scan.critical}</p>
+                          <p className="text-[10px] font-medium text-red-600 dark:text-red-500">Critical</p>
                         </div>
-                        <span className="text-xs text-gray-500">{progress}%</span>
-                      </div>
-                    )}
+                      )}
+                      {scan.high > 0 && (
+                        <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-center dark:border-orange-800 dark:bg-orange-900/20">
+                          <p className="text-lg font-bold text-orange-700 dark:text-orange-400">{scan.high}</p>
+                          <p className="text-[10px] font-medium text-orange-600 dark:text-orange-500">High</p>
+                        </div>
+                      )}
+                      {scan.medium > 0 && (
+                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-center dark:border-yellow-800 dark:bg-yellow-900/20">
+                          <p className="text-lg font-bold text-yellow-700 dark:text-yellow-400">{scan.medium}</p>
+                          <p className="text-[10px] font-medium text-yellow-600 dark:text-yellow-500">Medium</p>
+                        </div>
+                      )}
+                      {scan.low > 0 && (
+                        <div className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-center dark:border-blue-800 dark:bg-blue-900/20">
+                          <p className="text-lg font-bold text-blue-700 dark:text-blue-400">{scan.low}</p>
+                          <p className="text-[10px] font-medium text-blue-600 dark:text-blue-500">Low</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
-                    {step.stage === 'parsing' && isActive && (
-                      <span className="ml-2 text-sm font-semibold text-blue-600">{findingsCount} / 12</span>
-                    )}
-                    {step.stage === 'parsing' && isComplete && (
-                      <span className="ml-2 text-sm text-gray-500">12 findings</span>
-                    )}
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </>
+        )}
+      </Card>
 
-                    {step.stage === 'mapping' && isActive && (
-                      <span className="ml-2 text-sm font-semibold text-purple-600">{mappedCount} controls mapped</span>
-                    )}
-                    {step.stage === 'mapping' && isComplete && (
-                      <span className="ml-2 text-sm text-gray-500">8 controls mapped</span>
-                    )}
-
-                    {step.stage === 'evaluating' && isActive && verdict && (
-                      <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">FAIL</span>
-                    )}
-                    {step.stage === 'evaluating' && isComplete && (
-                      <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700">FAIL</span>
-                    )}
-
-                    {step.stage === 'generating' && isActive && (
-                      <span className="ml-2 text-sm font-semibold text-amber-600">{poamCount} / 4 POAM entries</span>
-                    )}
-                    {step.stage === 'generating' && isComplete && (
-                      <span className="ml-2 text-sm text-gray-500">4 POAM entries</span>
-                    )}
+      {/* Compliance Trends */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <Card title="Compliance Trends" description="Pass/fail rate over the last 30 days">
+            <div className="flex items-end gap-[2px]" style={{ height: 160 }}>
+              {MOCK_DAILY_TRENDS.map((day) => {
+                const passH = (day.pass / trendMax) * 140;
+                const failH = (day.fail / trendMax) * 140;
+                return (
+                  <div key={day.date} className="flex flex-1 flex-col items-center justify-end" title={`${day.date}: ${day.pass} pass, ${day.fail} fail`}>
+                    <div className="w-full max-w-[12px] rounded-t bg-red-400 dark:bg-red-500" style={{ height: `${failH}px` }} />
+                    <div className="w-full max-w-[12px] rounded-t bg-green-500 dark:bg-green-400" style={{ height: `${passH}px` }} />
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {stage === 'complete' && (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+            <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-1">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm bg-green-500" /> Pass
               </div>
-              <div>
-                <p className="text-lg font-semibold text-gray-900">Scan Complete</p>
-                <p className="text-sm text-gray-500">Pipeline compliance scan finished in 6.3s</p>
+              <div className="flex items-center gap-1">
+                <span className="inline-block h-2.5 w-2.5 rounded-sm bg-red-400" /> Fail
               </div>
+              <span className="ml-auto">Last 30 days</span>
             </div>
+          </Card>
+        </div>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center">
-                <p className="text-2xl font-bold text-gray-900">12</p>
-                <p className="text-xs font-medium text-gray-500">Total Findings</p>
-              </div>
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center">
-                <p className="text-2xl font-bold text-red-700">2</p>
-                <p className="text-xs font-medium text-red-600">Critical</p>
-              </div>
-              <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 text-center">
-                <p className="text-2xl font-bold text-orange-700">4</p>
-                <p className="text-xs font-medium text-orange-600">High</p>
-              </div>
-              <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 text-center">
-                <p className="text-2xl font-bold text-purple-700">8</p>
-                <p className="text-xs font-medium text-purple-600">Controls Affected</p>
-              </div>
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-center">
-                <p className="text-2xl font-bold text-amber-700">4</p>
-                <p className="text-xs font-medium text-amber-600">POAMs Created</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Link
-                href="/demo/pipeline/scan-simulation"
-                className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-              >
-                View Full Scan Details
-              </Link>
-              <button
-                type="button"
-                onClick={reset}
-                className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-              >
-                Run Again
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ===== SECTION B: CWE-to-Control Mapping Visualization ===== */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-2 text-lg font-semibold text-gray-900">CWE-to-Control Mapping</h2>
-        <p className="mb-6 text-sm text-gray-500">Click a CWE to highlight its downstream compliance controls</p>
-
-        <div className="relative grid grid-cols-3 gap-4">
-          {/* Left column — CWE identifiers */}
-          <div className="space-y-2">
-            <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">CWE Identifiers</div>
-            {usedMappings.map((m) => (
-              <button
-                key={m.cweId}
-                type="button"
-                onClick={() => setActiveCwe(activeCwe === m.cweId ? null : m.cweId)}
-                className={`w-full rounded-lg border px-3 py-2 text-left text-sm transition-all ${
-                  activeCwe === m.cweId
-                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                    : activeCwe
-                      ? 'border-gray-200 bg-gray-50 opacity-40'
-                      : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold">{m.cweId}</span>
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${SEVERITY_COLORS[m.severity]}`}>
-                    {m.severity}
-                  </span>
-                </div>
-                <div className="mt-0.5 truncate text-xs text-gray-600">{m.cweName}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* Middle column — NIST 800-53 controls */}
-          <div className="space-y-2">
-            <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">NIST 800-53</div>
-            {(() => {
-              const allControls = [...new Set(usedMappings.flatMap((m) => m.nist80053))];
-              return allControls.map((ctrl) => {
-                const isHighlighted = activeCwe
-                  ? usedMappings.find((m) => m.cweId === activeCwe)?.nist80053.includes(ctrl)
-                  : false;
+        <div>
+          <Card title="Most Violated Controls" description="Top 10 controls by violation count">
+            <div className="space-y-2">
+              {MOCK_TOP_VIOLATIONS.map((item, idx) => {
+                const maxCount = MOCK_TOP_VIOLATIONS[0].count;
                 return (
-                  <div
-                    key={ctrl}
-                    className={`rounded-lg border px-3 py-2 text-sm transition-all ${
-                      isHighlighted
-                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                        : activeCwe
-                          ? 'border-gray-200 bg-gray-50 opacity-40'
-                          : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <span className="font-mono text-xs font-bold">{ctrl}</span>
+                  <div key={item.control} className="flex items-center gap-2">
+                    <span className="w-5 text-right text-xs font-medium text-gray-400">{idx + 1}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-gray-800 dark:text-gray-200">{item.control}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{item.count}</span>
+                      </div>
+                      <div className="mt-0.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                        <div
+                          className="h-full rounded-full bg-red-400 dark:bg-red-500"
+                          style={{ width: `${(item.count / maxCount) * 100}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 );
-              });
-            })()}
-          </div>
-
-          {/* Right column — Framework controls (SOC2 + CMMC) */}
-          <div className="space-y-2">
-            <div className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">SOC 2 / CMMC</div>
-            {(() => {
-              const allSoc2 = [...new Set(usedMappings.flatMap((m) => m.soc2))];
-              const allCmmc = [...new Set(usedMappings.flatMap((m) => m.cmmc))];
-              const combined = [...allSoc2.map((c) => ({ id: c, fw: 'SOC 2' })), ...allCmmc.map((c) => ({ id: c, fw: 'CMMC' }))];
-              return combined.map((item) => {
-                const isHighlighted = activeCwe
-                  ? (() => {
-                      const m = usedMappings.find((m) => m.cweId === activeCwe);
-                      if (!m) return false;
-                      return item.fw === 'SOC 2' ? m.soc2.includes(item.id) : m.cmmc.includes(item.id);
-                    })()
-                  : false;
-                return (
-                  <div
-                    key={`${item.fw}-${item.id}`}
-                    className={`rounded-lg border px-3 py-2 text-sm transition-all ${
-                      isHighlighted
-                        ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                        : activeCwe
-                          ? 'border-gray-200 bg-gray-50 opacity-40'
-                          : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <span className="font-mono text-xs font-bold">{item.id}</span>
-                    <span className="ml-2 text-[10px] text-gray-400">{item.fw}</span>
-                  </div>
-                );
-              });
-            })()}
-          </div>
-
-          {/* Connection lines overlay */}
-          {activeCwe && (
-            <div className="pointer-events-none absolute inset-0">
-              {(() => {
-                const mapping = usedMappings.find((m) => m.cweId === activeCwe);
-                if (!mapping) return null;
-                const color = SEVERITY_LINE_COLORS[mapping.severity] || '#3b82f6';
-                return (
-                  <div className="absolute left-[33%] right-[33%] top-0 h-full">
-                    <svg className="h-full w-full" style={{ overflow: 'visible' }}>
-                      <line x1="0" y1="50%" x2="100%" y2="50%" stroke={color} strokeWidth="2" strokeDasharray="4 4" opacity="0.5" />
-                    </svg>
-                  </div>
-                );
-              })()}
+              })}
             </div>
-          )}
+          </Card>
         </div>
       </div>
 
-      {/* ===== SECTION C: PR Comment Preview ===== */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">PR Comment Preview</h2>
-          <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-            <button
-              type="button"
-              onClick={() => setPrView('github')}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                prView === 'github' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              GitHub PR
-            </button>
-            <button
-              type="button"
-              onClick={() => setPrView('gitlab')}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                prView === 'gitlab' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              GitLab MR
-            </button>
-          </div>
-        </div>
-
-        <div className={`rounded-lg border p-5 ${prView === 'gitlab' ? 'border-orange-200 bg-orange-50/30' : 'border-gray-200 bg-gray-50'}`}>
-          {/* Comment header */}
-          <div className="mb-4 flex items-center gap-3">
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white ${prView === 'gitlab' ? 'bg-orange-600' : 'bg-gray-800'}`}>
-              {prView === 'gitlab' ? 'GL' : 'GH'}
-            </div>
-            <div>
-              <span className="text-sm font-semibold text-gray-900">
-                {prView === 'gitlab' ? 'cveriskpilot-bot' : 'cveriskpilot[bot]'}
-              </span>
-              <span className="ml-2 text-xs text-gray-500">commented 2 minutes ago</span>
-            </div>
-          </div>
-
-          {/* Rendered markdown content */}
-          <div className="prose prose-sm max-w-none">
-            {demoPRCommentMarkdown.split('\n').map((line, i) => {
-              if (line.startsWith('## ')) return <h3 key={i} className="mb-2 mt-4 text-base font-bold text-gray-900">{line.replace('## ', '')}</h3>;
-              if (line.startsWith('### ')) return <h4 key={i} className="mb-2 mt-3 text-sm font-semibold text-gray-800">{line.replace('### ', '')}</h4>;
-              if (line.startsWith('**')) return <p key={i} className="mb-2 text-sm font-semibold text-gray-800">{line.replace(/\*\*/g, '')}</p>;
-              if (line.startsWith('|')) {
-                // Table row
-                const cells = line.split('|').filter(Boolean).map((c) => c.trim());
-                if (cells.every((c) => c.match(/^[-]+$/))) return null; // separator
-                const isHeader = i > 0 && demoPRCommentMarkdown.split('\n')[i + 1]?.match(/^\|[-|]+\|$/);
-                return (
-                  <div key={i} className={`grid gap-2 border-b border-gray-200 py-1 text-xs ${isHeader ? 'font-semibold text-gray-700' : 'text-gray-600'}`}
-                    style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}>
-                    {cells.map((cell, j) => <span key={j}>{cell}</span>)}
-                  </div>
-                );
-              }
-              if (line.startsWith('[')) {
-                return <p key={i} className="mt-3 text-sm font-medium text-blue-600">{line.replace(/\[|\]\(.*\)/g, '')}</p>;
-              }
-              if (line.trim() === '') return <div key={i} className="h-2" />;
-              return <p key={i} className="text-sm text-gray-700">{line}</p>;
-            })}
-          </div>
-        </div>
-
-        <div className="mt-3 text-center">
-          <Link href="/demo/pipeline/pr-comment" className="text-sm font-medium text-blue-600 hover:text-blue-700">
-            View full PR comment experience &rarr;
-          </Link>
-        </div>
-      </div>
-
-      {/* ===== SECTION D: Framework Impact Cards ===== */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Framework Impact</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {frameworkImpact.map((fw) => (
-            <div
-              key={fw.name}
-              className={`rounded-lg border-2 p-4 ${
-                fw.verdict === 'fail' ? 'border-red-200 bg-red-50/50' : 'border-green-200 bg-green-50/50'
-              }`}
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-900">{fw.name}</h3>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                  fw.verdict === 'fail' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                }`}>
-                  {fw.verdict.toUpperCase()}
-                </span>
-              </div>
-              <p className="mb-2 text-xs text-gray-600">
-                {fw.controlsAffected} control{fw.controlsAffected !== 1 ? 's' : ''} affected
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {fw.controls.map((ctrl) => (
-                  <span key={ctrl} className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-700">
-                    {ctrl}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ===== SECTION E: Before/After Comparison ===== */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
-        <h2 className="mb-6 text-lg font-semibold text-gray-900">Before vs. After</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Without */}
-          <div className="rounded-lg border-2 border-gray-200 bg-gray-50 p-6">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-200">
-                <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 0v.375" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-gray-700">Without CVERiskPilot</h3>
-                <p className="text-xs text-gray-500">Manual compliance tracking</p>
-              </div>
-            </div>
-            <ul className="space-y-3">
-              {[
-                { label: '40+ hours/quarter', desc: 'Manual compliance mapping effort' },
-                { label: '3-10 business day lag', desc: 'Time from finding to compliance impact' },
-                { label: 'Manual CWE-to-control mapping', desc: 'Error-prone spreadsheet lookups' },
-                { label: 'No audit trail', desc: 'No link between code and compliance' },
-              ].map((item) => (
-                <li key={item.label} className="flex items-start gap-2">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
-                    <p className="text-xs text-gray-500">{item.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* With */}
-          <div className="rounded-lg border-2 border-blue-200 bg-blue-50/50 p-6">
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-blue-800">With CVERiskPilot</h3>
-                <p className="text-xs text-blue-600">Automated pipeline compliance</p>
-              </div>
-            </div>
-            <ul className="space-y-3">
-              {[
-                { label: '30 seconds per PR', desc: 'Automated on every commit' },
-                { label: 'Real-time on every commit', desc: 'Zero lag from finding to compliance' },
-                { label: 'Automatic 150+ CWE mappings', desc: 'Pre-built mapping to 6 frameworks' },
-                { label: 'Full commit-linked evidence', desc: 'Every finding tied to code + framework' },
-              ].map((item) => (
-                <li key={item.label} className="flex items-start gap-2">
-                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <div>
-                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
-                    <p className="text-xs text-gray-500">{item.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick links */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { href: '/demo/pipeline/scan-simulation', label: 'Scan Simulation', desc: 'Full stage-by-stage view' },
-          { href: '/demo/pipeline/pr-comment', label: 'PR Comment', desc: 'GitHub/GitLab output' },
-          { href: '/demo/pipeline/scorecard', label: 'Scorecard', desc: 'Repo compliance scores' },
-          { href: '/demo/pipeline/mssp', label: 'MSSP View', desc: 'Multi-client overview' },
-        ].map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:border-blue-200 hover:bg-blue-50/50"
-          >
-            <p className="text-sm font-semibold text-gray-900">{link.label}</p>
-            <p className="mt-0.5 text-xs text-gray-500">{link.desc}</p>
-          </Link>
-        ))}
-      </div>
+      {/* Repository Breakdown */}
+      <Card title="Repository Breakdown" description="Compliance posture by repository">
+        <Table
+          columns={repoColumns}
+          data={MOCK_REPOS}
+          getRowId={(row) => row.name}
+          onRowClick={(row) => router.push(`/demo/pipeline/${encodeURIComponent(row.name)}`)}
+        />
+      </Card>
     </div>
   );
 }

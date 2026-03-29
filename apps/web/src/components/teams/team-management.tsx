@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { Pagination } from '@/components/ui/pagination';
+import { Dialog } from '@/components/ui/dialog';
+
+const ITEMS_PER_PAGE = 10;
 
 interface TeamMember {
   id: string;
@@ -30,7 +34,16 @@ export function TeamManagement() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -108,15 +121,21 @@ export function TeamManagement() {
     }
   };
 
-  const handleDeleteTeam = async (id: string, name: string) => {
-    if (!confirm(`Delete team "${name}"? This will remove all memberships and client assignments.`)) return;
-    try {
-      const res = await fetch(`/api/teams/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete');
-      fetchTeams();
-    } catch {
-      setError('Failed to delete team');
-    }
+  const handleDeleteTeam = (id: string, name: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Team',
+      message: `Delete team "${name}"? This will remove all memberships and client assignments.`,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/teams/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete');
+          fetchTeams();
+        } catch {
+          setError('Failed to delete team');
+        }
+      },
+    });
   };
 
   const handleAddMember = async (e: React.FormEvent) => {
@@ -184,6 +203,12 @@ export function TeamManagement() {
       setError('Failed to unassign client');
     }
   };
+
+  const totalPages = Math.ceil(teams.length / ITEMS_PER_PAGE);
+  const paginatedTeams = teams.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <div>
@@ -368,9 +393,9 @@ export function TeamManagement() {
       )}
 
       {/* Team Cards */}
-      {!loading && teams.length > 0 && (
+      {!loading && teams.length > 0 && (<>
         <div className="space-y-4">
-          {teams.map((team) => {
+          {paginatedTeams.map((team) => {
             const isExpanded = expandedTeam === team.id;
             return (
               <div key={team.id} className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
@@ -526,7 +551,23 @@ export function TeamManagement() {
             );
           })}
         </div>
-      )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </>)}
+
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        onConfirm={confirmDialog.onConfirm}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+      >
+        <p>{confirmDialog.message}</p>
+      </Dialog>
     </div>
   );
 }

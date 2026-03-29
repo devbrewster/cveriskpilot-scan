@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Pagination } from '@/components/ui/pagination';
+
+const ITEMS_PER_PAGE = 10;
 
 interface ServiceAccountApiKey {
   id: string;
@@ -30,6 +33,7 @@ export function ServiceAccounts({ organizationId: _organizationId }: ServiceAcco
   const [accounts, setAccounts] = useState<ServiceAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newResult, setNewResult] = useState<{
     serviceAccount: { name: string };
@@ -119,6 +123,12 @@ export function ServiceAccounts({ organizationId: _organizationId }: ServiceAcco
       day: 'numeric',
     });
   };
+
+  const totalPages = Math.ceil(accounts.length / ITEMS_PER_PAGE);
+  const paginatedAccounts = accounts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="space-y-6">
@@ -267,8 +277,9 @@ export function ServiceAccounts({ organizationId: _organizationId }: ServiceAcco
           </p>
         </div>
       ) : (
+        <>
         <div className="space-y-4">
-          {accounts.map((sa) => (
+          {paginatedAccounts.map((sa) => (
             <div
               key={sa.id}
               className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-4"
@@ -321,6 +332,12 @@ export function ServiceAccounts({ organizationId: _organizationId }: ServiceAcco
             </div>
           ))}
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+        </>
       )}
     </div>
   );

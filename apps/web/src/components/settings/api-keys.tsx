@@ -1,6 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Pagination } from '@/components/ui/pagination';
+import { Dialog } from '@/components/ui/dialog';
+
+const ITEMS_PER_PAGE = 10;
 
 interface ApiKeyEntry {
   id: string;
@@ -20,9 +24,20 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
   const [keys, setKeys] = useState<ApiKeyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newKeyResult, setNewKeyResult] = useState<{ key: string; name: string } | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    variant: 'primary' | 'danger';
+    confirmLabel: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', message: '', variant: 'primary', confirmLabel: 'Confirm', onConfirm: () => {} });
 
   // Create form state
   const [createName, setCreateName] = useState('');
@@ -84,41 +99,51 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
     }
   };
 
-  const handleRevoke = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to revoke the API key "${name}"? This cannot be undone.`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? 'Failed to revoke key');
-      }
-      await fetchKeys();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to revoke key');
-    }
+  const handleRevoke = (id: string, name: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Revoke API Key',
+      message: `Are you sure you want to revoke the API key "${name}"? This cannot be undone.`,
+      variant: 'danger',
+      confirmLabel: 'Revoke',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error ?? 'Failed to revoke key');
+          }
+          await fetchKeys();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to revoke key');
+        }
+      },
+    });
   };
 
-  const handleRotate = async (id: string, name: string) => {
-    if (!confirm(`Rotate the API key "${name}"? The old key will immediately stop working.`)) {
-      return;
-    }
+  const handleRotate = (id: string, name: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Rotate API Key',
+      message: `Rotate the API key "${name}"? The old key will immediately stop working.`,
+      variant: 'primary',
+      confirmLabel: 'Rotate',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/keys/${id}`, { method: 'PUT' });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error ?? 'Failed to rotate key');
+          }
 
-    try {
-      const res = await fetch(`/api/keys/${id}`, { method: 'PUT' });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? 'Failed to rotate key');
-      }
-
-      const data = await res.json();
-      setNewKeyResult({ key: data.key, name });
-      await fetchKeys();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to rotate key');
-    }
+          const data = await res.json();
+          setNewKeyResult({ key: data.key, name });
+          await fetchKeys();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to rotate key');
+        }
+      },
+    });
   };
 
   const copyToClipboard = async (text: string) => {
@@ -154,6 +179,12 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
     admin: 'Admin',
     scim: 'SCIM',
   };
+
+  const totalPages = Math.ceil(keys.length / ITEMS_PER_PAGE);
+  const paginatedKeys = keys.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <div className="space-y-6">
@@ -314,6 +345,7 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
           </p>
         </div>
       ) : (
+        <>
         <div className="overflow-hidden rounded-lg border border-gray-200">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -339,7 +371,7 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {keys.map((key) => (
+              {paginatedKeys.map((key) => (
                 <tr key={key.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-sm font-medium text-gray-900">{key.name}</td>
                   <td className="px-4 py-3">
@@ -401,7 +433,24 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+        </>
       )}
+
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        onConfirm={confirmDialog.onConfirm}
+        confirmLabel={confirmDialog.confirmLabel}
+        confirmVariant={confirmDialog.variant}
+      >
+        <p>{confirmDialog.message}</p>
+      </Dialog>
     </div>
   );
 }

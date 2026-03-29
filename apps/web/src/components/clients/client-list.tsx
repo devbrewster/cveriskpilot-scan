@@ -2,6 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useClientContext } from '@/lib/client-context';
+import { Pagination } from '@/components/ui/pagination';
+import { Dialog } from '@/components/ui/dialog';
+
+const ITEMS_PER_PAGE = 15;
 
 interface ClientRow {
   id: string;
@@ -20,6 +24,15 @@ export function ClientList() {
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Confirm dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   // Create modal state
   const [showCreate, setShowCreate] = useState(false);
@@ -80,20 +93,32 @@ export function ClientList() {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
-    try {
-      const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete');
-      fetchClients();
-    } catch {
-      setError('Failed to delete client');
-    }
+  const handleDelete = (id: string, name: string) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Client',
+      message: `Are you sure you want to delete "${name}"?`,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete');
+          fetchClients();
+        } catch {
+          setError('Failed to delete client');
+        }
+      },
+    });
   };
 
   const handleSwitchTo = (client: ClientRow) => {
     setActiveClient(client.id, client.name);
   };
+
+  const totalPages = Math.ceil(clients.length / ITEMS_PER_PAGE);
+  const paginatedClients = clients.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   function getRiskBadge(score: number) {
     if (score >= 50) return 'bg-red-100 text-red-800';
@@ -238,7 +263,7 @@ export function ClientList() {
       )}
 
       {/* Table */}
-      {!loading && clients.length > 0 && (
+      {!loading && clients.length > 0 && (<>
         <div className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -267,7 +292,7 @@ export function ClientList() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {clients.map((client) => (
+              {paginatedClients.map((client) => (
                 <tr
                   key={client.id}
                   className="transition-colors hover:bg-gray-50 cursor-pointer"
@@ -330,7 +355,23 @@ export function ClientList() {
             </tbody>
           </table>
         </div>
-      )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </>)}
+
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        title={confirmDialog.title}
+        onConfirm={confirmDialog.onConfirm}
+        confirmLabel="Delete"
+        confirmVariant="danger"
+      >
+        <p>{confirmDialog.message}</p>
+      </Dialog>
     </div>
   );
 }

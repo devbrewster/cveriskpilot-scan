@@ -13,12 +13,13 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 function buildCsp(nonce: string, isDev: boolean): string {
   // Next.js standalone output does not inject nonce attributes into prerendered
-  // script tags, so we must keep 'unsafe-inline' for now. The nonce is added as
-  // defense-in-depth — once Next.js supports nonce injection in standalone mode,
-  // removing 'unsafe-inline' becomes a one-line change.
+  // script tags. Per CSP spec, when a nonce-source is present browsers IGNORE
+  // 'unsafe-inline' — which blocks all Next.js inline scripts and causes a
+  // white screen. Until Next.js supports nonce injection in standalone mode,
+  // we must use 'unsafe-inline' WITHOUT a nonce.
   const scriptSrc = isDev
-    ? `'self' 'unsafe-eval' 'unsafe-inline' 'nonce-${nonce}'`
-    : `'self' 'unsafe-inline' 'nonce-${nonce}'`;
+    ? `'self' 'unsafe-eval' 'unsafe-inline'`
+    : `'self' 'unsafe-inline'`;
 
   const connectSrc = isDev
     ? `'self' https://api.first.org https://services.nvd.nist.gov ws://localhost:* wss://localhost:*`

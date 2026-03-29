@@ -2,7 +2,8 @@
 // GET /api/docs — Serves the OpenAPI v3.1 specification (t113)
 // ---------------------------------------------------------------------------
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { openApiSpec } from '@cveriskpilot/api-docs';
 
 /**
@@ -15,7 +16,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { requireAuth } = await import('@cveriskpilot/auth');
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
-    const session = auth;
   }
 
   return NextResponse.json(openApiSpec, {

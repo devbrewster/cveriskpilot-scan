@@ -45,7 +45,7 @@ describe('buildRemediationPrompt', () => {
 
   it('system prompt instructs JSON output', () => {
     const { system } = buildRemediationPrompt(makeRequest());
-    expect(system).toContain('valid JSON only');
+    expect(system).toContain('ONLY with valid JSON');
     expect(system).toContain('riskAssessment');
     expect(system).toContain('immediateActions');
     expect(system).toContain('permanentFix');

@@ -67,6 +67,9 @@ function createMockPrisma() {
         return Promise.resolve(f);
       }),
     },
+    slaPolicy: {
+      findFirst: vi.fn().mockResolvedValue(null),
+    },
   };
 
   return { prisma, createdAssets, createdFindings, createdCases, updatedCases };

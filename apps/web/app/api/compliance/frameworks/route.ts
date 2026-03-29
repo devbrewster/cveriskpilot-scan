@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { requireAuth } from '@cveriskpilot/auth';
 import {
   SOC2_FRAMEWORK,
@@ -13,7 +14,6 @@ import {
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
-  const session = auth;
 
   const frameworks = [SOC2_FRAMEWORK, SSDF_FRAMEWORK, ASVS_FRAMEWORK].map(
     (fw) => ({

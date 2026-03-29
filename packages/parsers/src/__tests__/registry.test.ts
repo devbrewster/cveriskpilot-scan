@@ -72,7 +72,7 @@ describe('parse', () => {
   });
 
   it('should throw for unsupported format', async () => {
-    await expect(parse('QUALYS', '')).rejects.toThrow('No parser registered');
+    await expect(parse('UNSUPPORTED_FORMAT_XYZ' as any, '')).rejects.toThrow('No parser registered');
   });
 });
 

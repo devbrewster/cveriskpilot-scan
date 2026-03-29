@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { requireAuth } from '@cveriskpilot/auth';
 import {
   adapterRegistry,
@@ -13,7 +14,6 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
-    const session = auth;
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== 'object') {

@@ -8,32 +8,49 @@ vi.mock('../gcs/upload', () => ({
   downloadFromGCS: vi.fn().mockResolvedValue(Buffer.from('<NessusClientData></NessusClientData>')),
 }));
 
-vi.mock('@cveriskpilot/parsers', () => ({
-  detectFormat: vi.fn().mockReturnValue('NESSUS'),
-  parse: vi.fn().mockResolvedValue({
-    format: 'NESSUS',
-    scannerName: 'Nessus',
-    findings: [
-      {
-        title: 'Test Finding',
-        cveIds: ['CVE-2024-1234', 'CVE-2024-5678'],
-        cweIds: [],
-        severity: 'HIGH',
-        scannerType: 'VM',
-        scannerName: 'Nessus',
-        assetName: 'host-1',
-        rawObservations: {},
-        discoveredAt: new Date(),
-        description: 'desc',
-      },
-    ],
-    metadata: {
-      totalFindings: 1,
-      parseTimeMs: 50,
-      errors: [],
-    },
+vi.mock('../gcs/local-upload', () => ({
+  downloadFromLocal: vi.fn().mockResolvedValue(Buffer.from('<NessusClientData></NessusClientData>')),
+}));
+
+vi.mock('@cveriskpilot/shared', () => ({
+  createLogger: vi.fn().mockReturnValue({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
   }),
 }));
+
+vi.mock('@cveriskpilot/parsers', () => {
+  const mockFinding = {
+    title: 'Test Finding',
+    cveIds: ['CVE-2024-1234', 'CVE-2024-5678'],
+    cweIds: [],
+    severity: 'HIGH',
+    scannerType: 'VM',
+    scannerName: 'Nessus',
+    assetName: 'host-1',
+    rawObservations: {},
+    discoveredAt: new Date(),
+    description: 'desc',
+  };
+
+  return {
+    detectFormat: vi.fn().mockReturnValue('NESSUS'),
+    parse: vi.fn().mockResolvedValue({
+      format: 'NESSUS',
+      scannerName: 'Nessus',
+      findings: [mockFinding],
+      metadata: {
+        totalFindings: 1,
+        parseTimeMs: 50,
+        errors: [],
+      },
+    }),
+    normalizeFindings: vi.fn().mockImplementation((findings: any[]) => findings),
+    deduplicateFindings: vi.fn().mockImplementation((findings: any[]) => findings),
+  };
+});
 
 vi.mock('@cveriskpilot/enrichment', () => ({
   enrichFindings: vi.fn().mockImplementation((findings: any[]) =>
@@ -82,6 +99,7 @@ function createMockPrisma(jobOverrides: Record<string, any> = {}) {
       gcsBucket: 'test-bucket',
       gcsPath: 'orgs/org-1/clients/client-1/123-scan.nessus',
       filename: 'scan.nessus',
+      parserFormat: null,
     },
     ...jobOverrides,
   };

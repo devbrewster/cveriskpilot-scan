@@ -26,6 +26,15 @@ vi.mock('@google-cloud/storage', () => ({
   })),
 }));
 
+vi.mock('../gcs/local-upload', () => ({
+  uploadToLocal: vi.fn().mockResolvedValue({
+    gcsBucket: 'local',
+    gcsPath: 'orgs/o/clients/c/123-f',
+    checksumSha256: 'abc123',
+    sizeBytes: 1,
+  }),
+}));
+
 // Must import after mocks are set up
 const { uploadToGCS, downloadFromGCS, generateSignedUrl } = await import(
   '../gcs/upload'
@@ -124,17 +133,18 @@ describe('uploadToGCS', () => {
     expect(saveCall[1].resumable).toBe(true);
   });
 
-  it('should throw when GCS_BUCKET_ARTIFACTS is not set', async () => {
+  it('should fall back to local upload when GCS_BUCKET_ARTIFACTS is not set', async () => {
     delete process.env.GCS_BUCKET_ARTIFACTS;
-    await expect(
-      uploadToGCS({
-        buffer: Buffer.from('x'),
-        filename: 'f',
-        organizationId: 'o',
-        clientId: 'c',
-        mimeType: 'text/plain',
-      }),
-    ).rejects.toThrow('GCS_BUCKET_ARTIFACTS');
+    const result = await uploadToGCS({
+      buffer: Buffer.from('x'),
+      filename: 'f',
+      organizationId: 'o',
+      clientId: 'c',
+      mimeType: 'text/plain',
+    });
+
+    expect(result.gcsBucket).toBe('local');
+    expect(mockSave).not.toHaveBeenCalled();
   });
 });
 

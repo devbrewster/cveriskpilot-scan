@@ -13,6 +13,19 @@ import type {
 import { SSEEmitter } from './sse-emitter';
 import { ProgressTracker } from './progress-tracker';
 
+// Lazy-load enrichment to avoid hard dependency at import time
+let _enrichmentModule: typeof import('@cveriskpilot/enrichment') | null = null;
+
+async function getEnrichmentModule() {
+  if (_enrichmentModule) return _enrichmentModule;
+  try {
+    _enrichmentModule = await import('@cveriskpilot/enrichment');
+    return _enrichmentModule;
+  } catch {
+    return null;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Internal types
 // ---------------------------------------------------------------------------
@@ -85,26 +98,111 @@ const DEFAULT_STAGES: PipelineStages = {
   },
 
   async enrich(findings: RawFinding[]): Promise<EnrichedFinding[]> {
-    return findings.map((f) => ({
-      ...f,
-      epssScore: null,
-      isKev: false,
-      cvssVector: null,
-      enrichedAt: new Date().toISOString(),
-    }));
+    const enrichment = await getEnrichmentModule();
+    if (!enrichment) {
+      // Fallback: enrichment package unavailable at runtime
+      return findings.map((f) => ({
+        ...f,
+        epssScore: null,
+        isKev: false,
+        cvssVector: null,
+        enrichedAt: new Date().toISOString(),
+      }));
+    }
+
+    try {
+      // Collect all CVE IDs from the batch
+      const cveIds = findings
+        .map((f) => f.cveId)
+        .filter((id): id is string => id !== null);
+      const uniqueCves = [...new Set(cveIds)];
+
+      // Fetch EPSS scores and KEV catalog in parallel
+      const [epssMap, kevCatalog] = await Promise.all([
+        enrichment.fetchEpssScores(uniqueCves),
+        enrichment.loadKevCatalog(),
+      ]);
+
+      // Build KEV lookup set
+      const kevMatches = enrichment.checkKev(kevCatalog, uniqueCves);
+      const kevSet = new Set(kevMatches.map((m) => m.cveId));
+
+      // Fetch NVD data for CVSS vectors (sequential due to rate limits)
+      const nvdMap = await enrichment.fetchNvdCves(uniqueCves);
+
+      return findings.map((f) => {
+        const epssData = f.cveId ? epssMap.get(f.cveId) : undefined;
+        const nvdData = f.cveId ? nvdMap.get(f.cveId) : undefined;
+        const cvssVector =
+          nvdData?.cvssV3?.vector ?? nvdData?.cvssV2?.vector ?? null;
+
+        return {
+          ...f,
+          epssScore: epssData?.score ?? null,
+          isKev: f.cveId ? kevSet.has(f.cveId) : false,
+          cvssVector,
+          enrichedAt: new Date().toISOString(),
+        };
+      });
+    } catch (err) {
+      console.error('Enrichment stage failed, falling back to defaults:', err);
+      return findings.map((f) => ({
+        ...f,
+        epssScore: null,
+        isKev: false,
+        cvssVector: null,
+        enrichedAt: new Date().toISOString(),
+      }));
+    }
   },
 
   async deduplicate(findings: EnrichedFinding[]): Promise<DeduplicatedFinding[]> {
+    // In-batch deduplication: track CVE+asset combos within this batch
     const seen = new Map<string, string>();
+
+    // Attempt cross-batch deduplication via Prisma (existing DB findings)
+    let existingKeys = new Set<string>();
+    try {
+      const { PrismaClient } = await import('@cveriskpilot/domain');
+      const prisma = new PrismaClient();
+      if (prisma) {
+        const cveIds = findings
+          .map((f) => f.cveId)
+          .filter((id): id is string => id !== null);
+        const assets = [...new Set(findings.map((f) => f.asset))];
+
+        if (cveIds.length > 0 && assets.length > 0) {
+          const existingFindings = await (prisma as any).finding.findMany({
+            where: {
+              cveIds: { hasSome: cveIds },
+              assetName: { in: assets },
+            },
+            select: { cveIds: true, assetName: true },
+          });
+
+          for (const ef of existingFindings) {
+            for (const cve of ef.cveIds) {
+              existingKeys.add(`${cve}::${ef.assetName}`);
+            }
+          }
+        }
+      }
+    } catch {
+      // Prisma unavailable — fall back to in-batch dedup only
+    }
+
     return findings.map((f) => {
       const key = `${f.cveId ?? f.title}::${f.asset}`;
       const existing = seen.get(key);
+      const dbDuplicate = existingKeys.has(key);
+
       if (!existing) {
         seen.set(key, f.id);
       }
+
       return {
         ...f,
-        duplicateOf: existing ?? null,
+        duplicateOf: existing ?? (dbDuplicate ? 'db-existing' : null),
         dedupKey: key,
       };
     });
@@ -112,9 +210,39 @@ const DEFAULT_STAGES: PipelineStages = {
 
   async createCases(findings: DeduplicatedFinding[]): Promise<string[]> {
     // Only create cases for non-duplicate, high+ severity findings
-    return findings
-      .filter((f) => !f.duplicateOf && (f.severity === 'critical' || f.severity === 'high'))
-      .map((f) => `case-${f.id.slice(0, 8)}`);
+    const actionable = findings.filter(
+      (f) => !f.duplicateOf && (f.severity === 'critical' || f.severity === 'high'),
+    );
+
+    if (actionable.length === 0) return [];
+
+    try {
+      const { PrismaClient } = await import('@cveriskpilot/domain');
+      const prisma = new PrismaClient();
+
+      const caseIds: string[] = [];
+
+      for (const f of actionable) {
+        const caseRecord = await (prisma as any).vulnerabilityCase.create({
+          data: {
+            title: f.title,
+            description: f.description,
+            severity: f.severity.toUpperCase(),
+            status: 'OPEN',
+            cveIds: f.cveId ? [f.cveId] : [],
+            cvssVector: f.cvssVector,
+            epssScore: f.epssScore,
+            kevListed: f.isKev,
+          },
+        });
+        caseIds.push(caseRecord.id);
+      }
+
+      return caseIds;
+    } catch {
+      // Prisma unavailable — fall back to placeholder IDs
+      return actionable.map((f) => `case-${f.id.slice(0, 8)}`);
+    }
   },
 };
 

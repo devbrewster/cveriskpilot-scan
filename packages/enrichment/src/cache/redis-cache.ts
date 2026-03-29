@@ -1,15 +1,19 @@
 import Redis from 'ioredis';
 import type { NvdCveData, EpssData } from '../types';
+import { createLogger } from '@cveriskpilot/shared';
+
+const logger = createLogger('enrichment:cache');
 
 const TTL_SECONDS = 24 * 60 * 60; // 24 hours
 
 let redisClient: Redis | null = null;
 
-function getRedis(): Redis {
+function getRedis(): Redis | null {
   if (!redisClient) {
     const url = process.env.REDIS_URL;
     if (!url) {
-      throw new Error('REDIS_URL environment variable is not set');
+      logger.warn('REDIS_URL not set — enrichment cache disabled');
+      return null;
     }
     redisClient = new Redis(url, {
       maxRetriesPerRequest: 3,
@@ -41,8 +45,9 @@ export async function getCachedNvd(
 
   try {
     const redis = getRedis();
+    if (!redis) return { cached, uncached: [...cveIds] };
     const keys = cveIds.map(nvdKey);
-    const pipeline = redis.pipeline();
+    const pipeline = redis!.pipeline();
     for (const key of keys) {
       pipeline.get(key);
     }
@@ -67,7 +72,7 @@ export async function getCachedNvd(
       }
     }
   } catch (err) {
-    console.warn('Redis getCachedNvd error, treating all as uncached:', err);
+    logger.warn('Redis getCachedNvd error, treating all as uncached', { error: String(err) });
     return { cached: new Map(), uncached: [...cveIds] };
   }
 
@@ -84,6 +89,7 @@ export async function setCachedNvd(
 
   try {
     const redis = getRedis();
+    if (!redis) return;
     const pipeline = redis.pipeline();
 
     for (const [cveId, nvdData] of data) {
@@ -92,7 +98,7 @@ export async function setCachedNvd(
 
     await pipeline.exec();
   } catch (err) {
-    console.warn('Redis setCachedNvd error:', err);
+    logger.warn('Redis setCachedNvd error', { error: String(err) });
   }
 }
 
@@ -118,6 +124,7 @@ export async function getCachedEpss(
 
   try {
     const redis = getRedis();
+    if (!redis) return { cached, uncached: [...cveIds] };
     const keys = cveIds.map(epssKey);
     const pipeline = redis.pipeline();
     for (const key of keys) {
@@ -144,7 +151,7 @@ export async function getCachedEpss(
       }
     }
   } catch (err) {
-    console.warn('Redis getCachedEpss error, treating all as uncached:', err);
+    logger.warn('Redis getCachedEpss error, treating all as uncached', { error: String(err) });
     return { cached: new Map(), uncached: [...cveIds] };
   }
 
@@ -161,6 +168,7 @@ export async function setCachedEpss(
 
   try {
     const redis = getRedis();
+    if (!redis) return;
     const pipeline = redis.pipeline();
 
     for (const [cveId, epssData] of data) {
@@ -169,7 +177,7 @@ export async function setCachedEpss(
 
     await pipeline.exec();
   } catch (err) {
-    console.warn('Redis setCachedEpss error:', err);
+    logger.warn('Redis setCachedEpss error', { error: String(err) });
   }
 }
 

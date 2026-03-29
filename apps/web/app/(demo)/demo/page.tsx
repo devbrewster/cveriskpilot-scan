@@ -86,8 +86,8 @@ const nearestKevDueDate = nearestKevDue.toISOString();
 const complianceScoreData = Object.entries(demoComplianceScores).map(([framework, score]) => ({
   framework,
   score,
-  controlsTotal: framework === 'SOC2' ? 54 : framework === 'SSDF' ? 42 : 38,
-  controlsMet: Math.round((score / 100) * (framework === 'SOC2' ? 54 : framework === 'SSDF' ? 42 : 38)),
+  controlsTotal: framework === 'SOC2' ? 7 : framework === 'SSDF' ? 8 : 7,
+  controlsMet: Math.round((score / 100) * (framework === 'SOC2' ? 7 : framework === 'SSDF' ? 8 : 7)),
 }));
 
 // SLA severity colors

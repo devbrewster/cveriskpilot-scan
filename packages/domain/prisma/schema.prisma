@@ -191,6 +191,8 @@ model Organization {
   brandConfig        BrandConfig?
   reportSchedules    ReportSchedule[]
   pipelineScans      PipelineScan[]
+  pipelinePolicy     PipelinePolicy?
+  pipelineScanResults PipelineScanResult[]
   comments           Comment[]
   workflowLineages   WorkflowLineage[]
   riskExceptions     RiskException[]
@@ -890,4 +892,58 @@ model PipelineScan {
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
   @@map("pipeline_scans")
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline Policy — per-org compliance policy for CI/CD scans
+// ---------------------------------------------------------------------------
+
+model PipelinePolicy {
+  id                       String   @id @default(cuid()) @map("id")
+  organizationId           String   @unique @map("organization_id")
+  frameworks               Json     @default("[\"nist-800-53\"]") @map("frameworks")
+  blockOnSeverity          String   @default("CRITICAL") @map("block_on_severity")
+  blockOnControlViolation  Boolean  @default(false) @map("block_on_control_violation")
+  warnOnly                 Boolean  @default(false) @map("warn_only")
+  autoExceptionRules       Json     @default("[]") @map("auto_exception_rules")
+  gracePeriodDays          Int      @default(0) @map("grace_period_days")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("pipeline_policies")
+}
+
+// ---------------------------------------------------------------------------
+// Pipeline Scan Result — persisted output from /api/pipeline/scan
+// ---------------------------------------------------------------------------
+
+model PipelineScanResult {
+  id                String   @id @map("id")
+  organizationId    String   @map("organization_id")
+  format            String   @map("format")
+  repoUrl           String?  @map("repo_url")
+  commitSha         String?  @map("commit_sha")
+  branch            String?  @map("branch")
+  prNumber          Int?     @map("pr_number")
+  verdict           String   @map("verdict")
+  totalFindings     Int      @default(0) @map("total_findings")
+  criticalCount     Int      @default(0) @map("critical_count")
+  highCount         Int      @default(0) @map("high_count")
+  mediumCount       Int      @default(0) @map("medium_count")
+  lowCount          Int      @default(0) @map("low_count")
+  infoCount         Int      @default(0) @map("info_count")
+  complianceImpact  Json     @default("[]") @map("compliance_impact")
+  policyReasons     Json     @default("[]") @map("policy_reasons")
+  poamEntriesCreated Int     @default(0) @map("poam_entries_created")
+  findings          Json     @default("[]") @map("findings")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, verdict])
+  @@index([organizationId, repoUrl])
+  @@map("pipeline_scan_results")
 }

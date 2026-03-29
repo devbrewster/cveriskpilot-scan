@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { requireAuth } from '@cveriskpilot/auth';
 import { validateApiKey, hasScope } from '@cveriskpilot/auth';
 import { UserRole } from '@cveriskpilot/domain';
 import { getDefaultPolicy } from '@cveriskpilot/compliance';
 import type { PipelinePolicy } from '@cveriskpilot/compliance';
-import { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------

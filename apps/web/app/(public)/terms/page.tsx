@@ -2,8 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | CVERiskPilot",
-  description: "CVERiskPilot Terms of Service",
+  title: "Terms of Service",
+  description:
+    "CVERiskPilot Terms of Service — terms and conditions governing use of the CVERiskPilot vulnerability management platform.",
+  alternates: {
+    canonical: "https://cveriskpilot.com/terms",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function TermsPage() {

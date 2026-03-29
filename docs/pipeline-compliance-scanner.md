@@ -52,7 +52,7 @@ Get compliance-aware scanning running on your GitHub repository in five steps.
 ### 1. Get an API Key
 
 Sign up at [app.cveriskpilot.com](https://app.cveriskpilot.com) and create an API key
-under **Settings > API Keys**. Free tier includes 100 scans/day.
+under **Settings > API Keys**. Local scans are free and unlimited.
 
 ### 2. Add the Secret to GitHub
 
@@ -426,12 +426,12 @@ NIST 800-53 rev5 Control (canonical intermediate)
 
 | Framework | Version | Controls Mapped | Coverage |
 |-----------|---------|-----------------|----------|
-| NIST 800-53 | rev5 | 42 controls | Primary reference (canonical) |
-| SOC2 Type II | 2017 | 18 criteria | CC6.x, CC7.x, CC8.x, A1.x |
-| CMMC Level 2 | v2.0 | 56 practices | AC, AU, IA, SC, SI families |
-| FedRAMP Moderate | rev5 | 42 controls | Mirrors NIST 800-53 baseline |
-| OWASP ASVS | 4.0.3 | 38 requirements | V2-V14 chapters |
-| NIST SSDF | 1.1 | 12 practices | PO, PS, PW, RV groups |
+| NIST 800-53 | rev5 | 45 controls | Primary reference (canonical) |
+| SOC2 Type II | 2017 | 7 criteria | CC6.x, CC7.x, CC8.x |
+| CMMC Level 2 | v2.0 | 33 practices | AC, AU, IA, SC, SI families |
+| FedRAMP Moderate | rev5 | 35 controls | Federal moderate baseline |
+| OWASP ASVS | 4.0.3 | 7 requirements | V1, V5, V9, V10, V14 |
+| NIST SSDF | 1.1 | 8 practices | PO, PW, RV groups |
 
 ---
 
@@ -594,14 +594,14 @@ A standalone CLI for local development, CI/CD pipelines, and git hook integratio
 #### Installation
 
 ```bash
-# Run directly (no install)
-npx @cveriskpilot/scan --help
+# Run directly (no install — always uses latest)
+npx @cveriskpilot/scan@latest --help
 
 # Global install
-npm install -g @cveriskpilot/scan
+npm install -g @cveriskpilot/scan@latest
 
 # Project dependency
-npm install --save-dev @cveriskpilot/scan
+npm install --save-dev @cveriskpilot/scan@latest
 ```
 
 #### Usage Examples
@@ -1379,19 +1379,19 @@ to the pull request or merge request:
 | **Scans Dependencies (SCA)** | Via Trivy/SBOM (CycloneDX ingestion) | Yes | Limited | No | Yes (Dependabot) |
 | **Scans IaC** | Via Trivy (JSON ingestion) | Yes (IaC) | No | Yes (HCL rules) | No |
 | **Secrets Detection** | Via Semgrep + built-in patterns | No | No | Yes | Yes |
-| **NIST 800-53 Mapping** | Yes (42 controls) | No | No | No | No |
-| **SOC2 Mapping** | Yes (18 criteria) | No | No | No | No |
-| **CMMC Mapping** | Yes (56 practices) | No | No | No | No |
-| **FedRAMP Mapping** | Yes (42 controls) | No | No | No | No |
-| **OWASP ASVS Mapping** | Yes (38 requirements) | No | Partial | No | No |
-| **NIST SSDF Mapping** | Yes (12 practices) | No | No | No | No |
+| **NIST 800-53 Mapping** | Yes (45 controls) | No | No | No | No |
+| **SOC2 Mapping** | Yes (7 criteria) | No | No | No | No |
+| **CMMC Mapping** | Yes (33 practices) | No | No | No | No |
+| **FedRAMP Mapping** | Yes (35 controls) | No | No | No | No |
+| **OWASP ASVS Mapping** | Yes (7 requirements) | No | Partial | No | No |
+| **NIST SSDF Mapping** | Yes (8 practices) | No | No | No | No |
 | **Auto-POAM Generation** | Yes | No | No | No | No |
 | **Compliance Verdict in CI/CD** | Yes (pass/fail/warn gate) | No (vuln count only) | Yes (quality gate, no compliance) | No (vuln count only) | No (alert count only) |
 | **Multi-Framework Scoring** | Yes (per-repo scorecards) | No | No | No | No |
 | **Pipeline Policy Engine** | Yes (per-org configurable) | Yes (policies) | Yes (quality profiles) | Yes (policies) | No |
 | **PR/MR Comment with Controls** | Yes (full compliance table) | Yes (vuln list only) | Yes (quality only) | Yes (vuln list only) | Yes (vuln list only) |
 | **Audit Trail to Commit** | Yes (POAM linked to PR/commit) | No | No | No | Partial |
-| **Self-Serve Free Tier** | Yes (100 scans/day) | Yes (limited) | Yes (Community) | Yes (open source) | Yes (public repos) |
+| **Self-Serve Free Tier** | Yes (unlimited local, 3 uploads/month) | Yes (limited) | Yes (Community) | Yes (open source) | Yes (public repos) |
 | **Pricing (Team)** | From $49/mo (Pro) | From $98/mo | From $150/mo | From $40/dev/mo | $49/user/mo |
 
 **Key differentiator:** CVERiskPilot is the only tool that combines code scanning
@@ -1470,7 +1470,7 @@ appropriate project permissions).
 **Step 1: Install**
 
 ```bash
-npm install -g @cveriskpilot/scan
+npm install -g @cveriskpilot/scan@latest
 ```
 
 **Step 2: Configure**
@@ -1533,7 +1533,7 @@ And commit the `.githooks/pre-push` script to the repository.
 The CLI tool works in any environment with Node.js 20+. The general pattern is:
 
 1. Run your preferred scanners and collect output files.
-2. Install the CLI: `npm install -g @cveriskpilot/scan`.
+2. Install the CLI: `npm install -g @cveriskpilot/scan@latest`.
 3. Set the `CVERISKPILOT_API_KEY` environment variable.
 4. Run: `npx @cveriskpilot/scan --frameworks SOC2,CMMC --sarif results.sarif --fail-on-violation`.
 5. Check the exit code: 0 = pass, 1 = fail (compliance violation), 2 = error.

@@ -404,7 +404,7 @@ export default function CustomerDetailPage() {
         </div>
         <button
           className="inline-flex items-center gap-2 rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-400 transition hover:bg-violet-500/20"
-          title="Impersonation - coming soon"
+          title="Impersonation - requires database-backed sessions"
           disabled
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

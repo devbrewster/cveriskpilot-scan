@@ -127,6 +127,41 @@ export function withAuth(handler: AuthenticatedHandler) {
 }
 
 /**
+ * Authenticate a request and apply tier-aware API rate limiting.
+ * Returns the session on success, or a 401/429 NextResponse on failure.
+ *
+ * Drop-in replacement for the common getServerSession + null-check pattern.
+ * Works with all route signatures (including dynamic params).
+ *
+ * Usage:
+ * ```ts
+ * const auth = await requireAuth(request);
+ * if (auth instanceof NextResponse) return auth;
+ * const session = auth;
+ * ```
+ */
+export async function requireAuth(
+  request: NextRequest,
+): Promise<Session | NextResponse> {
+  const session = await getServerSession(request);
+
+  if (!session) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Valid session required' },
+      { status: 401 },
+    );
+  }
+
+  // Tier-aware API rate limiting (if hook registered)
+  if (_rateLimitHook) {
+    const rateLimitResponse = await _rateLimitHook(session.organizationId);
+    if (rateLimitResponse) return rateLimitResponse;
+  }
+
+  return session;
+}
+
+/**
  * Create a NextResponse with the session cookie set.
  */
 export function setSessionCookie(

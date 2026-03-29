@@ -5,7 +5,8 @@
 // This endpoint is development-only. The NODE_ENV check is the sole gate.
 // ---------------------------------------------------------------------------
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {

@@ -14,7 +14,7 @@ const steps = [
   {
     number: "02",
     label: "Map",
-    description: "CWE findings map to 150+ compliance controls across 6 frameworks",
+    description: "CWE findings map to 135 compliance controls across 6 frameworks",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
@@ -23,8 +23,8 @@ const steps = [
   },
   {
     number: "03",
-    label: "Verdict",
-    description: "Pass/fail compliance gate on every PR with affected controls listed",
+    label: "Triage",
+    description: "Auto-classify findings as true positive, false positive, or needs review",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -77,7 +77,7 @@ const featureCards = [
   {
     title: "Developer CLI",
     description:
-      "npx @cveriskpilot/scan for pre-push compliance checks. Know your compliance impact before code leaves your machine.",
+      "npx @cveriskpilot/scan with built-in auto-triage. Test fixtures, .env.example, and charset constants auto-dismissed. Real secrets flagged.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
@@ -87,16 +87,17 @@ const featureCards = [
 ];
 
 const frameworks = [
-  { name: "NIST 800-53", count: 42, label: "controls" },
-  { name: "SOC 2", count: 18, label: "criteria" },
-  { name: "CMMC L2", count: 56, label: "practices" },
-  { name: "FedRAMP", count: 42, label: "controls" },
-  { name: "OWASP ASVS", count: 38, label: "requirements" },
-  { name: "NIST SSDF", count: 12, label: "practices" },
+  { name: "NIST 800-53", count: 45, label: "controls" },
+  { name: "SOC 2", count: 7, label: "criteria" },
+  { name: "CMMC L2", count: 33, label: "practices" },
+  { name: "FedRAMP", count: 35, label: "controls" },
+  { name: "OWASP ASVS", count: 7, label: "requirements" },
+  { name: "NIST SSDF", count: 8, label: "practices" },
 ];
 
 const comparisonRows = [
   { feature: "Finds vulnerabilities", crp: true, snyk: true, sonar: true, ghas: true },
+  { feature: "Auto-triage (TP / FP / Review)", crp: true, snyk: false, sonar: false, ghas: false },
   { feature: "Maps to NIST 800-53", crp: true, snyk: false, sonar: false, ghas: false },
   { feature: "Maps to SOC 2 / CMMC / FedRAMP", crp: true, snyk: false, sonar: false, ghas: false },
   { feature: "Auto-generates POAM", crp: true, snyk: false, sonar: false, ghas: false },
@@ -104,9 +105,9 @@ const comparisonRows = [
 ];
 
 const prFindings = [
-  { severity: "Critical", cwe: "CWE-89", nist: "SI-10", soc2: "CC6.1", status: "FAIL" },
-  { severity: "High", cwe: "CWE-79", nist: "SI-10", soc2: "CC6.1", status: "FAIL" },
-  { severity: "Medium", cwe: "CWE-327", nist: "SC-13", soc2: "CC6.7", status: "WARN" },
+  { severity: "Critical", cwe: "CWE-89", verdict: "TP", nist: "SI-10", soc2: "CC6.1", status: "FAIL" },
+  { severity: "High", cwe: "CWE-79", verdict: "TP", nist: "SI-10", soc2: "CC6.1", status: "FAIL" },
+  { severity: "Medium", cwe: "CWE-327", verdict: "REVIEW", nist: "SC-13", soc2: "CC6.7", status: "WARN" },
 ];
 
 function CheckIcon() {
@@ -312,6 +313,7 @@ export function PipelineSection() {
                     <tr className="bg-gray-50 text-gray-500">
                       <th className="px-3 py-2 text-left font-medium">Severity</th>
                       <th className="px-3 py-2 text-left font-medium">CWE</th>
+                      <th className="px-3 py-2 text-left font-medium">Verdict</th>
                       <th className="px-3 py-2 text-left font-medium">NIST Control</th>
                       <th className="px-3 py-2 text-left font-medium">SOC 2</th>
                       <th className="px-3 py-2 text-left font-medium">Status</th>
@@ -334,6 +336,19 @@ export function PipelineSection() {
                           </span>
                         </td>
                         <td className="px-3 py-2 font-mono text-gray-700">{f.cwe}</td>
+                        <td className="px-3 py-2">
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                              f.verdict === "TP"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : f.verdict === "FP"
+                                  ? "bg-gray-100 text-gray-500"
+                                  : "bg-amber-100 text-amber-700"
+                            }`}
+                          >
+                            {f.verdict}
+                          </span>
+                        </td>
                         <td className="px-3 py-2 font-mono text-gray-700">{f.nist}</td>
                         <td className="px-3 py-2 font-mono text-gray-700">{f.soc2}</td>
                         <td className="px-3 py-2">
@@ -353,9 +368,9 @@ export function PipelineSection() {
                 </table>
               </div>
               <div className="mt-3 text-right">
-                <span className="text-sm font-medium text-primary-600 hover:text-primary-500">
+                <Link href="/demo/pipeline" className="text-sm font-medium text-primary-600 hover:text-primary-500">
                   View full report &rarr;
-                </span>
+                </Link>
               </div>
             </div>
           </div>
@@ -378,7 +393,7 @@ export function PipelineSection() {
             </Link>
           </div>
           <p className="mt-4 text-sm text-gray-500">
-            Free tier includes 100 pipeline scans per day. No credit card required.
+            Local scans are free and unlimited. No credit card required.
           </p>
         </div>
       </div>

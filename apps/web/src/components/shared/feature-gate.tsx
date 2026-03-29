@@ -1,7 +1,8 @@
 'use client';
 
+import type {
+  FeatureFlag} from '@/lib/feature-flags';
 import {
-  FeatureFlag,
   isFeatureEnabled,
   FEATURE_LABELS,
   FEATURE_MIN_TIER,

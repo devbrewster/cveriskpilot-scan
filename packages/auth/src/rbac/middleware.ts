@@ -3,7 +3,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { UserRole } from '@cveriskpilot/domain';
+import type { UserRole } from '@cveriskpilot/domain';
 import { getServerSession, type AuthenticatedHandler } from '../session/middleware';
 import { hasPermission, type Permission } from './permissions';
 

@@ -6,12 +6,34 @@ import { Footer } from "@/components/landing/footer";
 export const metadata: Metadata = {
   title: "CVERiskPilot for Government | SDVOSB Veteran-Owned",
   description:
-    "Vulnerability management built by veterans for government security teams. SDVOSB certified, FedRAMP POAM generation, NIST 800-53 mapping, CMMC Level 2 compliance. Simplified procurement for DoD and federal agencies.",
+    "Vulnerability management built by veterans for government security teams. SDVOSB eligible, FedRAMP POAM generation, NIST 800-53 mapping, CMMC Level 2 compliance. Simplified procurement for DoD and federal agencies.",
+  keywords: [
+    "government vulnerability management",
+    "SDVOSB",
+    "veteran owned cybersecurity",
+    "FedRAMP POAM",
+    "NIST 800-53",
+    "CMMC Level 2",
+    "FISMA",
+    "DoD cybersecurity",
+    "federal compliance",
+  ],
+  alternates: {
+    canonical: "https://cveriskpilot.com/government",
+  },
   openGraph: {
     title: "CVERiskPilot for Government | SDVOSB Veteran-Owned",
     description:
-      "Vulnerability management built by veterans for government security teams. SDVOSB certified, NIST 800-53, CMMC, FISMA compliance.",
+      "Vulnerability management built by veterans for government security teams. SDVOSB eligible, NIST 800-53, CMMC, FISMA compliance.",
+    images: [{ url: "/graphics/og-veteran-owned.svg", width: 1200, height: 675, alt: "CVERiskPilot for Government" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CVERiskPilot for Government | SDVOSB Veteran-Owned",
+    description: "Vulnerability management built by veterans. FedRAMP POAM generation, NIST 800-53, CMMC Level 2.",
     images: ["/graphics/og-veteran-owned.svg"],
+    creator: "@cveriskpilot",
   },
 };
 

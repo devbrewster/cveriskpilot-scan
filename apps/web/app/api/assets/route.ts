@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { requireAuth, requireRole, WRITE_ROLES } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { logAudit } from '@/lib/audit';

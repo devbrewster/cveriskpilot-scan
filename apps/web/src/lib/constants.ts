@@ -76,8 +76,8 @@ export const NAV_ITEMS = [
   { label: 'Upload', href: '/upload', icon: 'Upload' },
   { label: 'Findings', href: '/findings', icon: 'Search' },
   { label: 'Cases', href: '/cases', icon: 'Briefcase' },
-  { label: 'Reports', href: '/reports', icon: 'FileText', comingSoon: true },
-  { label: 'Settings', href: '/settings', icon: 'Settings', comingSoon: true },
+  { label: 'Reports', href: '/reports', icon: 'FileText' },
+  { label: 'Settings', href: '/settings', icon: 'Settings' },
 ] as const;
 
 export const MAX_UPLOAD_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB

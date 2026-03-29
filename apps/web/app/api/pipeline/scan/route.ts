@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { validateApiKey, hasScope } from '@cveriskpilot/auth';
 import { parse } from '@cveriskpilot/parsers';
@@ -185,24 +186,24 @@ export async function POST(request: NextRequest) {
     // ---- Load or default pipeline policy ----
     let policy: PipelinePolicy;
     try {
-      const stored = await (prisma as any).pipelinePolicy?.findUnique?.({
+      const stored = await prisma.pipelinePolicy.findUnique({
         where: { organizationId },
       });
       if (stored) {
         policy = {
           orgId: organizationId,
-          frameworks: stored.frameworks ?? ['nist-800-53'],
-          blockOnSeverity: stored.blockOnSeverity ?? 'CRITICAL',
+          frameworks: (stored.frameworks as string[]) ?? ['nist-800-53'],
+          blockOnSeverity: (stored.blockOnSeverity ?? 'CRITICAL') as PipelinePolicy['blockOnSeverity'],
           blockOnControlViolation: stored.blockOnControlViolation ?? false,
           warnOnly: stored.warnOnly ?? false,
-          autoExceptionRules: stored.autoExceptionRules ?? [],
+          autoExceptionRules: (stored.autoExceptionRules as unknown as PipelinePolicy['autoExceptionRules']) ?? [],
           gracePeriodDays: stored.gracePeriodDays ?? 0,
         };
       } else {
         policy = getDefaultPolicy(organizationId);
       }
     } catch {
-      // PipelinePolicy table may not exist yet — use defaults
+      // No policy configured for this org — use defaults
       policy = getDefaultPolicy(organizationId);
     }
 
@@ -257,7 +258,7 @@ export async function POST(request: NextRequest) {
 
     // ---- Persist scan result for later retrieval ----
     try {
-      await (prisma as any).pipelineScanResult?.create?.({
+      await prisma.pipelineScanResult.create({
         data: {
           id: scanId,
           organizationId,
@@ -289,13 +290,12 @@ export async function POST(request: NextRequest) {
           })),
         },
       });
-    } catch {
-      // PipelineScanResult table may not exist yet — continue without persistence
-      // The scan result is still returned in the response
+    } catch (err) {
+      console.error('[pipeline/scan] Failed to persist scan result:', err);
     }
 
     // ---- Audit log (fire-and-forget) ----
-    (prisma as any).auditLog?.create?.({
+    prisma.auditLog.create({
       data: {
         organizationId,
         actorId: keyResult.keyId ?? 'api-key',

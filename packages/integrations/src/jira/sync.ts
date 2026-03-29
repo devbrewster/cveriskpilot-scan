@@ -3,7 +3,8 @@
 // -----------------------------------------------------------------------------
 
 import type { PrismaClient } from '@cveriskpilot/domain';
-import { JiraClient, JiraApiError } from './client';
+import type { JiraClient} from './client';
+import { JiraApiError } from './client';
 import type { JiraDocContent } from './types';
 import { mapJiraStatusToCaseStatus } from './status-mapping';
 

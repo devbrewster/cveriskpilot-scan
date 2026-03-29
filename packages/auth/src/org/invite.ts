@@ -1,8 +1,8 @@
 // Organization invite flow for CVERiskPilot
 // Handles creating invites and accepting them to provision new users
 
-import type { PrismaClient } from '@cveriskpilot/domain';
-import { UserRole, UserStatus } from '@cveriskpilot/domain';
+import type { PrismaClient , UserRole} from '@cveriskpilot/domain';
+import { UserStatus } from '@cveriskpilot/domain';
 import { hashPassword } from '../providers/credentials';
 import crypto from 'node:crypto';
 

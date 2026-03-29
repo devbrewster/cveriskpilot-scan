@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { createLogger } from '@cveriskpilot/shared';
-import { ABACEngine } from './engine';
+import type { ABACEngine } from './engine';
 import type {
   Action,
   DataClassification,

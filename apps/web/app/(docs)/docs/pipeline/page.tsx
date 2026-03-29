@@ -2,15 +2,38 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Pipeline Compliance Scanner — Setup Guide | CVERiskPilot",
+  title: "Pipeline Compliance Scanner — Setup Guide",
   description:
-    "Set up compliance scanning in your CI/CD pipeline in under 5 minutes. Map vulnerabilities to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, and SSDF automatically.",
+    "Set up compliance scanning in your CI/CD pipeline in under 5 minutes. Map vulnerabilities to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, and SSDF automatically. Zero config, offline-first.",
+  keywords: [
+    "pipeline compliance scanner",
+    "CI/CD security",
+    "NIST 800-53",
+    "SOC 2 compliance",
+    "CMMC scanning",
+    "FedRAMP",
+    "SBOM",
+    "secrets scanner",
+    "IaC security",
+    "GitHub Actions security",
+  ],
+  alternates: {
+    canonical: "https://cveriskpilot.com/docs/pipeline",
+  },
   openGraph: {
     title: "Pipeline Compliance Scanner — Setup Guide | CVERiskPilot",
     description:
-      "Set up compliance scanning in your CI/CD pipeline in under 5 minutes.",
+      "Set up compliance scanning in your CI/CD pipeline in under 5 minutes. Map vulnerabilities to 6 compliance frameworks automatically.",
+    images: [{ url: "/graphics/og-pipeline.svg", width: 1200, height: 675, alt: "Pipeline Compliance Scanner" }],
     siteName: "CVERiskPilot",
-    type: "website",
+    type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pipeline Compliance Scanner — Setup Guide",
+    description: "Compliance scanning in CI/CD — NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, SSDF in one command.",
+    images: ["/graphics/og-pipeline.svg"],
+    creator: "@cveriskpilot",
   },
 };
 
@@ -33,7 +56,11 @@ const cliOptions = [
   },
   {
     flag: "--format json",
-    description: "Output format (json, table, sarif)",
+    description: "Output format (json, table, sarif, markdown)",
+  },
+  {
+    flag: "--exclude <glob>",
+    description: "Exclude paths from scanning (repeatable)",
   },
   {
     flag: "--ci",
@@ -299,6 +326,10 @@ export default function PipelinePage() {
           </div>
           <div className="mt-4 ml-11">
             <p className="text-gray-300">
+              Every finding is auto-triaged as{" "}
+              <span className="font-medium text-emerald-400">TRUE_POSITIVE</span>,{" "}
+              <span className="font-medium text-gray-500">FALSE_POSITIVE</span>, or{" "}
+              <span className="font-medium text-amber-400">NEEDS_REVIEW</span>.
               Compliance results are mapped automatically to{" "}
               <span className="font-medium text-white">NIST 800-53</span>,{" "}
               <span className="font-medium text-white">CMMC</span>,{" "}
@@ -405,7 +436,7 @@ export default function PipelinePage() {
             <span className="text-gray-300">- </span>
             <span className="text-primary-400">run</span>
             <span className="text-gray-300">
-              : npx @cveriskpilot/scan --ci --preset startup
+              : npx @cveriskpilot/scan@latest --ci --preset startup
             </span>
             {"\n"}
             {"        "}
@@ -441,6 +472,40 @@ export default function PipelinePage() {
               </p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Auto-Triage */}
+      <section className="mt-12">
+        <h2 className="text-xl font-semibold text-white">Auto-Triage</h2>
+        <p className="mt-2 text-sm text-gray-400">
+          Every finding is automatically classified to cut through noise.
+        </p>
+        <div className="mt-6 space-y-4">
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-5">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
+                TRUE_POSITIVE
+              </span>
+              <span className="text-sm text-gray-300">Actionable finding that requires attention</span>
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-5">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex rounded-full bg-gray-500/10 px-3 py-1 text-xs font-semibold text-gray-400">
+                FALSE_POSITIVE
+              </span>
+              <span className="text-sm text-gray-300">Auto-dismissed: test fixtures, .env.example, regex definitions, charset constants, sample data</span>
+            </div>
+          </div>
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-5">
+            <div className="flex items-center gap-3">
+              <span className="inline-flex rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
+                NEEDS_REVIEW
+              </span>
+              <span className="text-sm text-gray-300">Requires human review: gitignored secrets, unknown package versions, test files with non-obvious values</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -540,7 +605,7 @@ export default function PipelinePage() {
           >
             <h3 className="text-sm font-semibold text-white">View Pricing</h3>
             <p className="mt-1 text-sm text-gray-400">
-              Free tier includes 100 pipeline scans per day. No credit card
+              Local scans are free and unlimited. No credit card
               required.
             </p>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary-400 transition-colors group-hover:text-primary-300">

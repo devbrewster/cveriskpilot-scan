@@ -20,7 +20,7 @@ const frameworks: FrameworkInfo[] = [
     label: 'SOC 2',
     key: 'SOC2',
     version: 'Type II',
-    controlsAssessed: 42,
+    controlsAssessed: 7,
     controlsTotal: 54,
     description:
       'Service Organization Control 2 evaluates security, availability, processing integrity, confidentiality, and privacy controls across your infrastructure.',
@@ -29,7 +29,7 @@ const frameworks: FrameworkInfo[] = [
     label: 'SSDF',
     key: 'SSDF',
     version: 'NIST SP 800-218 v1.1',
-    controlsAssessed: 28,
+    controlsAssessed: 8,
     controlsTotal: 34,
     description:
       'Secure Software Development Framework defines practices for reducing the number of vulnerabilities in released software and mitigating potential impact.',
@@ -38,7 +38,7 @@ const frameworks: FrameworkInfo[] = [
     label: 'ASVS',
     key: 'ASVS',
     version: 'OWASP v4.0.3',
-    controlsAssessed: 89,
+    controlsAssessed: 7,
     controlsTotal: 125,
     description:
       'Application Security Verification Standard provides a basis for testing web application technical security controls and a list of requirements for secure development.',

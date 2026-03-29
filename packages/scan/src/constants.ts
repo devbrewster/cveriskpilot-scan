@@ -7,12 +7,12 @@
 // ---------------------------------------------------------------------------
 
 export const IMPLEMENTED_FRAMEWORKS: Record<string, { id: string; name: string; controls: number }> = {
-  'nist-800-53': { id: 'nist-800-53', name: 'NIST 800-53 Rev 5', controls: 39 },
-  'soc2-type2': { id: 'soc2-type2', name: 'SOC 2 Type II', controls: 6 },
+  'nist-800-53': { id: 'nist-800-53', name: 'NIST 800-53 Rev 5', controls: 45 },
+  'soc2-type2': { id: 'soc2-type2', name: 'SOC 2 Type II', controls: 7 },
   'cmmc-level2': { id: 'cmmc-level2', name: 'CMMC Level 2', controls: 33 },
-  'fedramp-moderate': { id: 'fedramp-moderate', name: 'FedRAMP Moderate', controls: 47 },
-  'owasp-asvs': { id: 'owasp-asvs', name: 'OWASP ASVS 4.0', controls: 6 },
-  'nist-ssdf': { id: 'nist-ssdf', name: 'NIST SSDF 1.1', controls: 7 },
+  'fedramp-moderate': { id: 'fedramp-moderate', name: 'FedRAMP Moderate', controls: 35 },
+  'owasp-asvs': { id: 'owasp-asvs', name: 'OWASP ASVS 4.0', controls: 7 },
+  'nist-ssdf': { id: 'nist-ssdf', name: 'NIST SSDF 1.1', controls: 8 },
 };
 
 // ---------------------------------------------------------------------------
@@ -64,6 +64,7 @@ export const PLANNED_FRAMEWORKS: Record<string, string> = {
 export const FRAMEWORK_PRESETS: Record<string, string[]> = {
   'federal': ['nist-800-53', 'fedramp-moderate', 'nist-ssdf'],
   'defense': ['nist-800-53', 'cmmc-level2', 'nist-ssdf'],
+  'enterprise': ['nist-800-53', 'soc2-type2', 'owasp-asvs', 'nist-ssdf'],
   'startup': ['soc2-type2', 'owasp-asvs'],
   'devsecops': ['owasp-asvs', 'nist-ssdf'],
   'all': Object.keys(IMPLEMENTED_FRAMEWORKS),

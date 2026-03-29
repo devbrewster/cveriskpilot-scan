@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { Prisma } from '@cveriskpilot/domain';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import type { Prisma } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, getExportLimiter } from '@cveriskpilot/auth';
 

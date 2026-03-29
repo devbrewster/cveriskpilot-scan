@@ -10,8 +10,8 @@ import type {
   FindingData,
   ErrorData,
 } from './types';
-import { SSEEmitter } from './sse-emitter';
-import { ProgressTracker } from './progress-tracker';
+import type { SSEEmitter } from './sse-emitter';
+import type { ProgressTracker } from './progress-tracker';
 
 // Lazy-load enrichment to avoid hard dependency at import time
 let _enrichmentModule: typeof import('@cveriskpilot/enrichment') | null = null;

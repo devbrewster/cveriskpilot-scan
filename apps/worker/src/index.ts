@@ -1,4 +1,5 @@
-import { createServer, IncomingMessage, ServerResponse } from 'node:http';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+import { createServer } from 'node:http';
 import { PrismaClient } from '@cveriskpilot/domain';
 
 // ---------------------------------------------------------------------------

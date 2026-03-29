@@ -1,0 +1,23 @@
+{
+  "name": "CVERiskPilot",
+  "short_name": "CRP",
+  "description": "AI-Powered Vulnerability Management — unify CVE signals, prioritize by real exploit risk, and map to compliance frameworks automatically.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "categories": ["security", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "323x49",
+      "type": "image/png"
+    }
+  ]
+}

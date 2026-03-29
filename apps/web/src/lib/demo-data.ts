@@ -1889,31 +1889,31 @@ export const demoPipelinePOAMs = [
 export const demoPipelineRepos = [
   { name: 'acmecorp/api-gateway', lastScan: '2026-03-28T10:15:00Z', scanCount: 147, passRate: 72,
     frameworks: [
-      { name: 'NIST 800-53', score: 84, controlsTotal: 42, controlsPassing: 35 },
-      { name: 'SOC 2', score: 91, controlsTotal: 18, controlsPassing: 16 },
-      { name: 'CMMC', score: 78, controlsTotal: 31, controlsPassing: 24 },
+      { name: 'NIST 800-53', score: 84, controlsTotal: 45, controlsPassing: 38 },
+      { name: 'SOC 2', score: 91, controlsTotal: 7, controlsPassing: 6 },
+      { name: 'CMMC', score: 78, controlsTotal: 33, controlsPassing: 26 },
     ] },
   { name: 'acmecorp/frontend-app', lastScan: '2026-03-28T08:45:00Z', scanCount: 203, passRate: 88,
     frameworks: [
-      { name: 'NIST 800-53', score: 92, controlsTotal: 42, controlsPassing: 39 },
-      { name: 'ASVS', score: 86, controlsTotal: 24, controlsPassing: 21 },
+      { name: 'NIST 800-53', score: 92, controlsTotal: 45, controlsPassing: 41 },
+      { name: 'ASVS', score: 86, controlsTotal: 7, controlsPassing: 6 },
     ] },
   { name: 'acmecorp/payment-service', lastScan: '2026-03-28T06:20:00Z', scanCount: 89, passRate: 64,
     frameworks: [
-      { name: 'SOC 2', score: 76, controlsTotal: 18, controlsPassing: 14 },
-      { name: 'ASVS', score: 71, controlsTotal: 24, controlsPassing: 17 },
-      { name: 'SSDF', score: 82, controlsTotal: 15, controlsPassing: 12 },
+      { name: 'SOC 2', score: 76, controlsTotal: 7, controlsPassing: 5 },
+      { name: 'ASVS', score: 71, controlsTotal: 7, controlsPassing: 5 },
+      { name: 'SSDF', score: 82, controlsTotal: 8, controlsPassing: 7 },
     ] },
   { name: 'acmecorp/infra-terraform', lastScan: '2026-03-27T22:00:00Z', scanCount: 312, passRate: 95,
     frameworks: [
-      { name: 'FedRAMP', score: 97, controlsTotal: 38, controlsPassing: 37 },
-      { name: 'NIST 800-53', score: 95, controlsTotal: 42, controlsPassing: 40 },
+      { name: 'FedRAMP', score: 97, controlsTotal: 35, controlsPassing: 34 },
+      { name: 'NIST 800-53', score: 95, controlsTotal: 45, controlsPassing: 43 },
     ] },
   { name: 'acmecorp/auth-service', lastScan: '2026-03-26T14:10:00Z', scanCount: 178, passRate: 91,
     frameworks: [
-      { name: 'NIST 800-53', score: 93, controlsTotal: 42, controlsPassing: 39 },
-      { name: 'CMMC', score: 89, controlsTotal: 31, controlsPassing: 28 },
-      { name: 'FedRAMP', score: 91, controlsTotal: 38, controlsPassing: 35 },
+      { name: 'NIST 800-53', score: 93, controlsTotal: 45, controlsPassing: 42 },
+      { name: 'CMMC', score: 89, controlsTotal: 33, controlsPassing: 29 },
+      { name: 'FedRAMP', score: 91, controlsTotal: 35, controlsPassing: 32 },
     ] },
 ];
 

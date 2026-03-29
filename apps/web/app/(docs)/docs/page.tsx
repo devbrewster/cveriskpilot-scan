@@ -2,15 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Documentation | CVERiskPilot",
+  title: "Documentation",
   description:
     "Everything you need to integrate CVERiskPilot into your workflow. Pipeline scanner setup, CLI reference, GitHub Actions, compliance frameworks, API docs, and POAM generation.",
+  alternates: {
+    canonical: "https://cveriskpilot.com/docs",
+  },
   openGraph: {
     title: "Documentation | CVERiskPilot",
     description:
-      "Everything you need to integrate CVERiskPilot into your workflow.",
+      "Everything you need to integrate CVERiskPilot into your workflow. Pipeline scanner, CLI reference, compliance frameworks.",
+    images: ["/graphics/og-scanners.svg"],
     siteName: "CVERiskPilot",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Documentation | CVERiskPilot",
+    description: "Pipeline scanner setup, CLI reference, GitHub Actions, compliance mapping, POAM generation.",
+    images: ["/graphics/og-scanners.svg"],
   },
 };
 
@@ -19,7 +29,7 @@ const sections = [
     title: "Pipeline Compliance Scanner",
     href: "/docs/pipeline",
     description:
-      "Set up compliance scanning in your CI/CD pipeline in under 5 minutes.",
+      "Compliance scanning with auto-triage. SBOM, secrets, and IaC mapped to 6 frameworks.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -40,7 +50,7 @@ const sections = [
   {
     title: "CLI Reference",
     href: "/docs/cli",
-    description: "Local scanning with the crp-scan CLI tool.",
+    description: "Local scanning with crp-scan. Auto-triage, progress tracking, and offline mode.",
     icon: (
       <svg
         className="h-6 w-6"

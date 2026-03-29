@@ -3,7 +3,8 @@
 // Called by Cloud Scheduler (or any cron) with Bearer token auth.
 // Reports MSSP metered usage for all orgs with active Stripe subscriptions.
 
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { reportUsageToStripe, STRIPE_PRICES } from '@cveriskpilot/billing';
 import Stripe from 'stripe';

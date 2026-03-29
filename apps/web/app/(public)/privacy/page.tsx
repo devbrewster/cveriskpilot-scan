@@ -2,8 +2,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | CVERiskPilot",
-  description: "CVERiskPilot Privacy Policy",
+  title: "Privacy Policy",
+  description:
+    "CVERiskPilot Privacy Policy — how we collect, use, and protect your data. GDPR and SOC 2 compliant.",
+  alternates: {
+    canonical: "https://cveriskpilot.com/privacy",
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function PrivacyPage() {

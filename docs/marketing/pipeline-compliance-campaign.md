@@ -521,7 +521,7 @@ And the quality improves: consistent mappings, no missed controls, commit-linked
 **Start your free trial:**
 https://cveriskpilot.com/signup
 
-Free tier includes up to 100 scans per month. No credit card required.
+Local scans are free and unlimited. No credit card required.
 
 Best,
 The CVERiskPilot Team
@@ -544,7 +544,7 @@ Quick recap of what CVERiskPilot's Pipeline Compliance Scanner does:
 4. Posts compliance verdict as a PR comment
 
 **Our free tier includes:**
-- Up to 100 pipeline scans per month
+- Unlimited local scans, 3 uploads/month on free tier
 - All 6 compliance framework mappings
 - POAM export (CSV, JSON)
 - PR comment integration

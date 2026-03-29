@@ -105,9 +105,9 @@ const comparisonRows = [
 ];
 
 const prFindings = [
-  { severity: "Critical", cwe: "CWE-89", verdict: "TP", nist: "SI-10", soc2: "CC6.1", status: "FAIL" },
-  { severity: "High", cwe: "CWE-79", verdict: "TP", nist: "SI-10", soc2: "CC6.1", status: "FAIL" },
-  { severity: "Medium", cwe: "CWE-327", verdict: "REVIEW", nist: "SC-13", soc2: "CC6.7", status: "WARN" },
+  { severity: "Critical", cwe: "CWE-89", verdict: "TP", title: "SQL Injection in query builder", location: "src/db/query.ts:42" },
+  { severity: "High", cwe: "CWE-79", verdict: "TP", title: "Reflected XSS in search handler", location: "src/api/search.ts:18" },
+  { severity: "Medium", cwe: "CWE-327", verdict: "REVIEW", title: "Weak crypto algorithm (MD5)", location: "src/utils/hash.ts:7" },
 ];
 
 function CheckIcon() {
@@ -290,86 +290,82 @@ export function PipelineSection() {
           <div className="mx-auto max-w-2xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl shadow-primary-500/10">
             {/* PR Comment Header */}
             <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-3.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white">
-                CR
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 text-xs font-bold text-white">
+                <svg className="h-5 w-5" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 01-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 010 8c0-4.42 3.58-8 8-8z"/></svg>
               </div>
               <div>
-                <span className="text-sm font-semibold text-gray-900">cveriskpilot[bot]</span>
+                <span className="text-sm font-semibold text-gray-900">github-actions[bot]</span>
                 <span className="ml-1 rounded-full border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500">bot</span>
                 <span className="ml-2 text-xs text-gray-400">commented just now</span>
               </div>
             </div>
-            {/* Verdict */}
-            <div className="px-5 py-4">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-md bg-red-50 px-3 py-1.5 text-sm font-semibold text-red-700">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                </svg>
-                FAIL — 3 compliance controls affected
+            {/* Comment body — matches real formatPrComment output */}
+            <div className="px-5 py-4 text-sm text-gray-800">
+              {/* Header */}
+              <h3 className="text-base font-bold text-gray-900">
+                <span className="mr-1">&#x274C;</span> CVERiskPilot Compliance Scan
+              </h3>
+              {/* Verdict banner */}
+              <div className="mt-2 rounded border-l-4 border-red-400 bg-red-50 px-3 py-2 text-sm text-red-800">
+                <strong>FAIL</strong> &mdash; 3 finding(s) at or above <strong>CRITICAL</strong> severity.
               </div>
-              {/* Mini findings table */}
-              <div className="overflow-hidden rounded-lg border border-gray-200">
+              {/* Severity badges */}
+              <p className="mt-3 text-sm">
+                <span className="text-red-600">&#x1F534;</span> <strong>1</strong> Critical &nbsp;
+                <span className="text-orange-500">&#x1F7E0;</span> <strong>1</strong> High &nbsp;
+                <span className="text-yellow-500">&#x1F7E1;</span> <strong>1</strong> Medium &nbsp;
+                <span className="text-blue-500">&#x1F535;</span> <strong>0</strong> Low &nbsp;
+                <span className="text-gray-400">&#x26AA;</span> <strong>0</strong> Info
+              </p>
+              {/* Triage */}
+              <p className="mt-1 text-sm text-gray-600">
+                <strong>Triage:</strong> 2 actionable &middot; 1 needs review &middot; 0 auto-dismissed
+              </p>
+              {/* Stats */}
+              <p className="mt-1 text-xs text-gray-400">
+                48 dependencies (npm) &middot; Scanners: sbom, secrets, iac &middot; Duration: 1240ms
+              </p>
+              {/* Findings table */}
+              <div className="mt-3 overflow-hidden rounded-lg border border-gray-200">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-gray-50 text-gray-500">
                       <th className="px-3 py-2 text-left font-medium">Severity</th>
-                      <th className="px-3 py-2 text-left font-medium">CWE</th>
                       <th className="px-3 py-2 text-left font-medium">Verdict</th>
-                      <th className="px-3 py-2 text-left font-medium">NIST Control</th>
-                      <th className="px-3 py-2 text-left font-medium">SOC 2</th>
-                      <th className="px-3 py-2 text-left font-medium">Status</th>
+                      <th className="px-3 py-2 text-left font-medium">Finding</th>
+                      <th className="px-3 py-2 text-left font-medium">CWE</th>
+                      <th className="px-3 py-2 text-left font-medium">Location</th>
                     </tr>
                   </thead>
                   <tbody>
                     {prFindings.map((f) => (
                       <tr key={f.cwe} className="border-t border-gray-100">
                         <td className="px-3 py-2">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              f.severity === "Critical"
-                                ? "bg-red-100 text-red-700"
-                                : f.severity === "High"
-                                  ? "bg-orange-100 text-orange-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                            }`}
-                          >
-                            {f.severity}
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${
+                            f.severity === "Critical" ? "text-red-700" : f.severity === "High" ? "text-orange-700" : "text-yellow-700"
+                          }`}>
+                            {f.severity === "Critical" ? "\u{1F534}" : f.severity === "High" ? "\u{1F7E0}" : "\u{1F7E1}"} {f.severity.toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-3 py-2 font-mono text-gray-700">{f.cwe}</td>
                         <td className="px-3 py-2">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              f.verdict === "TP"
-                                ? "bg-emerald-100 text-emerald-700"
-                                : f.verdict === "FP"
-                                  ? "bg-gray-100 text-gray-500"
-                                  : "bg-amber-100 text-amber-700"
-                            }`}
-                          >
-                            {f.verdict}
+                          <span className={`text-[11px] font-semibold ${f.verdict === "TP" ? "text-red-600" : "text-yellow-600"}`}>
+                            {f.verdict === "TP" ? "\u{1F534} TP" : "\u{1F7E1} Review"}
                           </span>
                         </td>
-                        <td className="px-3 py-2 font-mono text-gray-700">{f.nist}</td>
-                        <td className="px-3 py-2 font-mono text-gray-700">{f.soc2}</td>
-                        <td className="px-3 py-2">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                              f.status === "FAIL"
-                                ? "bg-red-100 text-red-700"
-                                : "bg-yellow-100 text-yellow-700"
-                            }`}
-                          >
-                            {f.status}
-                          </span>
-                        </td>
+                        <td className="px-3 py-2 text-gray-800">{f.title}</td>
+                        <td className="px-3 py-2 font-mono text-gray-600">{f.cwe}</td>
+                        <td className="px-3 py-2 font-mono text-gray-600 text-[10px]">{f.location}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <div className="mt-3 text-right">
-                <Link href="/demo/pipeline" className="text-sm font-medium text-primary-600 hover:text-primary-500">
+              {/* Footer */}
+              <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+                <p className="text-[10px] text-gray-400">
+                  &#x1F6E1;&#xFE0F; Scanned by CVERiskPilot &middot; CLI &middot; Setup Guide
+                </p>
+                <Link href="/demo/pipeline" className="text-xs font-medium text-primary-600 hover:text-primary-500">
                   View full report &rarr;
                 </Link>
               </div>

@@ -202,7 +202,7 @@ function formatJson(summary: ScanSummary): string {
   return JSON.stringify(
     {
       timestamp: new Date().toISOString(),
-      version: '0.1.0',
+      version: '0.1.7',
       scannersRun: summary.scannersRun,
       frameworks: summary.activeFrameworks ?? 'all',
       summary: countBySeverity(summary.findings),
@@ -365,7 +365,7 @@ function formatSarif(summary: ScanSummary): string {
         tool: {
           driver: {
             name: 'CVERiskPilot Scanner',
-            version: '0.1.0',
+            version: '0.1.7',
             informationUri: 'https://cveriskpilot.com',
             rules: Array.from(rules.values()).map((r) => ({
               id: r.id,

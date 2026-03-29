@@ -8,7 +8,6 @@
 // so this works with Prisma, in-memory stores, or JSON file stores.
 
 import type {
-  AgentId,
   AgentTask,
   AgentTaskUpdate,
   OrchestratorResult,

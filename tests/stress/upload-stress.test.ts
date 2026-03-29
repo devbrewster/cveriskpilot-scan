@@ -14,7 +14,7 @@
  *   npx vitest run tests/stress/upload-stress.test.ts --reporter=verbose
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { parseNessus } from '../../packages/parsers/src/parsers/nessus';
 import { parseSarif } from '../../packages/parsers/src/parsers/sarif';
 import { parseCsv } from '../../packages/parsers/src/parsers/csv';
@@ -37,7 +37,8 @@ const SEVERITIES = [0, 1, 2, 3, 4]; // Nessus severity levels
 const HOSTS = Array.from({ length: 50 }, (_, i) => `192.168.1.${i + 1}`);
 const PORTS = [22, 80, 443, 3306, 5432, 8080, 8443, 9200, 27017, 6379];
 
-function randomItem<T>(arr: T[]): T {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _randomItem<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
@@ -482,7 +483,8 @@ describe('Upload Pipeline Stress Tests', () => {
       const sizeMB = (Buffer.byteLength(xml) / 1024 / 1024).toFixed(1);
       console.log(`  Nessus 10K findings: ${sizeMB} MB`);
 
-      const { result, wallMs, memDeltaMB } = await measureParse('nessus-10k', parseNessus, xml);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { result, wallMs, memDeltaMB: _memDeltaMB } = await measureParse('nessus-10k', parseNessus, xml);
 
       expect(result.findings.length).toBe(10_000);
       expect(result.metadata.errors).toHaveLength(0);

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
  * Demo Dashboard Parity Tests
@@ -10,7 +10,8 @@ import { test, expect, type Page } from '@playwright/test';
  */
 
 // The 8 widget sections both dashboards must contain
-const EXPECTED_WIDGETS = [
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _EXPECTED_WIDGETS = [
   'Total Findings',
   'Open Cases',
   'Critical / High',

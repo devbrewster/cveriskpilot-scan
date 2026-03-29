@@ -34,7 +34,8 @@ const SCANNER_TYPES = ['SCA', 'SAST', 'DAST', 'VM', 'CONTAINER'] as const;
 const ASSET_TYPES = ['HOST', 'REPOSITORY', 'CONTAINER_IMAGE', 'APPLICATION'] as const;
 const ENVIRONMENTS = ['PRODUCTION', 'STAGING', 'DEVELOPMENT'] as const;
 
-function cuid(): string {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _cuid(): string {
   return crypto.randomBytes(12).toString('hex');
 }
 
@@ -68,7 +69,8 @@ async function main() {
     await prisma.client.deleteMany({ where: { organizationId: ORG_ID } });
     await prisma.organization.deleteMany({ where: { id: ORG_ID } });
     console.log('  Cleaned.\n');
-  } catch (err) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_err) {
     console.log('  No existing data to clean (first run).\n');
   }
 

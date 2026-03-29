@@ -242,7 +242,7 @@ async function runAnalystWorkflow(analystId: number): Promise<AnalystResult> {
     });
     const uploadDuration = Math.round(performance.now() - uploadStart);
     let uploadBody: Record<string, unknown> = {};
-    try { uploadBody = (await uploadRes.json()) as Record<string, unknown>; } catch {}
+    try { uploadBody = (await uploadRes.json()) as Record<string, unknown>; } catch { /* ignored */ }
     steps.push({ step: '4-upload-scan', status: uploadRes.status, durationMs: uploadDuration, body: uploadBody });
 
     // Poll job status if we got a jobId

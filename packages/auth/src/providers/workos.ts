@@ -2,7 +2,7 @@
 // Handles WorkOS SSO initiation, callback, and JIT user provisioning
 
 import type { PrismaClient } from '@cveriskpilot/domain';
-import { UserRole, UserStatus, Tier } from '@cveriskpilot/domain';
+import { UserRole, UserStatus } from '@cveriskpilot/domain';
 import crypto from 'node:crypto';
 
 // ---------------------------------------------------------------------------
@@ -142,26 +142,6 @@ export async function handleSSOCallback(code: string): Promise<SSOProfile> {
     rawAttributes: profile.raw_attributes,
   };
 }
-
-/**
- * Generate a URL-safe slug from an organization name.
- */
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 63);
-}
-
-/** Default entitlements for SSO-provisioned organizations */
-const SSO_DEFAULT_ENTITLEMENTS = {
-  max_users: 50,
-  max_assets: 500,
-  max_monthly_uploads: 100,
-  max_ai_calls: 500,
-  enabledFeatures: ['SSO'],
-};
 
 /**
  * Find or create a user from an SSO profile.

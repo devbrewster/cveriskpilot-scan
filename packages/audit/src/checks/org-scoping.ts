@@ -43,7 +43,6 @@ export const orgScopingCheck: AuditCheck = {
 
       const absPath = path.join(rootDir, relPath);
       const content = fs.readFileSync(absPath, 'utf-8');
-      const lines = content.split('\n');
 
       let m: RegExpExecArray | null;
       PRISMA_QUERY_RE.lastIndex = 0;

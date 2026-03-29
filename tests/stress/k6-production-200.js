@@ -13,9 +13,9 @@
  */
 
 import http from 'k6/http';
-import { check, group, sleep, fail } from 'k6';
+import { check, group, sleep } from 'k6';
 import { Trend, Counter, Rate } from 'k6/metrics';
-import { SharedArray } from 'k6/data';
+// import { SharedArray } from 'k6/data';
 import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -101,7 +101,8 @@ const notificationDuration = new Trend('notification_duration', true);
 const logoutDuration = new Trend('logout_duration', true);
 
 const workflowSuccess = new Rate('workflow_success');
-const workflowErrors = new Counter('workflow_errors');
+// eslint-disable-next-line no-unused-vars
+const _workflowErrors = new Counter('workflow_errors');
 
 // ─── Test Data ──────────────────────────────────────────────────────────────
 
@@ -169,7 +170,8 @@ function thinkTime(minMs, maxMs) {
 
 export default function () {
   const vuId = __VU;
-  const iterationId = `${vuId}-${__ITER}`;
+  // eslint-disable-next-line no-unused-vars
+  const _iterationId = `${vuId}-${__ITER}`;
   let success = true;
   let organizationId = ORG_ID;
   let cookie = '';
@@ -195,7 +197,7 @@ export default function () {
       const signupOk = check(signupRes, {
         'signup: status 201': (r) => r.status === 201,
         'signup: has organizationId': (r) => {
-          try { return JSON.parse(r.body).organizationId !== undefined; } catch { return false; }
+          try { return JSON.parse(r.body).organizationId !== undefined; } catch { /* ignored */ return false; }
         },
       });
 
@@ -203,7 +205,7 @@ export default function () {
         try {
           const body = JSON.parse(signupRes.body);
           organizationId = body.organizationId || ORG_ID;
-        } catch {}
+        } catch { /* ignored */ }
       }
     }
 
@@ -293,9 +295,9 @@ export default function () {
           try {
             const pollBody = JSON.parse(pollRes.body);
             if (pollBody.status === 'COMPLETED' || pollBody.status === 'FAILED') break;
-          } catch {}
+          } catch { /* ignored */ }
         }
-      } catch {}
+      } catch { /* ignored */ }
     }
   });
 
@@ -320,7 +322,7 @@ export default function () {
       if (body.findings && Array.isArray(body.findings)) {
         findingIds = body.findings.filter((f) => f.id).map((f) => f.id).slice(0, 5);
       }
-    } catch {}
+    } catch { /* ignored */ }
 
     thinkTime(500, 1000);
 
@@ -342,7 +344,7 @@ export default function () {
         const newIds = body.findings.filter((f) => f.id).map((f) => f.id);
         findingIds = [...new Set([...findingIds, ...newIds])].slice(0, 10);
       }
-    } catch {}
+    } catch { /* ignored */ }
 
     thinkTime(500, 1000);
 
@@ -398,7 +400,7 @@ export default function () {
       if (body.cases && Array.isArray(body.cases)) {
         caseIds = body.cases.filter((c) => c.id).map((c) => c.id).slice(0, 5);
       }
-    } catch {}
+    } catch { /* ignored */ }
 
     thinkTime(500, 1000);
 
@@ -627,7 +629,7 @@ export function handleSummary(data) {
   };
 }
 
-function textSummary(data, opts) {
+function textSummary(_data, _opts) {
   // k6 handles this natively — return empty to use built-in
   return '';
 }

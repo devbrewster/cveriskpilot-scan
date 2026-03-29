@@ -3,7 +3,7 @@
 import Stripe from 'stripe';
 import Redis from 'ioredis';
 import type { UsageMetric, ClientUsage, OrgUsageSummary, UsageCostEstimate } from './types';
-import { STRIPE_PRICES, getTierConfig } from './config';
+import { getTierConfig } from './config';
 
 // ---------------------------------------------------------------------------
 // Redis connection (shared with usage.ts pattern)

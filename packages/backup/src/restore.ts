@@ -154,7 +154,7 @@ export class RestoreService {
    */
   private async startRestoreExecution(
     job: RestoreJob,
-    backup: BackupJob,
+    _backup: BackupJob,
   ): Promise<RestoreJob> {
     const now = new Date().toISOString();
 

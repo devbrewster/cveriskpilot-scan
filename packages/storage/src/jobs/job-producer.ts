@@ -35,7 +35,7 @@ export async function enqueueUploadJob(
   prisma: PrismaClient,
   params: EnqueueParams,
 ): Promise<string> {
-  const { organizationId, clientId, artifactId, uploadedById } = params;
+  const { organizationId, clientId, artifactId } = params;
 
   // Create the UploadJob record with QUEUED status
   const job = await prisma.uploadJob.create({

@@ -34,8 +34,6 @@ let redisInstance: Redis | null = null;
 /** In-memory session store for local dev when Redis is unavailable */
 const memoryStore = new Map<string, { value: string; expiresAt: number }>();
 
-/** Whether we're using the in-memory fallback */
-let usingMemoryFallback = false;
 
 /**
  * Get or create a Redis client singleton.
@@ -46,7 +44,6 @@ export function getRedisClient(): Redis {
 
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
-    usingMemoryFallback = true;
     // Return a minimal Redis-compatible interface backed by Map
     return createMemoryRedisProxy();
   }

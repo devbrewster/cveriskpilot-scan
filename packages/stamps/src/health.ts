@@ -1,6 +1,6 @@
 // @cveriskpilot/stamps — Stamp health monitoring
 
-import type { StampConfig, StampHealthSnapshot, StampStatus } from './types';
+import type { StampHealthSnapshot, StampStatus } from './types';
 import { listStamps, getStamp } from './provision';
 
 // ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@ const DEFAULT_THRESHOLDS: HealthThresholds = {
 // Resource-level health probes
 // ---------------------------------------------------------------------------
 
-async function probeCloudSql(resource: { resourceId: string }): Promise<{ ok: boolean; message?: string; cpu: number; connections: number; maxConnections: number }> {
+async function probeCloudSql(_resource: { resourceId: string }): Promise<{ ok: boolean; message?: string; cpu: number; connections: number; maxConnections: number }> {
   // In production: query Cloud Monitoring API or pg_stat_activity
   // const monitoring = new MetricServiceClient();
   // const [timeSeries] = await monitoring.listTimeSeries({ ... });
@@ -51,13 +51,13 @@ async function probeCloudSql(resource: { resourceId: string }): Promise<{ ok: bo
   };
 }
 
-async function probeGcsBucket(resource: { resourceId: string }): Promise<{ ok: boolean; message?: string; bytesUsed: number }> {
+async function probeGcsBucket(_resource: { resourceId: string }): Promise<{ ok: boolean; message?: string; bytesUsed: number }> {
   // In production: storage.bucket(name).getMetadata()
   const bytesUsed = Math.floor(Math.random() * 10 * 1024 * 1024 * 1024); // simulate 0-10 GB
   return { ok: true, bytesUsed };
 }
 
-async function probeKmsKeyring(resource: { resourceId: string }): Promise<{ ok: boolean; message?: string }> {
+async function probeKmsKeyring(_resource: { resourceId: string }): Promise<{ ok: boolean; message?: string }> {
   // In production: kms.getKeyRing({ name: resource.resourceId })
   return { ok: true };
 }

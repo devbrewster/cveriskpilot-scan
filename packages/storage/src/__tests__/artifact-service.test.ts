@@ -1,15 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
-
-const mockUploadResult = {
-  gcsBucket: 'test-bucket',
-  gcsPath: 'orgs/org-1/clients/client-1/123-scan.nessus',
-  checksumSha256: 'abc123def456',
-  sizeBytes: 1024,
-};
 
 vi.mock('../gcs/upload', () => ({
   uploadToGCS: vi.fn().mockResolvedValue({

@@ -163,6 +163,7 @@ function createFailingAdapter(error: Error): ScannerAdapter {
     scannerId: 'TENABLE_IO',
     scannerName: 'Tenable.io',
     testConnection: vi.fn(),
+    // eslint-disable-next-line require-yield
     async *fetchFindings() {
       throw error;
     },

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createRateLimiter } from '../security/rate-limit';
 
 // ---------------------------------------------------------------------------
@@ -6,10 +6,6 @@ import { createRateLimiter } from '../security/rate-limit';
 // ---------------------------------------------------------------------------
 
 function createMockRedis(currentCount = 0) {
-  const store = new Map<string, string[]>();
-
-  const pipelineOps: Array<{ resolve: (v: [null, unknown]) => void }> = [];
-
   const mockPipeline = {
     zremrangebyscore: vi.fn().mockReturnThis(),
     zcard: vi.fn().mockReturnThis(),

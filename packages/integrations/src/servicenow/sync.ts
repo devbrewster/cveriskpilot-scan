@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { ServiceNowClient } from './client';
-import type { ServiceNowConfig, ServiceNowIncident } from './client';
+import type { ServiceNowConfig } from './client';
 import {
   mapCaseToIncident,
   mapIncidentToCase,

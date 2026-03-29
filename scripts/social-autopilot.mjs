@@ -36,7 +36,7 @@ const QUEUE_DIR = path.join(ROOT, "social", "queue");
 const PUBLISHED_DIR = path.join(ROOT, "social", "published");
 const ARCHIVE_DIR = path.join(ROOT, "social", "archived");
 const LOG_DIR = path.join(ROOT, "social", "logs");
-const CONFIG_PATH = path.join(ROOT, "social", "config.json");
+// const CONFIG_PATH = path.join(ROOT, "social", "config.json");
 
 const MAX_POSTS_PER_RUN = 3;
 const MIN_POST_GAP_MS = 2 * 60 * 60 * 1000; // 2 hours

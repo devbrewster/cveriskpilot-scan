@@ -141,7 +141,7 @@ function formatCongratsMessage(): string {
 // ── Core formatter ───────────────────────────────────────────────────────────
 
 function formatCommentBody(result: PipelineScanResult): string[] {
-  const { verdict, scanId, dashboardUrl, summary, affectedControls, poamEntries, policy } = result;
+  const { verdict, dashboardUrl, summary, affectedControls, poamEntries, policy } = result;
   const icon = VERDICT_ICONS[verdict] ?? '';
 
   const sections: string[] = [

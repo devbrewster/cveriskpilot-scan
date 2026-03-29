@@ -1,5 +1,4 @@
 import type { PrismaClient } from '@cveriskpilot/domain';
-import type { CanonicalFinding } from '@cveriskpilot/parsers';
 import { adapterRegistry } from './adapter-registry';
 import { resolveCredentials, CredentialResolutionError } from './credential-resolver';
 

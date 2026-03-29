@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAsUser } from './helpers/auth';
-import { goToUpload, goToDashboard, waitForPageLoad } from './helpers/navigation';
+import { goToUpload, waitForPageLoad } from './helpers/navigation';
 import { createNessusFile, cleanupTestFiles } from './helpers/fixtures';
 
 // Free-tier smoke test user

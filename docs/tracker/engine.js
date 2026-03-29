@@ -12,6 +12,7 @@
  *   Or open index.html to pick a project from the launcher.
  */
 
+// eslint-disable-next-line no-unused-vars
 const ReleaseTracker = (() => {
 
   // ── State ──

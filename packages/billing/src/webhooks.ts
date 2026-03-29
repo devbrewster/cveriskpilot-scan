@@ -1,9 +1,8 @@
 // @cveriskpilot/billing — Stripe webhook handling
 
 import Stripe from 'stripe';
-import { createLogger } from '@cveriskpilot/shared';
-
-const logger = createLogger('billing:webhooks');
+// createLogger reserved for future structured logging in this module
+// import { createLogger } from '@cveriskpilot/shared';
 import { getEntitlements, getTierFromPriceId, STRIPE_PRICES } from './config';
 
 function getStripe(): Stripe {

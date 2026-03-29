@@ -41,7 +41,6 @@ export const brokenImportsCheck: AuditCheck = {
     for (const relPath of sourceFiles) {
       const absPath = path.join(rootDir, relPath);
       const content = fs.readFileSync(absPath, 'utf-8');
-      const lines = content.split('\n');
 
       let m: RegExpExecArray | null;
       IMPORT_RE.lastIndex = 0;

@@ -9,8 +9,6 @@ import type {
 import {
   mapQualysDetection,
   toArray,
-  type QualysDetection,
-  type QualysHostDetectionEntry,
   type QualysHostDetectionResponse,
   type QualysKBResponse,
   type QualysKBVuln,

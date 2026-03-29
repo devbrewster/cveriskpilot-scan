@@ -165,7 +165,8 @@ function jsonGet(step: string, url: string, cookie?: string): Promise<TimedResul
   return timedFetch(step, 'GET', url, { method: 'GET', headers });
 }
 
-function jsonDelete(step: string, url: string, cookie?: string): Promise<TimedResult> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _jsonDelete(step: string, url: string, cookie?: string): Promise<TimedResult> {
   const headers: Record<string, string> = {};
   if (cookie) headers['Cookie'] = cookie;
   return timedFetch(step, 'DELETE', url, { method: 'DELETE', headers });
@@ -251,8 +252,8 @@ async function runAnalystWorkflow(analystId: number): Promise<AnalystResult> {
   let organizationId = '';
   let clientId = '';
   let teamId = '';
-  let keyId = '';
-  let webhookId = '';
+  let _keyId = '';
+  let _webhookId = '';
   let findingIds: string[] = [];
   let caseIds: string[] = [];
 
@@ -339,7 +340,8 @@ async function runAnalystWorkflow(analystId: number): Promise<AnalystResult> {
   }, cookie);
   push(createKey);
   if (createKey.body?.id) {
-    keyId = String(createKey.body.id);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _keyId = String(createKey.body.id);
   }
 
   // Step 8: Configure webhook
@@ -351,7 +353,8 @@ async function runAnalystWorkflow(analystId: number): Promise<AnalystResult> {
   }, cookie);
   push(createWebhook);
   if (createWebhook.body?.id) {
-    webhookId = String(createWebhook.body.id);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _webhookId = String(createWebhook.body.id);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -398,7 +401,7 @@ async function runAnalystWorkflow(analystId: number): Promise<AnalystResult> {
     });
     const uploadDuration = Math.round(performance.now() - uploadStart);
     let uploadBody: Record<string, unknown> = {};
-    try { uploadBody = (await uploadRes.json()) as Record<string, unknown>; } catch {}
+    try { uploadBody = (await uploadRes.json()) as Record<string, unknown>; } catch { /* ignored */ }
     push({
       step: '09-upload-scan',
       method: 'POST',
@@ -903,7 +906,8 @@ function generateReport(results: AnalystResult[], totalTestMs: number): void {
   for (const [area, stepNames] of Object.entries(areas)) {
     const areaAggs = aggregates.filter((a) => stepNames.includes(a.step));
     if (areaAggs.length === 0) continue;
-    const allDurations = areaAggs.flatMap((a) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _allDurations = areaAggs.flatMap((_a) => {
       // Reconstruct durations from results
       const valid: number[] = [];
       for (const r of results) {

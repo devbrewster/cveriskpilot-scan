@@ -9,7 +9,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
-import type { CanonicalFinding } from '@cveriskpilot/parsers/types';
+import type { CanonicalFinding, FindingVerdict } from '../vendor/parsers/types.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -782,8 +782,14 @@ function versionLessThan(a: number[], b: number[]): boolean {
  * Match dependencies against the hardcoded fallback advisory list.
  * Used when OSV API is unreachable.
  */
-function matchFallbackAdvisories(deps: Dependency[]): { dep: Dependency; advisory: Advisory }[] {
-  const matches: { dep: Dependency; advisory: Advisory }[] = [];
+interface AdvisoryMatch {
+  dep: Dependency;
+  advisory: Advisory;
+  nameMatchExact: boolean;
+}
+
+function matchFallbackAdvisories(deps: Dependency[]): AdvisoryMatch[] {
+  const matches: AdvisoryMatch[] = [];
   for (const dep of deps) {
     for (const advisory of FALLBACK_ADVISORIES) {
       // Match ecosystem (npm/yarn/pnpm all map to npm advisories)
@@ -791,13 +797,15 @@ function matchFallbackAdvisories(deps: Dependency[]): { dep: Dependency; advisor
       const advEco = advisory.ecosystem;
       if (depEco !== advEco) continue;
 
-      // Match package name (for maven, compare artifact portion)
+      // Match package name — exact or substring (sub-packages)
       const depName = dep.name.toLowerCase();
       const advName = advisory.packageName.toLowerCase();
-      if (!depName.includes(advName) && !advName.includes(depName)) continue;
+      const nameMatchExact = depName === advName;
+      const nameMatchFuzzy = !nameMatchExact && (depName.includes(advName) || advName.includes(depName));
+      if (!nameMatchExact && !nameMatchFuzzy) continue;
 
       if (dep.version !== 'unknown' && isVulnerable(dep.version, advisory.vulnerableRange)) {
-        matches.push({ dep, advisory });
+        matches.push({ dep, advisory, nameMatchExact });
       }
     }
   }
@@ -808,7 +816,7 @@ function matchFallbackAdvisories(deps: Dependency[]): { dep: Dependency; advisor
  * Query OSV for vulnerability advisories. Falls back to the hardcoded
  * advisory list if the API is unreachable, logging a warning to stderr.
  */
-async function matchAdvisories(deps: Dependency[]): Promise<{ dep: Dependency; advisory: Advisory }[]> {
+async function matchAdvisories(deps: Dependency[]): Promise<AdvisoryMatch[]> {
   // Filter to deps that have a known version and a supported ecosystem
   const queryable = deps.filter(
     (d) => d.version !== 'unknown' && OSV_ECOSYSTEM_MAP[d.ecosystem] !== undefined,
@@ -828,10 +836,10 @@ async function matchAdvisories(deps: Dependency[]): Promise<{ dep: Dependency; a
     return matchFallbackAdvisories(deps);
   }
 
-  const matches: { dep: Dependency; advisory: Advisory }[] = [];
+  const matches: AdvisoryMatch[] = [];
   for (const { dep, advisories } of osvResults) {
     for (const advisory of advisories) {
-      matches.push({ dep, advisory });
+      matches.push({ dep, advisory, nameMatchExact: true });
     }
   }
 
@@ -842,21 +850,30 @@ async function matchAdvisories(deps: Dependency[]): Promise<{ dep: Dependency; a
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function scanDependencies(projectDir: string): Promise<SbomScanResult> {
+export async function scanDependencies(projectDir: string, _opts?: { onProgress?: (msg: string) => void }): Promise<SbomScanResult> {
   const allDeps: Dependency[] = [];
   const ecosystems: string[] = [];
 
-  // Detect and parse each package manager
-  for (const pm of PACKAGE_MANAGERS) {
-    const lockPath = path.join(projectDir, pm.lockFile);
-    if (!fs.existsSync(lockPath)) continue;
+  // Detect which package managers have lock files, then parse in parallel
+  const detected = PACKAGE_MANAGERS
+    .map(pm => ({ pm, lockPath: path.join(projectDir, pm.lockFile) }))
+    .filter(({ lockPath }) => fs.existsSync(lockPath));
 
-    ecosystems.push(pm.ecosystem);
-    try {
-      const deps = await pm.parser(projectDir, lockPath);
-      allDeps.push(...deps);
-    } catch {
-      // Skip unparseable lock files
+  const parseResults = await Promise.all(
+    detected.map(async ({ pm, lockPath }) => {
+      try {
+        const deps = await pm.parser(projectDir, lockPath);
+        return { ecosystem: pm.ecosystem, deps };
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  for (const result of parseResults) {
+    if (result) {
+      ecosystems.push(result.ecosystem);
+      allDeps.push(...result.deps);
     }
   }
 
@@ -867,29 +884,46 @@ export async function scanDependencies(projectDir: string): Promise<SbomScanResu
   const advisoryMatches = await matchAdvisories(dedupedDeps);
   const now = new Date();
 
-  const findings: CanonicalFinding[] = advisoryMatches.map(({ dep, advisory }) => ({
-    title: advisory.title,
-    description: `${advisory.description}\n\nSSDF Controls: ${SSDF_CONTROLS.join(', ')}`,
-    cveIds: advisory.cveIds,
-    cweIds: advisory.cweIds.length > 0 ? advisory.cweIds : SUPPLY_CHAIN_CWES,
-    severity: advisory.severity,
-    scannerType: 'sbom',
-    scannerName: 'cveriskpilot-scan/sbom',
-    assetName: projectDir,
-    assetType: 'repository',
-    packageName: dep.name,
-    packageVersion: dep.version,
-    packageEcosystem: dep.ecosystem,
-    fixedVersion: advisory.fixedVersion,
-    rawObservations: {
-      advisoryId: advisory.id,
-      vulnerableRange: advisory.vulnerableRange,
-      purl: buildPurl(dep.ecosystem, dep.name, dep.version),
-      sbomComponentCount: dedupedDeps.length,
-      ssdfControls: [...SSDF_CONTROLS],
-    },
-    discoveredAt: now,
-  }));
+  const findings: CanonicalFinding[] = advisoryMatches.map(({ dep, advisory, nameMatchExact }) => {
+    // Classify verdict
+    let verdict: FindingVerdict = 'TRUE_POSITIVE';
+    let verdictReason = '';
+
+    if (!nameMatchExact) {
+      // Sub-package matched by substring — CVE likely does not apply
+      verdict = 'FALSE_POSITIVE';
+      verdictReason = `Package "${dep.name}" matched advisory for "${advisory.packageName}" by substring only — CVE likely applies to the main package, not this sub-package`;
+    } else if (dep.version === 'unknown') {
+      verdict = 'NEEDS_REVIEW';
+      verdictReason = 'Package version could not be determined — verify manually';
+    }
+
+    return {
+      title: advisory.title,
+      description: `${advisory.description}\n\nSSDF Controls: ${SSDF_CONTROLS.join(', ')}`,
+      cveIds: advisory.cveIds,
+      cweIds: advisory.cweIds.length > 0 ? advisory.cweIds : SUPPLY_CHAIN_CWES,
+      severity: advisory.severity,
+      verdict,
+      verdictReason,
+      scannerType: 'sbom',
+      scannerName: 'cveriskpilot-scan/sbom',
+      assetName: projectDir,
+      assetType: 'repository',
+      packageName: dep.name,
+      packageVersion: dep.version,
+      packageEcosystem: dep.ecosystem,
+      fixedVersion: advisory.fixedVersion,
+      rawObservations: {
+        advisoryId: advisory.id,
+        vulnerableRange: advisory.vulnerableRange,
+        purl: buildPurl(dep.ecosystem, dep.name, dep.version),
+        sbomComponentCount: dedupedDeps.length,
+        ssdfControls: [...SSDF_CONTROLS],
+      },
+      discoveredAt: now,
+    };
+  });
 
   return {
     dependencies: dedupedDeps,

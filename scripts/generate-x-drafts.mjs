@@ -16,13 +16,12 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
 
 const ROOT = "/home/gonti/cveriskpilot";
 const DRAFTS_DIR = path.join(ROOT, "social", "drafts");
 const QUEUE_DIR = path.join(ROOT, "social", "queue");
 const PUBLISHED_DIR = path.join(ROOT, "social", "published");
-const CONFIG_PATH = path.join(ROOT, "social", "config.json");
+// const CONFIG_PATH = path.join(ROOT, "social", "config.json");
 
 const KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
 const THN_RSS_URL = "https://feeds.feedburner.com/TheHackersNews";
@@ -132,17 +131,17 @@ async function fetchKEV(lookbackDate) {
 
 // Maps vendor/product keywords to audience-specific openers and hashtags
 const AUDIENCE_HOOKS = [
-  { match: /laravel|livewire/i, opener: (p) => `Laravel devs:`, tags: "#Laravel #AppSec #DevSecOps" },
-  { match: /craft\s*cms/i, opener: (p) => `If you run Craft CMS, stop scrolling.`, tags: "#AppSec #WebSecurity" },
-  { match: /apple|ios|macos|safari|webkit/i, opener: (p) => `Apple users and MDM admins:`, tags: "#Apple #AppSec" },
-  { match: /microsoft|windows|exchange|outlook/i, opener: (p) => `Windows admins:`, tags: "#Microsoft #AppSec" },
-  { match: /apache|tomcat|struts/i, opener: (p) => `Java teams running Apache ${p}:`, tags: "#Java #AppSec" },
-  { match: /docker|kubernetes|k8s|containerd/i, opener: (p) => `Container teams:`, tags: "#DevSecOps #CloudSecurity" },
-  { match: /jenkins|gitlab|github|ci.?cd/i, opener: (p) => `CI/CD pipeline alert:`, tags: "#DevSecOps #CICD" },
-  { match: /trivy|snyk|grype|semgrep/i, opener: (p) => `If you use ${p} in CI, read this:`, tags: "#DevSecOps #SupplyChain" },
-  { match: /wordpress|drupal|joomla/i, opener: (p) => `CMS admins:`, tags: "#WebSecurity #AppSec" },
-  { match: /langflow|langchain|openai|anthropic|chatgpt/i, opener: (p) => `AI/ML teams:`, tags: "#AI #AppSec" },
-  { match: /node|npm|express|next/i, opener: (p) => `Node.js devs:`, tags: "#NodeJS #AppSec" },
+  { match: /laravel|livewire/i, opener: (_p) => `Laravel devs:`, tags: "#Laravel #AppSec #DevSecOps" },
+  { match: /craft\s*cms/i, opener: (_p) => `If you run Craft CMS, stop scrolling.`, tags: "#AppSec #WebSecurity" },
+  { match: /apple|ios|macos|safari|webkit/i, opener: (_p) => `Apple users and MDM admins:`, tags: "#Apple #AppSec" },
+  { match: /microsoft|windows|exchange|outlook/i, opener: (_p) => `Windows admins:`, tags: "#Microsoft #AppSec" },
+  { match: /apache|tomcat|struts/i, opener: (_p) => `Java teams running Apache ${_p}:`, tags: "#Java #AppSec" },
+  { match: /docker|kubernetes|k8s|containerd/i, opener: (_p) => `Container teams:`, tags: "#DevSecOps #CloudSecurity" },
+  { match: /jenkins|gitlab|github|ci.?cd/i, opener: (_p) => `CI/CD pipeline alert:`, tags: "#DevSecOps #CICD" },
+  { match: /trivy|snyk|grype|semgrep/i, opener: (_p) => `If you use ${_p} in CI, read this:`, tags: "#DevSecOps #SupplyChain" },
+  { match: /wordpress|drupal|joomla/i, opener: (_p) => `CMS admins:`, tags: "#WebSecurity #AppSec" },
+  { match: /langflow|langchain|openai|anthropic|chatgpt/i, opener: (_p) => `AI/ML teams:`, tags: "#AI #AppSec" },
+  { match: /node|npm|express|next/i, opener: (_p) => `Node.js devs:`, tags: "#NodeJS #AppSec" },
 ];
 
 // Classify vulnerability type for human-readable description

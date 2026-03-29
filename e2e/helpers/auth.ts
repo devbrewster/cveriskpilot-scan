@@ -1,4 +1,4 @@
-import { type Page, expect } from '@playwright/test';
+import { type Page } from '@playwright/test';
 
 const DEFAULT_EMAIL = process.env.SMOKE_TEST_EMAIL || 'test@cveriskpilot.dev';
 const DEFAULT_PASSWORD = process.env.SMOKE_TEST_PASSWORD || 'TestPass123!';

@@ -85,6 +85,7 @@ export function sanitizeFilename(filename: string): string {
     .replace(/\.\./g, '')
     .replace(/[/\\]/g, '')
     // Remove control characters (0x00-0x1F, 0x7F)
+    // eslint-disable-next-line no-control-regex
     .replace(/[\x00-\x1f\x7f]/g, '')
     // Remove leading dots (hidden files)
     .replace(/^\.+/, '')

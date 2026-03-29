@@ -109,44 +109,45 @@ export async function POST(request: NextRequest) {
     let checkoutUrl: string | undefined;
     const normalizedPlan = plan?.toUpperCase();
 
-    if (normalizedPlan && normalizedPlan !== 'FREE') {
+    // Validate plan is a known tier
+    const VALID_PLANS = new Set(['FREE', 'FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
+    const isPaidPlan = normalizedPlan && normalizedPlan !== 'FREE' && VALID_PLANS.has(normalizedPlan);
+
+    if (isPaidPlan) {
       // Paid plan — create a subscription checkout
       const priceKey = `${normalizedPlan}_MONTHLY`;
       const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
       const priceId = priceGetter?.();
 
-      if (priceId) {
-        try {
-          const checkout = await createCheckoutSession({
-            organizationId: result.organizationId,
-            email: email!,
-            priceId,
-          });
-          checkoutUrl = checkout.url;
-        } catch (err) {
-          console.error('[signup] Stripe checkout creation failed:', err);
-          // Continue without checkout — they can upgrade later from billing page
-        }
+      if (!priceId) {
+        // Missing Stripe price config — don't silently create a free account
+        console.error(`[signup] Missing STRIPE_PRICE_${priceKey} env var for plan ${normalizedPlan}`);
+        return NextResponse.json(
+          { error: `Payment configuration unavailable for ${plan} plan. Please contact support.` },
+          { status: 503 },
+        );
       }
+
+      const checkout = await createCheckoutSession({
+        organizationId: result.organizationId,
+        email: email!,
+        priceId,
+      });
+      checkoutUrl = checkout.url;
     } else {
-      // Free plan or no plan — collect payment method via Stripe setup mode
-      try {
-        const setup = await createSetupCheckoutSession({
-          organizationId: result.organizationId,
-          email: email!,
-        });
-        checkoutUrl = setup.url;
-      } catch (err) {
-        console.error('[signup] Stripe setup session failed:', err);
-        // Continue without checkout — payment method can be added later
-      }
+      // Free plan, no plan, or unknown plan — collect payment method via Stripe setup mode
+      const setup = await createSetupCheckoutSession({
+        organizationId: result.organizationId,
+        email: email!,
+      });
+      checkoutUrl = setup.url;
     }
 
     const response = NextResponse.json(
       {
         success: true,
         userId: result.userId,
-        ...(checkoutUrl ? { checkoutUrl } : {}),
+        checkoutUrl,
       },
       { status: 201 },
     );

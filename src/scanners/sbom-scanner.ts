@@ -850,21 +850,30 @@ async function matchAdvisories(deps: Dependency[]): Promise<AdvisoryMatch[]> {
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function scanDependencies(projectDir: string): Promise<SbomScanResult> {
+export async function scanDependencies(projectDir: string, opts?: { onProgress?: (msg: string) => void }): Promise<SbomScanResult> {
   const allDeps: Dependency[] = [];
   const ecosystems: string[] = [];
 
-  // Detect and parse each package manager
-  for (const pm of PACKAGE_MANAGERS) {
-    const lockPath = path.join(projectDir, pm.lockFile);
-    if (!fs.existsSync(lockPath)) continue;
+  // Detect which package managers have lock files, then parse in parallel
+  const detected = PACKAGE_MANAGERS
+    .map(pm => ({ pm, lockPath: path.join(projectDir, pm.lockFile) }))
+    .filter(({ lockPath }) => fs.existsSync(lockPath));
 
-    ecosystems.push(pm.ecosystem);
-    try {
-      const deps = await pm.parser(projectDir, lockPath);
-      allDeps.push(...deps);
-    } catch {
-      // Skip unparseable lock files
+  const parseResults = await Promise.all(
+    detected.map(async ({ pm, lockPath }) => {
+      try {
+        const deps = await pm.parser(projectDir, lockPath);
+        return { ecosystem: pm.ecosystem, deps };
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  for (const result of parseResults) {
+    if (result) {
+      ecosystems.push(result.ecosystem);
+      allDeps.push(...result.deps);
     }
   }
 

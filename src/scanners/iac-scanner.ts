@@ -843,12 +843,18 @@ const EXCLUDED_DIRS = new Set([
   '.git',
   'node_modules',
   '.next',
+  '.next-dev',
+  '.open-next',
   'dist',
   'build',
+  'out',
   '.cache',
   '.turbo',
   'vendor',
   '__pycache__',
+  '.wrangler',
+  '.data',
+  'coverage',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -951,12 +957,17 @@ function nistToCweIds(nistControls: string[]): string[] {
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function scanIaC(projectDir: string, opts?: { exclude?: string[] }): Promise<IacScanResult> {
+export async function scanIaC(projectDir: string, opts?: { exclude?: string[]; onProgress?: (scanned: number) => void }): Promise<IacScanResult> {
   const allViolations: IacViolation[] = [];
   let filesScanned = 0;
   const ruleHits = new Set<string>();
   const now = new Date();
   const gitignorePatterns = await loadGitignorePatterns(projectDir);
+
+  // Pre-compile exclude regexes once
+  const excludeRegexes = (opts?.exclude ?? []).map(glob =>
+    new RegExp('^' + glob.replace(/\*/g, '.*').replace(/\?/g, '.') + '$')
+  );
 
   for await (const filePath of walkIacFiles(projectDir)) {
     const relativePath = path.relative(projectDir, filePath);
@@ -965,13 +976,7 @@ export async function scanIaC(projectDir: string, opts?: { exclude?: string[] })
     if (matchesGitignore(relativePath, gitignorePatterns)) continue;
 
     // Skip --exclude patterns
-    if (opts?.exclude?.length) {
-      const shouldExclude = opts.exclude.some(glob => {
-        const re = new RegExp('^' + glob.replace(/\*/g, '.*').replace(/\?/g, '.') + '$');
-        return re.test(relativePath);
-      });
-      if (shouldExclude) continue;
-    }
+    if (excludeRegexes.length > 0 && excludeRegexes.some(re => re.test(relativePath))) continue;
 
     let content: string;
     try {

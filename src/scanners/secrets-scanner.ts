@@ -375,6 +375,8 @@ const EXCLUDED_DIRS = new Set([
   '.git',
   'node_modules',
   '.next',
+  '.next-dev',
+  '.open-next',
   'dist',
   'build',
   'out',
@@ -387,6 +389,10 @@ const EXCLUDED_DIRS = new Set([
   'venv',
   'coverage',
   '.nyc_output',
+  '.wrangler',
+  '.data',
+  '.svn',
+  '.hg',
 ]);
 
 const EXCLUDED_EXTENSIONS = new Set([
@@ -565,7 +571,7 @@ function matchesGitignore(relativePath: string, patterns: string[]): boolean {
 // File Walking
 // ---------------------------------------------------------------------------
 
-async function* walkFiles(dir: string): AsyncGenerator<string> {
+async function* walkFiles(dir: string, projectDir?: string, gitignorePatterns?: string[]): AsyncGenerator<string> {
   let entries: fs.Dirent[];
   try {
     entries = await fs.promises.readdir(dir, { withFileTypes: true });
@@ -578,7 +584,12 @@ async function* walkFiles(dir: string): AsyncGenerator<string> {
     const fullPath = path.join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      yield* walkFiles(fullPath);
+      // Skip gitignored directories early (avoid descending into them)
+      if (projectDir && gitignorePatterns?.length) {
+        const relDir = path.relative(projectDir, fullPath);
+        if (matchesGitignore(relDir, gitignorePatterns)) continue;
+      }
+      yield* walkFiles(fullPath, projectDir, gitignorePatterns);
     } else if (entry.isFile()) {
       if (shouldScanFile(fullPath)) {
         yield fullPath;
@@ -615,6 +626,9 @@ function isObviousTestValue(matchedText: string): boolean {
 // File Scanner
 // ---------------------------------------------------------------------------
 
+// Concurrency for parallel file scanning
+const SCAN_CONCURRENCY = 50;
+
 async function scanFile(filePath: string, projectDir: string, gitignorePatterns: string[] = []): Promise<SecretMatch[]> {
   const matches: SecretMatch[] = [];
 
@@ -626,6 +640,14 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
     return matches;
   }
   if (stat.size > 1_048_576) return matches;
+
+  // Cache per-file verdict context (computed once, not per-match)
+  const basename = path.basename(filePath);
+  const relativePath = path.relative(projectDir, filePath);
+  const fileIsTest = isTestFile(filePath);
+  const fileIsEnvExample = basename === '.env.example';
+  const fileIsReport = /[_-]report[_.]|[_-]sample[_.]/.test(basename.toLowerCase());
+  const fileIsGitignored = gitignorePatterns.length > 0 && matchesGitignore(relativePath, gitignorePatterns);
 
   // Quick binary check: read first 512 bytes
   let fd: fs.promises.FileHandle | undefined;
@@ -679,13 +701,13 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
         }
 
         // Obvious test values in test files
-        if (verdict === 'TRUE_POSITIVE' && isTestFile(filePath) && isObviousTestValue(matchedText)) {
+        if (verdict === 'TRUE_POSITIVE' && fileIsTest && isObviousTestValue(matchedText)) {
           verdict = 'FALSE_POSITIVE';
           verdictReason = 'Obvious test/placeholder value in a test file';
         }
 
         // Test file with non-obvious value — needs human review
-        if (verdict === 'TRUE_POSITIVE' && isTestFile(filePath)) {
+        if (verdict === 'TRUE_POSITIVE' && fileIsTest) {
           verdict = 'NEEDS_REVIEW';
           verdictReason = 'Secret pattern matched in a test file — verify it is not a real credential';
         }
@@ -697,19 +719,19 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
         }
 
         // .env.example placeholder values (instructional, not real secrets)
-        if (verdict === 'TRUE_POSITIVE' && path.basename(filePath) === '.env.example') {
+        if (verdict === 'TRUE_POSITIVE' && fileIsEnvExample) {
           verdict = 'FALSE_POSITIVE';
           verdictReason = 'File is .env.example — contains placeholder/template values, not real secrets';
         }
 
         // Sample/report data files (contain example findings, not real secrets)
-        if (verdict === 'TRUE_POSITIVE' && /[_-]report[_.]|[_-]sample[_.]/.test(path.basename(filePath).toLowerCase())) {
+        if (verdict === 'TRUE_POSITIVE' && fileIsReport) {
           verdict = 'FALSE_POSITIVE';
           verdictReason = 'File is a sample/report data file containing example findings, not actual secrets';
         }
 
         // Gitignored file — real secret locally but not in version control
-        if (verdict === 'TRUE_POSITIVE' && matchesGitignore(path.relative(projectDir, filePath), gitignorePatterns)) {
+        if (verdict === 'TRUE_POSITIVE' && fileIsGitignored) {
           verdict = 'NEEDS_REVIEW';
           verdictReason = 'File is gitignored (not committed) — local-only secret, verify it is not checked in';
         }
@@ -748,19 +770,19 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
       }
 
       // Entropy hits in test files
-      if (verdict === 'TRUE_POSITIVE' && isTestFile(filePath)) {
+      if (verdict === 'TRUE_POSITIVE' && fileIsTest) {
         verdict = 'FALSE_POSITIVE';
         verdictReason = 'High-entropy string in a test file — likely test data';
       }
 
       // .env.example
-      if (verdict === 'TRUE_POSITIVE' && path.basename(filePath) === '.env.example') {
+      if (verdict === 'TRUE_POSITIVE' && fileIsEnvExample) {
         verdict = 'FALSE_POSITIVE';
         verdictReason = 'High-entropy string in .env.example — placeholder value';
       }
 
       // Sample/report files
-      if (verdict === 'TRUE_POSITIVE' && /[_-]report[_.]|[_-]sample[_.]/.test(path.basename(filePath).toLowerCase())) {
+      if (verdict === 'TRUE_POSITIVE' && fileIsReport) {
         verdict = 'FALSE_POSITIVE';
         verdictReason = 'High-entropy string in sample/report file — example data';
       }
@@ -787,35 +809,56 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function scanSecrets(projectDir: string, opts?: { exclude?: string[] }): Promise<SecretsScanResult> {
+export async function scanSecrets(projectDir: string, opts?: { exclude?: string[]; onProgress?: (scanned: number) => void }): Promise<SecretsScanResult> {
   const allMatches: SecretMatch[] = [];
   let filesScanned = 0;
   let filesSkipped = 0;
   const now = new Date();
   const gitignorePatterns = await loadGitignorePatterns(projectDir);
 
-  for await (const filePath of walkFiles(projectDir)) {
+  // Pre-compile exclude regexes once
+  const excludeRegexes = (opts?.exclude ?? []).map(glob =>
+    new RegExp('^' + glob.replace(/\*/g, '.*').replace(/\?/g, '.') + '$')
+  );
+
+  // Collect files then scan in concurrent batches
+  const fileBatch: string[] = [];
+
+  for await (const filePath of walkFiles(projectDir, projectDir, gitignorePatterns)) {
     const relativePath = path.relative(projectDir, filePath);
 
-    // Skip --exclude patterns entirely (user explicitly opted out)
-    if (opts?.exclude?.length) {
-      const shouldExclude = opts.exclude.some(glob => {
-        const re = new RegExp('^' + glob.replace(/\*/g, '.*').replace(/\?/g, '.') + '$');
-        return re.test(relativePath);
-      });
-      if (shouldExclude) {
-        filesSkipped++;
-        continue;
-      }
+    // Skip --exclude patterns
+    if (excludeRegexes.length > 0 && excludeRegexes.some(re => re.test(relativePath))) {
+      filesSkipped++;
+      continue;
     }
 
-    try {
-      const fileMatches = await scanFile(filePath, projectDir, gitignorePatterns);
-      allMatches.push(...fileMatches);
-      filesScanned++;
-    } catch {
-      filesSkipped++;
+    fileBatch.push(filePath);
+
+    // Process in batches of SCAN_CONCURRENCY
+    if (fileBatch.length >= SCAN_CONCURRENCY) {
+      const results = await Promise.all(
+        fileBatch.map(fp => scanFile(fp, projectDir, gitignorePatterns).catch(() => null))
+      );
+      for (const r of results) {
+        if (r) { allMatches.push(...r); filesScanned++; }
+        else { filesSkipped++; }
+      }
+      fileBatch.length = 0;
+      if (opts?.onProgress) opts.onProgress(filesScanned);
     }
+  }
+
+  // Process remaining files
+  if (fileBatch.length > 0) {
+    const results = await Promise.all(
+      fileBatch.map(fp => scanFile(fp, projectDir, gitignorePatterns).catch(() => null))
+    );
+    for (const r of results) {
+      if (r) { allMatches.push(...r); filesScanned++; }
+      else { filesSkipped++; }
+    }
+    if (opts?.onProgress) opts.onProgress(filesScanned);
   }
 
   const findings: CanonicalFinding[] = allMatches.map((match) => {

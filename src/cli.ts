@@ -556,6 +556,26 @@ async function main(): Promise<void> {
   const runSecrets = runAll || opts.secretsOnly;
   const runIaC = runAll || opts.iacOnly;
 
+  // ---- Progress display ----
+  const isTTY = process.stderr.isTTY && !opts.ci;
+  const spinChars = ['|', '/', '-', '\\'];
+  let spinIdx = 0;
+  const status: Record<string, string> = {};
+
+  function updateProgress(): void {
+    if (!isTTY) return;
+    const spin = spinChars[spinIdx++ % spinChars.length];
+    const parts = Object.entries(status).map(([k, v]) => `${k}: ${v}`).join('  ');
+    process.stderr.write(`\r  ${spin} ${parts}  `);
+  }
+
+  const progressInterval = isTTY ? setInterval(updateProgress, 120) : undefined;
+
+  function clearProgress(): void {
+    if (progressInterval) clearInterval(progressInterval);
+    if (isTTY) process.stderr.write('\r' + ' '.repeat(80) + '\r');
+  }
+
   // ---- Run scanners in parallel ----
   const scanPromises: Promise<void>[] = [];
 
@@ -564,6 +584,7 @@ async function main(): Promise<void> {
   let ecosystems: string[] | undefined;
 
   if (runDeps) {
+    status['deps'] = 'scanning...';
     scanPromises.push(
       (async () => {
         if (opts.verbose) console.log('  Running dependency scanner...');
@@ -573,11 +594,13 @@ async function main(): Promise<void> {
           scannersRun.push('sbom');
           depsCount = result.dependencies.length;
           ecosystems = result.ecosystems;
+          status['deps'] = `${result.dependencies.length} pkgs`;
           if (opts.verbose) {
             console.log(`    Found ${result.dependencies.length} dependencies across ${result.ecosystems.join(', ') || 'no'} ecosystems`);
             console.log(`    ${result.findings.length} vulnerable dependencies detected`);
           }
         } catch (err) {
+          status['deps'] = 'error';
           if (opts.verbose) console.error(`    Dependency scan error: ${err instanceof Error ? err.message : String(err)}`);
         }
       })(),
@@ -588,19 +611,25 @@ async function main(): Promise<void> {
   let secretsFilesScanned: number | undefined;
 
   if (runSecrets) {
+    status['secrets'] = 'scanning...';
     scanPromises.push(
       (async () => {
         if (opts.verbose) console.log('  Running secrets scanner...');
         try {
-          const result = await scanSecrets(opts.targetDir, { exclude: opts.exclude });
+          const result = await scanSecrets(opts.targetDir, {
+            exclude: opts.exclude,
+            onProgress: (n) => { status['secrets'] = `${n} files...`; },
+          });
           allFindings.push(...result.findings);
           scannersRun.push('secrets');
           secretsFilesScanned = result.filesScanned;
+          status['secrets'] = `${result.filesScanned} files`;
           if (opts.verbose) {
             console.log(`    Scanned ${result.filesScanned} files (${result.filesSkipped} skipped)`);
             console.log(`    ${result.findings.length} secrets detected`);
           }
         } catch (err) {
+          status['secrets'] = 'error';
           if (opts.verbose) console.error(`    Secrets scan error: ${err instanceof Error ? err.message : String(err)}`);
         }
       })(),
@@ -613,6 +642,7 @@ async function main(): Promise<void> {
   let iacRulesFailed: number | undefined;
 
   if (runIaC) {
+    status['iac'] = 'scanning...';
     scanPromises.push(
       (async () => {
         if (opts.verbose) console.log('  Running IaC scanner...');
@@ -623,12 +653,14 @@ async function main(): Promise<void> {
           iacFilesScanned = result.filesScanned;
           iacRulesPassed = result.rulesPassed;
           iacRulesFailed = result.rulesFailed;
+          status['iac'] = `${result.filesScanned} files`;
           if (opts.verbose) {
             console.log(`    Scanned ${result.filesScanned} IaC files`);
             console.log(`    ${result.rulesFailed} rules failed, ${result.rulesPassed} rules passed`);
             console.log(`    ${result.findings.length} violations found`);
           }
         } catch (err) {
+          status['iac'] = 'error';
           if (opts.verbose) console.error(`    IaC scan error: ${err instanceof Error ? err.message : String(err)}`);
         }
       })(),
@@ -637,6 +669,7 @@ async function main(): Promise<void> {
 
   // Wait for all scanners
   await Promise.all(scanPromises);
+  clearProgress();
 
   const durationMs = Date.now() - startTime;
 

@@ -219,7 +219,7 @@ export function Pricing() {
 
               <Link
                 href={plan.ctaHref}
-                className={`mt-auto pt-4 block w-full rounded-xl py-2 text-center text-sm font-semibold transition-all duration-200 ${
+                className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200 ${
                   plan.highlighted
                     ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-500/25'
                     : 'border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-800'

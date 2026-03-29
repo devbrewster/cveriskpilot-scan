@@ -1,3 +1,5 @@
+export type FindingVerdict = 'TRUE_POSITIVE' | 'FALSE_POSITIVE' | 'NEEDS_REVIEW';
+
 export interface CanonicalFinding {
   // Identity
   title: string;
@@ -12,6 +14,10 @@ export interface CanonicalFinding {
   cvssScore?: number;
   cvssVector?: string;
   cvssVersion?: string;
+
+  // Triage verdict (auto-classified by scanner heuristics)
+  verdict?: FindingVerdict;
+  verdictReason?: string;
 
   // Source
   scannerType: string;

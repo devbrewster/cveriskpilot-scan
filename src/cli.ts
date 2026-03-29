@@ -592,7 +592,7 @@ async function main(): Promise<void> {
       (async () => {
         if (opts.verbose) console.log('  Running secrets scanner...');
         try {
-          const result = await scanSecrets(opts.targetDir);
+          const result = await scanSecrets(opts.targetDir, { exclude: opts.exclude });
           allFindings.push(...result.findings);
           scannersRun.push('secrets');
           secretsFilesScanned = result.filesScanned;
@@ -617,7 +617,7 @@ async function main(): Promise<void> {
       (async () => {
         if (opts.verbose) console.log('  Running IaC scanner...');
         try {
-          const result = await scanIaC(opts.targetDir);
+          const result = await scanIaC(opts.targetDir, { exclude: opts.exclude });
           allFindings.push(...result.findings);
           scannersRun.push('iac');
           iacFilesScanned = result.filesScanned;

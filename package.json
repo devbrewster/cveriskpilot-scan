@@ -1,6 +1,6 @@
 {
   "name": "@cveriskpilot/scan",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Pipeline Compliance Scanner — scan dependencies, secrets, and IaC for vulnerabilities and map to 6 compliance frameworks",
   "type": "module",
   "bin": {
@@ -21,9 +21,11 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.publish.json",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "security",

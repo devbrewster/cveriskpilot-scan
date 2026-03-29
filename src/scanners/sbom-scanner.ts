@@ -9,7 +9,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
-import type { CanonicalFinding } from '../vendor/parsers/types.js';
+import type { CanonicalFinding, FindingVerdict } from '../vendor/parsers/types.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -459,16 +459,23 @@ const SSDF_CONTROLS = ['PO.1', 'PS.1', 'PW.4'] as const;
 const SUPPLY_CHAIN_CWES = ['CWE-829', 'CWE-1104', 'CWE-502'];
 
 // ---------------------------------------------------------------------------
-// Advisory Matching (stub — real impl would call OSV/GitHub Advisory API)
+// Advisory Matching — OSV API with hardcoded fallback
 // ---------------------------------------------------------------------------
 
+/** OSV API endpoint (free, no auth required) */
+const OSV_API_URL = 'https://api.osv.dev/v1/query';
+
+/** Timeout for individual OSV queries (ms) */
+const OSV_QUERY_TIMEOUT_MS = 5_000;
+
+/** Max concurrent OSV queries to avoid overwhelming the API */
+const OSV_CONCURRENCY = 10;
+
 /**
- * Known vulnerable packages registry.
- * In production, this would be populated by querying OSV, GitHub Advisory DB,
- * or the NVD API. This static set covers common high-profile advisories for
- * demonstration and testing purposes.
+ * Fallback advisory list used when the OSV API is unreachable.
+ * Covers common high-profile advisories for offline/degraded operation.
  */
-const KNOWN_ADVISORIES: Advisory[] = [
+const FALLBACK_ADVISORIES: Advisory[] = [
   {
     id: 'GHSA-35jh-r3h4-6jhm',
     packageName: 'lodash',
@@ -532,6 +539,210 @@ const KNOWN_ADVISORIES: Advisory[] = [
 ];
 
 /**
+ * Map local ecosystem names to the OSV ecosystem identifier.
+ * @see https://ossf.github.io/osv-schema/#affectedpackage-field
+ */
+const OSV_ECOSYSTEM_MAP: Record<string, string> = {
+  npm: 'npm',
+  yarn: 'npm',
+  pnpm: 'npm',
+  pip: 'PyPI',
+  go: 'Go',
+  cargo: 'crates.io',
+  gem: 'RubyGems',
+  maven: 'Maven',
+  gradle: 'Maven',
+};
+
+/** Map OSV severity strings to our canonical severity levels */
+function mapOsvSeverity(osvSeverity?: string, cvssScore?: number): Advisory['severity'] {
+  if (cvssScore !== undefined) {
+    if (cvssScore >= 9.0) return 'CRITICAL';
+    if (cvssScore >= 7.0) return 'HIGH';
+    if (cvssScore >= 4.0) return 'MEDIUM';
+    if (cvssScore > 0) return 'LOW';
+    return 'INFO';
+  }
+  switch (osvSeverity?.toUpperCase()) {
+    case 'CRITICAL': return 'CRITICAL';
+    case 'HIGH': return 'HIGH';
+    case 'MODERATE':
+    case 'MEDIUM': return 'MEDIUM';
+    case 'LOW': return 'LOW';
+    default: return 'MEDIUM'; // default when severity unknown
+  }
+}
+
+/** Extract the first fixed version from OSV affected ranges */
+function extractFixedVersion(affected: OsvAffected[]): string | undefined {
+  for (const entry of affected) {
+    for (const range of entry.ranges ?? []) {
+      for (const event of range.events ?? []) {
+        if (event.fixed) return event.fixed;
+      }
+    }
+  }
+  return undefined;
+}
+
+// OSV response types (partial — only fields we use)
+interface OsvVulnerability {
+  id: string;
+  summary?: string;
+  details?: string;
+  aliases?: string[];
+  severity?: { type: string; score: string }[];
+  affected?: OsvAffected[];
+  database_specific?: { severity?: string; cwe_ids?: string[] };
+}
+
+interface OsvAffected {
+  package?: { name: string; ecosystem: string };
+  ranges?: { type: string; events: { introduced?: string; fixed?: string }[] }[];
+  database_specific?: { severity?: string; cwes?: { cweId: string }[] };
+}
+
+interface OsvQueryResponse {
+  vulns?: OsvVulnerability[];
+}
+
+/**
+ * Query the OSV API for a single dependency.
+ * Returns an array of Advisory objects, or null if the query fails.
+ */
+async function queryOsv(dep: Dependency): Promise<Advisory[] | null> {
+  const ecosystem = OSV_ECOSYSTEM_MAP[dep.ecosystem];
+  if (!ecosystem || dep.version === 'unknown') return null;
+
+  // For Maven/Gradle, OSV expects the groupId:artifactId format
+  const packageName = dep.name;
+
+  const body = JSON.stringify({
+    package: { name: packageName, ecosystem },
+    version: dep.version,
+  });
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), OSV_QUERY_TIMEOUT_MS);
+
+    const response = await fetch(OSV_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as OsvQueryResponse;
+    if (!data.vulns || data.vulns.length === 0) return [];
+
+    return data.vulns.map((vuln): Advisory => {
+      // Extract CVE IDs from aliases
+      const cveIds = (vuln.aliases ?? []).filter((a) => a.startsWith('CVE-'));
+      if (vuln.id.startsWith('CVE-') && !cveIds.includes(vuln.id)) {
+        cveIds.unshift(vuln.id);
+      }
+
+      // Extract CWE IDs
+      const cweIds: string[] = vuln.database_specific?.cwe_ids ?? [];
+      if (cweIds.length === 0 && vuln.affected) {
+        for (const aff of vuln.affected) {
+          for (const cwe of aff.database_specific?.cwes ?? []) {
+            if (cwe.cweId && !cweIds.includes(cwe.cweId)) cweIds.push(cwe.cweId);
+          }
+        }
+      }
+
+      // Determine severity from CVSS score or database_specific
+      let cvssScore: number | undefined;
+      if (vuln.severity && vuln.severity.length > 0) {
+        // Parse CVSS vector score — try to extract base score
+        for (const s of vuln.severity) {
+          const scoreMatch = s.score?.match(/(\d+\.?\d*)/);
+          if (scoreMatch) {
+            cvssScore = parseFloat(scoreMatch[1]);
+            break;
+          }
+        }
+      }
+
+      const severity = mapOsvSeverity(vuln.database_specific?.severity, cvssScore);
+      const fixedVersion = extractFixedVersion(vuln.affected ?? []);
+
+      // Build a human-readable vulnerable range from affected data
+      let vulnerableRange = '';
+      if (vuln.affected) {
+        for (const aff of vuln.affected) {
+          for (const range of aff.ranges ?? []) {
+            const parts: string[] = [];
+            for (const event of range.events ?? []) {
+              if (event.introduced) parts.push(`>=${event.introduced}`);
+              if (event.fixed) parts.push(`<${event.fixed}`);
+            }
+            if (parts.length > 0) {
+              vulnerableRange = parts.join(' ');
+              break;
+            }
+          }
+          if (vulnerableRange) break;
+        }
+      }
+
+      return {
+        id: vuln.id,
+        packageName,
+        ecosystem: dep.ecosystem,
+        vulnerableRange,
+        severity,
+        cveIds,
+        cweIds,
+        title: vuln.summary ?? vuln.id,
+        description: vuln.details ?? vuln.summary ?? `Vulnerability ${vuln.id}`,
+        fixedVersion,
+      };
+    });
+  } catch {
+    // Network error, timeout, parse error — caller handles null
+    return null;
+  }
+}
+
+/**
+ * Run OSV queries in batches to respect concurrency limits.
+ */
+async function batchQueryOsv(deps: Dependency[]): Promise<{ dep: Dependency; advisories: Advisory[] }[] | null> {
+  const results: { dep: Dependency; advisories: Advisory[] }[] = [];
+  let anyFailed = false;
+
+  for (let i = 0; i < deps.length; i += OSV_CONCURRENCY) {
+    const batch = deps.slice(i, i + OSV_CONCURRENCY);
+    const promises = batch.map(async (dep) => {
+      const advisories = await queryOsv(dep);
+      if (advisories === null) {
+        anyFailed = true;
+        return { dep, advisories: [] as Advisory[] };
+      }
+      return { dep, advisories };
+    });
+
+    const batchResults = await Promise.all(promises);
+    results.push(...batchResults);
+
+    // If the first batch all failed, assume OSV is unreachable and bail early
+    if (i === 0 && batch.length > 0 && anyFailed) {
+      const allFailed = batchResults.every((r) => r.advisories.length === 0);
+      if (allFailed && anyFailed) return null;
+    }
+  }
+
+  return results;
+}
+
+/**
  * Naive version comparison for semver-like versions.
  * Returns true if `version` is within the vulnerable range.
  */
@@ -567,25 +778,71 @@ function versionLessThan(a: number[], b: number[]): boolean {
   return false;
 }
 
-function matchAdvisories(deps: Dependency[]): { dep: Dependency; advisory: Advisory }[] {
-  const matches: { dep: Dependency; advisory: Advisory }[] = [];
+/**
+ * Match dependencies against the hardcoded fallback advisory list.
+ * Used when OSV API is unreachable.
+ */
+interface AdvisoryMatch {
+  dep: Dependency;
+  advisory: Advisory;
+  nameMatchExact: boolean;
+}
+
+function matchFallbackAdvisories(deps: Dependency[]): AdvisoryMatch[] {
+  const matches: AdvisoryMatch[] = [];
   for (const dep of deps) {
-    for (const advisory of KNOWN_ADVISORIES) {
+    for (const advisory of FALLBACK_ADVISORIES) {
       // Match ecosystem (npm/yarn/pnpm all map to npm advisories)
       const depEco = dep.ecosystem === 'yarn' || dep.ecosystem === 'pnpm' ? 'npm' : dep.ecosystem;
       const advEco = advisory.ecosystem;
       if (depEco !== advEco) continue;
 
-      // Match package name (for maven, compare artifact portion)
+      // Match package name — exact or substring (sub-packages)
       const depName = dep.name.toLowerCase();
       const advName = advisory.packageName.toLowerCase();
-      if (!depName.includes(advName) && !advName.includes(depName)) continue;
+      const nameMatchExact = depName === advName;
+      const nameMatchFuzzy = !nameMatchExact && (depName.includes(advName) || advName.includes(depName));
+      if (!nameMatchExact && !nameMatchFuzzy) continue;
 
       if (dep.version !== 'unknown' && isVulnerable(dep.version, advisory.vulnerableRange)) {
-        matches.push({ dep, advisory });
+        matches.push({ dep, advisory, nameMatchExact });
       }
     }
   }
+  return matches;
+}
+
+/**
+ * Query OSV for vulnerability advisories. Falls back to the hardcoded
+ * advisory list if the API is unreachable, logging a warning to stderr.
+ */
+async function matchAdvisories(deps: Dependency[]): Promise<AdvisoryMatch[]> {
+  // Filter to deps that have a known version and a supported ecosystem
+  const queryable = deps.filter(
+    (d) => d.version !== 'unknown' && OSV_ECOSYSTEM_MAP[d.ecosystem] !== undefined,
+  );
+
+  if (queryable.length === 0) {
+    return matchFallbackAdvisories(deps);
+  }
+
+  const osvResults = await batchQueryOsv(queryable);
+
+  if (osvResults === null) {
+    // OSV unreachable — fall back to hardcoded list
+    console.warn(
+      '[cveriskpilot-scan] Warning: OSV API unreachable, using fallback advisory database (limited coverage).',
+    );
+    return matchFallbackAdvisories(deps);
+  }
+
+  const matches: AdvisoryMatch[] = [];
+  for (const { dep, advisories } of osvResults) {
+    for (const advisory of advisories) {
+      matches.push({ dep, advisory, nameMatchExact: true });
+    }
+  }
+
   return matches;
 }
 
@@ -614,33 +871,50 @@ export async function scanDependencies(projectDir: string): Promise<SbomScanResu
   const dedupedDeps = deduplicateDeps(allDeps);
   const sbom = generateSbom(dedupedDeps, projectDir);
 
-  // Check advisories
-  const advisoryMatches = matchAdvisories(dedupedDeps);
+  // Check advisories (queries OSV API, falls back to hardcoded list)
+  const advisoryMatches = await matchAdvisories(dedupedDeps);
   const now = new Date();
 
-  const findings: CanonicalFinding[] = advisoryMatches.map(({ dep, advisory }) => ({
-    title: advisory.title,
-    description: `${advisory.description}\n\nSSDF Controls: ${SSDF_CONTROLS.join(', ')}`,
-    cveIds: advisory.cveIds,
-    cweIds: advisory.cweIds.length > 0 ? advisory.cweIds : SUPPLY_CHAIN_CWES,
-    severity: advisory.severity,
-    scannerType: 'sbom',
-    scannerName: 'cveriskpilot-scan/sbom',
-    assetName: projectDir,
-    assetType: 'repository',
-    packageName: dep.name,
-    packageVersion: dep.version,
-    packageEcosystem: dep.ecosystem,
-    fixedVersion: advisory.fixedVersion,
-    rawObservations: {
-      advisoryId: advisory.id,
-      vulnerableRange: advisory.vulnerableRange,
-      purl: buildPurl(dep.ecosystem, dep.name, dep.version),
-      sbomComponentCount: dedupedDeps.length,
-      ssdfControls: [...SSDF_CONTROLS],
-    },
-    discoveredAt: now,
-  }));
+  const findings: CanonicalFinding[] = advisoryMatches.map(({ dep, advisory, nameMatchExact }) => {
+    // Classify verdict
+    let verdict: FindingVerdict = 'TRUE_POSITIVE';
+    let verdictReason = '';
+
+    if (!nameMatchExact) {
+      // Sub-package matched by substring — CVE likely does not apply
+      verdict = 'FALSE_POSITIVE';
+      verdictReason = `Package "${dep.name}" matched advisory for "${advisory.packageName}" by substring only — CVE likely applies to the main package, not this sub-package`;
+    } else if (dep.version === 'unknown') {
+      verdict = 'NEEDS_REVIEW';
+      verdictReason = 'Package version could not be determined — verify manually';
+    }
+
+    return {
+      title: advisory.title,
+      description: `${advisory.description}\n\nSSDF Controls: ${SSDF_CONTROLS.join(', ')}`,
+      cveIds: advisory.cveIds,
+      cweIds: advisory.cweIds.length > 0 ? advisory.cweIds : SUPPLY_CHAIN_CWES,
+      severity: advisory.severity,
+      verdict,
+      verdictReason,
+      scannerType: 'sbom',
+      scannerName: 'cveriskpilot-scan/sbom',
+      assetName: projectDir,
+      assetType: 'repository',
+      packageName: dep.name,
+      packageVersion: dep.version,
+      packageEcosystem: dep.ecosystem,
+      fixedVersion: advisory.fixedVersion,
+      rawObservations: {
+        advisoryId: advisory.id,
+        vulnerableRange: advisory.vulnerableRange,
+        purl: buildPurl(dep.ecosystem, dep.name, dep.version),
+        sbomComponentCount: dedupedDeps.length,
+        ssdfControls: [...SSDF_CONTROLS],
+      },
+      discoveredAt: now,
+    };
+  });
 
   return {
     dependencies: dedupedDeps,

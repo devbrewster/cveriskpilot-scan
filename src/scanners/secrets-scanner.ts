@@ -26,6 +26,8 @@ export interface SecretPattern {
   description: string;
 }
 
+export type FindingVerdict = 'TRUE_POSITIVE' | 'FALSE_POSITIVE' | 'NEEDS_REVIEW';
+
 export interface SecretMatch {
   patternId: string;
   patternName: string;
@@ -35,6 +37,8 @@ export interface SecretMatch {
   severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
   cweIds: string[];
   nistControls: string[];
+  verdict: FindingVerdict;
+  verdictReason: string;
 }
 
 export interface SecretsScanResult {
@@ -523,6 +527,41 @@ function redactLine(line: string, matchedText: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Gitignore Support
+// ---------------------------------------------------------------------------
+
+async function loadGitignorePatterns(projectDir: string): Promise<string[]> {
+  try {
+    const content = await fs.promises.readFile(path.join(projectDir, '.gitignore'), 'utf-8');
+    return content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#') && !line.startsWith('!'));
+  } catch {
+    return [];
+  }
+}
+
+function matchesGitignore(relativePath: string, patterns: string[]): boolean {
+  const normalized = relativePath.replace(/\\/g, '/');
+  for (const pattern of patterns) {
+    // Exact filename match
+    if (normalized === pattern || normalized.endsWith('/' + pattern)) return true;
+    // Directory-prefixed (e.g., ".env.local" matches a file named .env.local anywhere)
+    const basename = path.basename(normalized);
+    if (basename === pattern) return true;
+    // Glob-like: pattern ending with /* or /**
+    if (pattern.endsWith('/*') || pattern.endsWith('/**')) {
+      const dir = pattern.replace(/\/\*+$/, '');
+      if (normalized.startsWith(dir + '/') || normalized === dir) return true;
+    }
+    // Pattern with directory prefix
+    if (pattern.includes('/') && normalized.startsWith(pattern)) return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
 // File Walking
 // ---------------------------------------------------------------------------
 
@@ -549,10 +588,34 @@ async function* walkFiles(dir: string): AsyncGenerator<string> {
 }
 
 // ---------------------------------------------------------------------------
+// Test File Heuristics
+// ---------------------------------------------------------------------------
+
+function isTestFile(filePath: string): boolean {
+  const lower = filePath.toLowerCase();
+  return (
+    lower.includes('.test.') ||
+    lower.includes('.spec.') ||
+    lower.includes('__tests__/') ||
+    lower.includes('__mocks__/') ||
+    lower.includes('/test/') ||
+    lower.includes('/tests/') ||
+    lower.includes('/fixtures/') ||
+    lower.includes('/e2e/') ||
+    lower.includes('/testdata/')
+  );
+}
+
+function isObviousTestValue(matchedText: string): boolean {
+  const lower = matchedText.toLowerCase();
+  return /(?:test|fake|mock|dummy|example|placeholder|xxxx|abcdef|abc123|my-secret|secret-\d|client-secret|token-\w{3,}|wrong|stress|invalid|expired)/.test(lower);
+}
+
+// ---------------------------------------------------------------------------
 // File Scanner
 // ---------------------------------------------------------------------------
 
-async function scanFile(filePath: string): Promise<SecretMatch[]> {
+async function scanFile(filePath: string, projectDir: string, gitignorePatterns: string[] = []): Promise<SecretMatch[]> {
   const matches: SecretMatch[] = [];
 
   // Skip large files (> 1MB likely binary or generated)
@@ -602,6 +665,55 @@ async function scanFile(filePath: string): Promise<SecretMatch[]> {
       let regexMatch;
       while ((regexMatch = pattern.pattern.exec(line)) !== null) {
         const matchedText = regexMatch[0];
+
+        // Classify the finding with a verdict
+        let verdict: FindingVerdict = 'TRUE_POSITIVE';
+        let verdictReason = '';
+
+        // Matches inside regex literals (e.g., scanner pattern definitions)
+        const beforeMatch = line.lastIndexOf('/', regexMatch.index);
+        const afterMatch = line.indexOf('/', regexMatch.index + matchedText.length);
+        if (beforeMatch !== -1 && afterMatch !== -1 && line[afterMatch + 1]?.match(/[gimsuy]/)) {
+          verdict = 'FALSE_POSITIVE';
+          verdictReason = 'Match appears inside a regex literal (pattern definition, not an actual secret)';
+        }
+
+        // Obvious test values in test files
+        if (verdict === 'TRUE_POSITIVE' && isTestFile(filePath) && isObviousTestValue(matchedText)) {
+          verdict = 'FALSE_POSITIVE';
+          verdictReason = 'Obvious test/placeholder value in a test file';
+        }
+
+        // Test file with non-obvious value — needs human review
+        if (verdict === 'TRUE_POSITIVE' && isTestFile(filePath)) {
+          verdict = 'NEEDS_REVIEW';
+          verdictReason = 'Secret pattern matched in a test file — verify it is not a real credential';
+        }
+
+        // Shell/Terraform interpolation (not hardcoded)
+        if (verdict === 'TRUE_POSITIVE' && (/\$\{[A-Za-z_]/.test(matchedText) || /\$\{var\./.test(line))) {
+          verdict = 'FALSE_POSITIVE';
+          verdictReason = 'Value contains variable interpolation (shell ${VAR} or Terraform ${var.}), not a hardcoded secret';
+        }
+
+        // .env.example placeholder values (instructional, not real secrets)
+        if (verdict === 'TRUE_POSITIVE' && path.basename(filePath) === '.env.example') {
+          verdict = 'FALSE_POSITIVE';
+          verdictReason = 'File is .env.example — contains placeholder/template values, not real secrets';
+        }
+
+        // Sample/report data files (contain example findings, not real secrets)
+        if (verdict === 'TRUE_POSITIVE' && /[_-]report[_.]|[_-]sample[_.]/.test(path.basename(filePath).toLowerCase())) {
+          verdict = 'FALSE_POSITIVE';
+          verdictReason = 'File is a sample/report data file containing example findings, not actual secrets';
+        }
+
+        // Gitignored file — real secret locally but not in version control
+        if (verdict === 'TRUE_POSITIVE' && matchesGitignore(path.relative(projectDir, filePath), gitignorePatterns)) {
+          verdict = 'NEEDS_REVIEW';
+          verdictReason = 'File is gitignored (not committed) — local-only secret, verify it is not checked in';
+        }
+
         matches.push({
           patternId: pattern.id,
           patternName: pattern.name,
@@ -611,6 +723,8 @@ async function scanFile(filePath: string): Promise<SecretMatch[]> {
           severity: pattern.severity,
           cweIds: pattern.cweIds,
           nistControls: pattern.nistControls,
+          verdict,
+          verdictReason,
         });
       }
     }
@@ -624,6 +738,33 @@ async function scanFile(filePath: string): Promise<SecretMatch[]> {
       );
       if (alreadyCaught) continue;
 
+      let verdict: FindingVerdict = 'TRUE_POSITIVE';
+      let verdictReason = '';
+
+      // Charset/alphabet constant definitions
+      if (/(?:CHARS|CHARSET|ALPHABET|DIGITS)\b/i.test(line)) {
+        verdict = 'FALSE_POSITIVE';
+        verdictReason = 'High-entropy string is a character set/alphabet constant definition';
+      }
+
+      // Entropy hits in test files
+      if (verdict === 'TRUE_POSITIVE' && isTestFile(filePath)) {
+        verdict = 'FALSE_POSITIVE';
+        verdictReason = 'High-entropy string in a test file — likely test data';
+      }
+
+      // .env.example
+      if (verdict === 'TRUE_POSITIVE' && path.basename(filePath) === '.env.example') {
+        verdict = 'FALSE_POSITIVE';
+        verdictReason = 'High-entropy string in .env.example — placeholder value';
+      }
+
+      // Sample/report files
+      if (verdict === 'TRUE_POSITIVE' && /[_-]report[_.]|[_-]sample[_.]/.test(path.basename(filePath).toLowerCase())) {
+        verdict = 'FALSE_POSITIVE';
+        verdictReason = 'High-entropy string in sample/report file — example data';
+      }
+
       matches.push({
         patternId: 'entropy-detection',
         patternName: 'High-Entropy String',
@@ -633,6 +774,8 @@ async function scanFile(filePath: string): Promise<SecretMatch[]> {
         severity: 'MEDIUM',
         cweIds: ['CWE-798'],
         nistControls: ['IA-5', 'SC-12'],
+        verdict,
+        verdictReason,
       });
     }
   }
@@ -644,15 +787,30 @@ async function scanFile(filePath: string): Promise<SecretMatch[]> {
 // Public API
 // ---------------------------------------------------------------------------
 
-export async function scanSecrets(projectDir: string): Promise<SecretsScanResult> {
+export async function scanSecrets(projectDir: string, opts?: { exclude?: string[] }): Promise<SecretsScanResult> {
   const allMatches: SecretMatch[] = [];
   let filesScanned = 0;
   let filesSkipped = 0;
   const now = new Date();
+  const gitignorePatterns = await loadGitignorePatterns(projectDir);
 
   for await (const filePath of walkFiles(projectDir)) {
+    const relativePath = path.relative(projectDir, filePath);
+
+    // Skip --exclude patterns entirely (user explicitly opted out)
+    if (opts?.exclude?.length) {
+      const shouldExclude = opts.exclude.some(glob => {
+        const re = new RegExp('^' + glob.replace(/\*/g, '.*').replace(/\?/g, '.') + '$');
+        return re.test(relativePath);
+      });
+      if (shouldExclude) {
+        filesSkipped++;
+        continue;
+      }
+    }
+
     try {
-      const fileMatches = await scanFile(filePath);
+      const fileMatches = await scanFile(filePath, projectDir, gitignorePatterns);
       allMatches.push(...fileMatches);
       filesScanned++;
     } catch {
@@ -668,6 +826,8 @@ export async function scanSecrets(projectDir: string): Promise<SecretsScanResult
       cveIds: [],
       cweIds: match.cweIds,
       severity: match.severity,
+      verdict: match.verdict,
+      verdictReason: match.verdictReason,
       scannerType: 'secrets',
       scannerName: 'cveriskpilot-scan/secrets',
       assetName: projectDir,

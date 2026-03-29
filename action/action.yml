@@ -149,6 +149,14 @@ runs:
         lines.push('**Triage:** ' + (v.TRUE_POSITIVE||0) + ' actionable · ' + (v.NEEDS_REVIEW||0) + ' needs review · ' + (v.FALSE_POSITIVE||0) + ' auto-dismissed');
         lines.push('');
 
+        // Scanner stats
+        const stats = [];
+        if (scan.dependencies) stats.push(scan.dependencies + ' dependencies (' + (scan.ecosystems || []).join(', ') + ')');
+        stats.push('Scanners: ' + (scan.scannersRun || []).join(', '));
+        stats.push('Duration: ' + (scan.durationMs || 0) + 'ms');
+        lines.push('<sub>' + stats.join(' · ') + '</sub>');
+        lines.push('');
+
         // Findings table
         const actionable = (scan.findings || [])
           .filter(f => f.verdict !== 'FALSE_POSITIVE')

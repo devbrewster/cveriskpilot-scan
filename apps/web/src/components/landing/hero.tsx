@@ -1,11 +1,87 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+
+// The scan findings — shared between terminal and dashboard
+const FINDINGS = [
+  { cve: "CVE-2026-1234", title: "Prototype Pollution in lodash", score: "9.8", epss: "0.97", severity: "CRITICAL", status: "KEV", statusColor: "red" as const },
+  { cve: "CVE-2026-5678", title: "SQL Injection in pg-query", score: "8.5", epss: "0.82", severity: "HIGH", status: "Exploited", statusColor: "orange" as const },
+  { cve: "CVE-2026-9012", title: "XSS in react-markdown", score: "7.2", epss: "0.45", severity: "HIGH", status: "Active", statusColor: "yellow" as const },
+];
+
+type AnimPhase = 'idle' | 'typing' | 'scanning' | 'results' | 'importing' | 'done';
 
 export function Hero() {
+  const [phase, setPhase] = useState<AnimPhase>('idle');
+  const [typedChars, setTypedChars] = useState(0);
+  const [visibleFindings, setVisibleFindings] = useState(0);
+  const [importedFindings, setImportedFindings] = useState(0);
+  const hasStarted = useRef(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const command = 'npx @cveriskpilot/scan --preset startup';
+
+  // Start animation when section scrolls into view
+  useEffect(() => {
+    if (hasStarted.current) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasStarted.current) {
+          hasStarted.current = true;
+          setTimeout(() => setPhase('typing'), 800);
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Typing animation
+  useEffect(() => {
+    if (phase !== 'typing') return;
+    if (typedChars >= command.length) {
+      setTimeout(() => setPhase('scanning'), 400);
+      return;
+    }
+    const timer = setTimeout(() => setTypedChars((c) => c + 1), 35);
+    return () => clearTimeout(timer);
+  }, [phase, typedChars, command.length]);
+
+  // Scanning → results
+  useEffect(() => {
+    if (phase !== 'scanning') return;
+    const timer = setTimeout(() => setPhase('results'), 1500);
+    return () => clearTimeout(timer);
+  }, [phase]);
+
+  // Results appear one by one
+  useEffect(() => {
+    if (phase !== 'results') return;
+    if (visibleFindings >= FINDINGS.length) {
+      setTimeout(() => setPhase('importing'), 600);
+      return;
+    }
+    const timer = setTimeout(() => setVisibleFindings((v) => v + 1), 400);
+    return () => clearTimeout(timer);
+  }, [phase, visibleFindings]);
+
+  // Dashboard imports findings one by one
+  useEffect(() => {
+    if (phase !== 'importing') return;
+    if (importedFindings >= FINDINGS.length) {
+      setTimeout(() => setPhase('done'), 300);
+      return;
+    }
+    const timer = setTimeout(() => setImportedFindings((v) => v + 1), 500);
+    return () => clearTimeout(timer);
+  }, [phase, importedFindings]);
+
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-32 pb-20 sm:pt-40 sm:pb-28">
+    <section ref={sectionRef} className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-32 pb-20 sm:pt-40 sm:pb-28">
       {/* Background grid pattern */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.03]"
         style={{
@@ -42,10 +118,12 @@ export function Hero() {
 
           {/* Subheadline */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl sm:leading-relaxed">
-            One command. Instant compliance output. No account required.
+            CVERiskPilot unifies vulnerability signals from every scanner into a
+            single, AI-powered remediation system. Prioritize by real exploit
+            risk, not just CVSS.
           </p>
 
-          {/* Zero-to-value: copy-pasteable CLI command */}
+          {/* Copy-pasteable CLI command */}
           <CopyableCommand />
 
           {/* CTAs */}
@@ -76,55 +154,136 @@ export function Hero() {
           </p>
         </div>
 
-        {/* Mock Terminal Output — shows what you get when you run the command */}
-        <div className="mx-auto mt-16 max-w-4xl">
+        {/* Side-by-side: Interactive CLI → Dashboard import */}
+        <div className="mx-auto mt-16 grid max-w-6xl gap-4 lg:grid-cols-2">
+          {/* CLI Terminal */}
           <div className="rounded-2xl border border-gray-700/40 bg-gray-900/70 p-1.5 shadow-2xl shadow-black/40 ring-1 ring-white/5 backdrop-blur-sm">
-            <div className="rounded-xl bg-gray-900 p-4 sm:p-6">
-              {/* Title bar */}
-              <div className="mb-5 flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-red-500/70" />
-                <div className="h-3 w-3 rounded-full bg-yellow-500/70" />
-                <div className="h-3 w-3 rounded-full bg-green-500/70" />
-                <span className="ml-3 text-xs font-medium text-gray-500">Terminal</span>
+            <div className="rounded-xl bg-gray-900 p-4 sm:p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
+                <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
+                <span className="ml-2 text-[10px] font-medium uppercase tracking-wider text-gray-600">Terminal</span>
               </div>
-              {/* Terminal output */}
-              <pre className="overflow-x-auto text-xs leading-relaxed sm:text-sm">
+              <pre className="min-h-[220px] overflow-x-auto text-[11px] leading-relaxed sm:text-xs">
                 <code className="text-gray-400">
+                  {/* Command line with typing effect */}
                   <span className="text-green-400">$</span>{" "}
-                  <span className="text-white">npx @cveriskpilot/scan --preset startup</span>
-                  {"\n\n"}
-                  <span className="text-gray-500">  Scanning dependencies, secrets, IaC...</span>
-                  {"\n\n"}
-                  <span className="text-white font-semibold">  SCAN RESULTS</span>
-                  {"\n"}
-                  <span className="text-gray-500">  {"─".repeat(48)}</span>
-                  {"\n"}
-                  {"  "}
-                  <span className="text-red-400 font-bold">CRITICAL  1</span>
-                  {"  "}
-                  <span className="text-orange-400 font-bold">HIGH  3</span>
-                  {"  "}
-                  <span className="text-yellow-400 font-bold">MEDIUM  7</span>
-                  {"  "}
-                  <span className="text-green-400 font-bold">LOW  2</span>
-                  {"\n\n"}
-                  <span className="text-white font-semibold">  COMPLIANCE IMPACT</span>
-                  {"\n"}
-                  {"  "}
-                  <span className="text-cyan-400">SOC 2</span>
-                  <span className="text-gray-500">     3 controls affected</span>
-                  {"\n"}
-                  {"  "}
-                  <span className="text-cyan-400">OWASP ASVS</span>
-                  <span className="text-gray-500"> 2 controls affected</span>
-                  {"\n\n"}
-                  {"  "}
-                  <span className="text-red-400 font-bold">EXIT 1</span>
-                  <span className="text-gray-500"> — 1 CRITICAL finding(s) detected</span>
+                  <span className="text-white">{command.slice(0, typedChars)}</span>
+                  {phase === 'typing' && <span className="animate-pulse text-white">|</span>}
+                  {phase === 'idle' && <span className="animate-pulse text-gray-600">|</span>}
+
+                  {/* Scanning message */}
+                  {(phase === 'scanning' || phase === 'results' || phase === 'importing' || phase === 'done') && (
+                    <>
+                      {"\n\n"}
+                      <span className="text-gray-500">  Scanning dependencies, secrets, IaC...</span>
+                    </>
+                  )}
+
+                  {/* Spinner during scan */}
+                  {phase === 'scanning' && (
+                    <>
+                      {"\n"}
+                      {"  "}
+                      <span className="animate-pulse text-primary-400">...</span>
+                    </>
+                  )}
+
+                  {/* Results */}
+                  {(phase === 'results' || phase === 'importing' || phase === 'done') && (
+                    <>
+                      {"\n\n"}
+                      <span className="text-white font-semibold">  SCAN RESULTS</span>
+                      {"\n"}
+                      <span className="text-gray-500">  {"─".repeat(40)}</span>
+                      {"\n"}
+                      {"  "}
+                      <span className="text-red-400 font-bold">CRITICAL  1</span>
+                      {"  "}
+                      <span className="text-orange-400 font-bold">HIGH  2</span>
+                      {"  "}
+                      <span className="text-yellow-400 font-bold">MEDIUM  7</span>
+                      {"\n"}
+                      {FINDINGS.slice(0, visibleFindings).map((f, i) => (
+                        <span key={i}>
+                          {"\n"}
+                          {"  "}
+                          <span className={f.severity === 'CRITICAL' ? 'text-red-400' : 'text-orange-400'}>
+                            {f.severity.padEnd(9)}
+                          </span>
+                          <span className="text-white">{f.cve}</span>
+                          <span className="text-gray-500">  {f.title}</span>
+                        </span>
+                      ))}
+                    </>
+                  )}
+
+                  {/* Upload message */}
+                  {(phase === 'importing' || phase === 'done') && (
+                    <>
+                      {"\n\n"}
+                      {"  "}
+                      <span className="text-green-400">Uploading to dashboard...</span>
+                      {phase === 'done' && (
+                        <span className="text-green-400"> done</span>
+                      )}
+                    </>
+                  )}
                 </code>
               </pre>
             </div>
           </div>
+
+          {/* Dashboard */}
+          <div className="rounded-2xl border border-gray-700/40 bg-gray-900/70 p-1.5 shadow-2xl shadow-black/40 ring-1 ring-white/5 backdrop-blur-sm">
+            <div className="rounded-xl bg-gray-900 p-4 sm:p-5">
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/70" />
+                <div className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
+                <span className="ml-2 text-[10px] font-medium uppercase tracking-wider text-gray-600">Dashboard</span>
+              </div>
+
+              {/* Stats row — animate counters */}
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <DashboardStat label="Critical" value={importedFindings > 0 ? "1" : "—"} color="red" active={importedFindings > 0} />
+                <DashboardStat label="High" value={importedFindings > 1 ? "2" : importedFindings > 0 ? "0" : "—"} color="orange" active={importedFindings > 1} />
+                <DashboardStat label="EPSS > 0.5" value={importedFindings > 1 ? "2" : importedFindings > 0 ? "1" : "—"} color="yellow" active={importedFindings > 0} />
+                <DashboardStat label="KEV Listed" value={importedFindings > 0 ? "1" : "—"} color="purple" active={importedFindings > 0} />
+              </div>
+
+              {/* Findings table — rows appear as they're imported */}
+              <div className="mt-3 min-h-[140px] overflow-hidden rounded-lg border border-gray-800/80">
+                <div className="grid grid-cols-4 gap-2 border-b border-gray-800 bg-gray-800/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                  <span>CVE ID</span>
+                  <span>Risk</span>
+                  <span>EPSS</span>
+                  <span>Status</span>
+                </div>
+                {importedFindings === 0 && (
+                  <div className="flex items-center justify-center py-8 text-xs text-gray-600">
+                    {phase === 'idle' || phase === 'typing' || phase === 'scanning'
+                      ? 'Waiting for scan results...'
+                      : 'Importing...'}
+                  </div>
+                )}
+                {FINDINGS.slice(0, importedFindings).map((f) => (
+                  <MockRow key={f.cve} cve={f.cve} score={f.score} epss={f.epss} status={f.status} statusColor={f.statusColor} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Labels */}
+        <div className="mx-auto mt-3 grid max-w-6xl gap-4 lg:grid-cols-2">
+          <p className="text-center text-xs text-gray-600">
+            Free — run in any project, no account needed
+          </p>
+          <p className="text-center text-xs text-gray-600">
+            Paid — upload results, enrich with AI, track over time
+          </p>
         </div>
       </div>
     </section>
@@ -164,3 +323,58 @@ function CopyableCommand() {
   );
 }
 
+function DashboardStat({
+  label,
+  value,
+  color,
+  active,
+}: {
+  label: string;
+  value: string;
+  color: "red" | "orange" | "yellow" | "purple";
+  active: boolean;
+}) {
+  const colorMap = {
+    red: "bg-red-500/10 text-red-400 border-red-500/20",
+    orange: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    yellow: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+    purple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  };
+  const inactiveStyle = "bg-gray-800/30 text-gray-600 border-gray-800/40";
+  return (
+    <div className={`rounded-lg border p-2.5 transition-colors duration-500 ${active ? colorMap[color] : inactiveStyle}`}>
+      <p className="text-xl font-bold tabular-nums">{value}</p>
+      <p className="text-[10px] opacity-80">{label}</p>
+    </div>
+  );
+}
+
+function MockRow({
+  cve,
+  score,
+  epss,
+  status,
+  statusColor,
+}: {
+  cve: string;
+  score: string;
+  epss: string;
+  status: string;
+  statusColor: "red" | "orange" | "yellow";
+}) {
+  const statusColorMap = {
+    red: "bg-red-500/10 text-red-400",
+    orange: "bg-orange-500/10 text-orange-400",
+    yellow: "bg-yellow-500/10 text-yellow-400",
+  };
+  return (
+    <div className="grid grid-cols-4 gap-2 border-b border-gray-800/40 px-3 py-2.5 text-xs text-gray-300 last:border-b-0 animate-[fadeIn_0.3s_ease-in] hover:bg-gray-800/20">
+      <span className="font-mono text-[10px] text-gray-400">{cve}</span>
+      <span className="font-semibold text-red-400 tabular-nums">{score}</span>
+      <span className="text-yellow-400 tabular-nums">{epss}</span>
+      <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColorMap[statusColor]}`}>
+        {status}
+      </span>
+    </div>
+  );
+}

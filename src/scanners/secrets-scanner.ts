@@ -392,6 +392,8 @@ const EXCLUDED_DIRS = new Set([
   '.data',
   '.svn',
   '.hg',
+  '.claude',
+  'security_reports_bundle',
 ]);
 
 const EXCLUDED_EXTENSIONS = new Set([
@@ -443,6 +445,13 @@ const EXCLUDED_FILENAMES = new Set([
   'Pipfile.lock',
   'go.sum',
   'composer.lock',
+  '.env.example',
+]);
+
+/** Relative paths (from project root) that should never be scanned for secrets.
+ *  Includes the scanner itself to avoid self-detection of its own regex patterns. */
+const EXCLUDED_RELATIVE_PATHS = new Set([
+  'packages/scan/src/scanners/secrets-scanner.ts',
 ]);
 
 function shouldScanFile(filePath: string): boolean {
@@ -691,28 +700,33 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
         let verdict: FindingVerdict = 'TRUE_POSITIVE';
         let verdictReason = '';
 
-        // Matches inside regex literals (e.g., scanner pattern definitions)
+        // Matches inside regex literals or RegExp constructors (e.g., scanner pattern definitions)
         const beforeMatch = line.lastIndexOf('/', regexMatch.index);
         const afterMatch = line.indexOf('/', regexMatch.index + matchedText.length);
-        if (beforeMatch !== -1 && afterMatch !== -1 && line[afterMatch + 1]?.match(/[gimsuy]/)) {
+        const isRegexLiteral = beforeMatch !== -1 && afterMatch !== -1 && line[afterMatch + 1]?.match(/[gimsuy]/);
+        const isRegExpConstructor = /new\s+RegExp\s*\(/.test(line);
+        const isPatternDefinition = /pattern\s*[:=]/.test(line) && /\/.*\/[gimsuy]*/.test(line);
+        if (isRegexLiteral || isRegExpConstructor || isPatternDefinition) {
           verdict = 'FALSE_POSITIVE';
-          verdictReason = 'Match appears inside a regex literal (pattern definition, not an actual secret)';
+          verdictReason = 'Match appears inside a regex literal or pattern definition, not an actual secret';
         }
 
-        // Obvious test values in test files
-        if (verdict === 'TRUE_POSITIVE' && fileIsTest && isObviousTestValue(matchedText)) {
-          verdict = 'FALSE_POSITIVE';
-          verdictReason = 'Obvious test/placeholder value in a test file';
-        }
-
-        // Test file with non-obvious value — needs human review
+        // Test files: treat all findings as FP (test fixtures contain intentional fake secrets)
         if (verdict === 'TRUE_POSITIVE' && fileIsTest) {
-          verdict = 'NEEDS_REVIEW';
-          verdictReason = 'Secret pattern matched in a test file — verify it is not a real credential';
+          verdict = 'FALSE_POSITIVE';
+          verdictReason = 'Secret pattern matched in a test/fixture file — test data, not a real credential';
         }
 
         // Shell/Terraform interpolation (not hardcoded)
-        if (verdict === 'TRUE_POSITIVE' && (/\$\{[A-Za-z_]/.test(matchedText) || /\$\{var\./.test(line))) {
+        if (verdict === 'TRUE_POSITIVE' && (
+          /\$\{[A-Za-z_]/.test(matchedText) ||
+          /\$\{var\./.test(line) ||
+          /\$\{google_/.test(line) ||
+          /\$\{local\./.test(line) ||
+          /\$\{data\./.test(line) ||
+          /\$\{module\./.test(line) ||
+          /\\\$\{/.test(line)
+        )) {
           verdict = 'FALSE_POSITIVE';
           verdictReason = 'Value contains variable interpolation (shell ${VAR} or Terraform ${var.}), not a hardcoded secret';
         }
@@ -828,6 +842,12 @@ export async function scanSecrets(projectDir: string, opts?: { exclude?: string[
 
     // Skip --exclude patterns
     if (excludeRegexes.length > 0 && excludeRegexes.some(re => re.test(relativePath))) {
+      filesSkipped++;
+      continue;
+    }
+
+    // Skip files on the built-in exclusion list (e.g., the scanner itself)
+    if (EXCLUDED_RELATIVE_PATHS.has(relativePath.replace(/\\/g, '/'))) {
       filesSkipped++;
       continue;
     }

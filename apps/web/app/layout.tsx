@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { GoogleAnalytics } from '@next/third-parties/google';
+import Script from 'next/script';
 import { ThemeProvider } from '@/components/theme-provider';
 import { CsrfProvider } from '@/components/csrf-provider';
 import './globals.css';
@@ -197,7 +197,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         <ThemeProvider><CsrfProvider>{children}</CsrfProvider></ThemeProvider>
       </body>
-      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
+      {GA_ID && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics" strategy="afterInteractive">
+            {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`}
+          </Script>
+        </>
+      )}
     </html>
   );
 }

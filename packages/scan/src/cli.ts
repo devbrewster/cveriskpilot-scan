@@ -141,7 +141,7 @@ function parseArgs(argv: string[]): CliOptions {
     iacOnly: false,
     apiRoutesOnly: false,
     apiKey: process.env['CRP_API_KEY'],
-    apiUrl: process.env['CRP_API_URL'] ?? 'https://app.cveriskpilot.com',
+    apiUrl: process.env['CRP_API_URL'] ?? 'https://cveriskpilot.com',
     frameworks: [],
     preset: undefined,
     format: 'table',
@@ -849,7 +849,7 @@ async function main(): Promise<void> {
     if (enrichedCount > 0) {
       console.error('');
       console.error(`  \x1b[33m\x1b[1m${enrichedCount} finding(s)\x1b[0m have CVE details, fix versions, and triage recommendations available.`);
-      console.error(`  Add \x1b[36m--api-key\x1b[0m to unlock enriched scan data. Get your key at \x1b[36mhttps://app.cveriskpilot.com/settings/api\x1b[0m`);
+      console.error(`  Add \x1b[36m--api-key\x1b[0m to unlock enriched scan data. Get your key at \x1b[36mhttps://cveriskpilot.com/api-key\x1b[0m`);
       console.error('');
     }
   }

@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import * as crypto from 'node:crypto';
 
 // ---------------------------------------------------------------------------
@@ -54,6 +54,12 @@ export async function POST(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleCheck = requireRole(session.role, ADMIN_ROLES);
+    if (roleCheck) return roleCheck;
 
     // Only @cveriskpilot.com staff can impersonate
     if (!isStaffEmail(session.email)) {
@@ -153,6 +159,12 @@ export async function DELETE(request: NextRequest) {
     const auth2 = await requireAuth(request);
     if (auth2 instanceof NextResponse) return auth2;
     const session = auth2;
+
+    const csrfError2 = checkCsrf(request);
+    if (csrfError2) return csrfError2;
+
+    const roleCheck = requireRole(session.role, ADMIN_ROLES);
+    if (roleCheck) return roleCheck;
 
     if (!isStaffEmail(session.email)) {
       return NextResponse.json(

@@ -1,39 +1,18 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { requireAuth } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
-
-// ---------------------------------------------------------------------------
-// Domain gate helper — only @cveriskpilot.com emails may access ops APIs.
-// ---------------------------------------------------------------------------
-
-async function getStaffEmail(_req: NextRequest): Promise<string | null> {
-  const cookieStore = await cookies();
-  const session = cookieStore.get('crp_session');
-  if (!session?.value) return null;
-
-  try {
-    const payload = JSON.parse(
-      Buffer.from(session.value, 'base64').toString('utf-8'),
-    );
-    return typeof payload.email === 'string' ? payload.email : null;
-  } catch {
-    return null;
-  }
-}
-
-function isStaffEmail(email: string | null): boolean {
-  if (!email) return false;
-  return email.endsWith('@cveriskpilot.com');
-}
 
 // ---------------------------------------------------------------------------
 // GET /api/ops/overview — platform-wide stats from database
 // ---------------------------------------------------------------------------
 
 export async function GET(req: NextRequest) {
-  const email = await getStaffEmail(req);
-  if (!isStaffEmail(email)) {
+  const auth = await requireAuth(req);
+  if (auth instanceof NextResponse) return auth;
+  const session = auth;
+
+  if (!session.email?.endsWith('@cveriskpilot.com')) {
     return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
   }
 

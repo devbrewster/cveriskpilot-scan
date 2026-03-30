@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
@@ -90,6 +90,9 @@ export async function PUT(
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const { id } = await params;
 

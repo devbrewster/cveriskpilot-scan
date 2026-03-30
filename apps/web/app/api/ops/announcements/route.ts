@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import crypto from 'node:crypto';
 
 // ---------------------------------------------------------------------------
@@ -15,6 +15,8 @@ async function requireOpsAuth(request: NextRequest) {
   if (!session.email?.endsWith('@cveriskpilot.com')) {
     return { error: NextResponse.json({ error: 'Internal staff only' }, { status: 403 }) };
   }
+  const roleCheck = requireRole(session.role, ADMIN_ROLES);
+  if (roleCheck) return { error: roleCheck };
   return { session };
 }
 
@@ -123,6 +125,9 @@ export async function POST(request: NextRequest) {
   const auth = await requireOpsAuth(request);
   if ('error' in auth) return auth.error;
 
+  const csrfError = checkCsrf(request);
+  if (csrfError) return csrfError;
+
   try {
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== 'object') {
@@ -198,6 +203,9 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   const auth = await requireOpsAuth(request);
   if ('error' in auth) return auth.error;
+
+  const csrfError2 = checkCsrf(request);
+  if (csrfError2) return csrfError2;
 
   try {
     const body = await request.json().catch(() => null);

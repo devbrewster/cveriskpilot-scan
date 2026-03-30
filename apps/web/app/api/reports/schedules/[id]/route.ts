@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -75,6 +75,12 @@ export async function PUT(
     if (auth2 instanceof NextResponse) return auth2;
     const session = auth2;
 
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleCheck = requireRole(session.role, WRITE_ROLES);
+    if (roleCheck) return roleCheck;
+
     const { id } = await params;
 
     // Verify the schedule belongs to the authenticated org
@@ -87,6 +93,35 @@ export async function PUT(
     }
 
     const body = await request.json();
+
+    // Input validation — type-check provided fields
+    if (body.name !== undefined && typeof body.name !== 'string') {
+      return NextResponse.json({ error: 'name must be a string' }, { status: 400 });
+    }
+    if (body.clientId !== undefined && typeof body.clientId !== 'string') {
+      return NextResponse.json({ error: 'clientId must be a string' }, { status: 400 });
+    }
+    if (body.frequency !== undefined && typeof body.frequency !== 'string') {
+      return NextResponse.json({ error: 'frequency must be a string' }, { status: 400 });
+    }
+    if (body.reportType !== undefined && typeof body.reportType !== 'string') {
+      return NextResponse.json({ error: 'reportType must be a string' }, { status: 400 });
+    }
+    if (body.format !== undefined && typeof body.format !== 'string') {
+      return NextResponse.json({ error: 'format must be a string' }, { status: 400 });
+    }
+    if (body.recipients !== undefined && !Array.isArray(body.recipients)) {
+      return NextResponse.json({ error: 'recipients must be an array' }, { status: 400 });
+    }
+    if (body.dayOfWeek !== undefined && body.dayOfWeek !== null && typeof body.dayOfWeek !== 'number') {
+      return NextResponse.json({ error: 'dayOfWeek must be a number or null' }, { status: 400 });
+    }
+    if (body.hourUtc !== undefined && typeof body.hourUtc !== 'number') {
+      return NextResponse.json({ error: 'hourUtc must be a number' }, { status: 400 });
+    }
+    if (body.enabled !== undefined && typeof body.enabled !== 'boolean') {
+      return NextResponse.json({ error: 'enabled must be a boolean' }, { status: 400 });
+    }
 
     // Build the update payload from provided fields
     const data: Record<string, unknown> = {};
@@ -136,6 +171,12 @@ export async function DELETE(
     const auth3 = await requireAuth(request);
     if (auth3 instanceof NextResponse) return auth3;
     const session = auth3;
+
+    const csrfError2 = checkCsrf(request);
+    if (csrfError2) return csrfError2;
+
+    const roleCheck2 = requireRole(session.role, WRITE_ROLES);
+    if (roleCheck2) return roleCheck2;
 
     const { id } = await params;
 

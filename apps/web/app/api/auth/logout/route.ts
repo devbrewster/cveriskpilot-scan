@@ -5,10 +5,21 @@ import {
   clearSessionCookie,
   destroySession,
   requireAuth,
+  getSensitiveWriteLimiter,
 } from '@cveriskpilot/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit — auth endpoint
+    try {
+      const limiter = getSensitiveWriteLimiter();
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+      const allowed = await limiter.check(ip);
+      if (!allowed.allowed) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      }
+    } catch { /* Redis unavailable — don't block */ }
+
     // Require a valid session so we know who is logging out
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;

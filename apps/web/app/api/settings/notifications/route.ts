@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // In-memory notification preferences store (per org)
@@ -49,6 +49,9 @@ export async function PUT(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
     if (roleError) return roleError;

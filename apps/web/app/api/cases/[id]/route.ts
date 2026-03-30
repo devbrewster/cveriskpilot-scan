@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, WRITE_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import { isValidTransition, getValidNextStatuses } from '@/lib/workflow';
 import { logAudit } from '@/lib/audit';
 
@@ -91,6 +91,9 @@ export async function PATCH(
 
     const roleError = requireRole(session.role, WRITE_ROLES);
     if (roleError) return roleError;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const { id } = await params;
 

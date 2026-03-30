@@ -28,7 +28,7 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
   }
 
   // Serialize to a plain object compatible with the CaseDetail component's
-  // VulnerabilityCase interface (from mock-findings.ts). Dates become ISO strings.
+  // VulnerabilityCase interface. Dates become ISO strings.
   const serializedCase = {
     id: vulnCase.id,
     organizationId: vulnCase.organizationId,

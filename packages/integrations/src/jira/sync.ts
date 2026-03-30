@@ -61,9 +61,13 @@ export async function pushCaseToJira(
   caseId: string,
   projectKey: string,
   issueType: string = 'Bug',
+  organizationId?: string,
 ): Promise<PushResult> {
-  const vulnCase = await prisma.vulnerabilityCase.findUniqueOrThrow({
-    where: { id: caseId },
+  const whereClause = organizationId
+    ? { id: caseId, organizationId }
+    : { id: caseId };
+  const vulnCase = await prisma.vulnerabilityCase.findFirstOrThrow({
+    where: whereClause,
     include: { findings: { take: 5 } },
   });
 
@@ -130,9 +134,13 @@ export async function pullJiraStatus(
   jiraClient: JiraClient,
   ticketId: string,
   statusMapping?: Record<string, string> | null,
+  organizationId?: string,
 ): Promise<PullResult> {
-  const ticket = await prisma.ticket.findUniqueOrThrow({
-    where: { id: ticketId },
+  const ticketWhere = organizationId
+    ? { id: ticketId, organizationId }
+    : { id: ticketId };
+  const ticket = await prisma.ticket.findFirstOrThrow({
+    where: ticketWhere,
   });
 
   let jiraIssue;
@@ -170,8 +178,11 @@ export async function pullJiraStatus(
   const mappedCaseStatus = mapJiraStatusToCaseStatus(jiraStatus, statusMapping);
 
   if (mappedCaseStatus) {
-    const vulnCase = await prisma.vulnerabilityCase.findUnique({
-      where: { id: ticket.vulnerabilityCaseId },
+    const caseWhere = organizationId
+      ? { id: ticket.vulnerabilityCaseId, organizationId }
+      : { id: ticket.vulnerabilityCaseId };
+    const vulnCase = await prisma.vulnerabilityCase.findFirst({
+      where: caseWhere,
     });
 
     if (vulnCase && vulnCase.status !== mappedCaseStatus) {
@@ -233,7 +244,7 @@ export async function syncAllTickets(
 
   for (const ticket of tickets) {
     try {
-      await pullJiraStatus(prisma, jiraClient, ticket.id, statusMapping);
+      await pullJiraStatus(prisma, jiraClient, ticket.id, statusMapping, orgId);
       result.synced++;
     } catch (err) {
       result.errors.push({

@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import {
   ServiceNowClient,
   mapIncidentToCase,
@@ -68,6 +68,12 @@ export async function POST(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleCheck = requireRole(session.role, WRITE_ROLES);
+    if (roleCheck) return roleCheck;
+
     const { organizationId } = session;
 
     const org = await prisma.organization.findUnique({
@@ -112,9 +118,9 @@ export async function POST(request: NextRequest) {
     // that are not yet in a terminal status
     const tickets = await prisma.ticket.findMany({
       where: {
+        organizationId,
         system: 'servicenow',
         status: { notIn: ['Closed', 'Canceled'] },
-        vulnerabilityCase: { organizationId },
       },
       select: {
         id: true,
@@ -147,8 +153,8 @@ export async function POST(request: NextRequest) {
             success: false,
             error: `Incident ${ticket.ticketKey} not found in ServiceNow`,
           });
-          await prisma.ticket.update({
-            where: { id: ticket.id },
+          await prisma.ticket.updateMany({
+            where: { id: ticket.id, organizationId },
             data: {
               lastSyncError: `Incident ${ticket.ticketKey} not found in ServiceNow`,
               syncedAt: new Date(),
@@ -161,8 +167,8 @@ export async function POST(request: NextRequest) {
         const caseUpdate = mapIncidentToCase(incident);
 
         // Update the ticket record
-        await prisma.ticket.update({
-          where: { id: ticket.id },
+        await prisma.ticket.updateMany({
+          where: { id: ticket.id, organizationId },
           data: {
             status: incident.state,
             assignee: incident.assigned_to || null,
@@ -172,8 +178,8 @@ export async function POST(request: NextRequest) {
         });
 
         // Update the vulnerability case status
-        await prisma.vulnerabilityCase.update({
-          where: { id: ticket.vulnerabilityCaseId },
+        await prisma.vulnerabilityCase.updateMany({
+          where: { id: ticket.vulnerabilityCaseId, organizationId },
           data: {
             status: caseUpdate.status as any,
           },
@@ -195,8 +201,8 @@ export async function POST(request: NextRequest) {
           error: 'Sync failed for this ticket',
         });
 
-        await prisma.ticket.update({
-          where: { id: ticket.id },
+        await prisma.ticket.updateMany({
+          where: { id: ticket.id, organizationId },
           data: {
             lastSyncError: errorMessage,
             syncedAt: new Date(),

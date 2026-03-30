@@ -65,6 +65,9 @@ export interface ScanSummary {
   iacFilesScanned?: number;
   iacRulesPassed?: number;
   iacRulesFailed?: number;
+  apiRoutesScanned?: number;
+  apiRulesPassed?: number;
+  apiRulesFailed?: number;
   failOnSeverity: string;
   exitCode: number;
   durationMs: number;
@@ -186,9 +189,11 @@ function formatTable(summary: ScanSummary): string {
     lines.push(`  ${c(GREEN + BOLD, 'PASS')} No findings at or above ${summary.failOnSeverity} severity.`);
   } else {
     const failCount = summary.findings.filter(
-      (f) => severityRank(f.severity) <= severityRank(summary.failOnSeverity),
+      (f) =>
+        (f.verdict ?? 'TRUE_POSITIVE') === 'TRUE_POSITIVE' &&
+        severityRank(f.severity) <= severityRank(summary.failOnSeverity),
     ).length;
-    lines.push(`  ${c(RED + BOLD, 'FAIL')} ${failCount} finding(s) at or above ${summary.failOnSeverity} severity.`);
+    lines.push(`  ${c(RED + BOLD, 'FAIL')} ${failCount} true-positive finding(s) at or above ${summary.failOnSeverity} severity.`);
     lines.push(c(DIM, `  Exit code: ${summary.exitCode}`));
   }
   lines.push('');

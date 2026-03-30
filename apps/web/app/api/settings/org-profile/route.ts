@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
@@ -80,6 +80,9 @@ export async function PUT(request: NextRequest) {
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
     if (roleError) return roleError;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const organizationId = session.organizationId;
     const body = await request.json();

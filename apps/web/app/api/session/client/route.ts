@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
   requireAuth,
+  requireRole,
+  WRITE_ROLES,
+  checkCsrf,
   getSessionIdFromRequest,
   updateSession,
 } from '@cveriskpilot/auth';
@@ -20,6 +23,12 @@ export async function POST(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleCheck = requireRole(session.role, WRITE_ROLES);
+    if (roleCheck) return roleCheck;
 
     const sessionId = getSessionIdFromRequest(request);
     if (!sessionId) {

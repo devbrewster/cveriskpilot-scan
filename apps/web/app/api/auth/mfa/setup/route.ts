@@ -21,7 +21,11 @@ import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
  * Requires an authenticated session. Stores the pending secret in Redis
  * with a 10-minute TTL so it can be confirmed via POST.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Rate limit — sensitive auth endpoint
+  const rateLimited = await checkAuthRateLimit(request);
+  if (rateLimited) return rateLimited;
+
   try {
     const cookieStore = await cookies();
     const session = await getServerSessionFromCookies(

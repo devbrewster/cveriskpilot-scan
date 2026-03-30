@@ -176,27 +176,50 @@ export default function UsersPage() {
     }
   };
 
-  // ── Edit role handler (mock) ─────────────────────────────────────────────
+  // ── Edit role handler ────────────────────────────────────────────────────
 
-  const handleEditRole = () => {
+  const handleEditRole = async () => {
     if (!editUser) return;
-    // Mock: update locally
-    setUsers((prev) =>
-      prev.map((u) => (u.id === editUser.id ? { ...u, role: editRole } : u)),
-    );
-    setEditUser(null);
+    setError(null);
+    try {
+      const res = await fetch(`/api/users/${editUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: editRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update role');
+      setUsers((prev) =>
+        prev.map((u) => (u.id === editUser.id ? { ...u, role: editRole } : u)),
+      );
+      setEditUser(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update role');
+    }
   };
 
-  // ── Deactivate handler (mock) ────────────────────────────────────────────
+  // ── Deactivate handler ─────────────────────────────────────────────────
 
-  const handleDeactivate = () => {
+  const handleDeactivate = async () => {
     if (!deactivateUser) return;
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === deactivateUser.id ? { ...u, isActive: !u.isActive } : u,
-      ),
-    );
-    setDeactivateUser(null);
+    setError(null);
+    try {
+      const res = await fetch(`/api/users/${deactivateUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !deactivateUser.isActive }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update user status');
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === deactivateUser.id ? { ...u, isActive: !u.isActive } : u,
+        ),
+      );
+      setDeactivateUser(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update user status');
+    }
   };
 
   // ── Render ───────────────────────────────────────────────────────────────

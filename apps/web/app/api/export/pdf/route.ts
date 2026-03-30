@@ -1,6 +1,6 @@
 import type { NextRequest} from "next/server";
 import { NextResponse } from "next/server";
-import { requireAuth, getExportLimiter } from "@cveriskpilot/auth";
+import { requireAuth, requireRole, WRITE_ROLES, checkCsrf, getExportLimiter } from "@cveriskpilot/auth";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { prisma } from "@/lib/prisma";
 import {
@@ -323,6 +323,12 @@ export async function POST(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleCheck = requireRole(session.role, WRITE_ROLES);
+    if (roleCheck) return roleCheck;
 
     // Rate limiting — 5 req/min per user
     try {

@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { requireAuth, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
+import { requireAuth, getSensitiveWriteLimiter, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import { getOrgTier, checkBillingGate, trackAiCall } from '@/lib/billing';
 import type { RemediationRequest, RemediationResult } from '@cveriskpilot/ai';
 
@@ -21,6 +21,12 @@ export async function POST(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
   const session = auth;
+
+  const csrfError = checkCsrf(request);
+  if (csrfError) return csrfError;
+
+  const roleCheck = requireRole(session.role, WRITE_ROLES);
+  if (roleCheck) return roleCheck;
 
   // Rate limiting — 10 req/min per user
   try {
@@ -113,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     // Surface specific error types
     if (message.includes('ANTHROPIC_API_KEY')) {
-      return errorResponse(500, 'AI service not configured');
+      return errorResponse(500, 'AI service temporarily unavailable');
     }
 
     return errorResponse(500, 'Failed to generate remediation guidance');

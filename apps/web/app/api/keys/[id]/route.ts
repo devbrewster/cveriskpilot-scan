@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, generateApiKey, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, generateApiKey, requireRole, MANAGE_ROLES, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
 
 /**
  * PUT /api/keys/[id] — Rotate an API key.
@@ -12,6 +12,15 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    try {
+      const limiter = getSensitiveWriteLimiter();
+      const allowed = await limiter.check(ip);
+      if (!allowed) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      }
+    } catch { /* Redis unavailable — allow request */ }
+
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
@@ -34,14 +43,18 @@ export async function PUT(
       return NextResponse.json({ error: 'API key not found' }, { status: 404 });
     }
 
-    // Get org slug for key format
+    // Get org slug and tier for key format and rotation policy
     const org = await (prisma as any).organization.findUnique({
       where: { id: session.organizationId },
-      select: { slug: true },
+      select: { slug: true, tier: true },
     });
 
     // Generate new key
     const generated = generateApiKey(org.slug);
+
+    // Determine rotation period based on org tier
+    const rotationDays = (org.tier === 'ENTERPRISE' || org.tier === 'MSSP') ? 180 : 90;
+    const rotationRequiredBy = new Date(Date.now() + rotationDays * 24 * 60 * 60 * 1000);
 
     // Update hash in database
     await (prisma as any).apiKey.update({
@@ -49,6 +62,7 @@ export async function PUT(
       data: {
         keyHash: generated.keyHash,
         lastUsedAt: null, // Reset usage tracking on rotation
+        rotationRequiredBy,
       },
     });
 
@@ -92,6 +106,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const ip2 = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    try {
+      const limiter2 = getSensitiveWriteLimiter();
+      const allowed2 = await limiter2.check(ip2);
+      if (!allowed2) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      }
+    } catch { /* Redis unavailable — allow request */ }
+
     const auth2 = await requireAuth(request);
     if (auth2 instanceof NextResponse) return auth2;
     const session = auth2;

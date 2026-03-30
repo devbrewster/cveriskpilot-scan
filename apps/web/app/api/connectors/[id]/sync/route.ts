@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf } from '@cveriskpilot/auth';
 import { UserRole } from '@cveriskpilot/domain';
 import { prisma } from '@/lib/prisma';
 import { SyncOrchestrator } from '@cveriskpilot/connectors';
@@ -27,6 +27,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     // Role check
     if (!SYNC_ALLOWED_ROLES.has(session.role)) {

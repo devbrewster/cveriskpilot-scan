@@ -171,10 +171,14 @@ export function generatePipelinePOAM(
     // Blocked findings are expected to be fixed pre-merge; skip POAM for them
     if (blocked.has(i)) continue;
 
-    const detectedAt =
+    const rawDate =
       finding.discoveredAt instanceof Date
         ? finding.discoveredAt
-        : new Date(finding.discoveredAt);
+        : finding.discoveredAt
+          ? new Date(finding.discoveredAt)
+          : null;
+    const detectedAt =
+      rawDate && !isNaN(rawDate.getTime()) ? rawDate : new Date();
 
     const { controlFamily, securityControl } = resolveControlRef(
       finding,

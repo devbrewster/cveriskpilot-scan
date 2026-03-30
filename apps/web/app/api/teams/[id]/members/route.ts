@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -12,6 +12,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const roleError = requireRole(session.role, MANAGE_ROLES);
     if (roleError) return roleError;
@@ -72,6 +75,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError2 = checkCsrf(request);
+    if (csrfError2) return csrfError2;
 
     const roleError2 = requireRole(session.role, MANAGE_ROLES);
     if (roleError2) return roleError2;

@@ -15,6 +15,9 @@ export interface ApiKeyValidationResult {
   scope?: string;
   assignedClients?: string[];
   error?: string;
+  rotationRequired?: boolean;
+  rotationRequiredBy?: string;
+  expiringWithinDays?: number;
 }
 
 export interface GeneratedApiKey {
@@ -107,21 +110,54 @@ export async function validateApiKey(
     return { valid: false, error: 'API key has expired' };
   }
 
-  // Update lastUsedAt (fire-and-forget for performance)
+  // Check rotation policy
+  if (apiKey.rotationRequiredBy && new Date(apiKey.rotationRequiredBy) <= new Date()) {
+    return { valid: false, error: 'API key rotation required. Please rotate this key.' };
+  }
+
+  // Update lastUsedAt and increment requestCount (fire-and-forget for performance)
   (prisma as any).apiKey.update({
     where: { id: apiKey.id },
-    data: { lastUsedAt: new Date() },
+    data: {
+      lastUsedAt: new Date(),
+      requestCount: { increment: 1 },
+    },
   }).catch(() => {
     // Ignore update errors — usage tracking is best-effort
   });
 
-  return {
+  // Build result with optional warnings
+  const result: ApiKeyValidationResult = {
     valid: true,
     keyId: apiKey.id,
     organizationId: apiKey.organizationId,
     scope: apiKey.scope,
     assignedClients: apiKey.assignedClients,
   };
+
+  // Rotation approaching warning (within 7 days)
+  if (apiKey.rotationRequiredBy) {
+    const rotationDate = new Date(apiKey.rotationRequiredBy);
+    const msUntilRotation = rotationDate.getTime() - Date.now();
+    const daysUntilRotation = msUntilRotation / (1000 * 60 * 60 * 24);
+    if (daysUntilRotation <= 7) {
+      result.rotationRequired = true;
+      result.rotationRequiredBy = rotationDate.toISOString();
+    }
+  }
+
+  // Expiry approaching warning (within 14 days)
+  // Callers can use this to add X-Api-Key-Expires-In response header
+  if (apiKey.expiresAt) {
+    const expiryDate = new Date(apiKey.expiresAt);
+    const msUntilExpiry = expiryDate.getTime() - Date.now();
+    const daysUntilExpiry = Math.ceil(msUntilExpiry / (1000 * 60 * 60 * 24));
+    if (daysUntilExpiry <= 14) {
+      result.expiringWithinDays = daysUntilExpiry;
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -132,4 +168,20 @@ export function hasScope(scope: string, requiredScope: string): boolean {
   if (scope === 'admin') return true;
   const scopes = scope.split(',').map((s) => s.trim());
   return scopes.includes(requiredScope);
+}
+
+/**
+ * Record an API key error (fire-and-forget).
+ * Increments errorCount and sets lastErrorAt.
+ */
+export function recordApiKeyError(prisma: PrismaClient, keyId: string): void {
+  (prisma as any).apiKey.update({
+    where: { id: keyId },
+    data: {
+      errorCount: { increment: 1 },
+      lastErrorAt: new Date(),
+    },
+  }).catch(() => {
+    // Best-effort error tracking
+  });
 }

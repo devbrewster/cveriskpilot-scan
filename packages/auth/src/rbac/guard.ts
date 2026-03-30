@@ -8,6 +8,7 @@ import { NextResponse } from 'next/server';
 const WRITE_ROLES = ['PLATFORM_ADMIN', 'ORG_OWNER', 'SECURITY_ADMIN', 'ANALYST'];
 const ADMIN_ROLES = ['PLATFORM_ADMIN', 'ORG_OWNER'];
 const MANAGE_ROLES = ['PLATFORM_ADMIN', 'ORG_OWNER', 'SECURITY_ADMIN'];
+const APPROVER_ROLES = ['PLATFORM_ADMIN', 'ORG_OWNER', 'SECURITY_ADMIN', 'TEAM_LEAD'];
 
 /**
  * Check if the user's role is in the allowed list.
@@ -23,4 +24,4 @@ export function requireRole(userRole: string, allowedRoles: string[]): NextRespo
   return null;
 }
 
-export { WRITE_ROLES, ADMIN_ROLES, MANAGE_ROLES };
+export { WRITE_ROLES, ADMIN_ROLES, MANAGE_ROLES, APPROVER_ROLES };

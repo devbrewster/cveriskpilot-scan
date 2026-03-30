@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, MANAGE_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 import {
   getConnector,
@@ -67,6 +67,9 @@ export async function PUT(
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const { id } = await context.params;
 
@@ -153,6 +156,9 @@ export async function DELETE(
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError2 = checkCsrf(request);
+    if (csrfError2) return csrfError2;
 
     const { id } = await context.params;
 

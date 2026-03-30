@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import { isValidTransition } from '@/lib/workflow';
 
 // ---------------------------------------------------------------------------
@@ -14,6 +14,12 @@ export async function PATCH(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
+    const roleError = requireRole(session.role, WRITE_ROLES);
+    if (roleError) return roleError;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
     const body = await request.json();
     const { caseIds, status, reason } = body;
 
@@ -22,6 +28,10 @@ export async function PATCH(request: NextRequest) {
         { error: 'caseIds must be a non-empty array' },
         { status: 400 },
       );
+    }
+
+    if (reason !== undefined && (typeof reason !== 'string' || reason.length > 1000)) {
+      return NextResponse.json({ error: 'Invalid reason' }, { status: 400 });
     }
 
     if (!status || typeof status !== 'string') {

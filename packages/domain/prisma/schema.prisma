@@ -177,28 +177,30 @@ model Organization {
   updatedAt            DateTime  @updatedAt @map("updated_at")
   deletedAt            DateTime? @map("deleted_at")
 
-  users              User[]
-  clients            Client[]
-  teams              Team[]
-  assets             Asset[]
-  slaPolicies        SlaPolicy[]
-  apiKeys            ApiKey[]
-  auditLogs          AuditLog[]
-  findings           Finding[]
-  vulnerabilityCases VulnerabilityCase[]
-  scanArtifacts      ScanArtifact[]
-  uploadJobs         UploadJob[]
-  brandConfig        BrandConfig?
-  reportSchedules    ReportSchedule[]
-  pipelineScans      PipelineScan[]
-  pipelinePolicy     PipelinePolicy?
+  users               User[]
+  clients             Client[]
+  teams               Team[]
+  assets              Asset[]
+  slaPolicies         SlaPolicy[]
+  apiKeys             ApiKey[]
+  auditLogs           AuditLog[]
+  findings            Finding[]
+  vulnerabilityCases  VulnerabilityCase[]
+  scanArtifacts       ScanArtifact[]
+  uploadJobs          UploadJob[]
+  brandConfig         BrandConfig?
+  reportSchedules     ReportSchedule[]
+  pipelineScans       PipelineScan[]
+  pipelinePolicy      PipelinePolicy?
   pipelineScanResults PipelineScanResult[]
-  pipelineUsage      PipelineUsage[]
-  comments           Comment[]
-  workflowLineages   WorkflowLineage[]
-  riskExceptions     RiskException[]
-  tickets            Ticket[]
-  notifications      Notification[]
+  pipelineUsage       PipelineUsage[]
+  comments            Comment[]
+  workflowLineages    WorkflowLineage[]
+  riskExceptions      RiskException[]
+  tickets             Ticket[]
+  notifications       Notification[]
+  triageFeedbacks     TriageFeedback[]
+  caseApprovals       CaseApproval[]
 
   @@map("organizations")
 }
@@ -260,6 +262,10 @@ model User {
   workflowChanges        WorkflowLineage[]
   riskExceptionsDecided  RiskException[]     @relation("ExceptionDecidedBy")
   riskExceptionsApproved RiskException[]     @relation("ExceptionApprovedBy")
+  approvedCases          VulnerabilityCase[] @relation("ApprovedCases")
+  triageFeedbacks        TriageFeedback[]    @relation("TriageFeedbackReviewer")
+  approvalRequests       CaseApproval[]      @relation("ApprovalRequestedBy")
+  approvalDecisions      CaseApproval[]      @relation("ApprovalApprover")
 
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -399,6 +405,19 @@ model VulnerabilityCase {
   createdAt        DateTime   @default(now()) @map("created_at")
   updatedAt        DateTime   @updatedAt @map("updated_at")
 
+  // Triage feedback
+  severityOverride Severity? @map("severity_override")
+  triageVerdict    String?   @map("triage_verdict") // AI verdict: TRUE_POSITIVE, FALSE_POSITIVE, NEEDS_REVIEW
+  triageConfidence Float?    @map("triage_confidence")
+  triageModel      String?   @map("triage_model")
+  triageAt         DateTime? @map("triage_at")
+
+  // Approval workflow
+  requiresApproval Boolean   @default(false) @map("requires_approval")
+  approvalStatus   String?   @map("approval_status") // PENDING, APPROVED, REJECTED
+  approvedById     String?   @map("approved_by_id")
+  approvedAt       DateTime? @map("approved_at")
+
   organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   client           Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
   assignedTo       User?             @relation("AssignedCases", fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -408,6 +427,9 @@ model VulnerabilityCase {
   workflowLineages WorkflowLineage[]
   riskExceptions   RiskException[]
   tickets          Ticket[]
+  approvedBy       User?             @relation("ApprovedCases", fields: [approvedById], references: [id], onDelete: SetNull)
+  triageFeedbacks  TriageFeedback[]
+  caseApprovals    CaseApproval[]
 
   @@index([organizationId, clientId])
   @@index([organizationId, clientId, status])
@@ -417,6 +439,7 @@ model VulnerabilityCase {
   @@index([clientId])
   @@index([assignedToId])
   @@index([slaPolicyId])
+  @@index([organizationId, approvalStatus])
   @@map("vulnerability_cases")
 }
 
@@ -520,6 +543,61 @@ model WorkflowLineage {
   @@map("workflow_lineages")
 }
 
+// ---------------------------------------------------------------------------
+// Triage Feedback — persists human corrections to AI triage decisions
+// ---------------------------------------------------------------------------
+
+model TriageFeedback {
+  id                  String    @id @default(cuid()) @map("id")
+  organizationId      String    @map("organization_id")
+  vulnerabilityCaseId String    @map("vulnerability_case_id")
+  reviewerId          String    @map("reviewer_id")
+  originalVerdict     String    @map("original_verdict")
+  originalSeverity    Severity  @map("original_severity")
+  originalConfidence  Float     @map("original_confidence")
+  correctedVerdict    String?   @map("corrected_verdict")
+  correctedSeverity   Severity? @map("corrected_severity")
+  outcome             String    @map("outcome") // APPROVED, REJECTED, MODIFIED
+  reason              String?   @map("reason")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id], onDelete: Cascade)
+  reviewer          User              @relation("TriageFeedbackReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([vulnerabilityCaseId])
+  @@index([organizationId, outcome])
+  @@map("triage_feedback")
+}
+
+// ---------------------------------------------------------------------------
+// Case Approval — approval gate for case status transitions
+// ---------------------------------------------------------------------------
+
+model CaseApproval {
+  id                  String    @id @default(cuid()) @map("id")
+  organizationId      String    @map("organization_id")
+  vulnerabilityCaseId String    @map("vulnerability_case_id")
+  requestedById       String    @map("requested_by_id")
+  requestedTransition String    @map("requested_transition") // e.g. "TRIAGE->IN_REMEDIATION"
+  approverId          String?   @map("approver_id")
+  decision            String?   @map("decision") // APPROVED, REJECTED
+  reason              String?   @map("reason")
+  requestedAt         DateTime  @default(now()) @map("requested_at")
+  decidedAt           DateTime? @map("decided_at")
+
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vulnerabilityCase VulnerabilityCase @relation(fields: [vulnerabilityCaseId], references: [id], onDelete: Cascade)
+  requestedBy       User              @relation("ApprovalRequestedBy", fields: [requestedById], references: [id], onDelete: Cascade)
+  approver          User?             @relation("ApprovalApprover", fields: [approverId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([vulnerabilityCaseId])
+  @@index([organizationId, decision])
+  @@map("case_approvals")
+}
+
 model RiskException {
   id                  String        @id @default(cuid()) @map("id")
   organizationId      String        @map("organization_id")
@@ -599,9 +677,13 @@ model ApiKey {
   keyHash         String    @map("key_hash")
   scope           String    @map("scope")
   assignedClients String[]  @map("assigned_clients")
-  expiresAt       DateTime? @map("expires_at")
-  lastUsedAt      DateTime? @map("last_used_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
+  expiresAt            DateTime? @map("expires_at")
+  rotationRequiredBy   DateTime? @map("rotation_required_by")
+  lastUsedAt           DateTime? @map("last_used_at")
+  requestCount         Int       @default(0) @map("request_count")
+  lastErrorAt          DateTime? @map("last_error_at")
+  errorCount           Int       @default(0) @map("error_count")
+  createdAt            DateTime  @default(now()) @map("created_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -900,16 +982,16 @@ model PipelineScan {
 // ---------------------------------------------------------------------------
 
 model PipelinePolicy {
-  id                       String   @id @default(cuid()) @map("id")
-  organizationId           String   @unique @map("organization_id")
-  frameworks               Json     @default("[\"nist-800-53\"]") @map("frameworks")
-  blockOnSeverity          String   @default("CRITICAL") @map("block_on_severity")
-  blockOnControlViolation  Boolean  @default(false) @map("block_on_control_violation")
-  warnOnly                 Boolean  @default(false) @map("warn_only")
-  autoExceptionRules       Json     @default("[]") @map("auto_exception_rules")
-  gracePeriodDays          Int      @default(0) @map("grace_period_days")
-  createdAt                DateTime @default(now()) @map("created_at")
-  updatedAt                DateTime @updatedAt @map("updated_at")
+  id                      String   @id @default(cuid()) @map("id")
+  organizationId          String   @unique @map("organization_id")
+  frameworks              Json     @default("[\"nist-800-53\"]") @map("frameworks")
+  blockOnSeverity         String   @default("CRITICAL") @map("block_on_severity")
+  blockOnControlViolation Boolean  @default(false) @map("block_on_control_violation")
+  warnOnly                Boolean  @default(false) @map("warn_only")
+  autoExceptionRules      Json     @default("[]") @map("auto_exception_rules")
+  gracePeriodDays         Int      @default(0) @map("grace_period_days")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -921,25 +1003,25 @@ model PipelinePolicy {
 // ---------------------------------------------------------------------------
 
 model PipelineScanResult {
-  id                String   @id @map("id")
-  organizationId    String   @map("organization_id")
-  format            String   @map("format")
-  repoUrl           String?  @map("repo_url")
-  commitSha         String?  @map("commit_sha")
-  branch            String?  @map("branch")
-  prNumber          Int?     @map("pr_number")
-  verdict           String   @map("verdict")
-  totalFindings     Int      @default(0) @map("total_findings")
-  criticalCount     Int      @default(0) @map("critical_count")
-  highCount         Int      @default(0) @map("high_count")
-  mediumCount       Int      @default(0) @map("medium_count")
-  lowCount          Int      @default(0) @map("low_count")
-  infoCount         Int      @default(0) @map("info_count")
-  complianceImpact  Json     @default("[]") @map("compliance_impact")
-  policyReasons     Json     @default("[]") @map("policy_reasons")
-  poamEntriesCreated Int     @default(0) @map("poam_entries_created")
-  findings          Json     @default("[]") @map("findings")
-  createdAt         DateTime @default(now()) @map("created_at")
+  id                 String   @id @map("id")
+  organizationId     String   @map("organization_id")
+  format             String   @map("format")
+  repoUrl            String?  @map("repo_url")
+  commitSha          String?  @map("commit_sha")
+  branch             String?  @map("branch")
+  prNumber           Int?     @map("pr_number")
+  verdict            String   @map("verdict")
+  totalFindings      Int      @default(0) @map("total_findings")
+  criticalCount      Int      @default(0) @map("critical_count")
+  highCount          Int      @default(0) @map("high_count")
+  mediumCount        Int      @default(0) @map("medium_count")
+  lowCount           Int      @default(0) @map("low_count")
+  infoCount          Int      @default(0) @map("info_count")
+  complianceImpact   Json     @default("[]") @map("compliance_impact")
+  policyReasons      Json     @default("[]") @map("policy_reasons")
+  poamEntriesCreated Int      @default(0) @map("poam_entries_created")
+  findings           Json     @default("[]") @map("findings")
+  createdAt          DateTime @default(now()) @map("created_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -954,14 +1036,14 @@ model PipelineScanResult {
 // ---------------------------------------------------------------------------
 
 model PipelineUsage {
-  id                String   @id @default(cuid()) @map("id")
-  organizationId    String   @map("organization_id")
-  month             String   @map("month")             // YYYY-MM format
-  prCommentsUsed    Int      @default(0) @map("pr_comments_used")
-  uploadsUsed       Int      @default(0) @map("uploads_used")
-  scansRun          Int      @default(0) @map("scans_run")
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid()) @map("id")
+  organizationId String   @map("organization_id")
+  month          String   @map("month") // YYYY-MM format
+  prCommentsUsed Int      @default(0) @map("pr_comments_used")
+  uploadsUsed    Int      @default(0) @map("uploads_used")
+  scansRun       Int      @default(0) @map("scans_run")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 

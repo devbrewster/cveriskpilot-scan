@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, validateExternalUrl, encryptForTenant } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES, validateExternalUrl, encryptForTenant, checkCsrf } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -68,6 +68,12 @@ export async function PUT(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleCheck = requireRole(session.role, ADMIN_ROLES);
+    if (roleCheck) return roleCheck;
 
     const { organizationId } = session;
 
@@ -183,6 +189,12 @@ export async function DELETE(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError2 = checkCsrf(request);
+    if (csrfError2) return csrfError2;
+
+    const roleCheck = requireRole(session.role, ADMIN_ROLES);
+    if (roleCheck) return roleCheck;
 
     const { organizationId } = session;
 

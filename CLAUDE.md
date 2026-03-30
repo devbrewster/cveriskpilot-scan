@@ -194,6 +194,5 @@ First versioned save point on new GCP infrastructure. All prior work committed a
 - **Wave 16: Production Hardening** — Cloud Armor tuning, PgBouncer, CDN, monitoring alerts
 
 ### Known Issues
-- `SlaWidget` uses hardcoded `organizationId="org-default"` — needs session context
 - `complianceScores` returns empty array (no compliance model in Prisma schema yet)
 - Demo route group `(demo)` duplicates dashboard logic — could share components better

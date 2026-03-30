@@ -36,7 +36,13 @@ const PIPELINE_FORMAT_MAP: Record<string, ParserFormat> = {
 // Input validation
 // ---------------------------------------------------------------------------
 
-interface PipelineScanInput {
+// ---------------------------------------------------------------------------
+// Input types — two accepted payload shapes
+// ---------------------------------------------------------------------------
+
+/** Raw scan content (CI/CD tools posting SARIF, CycloneDX, etc.) */
+interface RawScanInput {
+  kind: 'raw';
   format: string;
   content: string | object;
   repoUrl?: string;
@@ -46,6 +52,22 @@ interface PipelineScanInput {
   frameworks?: string[];
 }
 
+/** Pre-processed findings from @cveriskpilot/scan CLI */
+interface CliFindingsInput {
+  kind: 'cli';
+  findings: Record<string, unknown>[];
+  frameworks: string[];
+  source: string;
+  version?: string;
+  timestamp?: string;
+  repoUrl?: string;
+  commitSha?: string;
+  branch?: string;
+  prNumber?: number;
+}
+
+type PipelineScanInput = RawScanInput | CliFindingsInput;
+
 function validateInput(body: unknown): { data: PipelineScanInput; error?: never } | { data?: never; error: string } {
   if (!body || typeof body !== 'object') {
     return { error: 'Request body must be a JSON object' };
@@ -53,8 +75,32 @@ function validateInput(body: unknown): { data: PipelineScanInput; error?: never 
 
   const data = body as Record<string, unknown>;
 
+  // Detect CLI payload: has `findings` array + `source` field
+  if (Array.isArray(data['findings']) && data['source']) {
+    const findings = data['findings'] as Record<string, unknown>[];
+    if (findings.length > 0 && typeof findings[0] !== 'object') {
+      return { error: 'findings must be an array of finding objects' };
+    }
+
+    return {
+      data: {
+        kind: 'cli',
+        findings,
+        frameworks: Array.isArray(data['frameworks']) ? (data['frameworks'] as string[]) : [],
+        source: String(data['source']),
+        version: data['version'] ? String(data['version']) : undefined,
+        timestamp: data['timestamp'] ? String(data['timestamp']) : undefined,
+        repoUrl: data['repoUrl'] as string | undefined,
+        commitSha: data['commitSha'] as string | undefined,
+        branch: data['branch'] as string | undefined,
+        prNumber: typeof data['prNumber'] === 'number' ? data['prNumber'] : undefined,
+      },
+    };
+  }
+
+  // Raw scan payload: requires format + content
   if (!data['format'] || typeof data['format'] !== 'string') {
-    return { error: 'Missing required field: format' };
+    return { error: 'Missing required field: format (or send pre-processed findings with source field)' };
   }
 
   if (!data['content']) {
@@ -85,6 +131,7 @@ function validateInput(body: unknown): { data: PipelineScanInput; error?: never 
 
   return {
     data: {
+      kind: 'raw',
       format: data['format'] as string,
       content: data['content'] as string | object,
       repoUrl: data['repoUrl'] as string | undefined,
@@ -141,6 +188,15 @@ export async function POST(request: NextRequest) {
 
     const organizationId = keyResult.organizationId!;
 
+    // ---- Collect API key warnings ----
+    const warnings: string[] = [];
+    if (keyResult.expiringWithinDays != null) {
+      warnings.push(`API key expires in ${keyResult.expiringWithinDays} days. Please rotate or renew.`);
+    }
+    if (keyResult.rotationRequired) {
+      warnings.push(`API key rotation recommended. Rotation due by ${keyResult.rotationRequiredBy}.`);
+    }
+
     // ---- Parse request body ----
     let body: unknown;
     try {
@@ -159,27 +215,38 @@ export async function POST(request: NextRequest) {
 
     const input = validation.data;
 
-    // ---- Resolve parser format ----
-    const parserFormat = PIPELINE_FORMAT_MAP[input.format.toLowerCase()];
-    if (!parserFormat) {
-      return NextResponse.json(
-        { error: `Unsupported format: ${input.format}` },
-        { status: 400 },
-      );
+    // ---- Resolve findings (two paths) ----
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let findings: any[];
+    let formatLabel: string;
+
+    if (input.kind === 'cli') {
+      // CLI sends pre-processed CanonicalFinding[] — use directly
+      findings = input.findings;
+      formatLabel = `cli-${input.source}`;
+    } else {
+      // Raw scan content — parse through format-specific parser
+      const parserFormat = PIPELINE_FORMAT_MAP[input.format.toLowerCase()];
+      if (!parserFormat) {
+        return NextResponse.json(
+          { error: `Unsupported format: ${input.format}` },
+          { status: 400 },
+        );
+      }
+
+      const contentStr =
+        typeof input.content === 'string'
+          ? input.content
+          : JSON.stringify(input.content);
+
+      const parseResult = await parse(parserFormat, contentStr);
+      findings = parseResult.findings;
+      formatLabel = input.format;
     }
-
-    // ---- Serialize content ----
-    const contentStr =
-      typeof input.content === 'string'
-        ? input.content
-        : JSON.stringify(input.content);
-
-    // ---- Parse scan results ----
-    const parseResult = await parse(parserFormat, contentStr);
 
     // ---- Extract CWEs and map to compliance controls ----
     const complianceImpact = mapFindingsToComplianceImpact(
-      parseResult.findings,
+      findings,
       input.frameworks,
     );
 
@@ -214,7 +281,7 @@ export async function POST(request: NextRequest) {
 
     // ---- Evaluate policy ----
     const policyResult = evaluatePolicy(
-      parseResult.findings,
+      findings,
       policy,
       complianceImpact,
     );
@@ -222,12 +289,12 @@ export async function POST(request: NextRequest) {
     // ---- Auto-generate POAM entries ----
     const blockedIndices = new Set<number>();
     for (const blocked of policyResult.blockedFindings) {
-      const idx = parseResult.findings.indexOf(blocked);
+      const idx = findings.indexOf(blocked);
       if (idx >= 0) blockedIndices.add(idx);
     }
 
     const poamItems = generatePipelinePOAM(
-      parseResult.findings,
+      findings,
       complianceImpact,
       {
         repoUrl: input.repoUrl,
@@ -242,9 +309,9 @@ export async function POST(request: NextRequest) {
     const scanId = crypto.randomUUID();
 
     // ---- Build severity summary ----
-    const summary: Record<string, number> = { total: parseResult.findings.length };
-    for (const finding of parseResult.findings) {
-      const sev = finding.severity.toLowerCase();
+    const summary: Record<string, number> = { total: findings.length };
+    for (const finding of findings) {
+      const sev = (finding.severity ?? 'info').toLowerCase();
       summary[sev] = (summary[sev] ?? 0) + 1;
     }
 
@@ -262,13 +329,13 @@ export async function POST(request: NextRequest) {
         data: {
           id: scanId,
           organizationId,
-          format: input.format,
+          format: formatLabel,
           repoUrl: input.repoUrl ?? null,
           commitSha: input.commitSha ?? null,
           branch: input.branch ?? null,
           prNumber: input.prNumber ?? null,
           verdict: policyResult.verdict,
-          totalFindings: parseResult.findings.length,
+          totalFindings: findings.length,
           criticalCount: summary['critical'] ?? 0,
           highCount: summary['high'] ?? 0,
           mediumCount: summary['medium'] ?? 0,
@@ -277,11 +344,11 @@ export async function POST(request: NextRequest) {
           complianceImpact: complianceImpactResponse,
           policyReasons: policyResult.reasons,
           poamEntriesCreated: poamItems.length,
-          findings: parseResult.findings.map((f) => ({
+          findings: findings.map((f) => ({
             title: f.title,
             severity: f.severity,
-            cveIds: f.cveIds,
-            cweIds: f.cweIds,
+            cveIds: f.cveIds ?? [],
+            cweIds: f.cweIds ?? [],
             assetName: f.assetName,
             filePath: f.filePath,
             lineNumber: f.lineNumber,
@@ -303,13 +370,13 @@ export async function POST(request: NextRequest) {
         entityType: 'PipelineScan',
         entityId: scanId,
         details: {
-          format: input.format,
+          format: formatLabel,
           repoUrl: input.repoUrl,
           commitSha: input.commitSha,
           branch: input.branch,
           prNumber: input.prNumber,
           verdict: policyResult.verdict,
-          totalFindings: parseResult.findings.length,
+          totalFindings: findings.length,
           poamEntriesCreated: poamItems.length,
         },
         hash: `pipeline-scan-${scanId}`,
@@ -329,6 +396,7 @@ export async function POST(request: NextRequest) {
       complianceImpact: complianceImpactResponse,
       poamEntriesCreated: poamItems.length,
       dashboardUrl: `${appHost}/pipelines/${scanId}`,
+      ...(warnings.length > 0 ? { warnings } : {}),
     });
   } catch (error) {
     console.error('[API] POST /api/pipeline/scan error:', error);

@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // PUT /api/cases/[id]/assign — assign or unassign a case
@@ -16,11 +16,22 @@ export async function PUT(
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
+    const roleError = requireRole(session.role, WRITE_ROLES);
+    if (roleError) return roleError;
+
     const { id } = await params;
     const body = await request.json();
     const { assignedToId } = body as {
       assignedToId: string | null;
     };
+
+    // Input validation — assignedToId must be a string or null
+    if (assignedToId !== null && typeof assignedToId !== 'string') {
+      return NextResponse.json({ error: 'assignedToId must be a string or null' }, { status: 400 });
+    }
 
     // Verify the case exists and belongs to the user's organization
     const existing = await prisma.vulnerabilityCase.findFirst({
@@ -56,7 +67,7 @@ export async function PUT(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updated = await prisma.$transaction(async (tx: any) => {
       const result = await tx.vulnerabilityCase.update({
-        where: { id },
+        where: { id, organizationId: session.organizationId },
         data: { assignedToId },
         include: {
           assignedTo: {

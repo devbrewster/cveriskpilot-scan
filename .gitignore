@@ -61,3 +61,9 @@ social/published/
 social/archived/
 state/marketing/generated/
 *.tsbuildinfo
+
+# generated security scan reports (may contain detected secrets)
+security_reports_bundle/
+
+# claude local settings
+.claude/settings.local.json

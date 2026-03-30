@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // POST /api/privacy/delete — GDPR right to erasure for a user
@@ -13,6 +13,9 @@ export async function POST(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const body = await request.json();
     const { userId, confirmationText, reason } = body;

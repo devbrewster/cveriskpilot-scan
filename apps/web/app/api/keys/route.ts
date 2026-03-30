@@ -29,7 +29,11 @@ export async function GET(request: NextRequest) {
         scope: true,
         assignedClients: true,
         expiresAt: true,
+        rotationRequiredBy: true,
         lastUsedAt: true,
+        requestCount: true,
+        errorCount: true,
+        lastErrorAt: true,
         createdAt: true,
         keyHash: true,
       },
@@ -42,7 +46,11 @@ export async function GET(request: NextRequest) {
       scope: key.scope,
       assignedClients: key.assignedClients,
       expiresAt: key.expiresAt,
+      rotationRequiredBy: key.rotationRequiredBy,
       lastUsedAt: key.lastUsedAt,
+      requestCount: key.requestCount,
+      errorCount: key.errorCount,
+      lastErrorAt: key.lastErrorAt,
       createdAt: key.createdAt,
       keyPreview: `crp_****${key.keyHash.slice(-4)}`,
     }));
@@ -116,10 +124,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Get org slug for key format
+    // Get org slug and tier for key format and rotation policy
     const org = await (prisma as any).organization.findUnique({
       where: { id: session.organizationId },
-      select: { slug: true },
+      select: { slug: true, tier: true },
     });
 
     if (!org) {
@@ -128,6 +136,10 @@ export async function POST(request: NextRequest) {
 
     // Generate the key
     const generated = generateApiKey(org.slug);
+
+    // Determine rotation period based on org tier
+    const rotationDays = (org.tier === 'ENTERPRISE' || org.tier === 'MSSP') ? 180 : 90;
+    const rotationRequiredBy = new Date(Date.now() + rotationDays * 24 * 60 * 60 * 1000);
 
     // Store hashed key
     const apiKey = await (prisma as any).apiKey.create({
@@ -138,6 +150,7 @@ export async function POST(request: NextRequest) {
         scope: scopeStr,
         assignedClients: [],
         expiresAt: expiresAt ? new Date(expiresAt) : null,
+        rotationRequiredBy,
       },
     });
 

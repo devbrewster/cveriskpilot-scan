@@ -1,52 +1,26 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { compareScanResults, exportDiffToCSV } from '@/lib/export/scan-diff';
 import { downloadCSV } from '@/lib/export/csv-export';
 import { useToast } from '@/components/ui/toast';
 import { SeverityBadge } from '@/components/ui/badge';
 import type { Severity } from '@/lib/types';
 
-// Mock scan data: two scans with overlapping findings
-const MOCK_SCANS: Record<string, { label: string; date: string; findings: Record<string, unknown>[] }> = {
-  'scan-a': {
-    label: 'Nessus Prod Scan - Mar 20',
-    date: '2026-03-20',
-    findings: [
-      { id: 'f1', cveIds: ['CVE-2021-44228'], title: 'Log4Shell RCE', severity: 'CRITICAL', cvssScore: 10.0, assetName: 'api-gateway-prod', discoveredAt: '2026-03-20T08:00:00Z' },
-      { id: 'f2', cveIds: ['CVE-2022-22965'], title: 'Spring4Shell RCE', severity: 'CRITICAL', cvssScore: 9.8, assetName: 'api-gateway-prod', discoveredAt: '2026-03-20T08:05:00Z' },
-      { id: 'f3', cveIds: ['CVE-2022-3602'], title: 'OpenSSL Buffer Overflow', severity: 'HIGH', cvssScore: 7.5, assetName: 'cdn-edge-us-east', discoveredAt: '2026-03-20T08:10:00Z' },
-      { id: 'f4', cveIds: ['CVE-2020-11022'], title: 'jQuery XSS', severity: 'MEDIUM', cvssScore: 6.1, assetName: 'web-frontend-staging', discoveredAt: '2026-03-20T08:15:00Z' },
-      { id: 'f5', cveIds: ['CVE-2023-21931'], title: 'Java RMI Deserialization', severity: 'CRITICAL', cvssScore: 9.1, assetName: 'payment-service-prod', discoveredAt: '2026-03-20T08:20:00Z' },
-      { id: 'f6', cveIds: [], title: 'Weak TLS Configuration', severity: 'MEDIUM', cvssScore: 5.3, assetName: 'api-gateway-prod', discoveredAt: '2026-03-20T08:25:00Z' },
-      { id: 'f7', cveIds: [], title: 'Debug Endpoint Exposed', severity: 'LOW', cvssScore: 3.7, assetName: 'auth-service-dev', discoveredAt: '2026-03-20T08:30:00Z' },
-    ],
-  },
-  'scan-b': {
-    label: 'Nessus Prod Scan - Mar 26',
-    date: '2026-03-26',
-    findings: [
-      { id: 'f10', cveIds: ['CVE-2021-44228'], title: 'Log4Shell RCE', severity: 'CRITICAL', cvssScore: 10.0, assetName: 'api-gateway-prod', discoveredAt: '2026-03-26T14:00:00Z' },
-      { id: 'f11', cveIds: ['CVE-2022-22965'], title: 'Spring4Shell RCE', severity: 'CRITICAL', cvssScore: 9.8, assetName: 'api-gateway-prod', discoveredAt: '2026-03-26T14:05:00Z' },
-      { id: 'f12', cveIds: ['CVE-2022-3602'], title: 'OpenSSL Buffer Overflow', severity: 'HIGH', cvssScore: 7.5, assetName: 'cdn-edge-us-east', discoveredAt: '2026-03-26T14:10:00Z' },
-      { id: 'f13', cveIds: ['CVE-2025-66789'], title: 'Auth Bypass in Admin Panel', severity: 'CRITICAL', cvssScore: 9.8, assetName: 'api-gateway-prod', discoveredAt: '2026-03-26T14:15:00Z' },
-      { id: 'f14', cveIds: ['CVE-2025-77890'], title: 'XXE Injection', severity: 'HIGH', cvssScore: 7.0, assetName: 'payment-service-prod', discoveredAt: '2026-03-26T14:20:00Z' },
-      { id: 'f15', cveIds: [], title: 'Container Running as Root', severity: 'MEDIUM', cvssScore: 5.5, assetName: 'k8s-worker-node-03', discoveredAt: '2026-03-26T14:25:00Z' },
-      { id: 'f16', cveIds: ['CVE-2020-11022'], title: 'jQuery XSS', severity: 'MEDIUM', cvssScore: 6.1, assetName: 'web-frontend-staging', discoveredAt: '2026-03-26T14:30:00Z' },
-    ],
-  },
-  'scan-c': {
-    label: 'SARIF SAST Results - Mar 26',
-    date: '2026-03-26',
-    findings: [
-      { id: 'f20', cveIds: [], title: 'SQL Injection in Login', severity: 'HIGH', cvssScore: 8.6, assetName: 'api-gateway-prod', discoveredAt: '2026-03-26T10:00:00Z' },
-      { id: 'f21', cveIds: [], title: 'Hardcoded Secret in Config', severity: 'HIGH', cvssScore: 7.5, assetName: 'auth-service-dev', discoveredAt: '2026-03-26T10:05:00Z' },
-      { id: 'f22', cveIds: [], title: 'Path Traversal in Upload', severity: 'MEDIUM', cvssScore: 6.5, assetName: 'web-frontend-staging', discoveredAt: '2026-03-26T10:10:00Z' },
-    ],
-  },
-};
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-const SCAN_IDS = Object.keys(MOCK_SCANS);
+interface ScanOption {
+  id: string;
+  label: string;
+  date: string;
+  findingCount: number;
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
 function DiffBadge({ status }: { status: 'NEW' | 'RESOLVED' | 'UNCHANGED' }) {
   const styles = {
@@ -132,18 +106,82 @@ function FindingTable({ findings, status, defaultExpanded = true }: FindingTable
   );
 }
 
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
 export function ScanCompare() {
+  const [scanOptions, setScanOptions] = useState<ScanOption[]>([]);
+  const [loadingScans, setLoadingScans] = useState(true);
   const [scanAId, setScanAId] = useState<string>('');
   const [scanBId, setScanBId] = useState<string>('');
+  const [findingsA, setFindingsA] = useState<Record<string, unknown>[] | null>(null);
+  const [findingsB, setFindingsB] = useState<Record<string, unknown>[] | null>(null);
+  const [loadingFindings, setLoadingFindings] = useState(false);
   const { addToast } = useToast();
 
+  // Fetch available uploads as scan options
+  useEffect(() => {
+    async function loadScans() {
+      setLoadingScans(true);
+      try {
+        const res = await fetch('/api/uploads?limit=50');
+        if (!res.ok) {
+          setScanOptions([]);
+          return;
+        }
+        const data = await res.json();
+        const uploads = data.uploads ?? [];
+        setScanOptions(
+          uploads
+            .filter((u: Record<string, unknown>) => u.status === 'COMPLETED')
+            .map((u: Record<string, unknown>) => ({
+              id: u.id as string,
+              label: `${u.filename} (${u.parserFormat})`,
+              date: (u.createdAt as string).slice(0, 10),
+              findingCount: (u.totalFindings as number) ?? 0,
+            })),
+        );
+      } catch {
+        setScanOptions([]);
+      } finally {
+        setLoadingScans(false);
+      }
+    }
+    loadScans();
+  }, []);
+
+  // Fetch findings for selected scans
+  const fetchFindings = useCallback(async (uploadId: string): Promise<Record<string, unknown>[]> => {
+    const res = await fetch(`/api/findings?uploadJobId=${uploadId}&limit=500`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.findings ?? [];
+  }, []);
+
+  useEffect(() => {
+    if (!scanAId || !scanBId) {
+      setFindingsA(null);
+      setFindingsB(null);
+      return;
+    }
+    setLoadingFindings(true);
+    Promise.all([fetchFindings(scanAId), fetchFindings(scanBId)])
+      .then(([a, b]) => {
+        setFindingsA(a);
+        setFindingsB(b);
+      })
+      .catch(() => {
+        setFindingsA([]);
+        setFindingsB([]);
+      })
+      .finally(() => setLoadingFindings(false));
+  }, [scanAId, scanBId, fetchFindings]);
+
   const diff = useMemo(() => {
-    if (!scanAId || !scanBId) return null;
-    const scanA = MOCK_SCANS[scanAId];
-    const scanB = MOCK_SCANS[scanBId];
-    if (!scanA || !scanB) return null;
-    return compareScanResults(scanA.findings, scanB.findings);
-  }, [scanAId, scanBId]);
+    if (!findingsA || !findingsB) return null;
+    return compareScanResults(findingsA, findingsB);
+  }, [findingsA, findingsB]);
 
   function handleExportDiff() {
     if (!diff) return;
@@ -155,6 +193,32 @@ export function ScanCompare() {
     } catch {
       addToast('error', 'Failed to export comparison');
     }
+  }
+
+  // Loading state
+  if (loadingScans) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+      </div>
+    );
+  }
+
+  // Empty state — no completed uploads
+  if (scanOptions.length < 2) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white dark:bg-gray-900 py-16 text-center">
+        <svg className="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+        </svg>
+        <p className="mt-3 text-sm font-medium text-gray-600">
+          {scanOptions.length === 0 ? 'No completed scans yet' : 'Need at least two completed scans to compare'}
+        </p>
+        <p className="mt-1 text-sm text-gray-400">
+          Upload scan results to start comparing findings between scans.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -177,9 +241,9 @@ export function ScanCompare() {
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Select a scan...</option>
-              {SCAN_IDS.map((id) => (
-                <option key={id} value={id} disabled={id === scanBId}>
-                  {MOCK_SCANS[id]?.label} ({MOCK_SCANS[id]?.findings.length} findings)
+              {scanOptions.map((s) => (
+                <option key={s.id} value={s.id} disabled={s.id === scanBId}>
+                  {s.label} &mdash; {s.date} ({s.findingCount} findings)
                 </option>
               ))}
             </select>
@@ -202,9 +266,9 @@ export function ScanCompare() {
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Select a scan...</option>
-              {SCAN_IDS.map((id) => (
-                <option key={id} value={id} disabled={id === scanAId}>
-                  {MOCK_SCANS[id]?.label} ({MOCK_SCANS[id]?.findings.length} findings)
+              {scanOptions.map((s) => (
+                <option key={s.id} value={s.id} disabled={s.id === scanAId}>
+                  {s.label} &mdash; {s.date} ({s.findingCount} findings)
                 </option>
               ))}
             </select>
@@ -212,8 +276,15 @@ export function ScanCompare() {
         </div>
       </div>
 
+      {/* Loading state for findings */}
+      {loadingFindings && (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        </div>
+      )}
+
       {/* Empty State */}
-      {!diff && (
+      {!diff && !loadingFindings && (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white dark:bg-gray-900 py-16 text-center">
           <svg className="h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
@@ -224,7 +295,7 @@ export function ScanCompare() {
       )}
 
       {/* Comparison Results */}
-      {diff && (
+      {diff && !loadingFindings && (
         <>
           {/* Summary Stats */}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">

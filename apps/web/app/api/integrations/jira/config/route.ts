@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, validateExternalUrl, encryptForTenant, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, validateExternalUrl, encryptForTenant, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { logAudit } from '@/lib/audit';
 import { DEFAULT_JIRA_TO_CASE_STATUS } from '@cveriskpilot/integrations';
@@ -56,6 +56,9 @@ export async function PUT(request: NextRequest) {
 
     const roleError = requireRole(session.role, ADMIN_ROLES);
     if (roleError) return roleError;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const { organizationId } = session;
 

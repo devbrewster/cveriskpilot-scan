@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
 import { onboardTenant } from '@cveriskpilot/auth/org/onboarding';
 
 /**
@@ -11,9 +11,22 @@ import { onboardTenant } from '@cveriskpilot/auth/org/onboarding';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit — sensitive write endpoint
+    try {
+      const limiter = getSensitiveWriteLimiter();
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+      const allowed = await limiter.check(ip);
+      if (!allowed.allowed) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      }
+    } catch { /* Redis unavailable — don't block */ }
+
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     if (session.role !== 'PLATFORM_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });

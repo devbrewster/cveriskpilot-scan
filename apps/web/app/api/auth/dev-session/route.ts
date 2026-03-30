@@ -8,6 +8,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getSensitiveWriteLimiter } from '@cveriskpilot/auth';
 
 export async function POST(request: NextRequest) {
   // Block in non-development environments.
@@ -20,6 +21,16 @@ export async function POST(request: NextRequest) {
   ) {
     return NextResponse.json({ error: 'Not available' }, { status: 404 });
   }
+
+  // Rate limit — sensitive auth endpoint
+  try {
+    const limiter = getSensitiveWriteLimiter();
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const allowed = await limiter.check(ip);
+    if (!allowed.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+  } catch { /* Redis unavailable — don't block */ }
 
   let body: Record<string, unknown>;
   try {

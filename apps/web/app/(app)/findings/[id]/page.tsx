@@ -28,7 +28,7 @@ export default async function FindingDetailPage({ params }: FindingDetailPagePro
   }
 
   // Serialize to a plain object compatible with the FindingDetail component's
-  // Finding interface (from mock-findings.ts). Dates become ISO strings.
+  // Finding interface. Dates become ISO strings.
   const serializedFinding = {
     id: finding.id,
     organizationId: finding.organizationId,

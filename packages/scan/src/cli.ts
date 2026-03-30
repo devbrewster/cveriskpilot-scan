@@ -13,6 +13,7 @@
  *   --deps-only          SBOM/dependency scan only
  *   --secrets-only       Secrets scan only
  *   --iac-only           IaC scan only
+ *   --api-routes         API route security scan (Next.js)
  *   --frameworks <list>  Comma-separated framework IDs (aliases OK)
  *   --preset <name>      Framework preset: federal, defense, enterprise, startup, devsecops, all
  *   --severity <level>   Min severity to display: CRITICAL, HIGH, MEDIUM, LOW, INFO
@@ -23,6 +24,7 @@
  *   --api-key <key>      Upload results to CVERiskPilot (or CRP_API_KEY env)
  *   --api-url <url>      API endpoint (or CRP_API_URL env)
  *   --no-upload          Scan locally only, don't upload
+ *   --dry-run            Preview scan results without uploading or persisting
  *   --ci                 Shorthand: --format json --no-color --fail-on critical
  *   --list-frameworks    List all supported frameworks and presets
  *   --verbose            Detailed output
@@ -36,6 +38,7 @@ import * as https from 'node:https';
 import { scanDependencies } from './scanners/sbom-scanner.js';
 import { scanSecrets } from './scanners/secrets-scanner.js';
 import { scanIaC } from './scanners/iac-scanner.js';
+import { scanApiSecurity } from './scanners/api-security-scanner.js';
 import { formatOutput, severityRank } from './output.js';
 import type { OutputFormat, ScanSummary } from './output.js';
 import type { CanonicalFinding } from './vendor/parsers/types.js';
@@ -111,6 +114,7 @@ interface CliOptions {
   depsOnly: boolean;
   secretsOnly: boolean;
   iacOnly: boolean;
+  apiRoutesOnly: boolean;
   apiKey: string | undefined;
   apiUrl: string;
   frameworks: string[];
@@ -123,6 +127,7 @@ interface CliOptions {
   ci: boolean;
   exclude: string[];
   excludeCwe: string[];
+  dryRun: boolean;
   targetDir: string;
 }
 
@@ -134,6 +139,7 @@ function parseArgs(argv: string[]): CliOptions {
     depsOnly: false,
     secretsOnly: false,
     iacOnly: false,
+    apiRoutesOnly: false,
     apiKey: process.env['CRP_API_KEY'],
     apiUrl: process.env['CRP_API_URL'] ?? 'https://app.cveriskpilot.com',
     frameworks: [],
@@ -146,6 +152,7 @@ function parseArgs(argv: string[]): CliOptions {
     ci: false,
     exclude: [],
     excludeCwe: [],
+    dryRun: false,
     targetDir: process.cwd(),
   };
 
@@ -173,8 +180,15 @@ function parseArgs(argv: string[]): CliOptions {
       case '--iac-only':
         opts.iacOnly = true;
         break;
+      case '--api-routes':
+      case '--api-routes-only':
+        opts.apiRoutesOnly = true;
+        break;
       case '--no-upload':
         opts.noUpload = true;
+        break;
+      case '--dry-run':
+        opts.dryRun = true;
         break;
       case '--verbose':
         opts.verbose = true;
@@ -253,6 +267,7 @@ ${bold('SCANNER FLAGS')}
   --deps-only          Run SBOM/dependency scanner only
   --secrets-only       Run secrets scanner only
   --iac-only           Run IaC scanner only
+  --api-routes         Run API route security scanner (Next.js)
 
 ${bold('FRAMEWORK FLAGS')}
   --frameworks <list>  Comma-separated frameworks: SOC2,CMMC,FEDRAMP,NIST,ASVS,SSDF
@@ -274,6 +289,7 @@ ${bold('UPLOAD FLAGS')}
   --api-key <key>      CVERiskPilot API key (or set CRP_API_KEY env)
   --api-url <url>      API endpoint (or set CRP_API_URL env)
   --no-upload          Scan locally only, don't upload results
+  --dry-run            Preview scan results without uploading or persisting
 
 ${bold('FRAMEWORKS (6 implemented)')}
   nist-800-53          NIST 800-53 Rev 5 (45 controls)     aliases: nist, nist800
@@ -620,10 +636,11 @@ async function main(): Promise<void> {
   }
 
   // Determine which scanners to run
-  const runAll = !opts.depsOnly && !opts.secretsOnly && !opts.iacOnly;
+  const runAll = !opts.depsOnly && !opts.secretsOnly && !opts.iacOnly && !opts.apiRoutesOnly;
   const runDeps = runAll || opts.depsOnly;
   const runSecrets = runAll || opts.secretsOnly;
   const runIaC = runAll || opts.iacOnly;
+  const runApiRoutes = runAll || opts.apiRoutesOnly;
 
   // ---- Progress display ----
   const isTTY = process.stderr.isTTY && !opts.ci;
@@ -736,6 +753,37 @@ async function main(): Promise<void> {
     );
   }
 
+  // API Route Security Scan
+  let apiRoutesScanned: number | undefined;
+  let apiRulesPassed: number | undefined;
+  let apiRulesFailed: number | undefined;
+
+  if (runApiRoutes) {
+    status['api'] = 'scanning...';
+    scanPromises.push(
+      (async () => {
+        if (opts.verbose) console.log('  Running API route security scanner...');
+        try {
+          const result = await scanApiSecurity(opts.targetDir);
+          allFindings.push(...result.findings);
+          scannersRun.push('api-security');
+          apiRoutesScanned = result.routesScanned;
+          apiRulesPassed = result.rulesPassed;
+          apiRulesFailed = result.rulesFailed;
+          status['api'] = `${result.routesScanned} routes`;
+          if (opts.verbose) {
+            console.log(`    Scanned ${result.routesScanned} API routes`);
+            console.log(`    ${result.rulesFailed} rules failed, ${result.rulesPassed} rules passed`);
+            console.log(`    ${result.findings.length} security issues found`);
+          }
+        } catch (err) {
+          status['api'] = 'error';
+          if (opts.verbose) console.error(`    API security scan error: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      })(),
+    );
+  }
+
   // Wait for all scanners
   await Promise.all(scanPromises);
   clearProgress();
@@ -753,10 +801,12 @@ async function main(): Promise<void> {
     console.log('');
   }
 
-  // ---- Determine exit code (always uses full findings for accuracy) ----
+  // ---- Determine exit code (only TRUE_POSITIVE findings count toward failure) ----
   const failThreshold = opts.failOn;
   const hasFailure = filteredFindings.some(
-    (f) => severityRank(f.severity) <= severityRank(failThreshold),
+    (f) =>
+      (f.verdict ?? 'TRUE_POSITIVE') === 'TRUE_POSITIVE' &&
+      severityRank(f.severity) <= severityRank(failThreshold),
   );
   const exitCode = hasFailure ? EXIT_VIOLATION : EXIT_PASS;
 
@@ -774,6 +824,9 @@ async function main(): Promise<void> {
     iacFilesScanned,
     iacRulesPassed,
     iacRulesFailed,
+    apiRoutesScanned,
+    apiRulesPassed,
+    apiRulesFailed,
     failOnSeverity: failThreshold,
     exitCode,
     durationMs,
@@ -782,6 +835,13 @@ async function main(): Promise<void> {
 
   const output = formatOutput(summary, opts.format);
   console.log(output);
+
+  // ---- Dry-run notice ----
+  if (opts.dryRun && isTTY) {
+    console.error('');
+    console.error('  \x1b[36m\x1b[1m[DRY RUN]\x1b[0m Results shown above are preview-only. No data was uploaded or persisted.');
+    console.error('');
+  }
 
   // ---- Upsell message for free tier ----
   if (!isPaidTier && filteredFindings.length > 0 && isTTY) {
@@ -795,7 +855,7 @@ async function main(): Promise<void> {
   }
 
   // ---- Upload if API key provided ----
-  if (opts.apiKey && !opts.noUpload && filteredFindings.length > 0) {
+  if (opts.apiKey && !opts.noUpload && !opts.dryRun && filteredFindings.length > 0) {
     await uploadResults(filteredFindings, opts.apiKey, opts.apiUrl, activeFrameworks ?? [], opts.verbose);
   }
 

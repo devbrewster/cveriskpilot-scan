@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf } from '@cveriskpilot/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -160,6 +160,10 @@ export async function PUT(request: NextRequest) {
     const auth2 = await requireAuth(request);
     if (auth2 instanceof NextResponse) return auth2;
     const session = auth2;
+
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
+
     if (session.role !== 'PLATFORM_ADMIN') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

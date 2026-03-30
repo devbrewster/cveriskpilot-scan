@@ -12,7 +12,17 @@ export default function LoginPage() {
   const callbackUrl = searchParams.get('callbackUrl') ?? searchParams.get('redirect') ?? '/dashboard';
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const ERROR_MESSAGES: Record<string, string> = {
+    google_state: 'Authentication session expired. Please try again.',
+    google_denied: 'Google sign-in was cancelled.',
+    google_invalid: 'Invalid authentication response. Please try again.',
+    google_token: 'Failed to verify Google credentials. Please try again.',
+    google_config: 'Google sign-in is not configured. Please use email login.',
+    google_fail: 'Google sign-in failed. Please try again.',
+    session_unavailable: 'Session service unavailable. Please try again in a moment.',
+  };
+  const urlError = searchParams.get('error');
+  const [error, setError] = useState(urlError ? (ERROR_MESSAGES[urlError] ?? 'Authentication failed. Please try again.') : "");
   const [state, setState] = useState<LoginState>('idle');
   const [tempSessionId, setTempSessionId] = useState("");
   const [mfaCode, setMfaCode] = useState<string[]>(Array(6).fill(""));

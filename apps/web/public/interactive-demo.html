@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVERiskPilot — Interactive Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --sidebar-w: 256px;
+      --banner-h: 40px;
+    }
+
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #f9fafb; color: #111827; }
+
+    /* Banner — bg-blue-600 */
+    .banner { position: fixed; top: 0; left: 0; right: 0; height: var(--banner-h); background: #2563eb; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 14px; z-index: 50; color: white; }
+    .banner-btn { background: white; color: #2563eb; padding: 6px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; border: none; cursor: pointer; }
+    .banner-btn:hover { background: #eff6ff; }
+
+    /* Sidebar — bg-gray-900 w-64 */
+    .sidebar { position: fixed; top: var(--banner-h); left: 0; bottom: 0; width: var(--sidebar-w); background: #111827; display: flex; flex-direction: column; z-index: 40; }
+    .sidebar-logo { display: flex; align-items: center; gap: 8px; padding: 0 24px; height: 64px; border-bottom: 1px solid #1f2937; }
+    .sidebar-logo svg { width: 32px; height: 32px; color: #3b82f6; }
+    .sidebar-logo .brand { font-weight: 700; font-size: 18px; color: white; }
+    .sidebar-logo .demo-badge { background: #3b82f6; color: white; font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-left: 4px; }
+
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 16px 12px; }
+    .nav-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #6b7280; }
+    .nav-section:first-child { padding-top: 0; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; font-size: 14px; font-weight: 500; color: #9ca3af; cursor: pointer; border-radius: 6px; transition: all 0.15s; border-left: 2px solid transparent; margin-bottom: 2px; }
+    .nav-item:hover { background: #1f2937; color: white; }
+    .nav-item.active { background: #1f2937; color: white; border-left-color: #3b82f6; }
+    .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    .sidebar-user { border-top: 1px solid #1f2937; padding: 16px; }
+    .sidebar-user-info { display: flex; align-items: center; gap: 12px; }
+    .sidebar-user-avatar { width: 36px; height: 36px; border-radius: 9999px; background: #1d4ed8; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; color: #bfdbfe; }
+    .sidebar-user-name { font-size: 14px; font-weight: 500; color: #e5e7eb; }
+    .sidebar-user-email { font-size: 12px; color: #6b7280; }
+    .sidebar-back { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 6px 8px; font-size: 14px; color: #9ca3af; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .sidebar-back:hover { background: #1f2937; color: white; }
+    .sidebar-back svg { width: 16px; height: 16px; }
+
+    /* Main content */
+    .main { margin-left: var(--sidebar-w); margin-top: var(--banner-h); padding: 24px; min-height: calc(100vh - var(--banner-h)); }
+
+    /* Page views */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* Grid layouts */
+    .grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+    .space-y-6 > * + * { margin-top: 24px; }
+
+    /* Card — matches card.tsx */
+    .card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f3f4f6; padding: 16px 24px; }
+    .card-header-text {}
+    .card-title { font-size: 16px; font-weight: 600; color: #111827; }
+    .card-desc { font-size: 14px; color: #6b7280; margin-top: 4px; }
+    .card-body { padding: 16px 24px; }
+
+    /* Stat cards */
+    .stat-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+    .stat-label { font-size: 14px; font-weight: 500; color: #6b7280; }
+    .stat-value { font-size: 30px; font-weight: 700; color: #111827; margin-top: 8px; letter-spacing: -0.025em; }
+    .stat-value.red { color: #b91c1c; }
+    .stat-value.green { color: #15803d; }
+
+    /* Severity bar */
+    .severity-bar { display: flex; height: 40px; overflow: hidden; border-radius: 8px; }
+    .severity-bar div { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white; transition: width 1s ease; }
+    .sev-crit { background: #dc2626; }
+    .sev-high { background: #f97316; }
+    .sev-med { background: #eab308; }
+    .sev-low { background: #3b82f6; }
+    .sev-info { background: #9ca3af; }
+    .severity-legend { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 16px; }
+    .severity-legend-item { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    .severity-legend-item .dot { width: 12px; height: 12px; border-radius: 3px; }
+    .severity-legend-item .sev-label { font-weight: 500; color: #374151; }
+    .severity-legend-item .sev-count { color: #6b7280; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 12px 16px; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; background: #f9fafb; }
+    td { padding: 12px 16px; color: #374151; }
+    tbody tr { border-top: 1px solid #f3f4f6; }
+    tbody tr:hover { background: #f9fafb; }
+
+    /* Severity Badges — ring style from badges.tsx */
+    .badge-sev { display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px; padding: 2px 8px; font-size: 12px; font-weight: 600; box-shadow: inset 0 0 0 1px; }
+    .badge-sev .dot { width: 6px; height: 6px; border-radius: 9999px; }
+    .badge-sev-critical { background: #fef2f2; color: #991b1b; box-shadow: inset 0 0 0 1px rgba(220,38,38,0.2); }
+    .badge-sev-critical .dot { background: #ef4444; }
+    .badge-sev-high { background: #fff7ed; color: #9a3412; box-shadow: inset 0 0 0 1px rgba(249,115,22,0.2); }
+    .badge-sev-high .dot { background: #f97316; }
+    .badge-sev-medium { background: #fefce8; color: #854d0e; box-shadow: inset 0 0 0 1px rgba(234,179,8,0.2); }
+    .badge-sev-medium .dot { background: #eab308; }
+    .badge-sev-low { background: #eff6ff; color: #1e40af; box-shadow: inset 0 0 0 1px rgba(59,130,246,0.2); }
+    .badge-sev-low .dot { background: #3b82f6; }
+    .badge-sev-info { background: #f3f4f6; color: #374151; box-shadow: inset 0 0 0 1px rgba(107,114,128,0.2); }
+    .badge-sev-info .dot { background: #9ca3af; }
+
+    /* Status Badges */
+    .badge-status { display: inline-flex; align-items: center; border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 500; }
+    .badge-status-new { background: #f1f5f9; color: #334155; }
+    .badge-status-triage { background: #f3e8ff; color: #6b21a8; }
+    .badge-status-in_remediation { background: #dbeafe; color: #1e40af; }
+    .badge-status-verified_closed { background: #dcfce7; color: #166534; }
+    .badge-status-accepted_risk { background: #fef3c7; color: #92400e; }
+    .badge-status-false_positive { background: #f3f4f6; color: #4b5563; }
+
+    /* KEV Badges */
+    .badge-kev { display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 500; box-shadow: inset 0 0 0 1px; }
+    .badge-kev-yes { background: #fef2f2; color: #b91c1c; box-shadow: inset 0 0 0 1px rgba(220,38,38,0.2); }
+    .badge-kev-no { background: #f0fdf4; color: #15803d; box-shadow: inset 0 0 0 1px rgba(22,163,74,0.2); }
+    .badge-kev svg { width: 14px; height: 14px; }
+
+    /* Scanner Badges */
+    .badge-scanner { display: inline-flex; align-items: center; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 500; }
+    .badge-scanner-sca { background: #ecfdf5; color: #047857; }
+    .badge-scanner-vm { background: #eef2ff; color: #4338ca; }
+    .badge-scanner-dast { background: #fff1f2; color: #be123c; }
+    .badge-scanner-container { background: #f0f9ff; color: #0369a1; }
+    .badge-scanner-iac { background: #f0fdfa; color: #0f766e; }
+    .badge-scanner-sast { background: #f5f3ff; color: #6d28d9; }
+
+    /* Format Badges */
+    .badge-format { display: inline-flex; align-items: center; border-radius: 9999px; padding: 2px 10px; font-size: 10px; font-weight: 600; }
+    .badge-format-nessus { background: #ecfdf5; color: #047857; }
+    .badge-format-sarif { background: #ede9fe; color: #6d28d9; }
+    .badge-format-cyclonedx { background: #ecfeff; color: #0e7490; }
+    .badge-format-qualys { background: #fff7ed; color: #c2410c; }
+    .badge-format-json { background: #f1f5f9; color: #334155; }
+    .badge-format-osv { background: #f0fdfa; color: #0f766e; }
+    .badge-format-csv { background: #f3f4f6; color: #374151; }
+
+    /* CVE tag */
+    .cve-tag { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; font-size: 12px; color: #374151; }
+
+    /* CVE link in EPSS table */
+    .cve-link { font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; font-size: 12px; font-weight: 500; color: #1d4ed8; }
+
+    /* EPSS bar */
+    .epss-bar-track { width: 80px; height: 8px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; display: inline-block; vertical-align: middle; }
+    .epss-bar-fill { height: 100%; background: #2563eb; border-radius: 9999px; }
+    .epss-score { font-size: 12px; font-weight: 600; color: #111827; margin-left: 8px; }
+
+    /* KEV Widget */
+    .kev-widget { border-radius: 8px; border: 1px solid #fecaca; background: #fef2f2; padding: 24px; }
+    .kev-widget-header { display: flex; align-items: center; gap: 8px; }
+    .kev-widget-header svg { width: 20px; height: 20px; color: #dc2626; }
+    .kev-widget-header span { font-size: 14px; font-weight: 600; color: #991b1b; }
+    .kev-count { font-size: 48px; font-weight: 700; color: #b91c1c; margin-top: 12px; }
+    .kev-desc { font-size: 14px; color: #dc2626; margin-top: 8px; }
+    .kev-deadline { margin-top: 16px; padding: 8px 12px; background: #fecaca; border-radius: 6px; }
+    .kev-deadline-label { font-size: 12px; font-weight: 500; color: #991b1b; }
+    .kev-deadline-date { font-size: 14px; font-weight: 600; color: #7f1d1d; }
+
+    /* SLA Widget */
+    .sla-widget { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+    .sla-title { font-size: 14px; font-weight: 600; color: #111827; }
+    .sla-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .sla-box { padding: 16px; border-radius: 8px; }
+    .sla-box.breach { background: #fef2f2; border: 1px solid #fecaca; }
+    .sla-box.approaching { background: #fefce8; border: 1px solid #fde68a; }
+    .sla-box .num { font-size: 24px; font-weight: 700; }
+    .sla-box.breach .num { color: #b91c1c; }
+    .sla-box.breach .label { color: #dc2626; font-size: 12px; font-weight: 500; }
+    .sla-box.approaching .num { color: #a16207; }
+    .sla-box.approaching .label { color: #ca8a04; font-size: 12px; font-weight: 500; }
+    .breach-section-label { margin-top: 16px; font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 8px; }
+    .breach-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; cursor: pointer; transition: opacity 0.15s; }
+    .breach-row:hover { opacity: 0.8; }
+    .breach-row-crit { background: #fef2f2; }
+    .breach-row-high { background: #fff7ed; }
+    .breach-row-med { background: #fefce8; }
+    .breach-sev-name { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; }
+    .breach-sev-name .dot { width: 8px; height: 8px; border-radius: 9999px; }
+    .breach-sev-count { font-size: 14px; font-weight: 700; }
+    .breach-row-crit .breach-sev-name, .breach-row-crit .breach-sev-count { color: #b91c1c; }
+    .breach-row-high .breach-sev-name, .breach-row-high .breach-sev-count { color: #c2410c; }
+    .breach-row-med .breach-sev-name, .breach-row-med .breach-sev-count { color: #a16207; }
+
+    /* Compliance scores */
+    .compliance-item { margin-bottom: 16px; }
+    .compliance-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 6px; }
+    .compliance-fw { font-weight: 500; color: #111827; }
+    .compliance-meta { color: #6b7280; }
+    .compliance-pct { font-weight: 600; }
+    .compliance-pct.green { color: #15803d; }
+    .compliance-pct.yellow { color: #a16207; }
+    .compliance-pct.red { color: #b91c1c; }
+    .compliance-bar { height: 8px; width: 100%; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+    .compliance-bar-fill { height: 100%; border-radius: 9999px; transition: width 1s ease; }
+    .compliance-bar-fill.green { background: #22c55e; }
+    .compliance-bar-fill.yellow { background: #eab308; }
+    .compliance-bar-fill.red { background: #ef4444; }
+    .compliance-link { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #2563eb; cursor: pointer; margin-top: 4px; }
+    .compliance-link:hover { color: #1d4ed8; }
+
+    /* Activity timeline */
+    .timeline { max-height: 448px; overflow-y: auto; padding-right: 4px; }
+    .timeline-item { display: flex; gap: 12px; padding-bottom: 24px; position: relative; }
+    .timeline-item:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: #e5e7eb; }
+    .timeline-icon { width: 32px; height: 32px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+    .timeline-icon svg { width: 16px; height: 16px; }
+    .timeline-icon-scan { background: #dbeafe; color: #2563eb; }
+    .timeline-icon-case { background: #f3e8ff; color: #9333ea; }
+    .timeline-icon-remediation { background: #dcfce7; color: #16a34a; }
+    .timeline-icon-alert { background: #fef2f2; color: #dc2626; }
+    .timeline-icon-kev { background: #ffedd5; color: #ea580c; }
+    .timeline-icon-policy { background: #e0e7ff; color: #4f46e5; }
+    .timeline-content { flex: 1; padding-top: 2px; }
+    .timeline-title { font-size: 14px; font-weight: 500; color: #111827; }
+    .timeline-desc { font-size: 12px; color: #6b7280; margin-top: 2px; }
+    .timeline-time { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+
+    /* Info banner */
+    .info-banner { display: flex; align-items: flex-start; gap: 12px; border-radius: 8px; border: 1px solid #bfdbfe; background: #eff6ff; padding: 12px 16px; margin-bottom: 16px; }
+    .info-banner svg { width: 20px; height: 20px; color: #3b82f6; flex-shrink: 0; margin-top: 1px; }
+    .info-banner p { font-size: 14px; color: #1d4ed8; }
+
+    .warn-banner { display: flex; align-items: center; gap: 8px; border-radius: 8px; border: 1px solid #fde68a; background: #fefce8; padding: 8px 16px; margin-bottom: 16px; }
+    .warn-banner svg { width: 16px; height: 16px; color: #d97706; flex-shrink: 0; }
+    .warn-banner span { font-size: 14px; font-weight: 500; color: #92400e; }
+
+    /* Filter bar */
+    .filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .filter-search { position: relative; width: 256px; }
+    .filter-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #9ca3af; pointer-events: none; }
+    .filter-search input { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 12px 6px 36px; font-size: 14px; color: #111827; background: white; outline: none; }
+    .filter-search input::placeholder { color: #9ca3af; }
+    .filter-search input:focus { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+    .filter-select { border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 12px; font-size: 14px; color: #374151; background: white; outline: none; cursor: pointer; }
+    .filter-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+    .filter-count { margin-left: auto; font-size: 14px; color: #6b7280; }
+    .filter-count strong { font-weight: 500; color: #374151; }
+
+    /* Page header */
+    .page-header { margin-bottom: 24px; }
+    .page-title { font-size: 24px; font-weight: 700; color: #111827; }
+    .page-subtitle { font-size: 14px; color: #6b7280; margin-top: 4px; }
+
+    /* Pagination */
+    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+    .pagination-info { font-size: 14px; color: #6b7280; }
+    .pagination-info strong { font-weight: 500; color: #374151; }
+    .pagination-btns { display: flex; gap: 8px; }
+    .pagination-btn { border: 1px solid #d1d5db; background: white; border-radius: 6px; padding: 6px 12px; font-size: 14px; font-weight: 500; color: #9ca3af; cursor: default; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+
+    /* Upload zone */
+    .upload-zone { display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed #93c5fd; border-radius: 8px; padding: 64px 24px; background: #f9fafb; transition: all 0.2s; cursor: pointer; }
+    .upload-zone:hover, .upload-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+    .upload-zone svg { width: 48px; height: 48px; color: #60a5fa; margin-bottom: 16px; }
+    .upload-zone .uz-title { font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 4px; }
+    .upload-zone .uz-sub { font-size: 14px; color: #6b7280; margin-bottom: 16px; }
+    .upload-zone .uz-btn { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .upload-zone .uz-btn:hover { background: #1d4ed8; }
+    .upload-formats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 24px; }
+    .upload-formats span { background: #f3f4f6; border-radius: 9999px; padding: 2px 10px; font-size: 12px; font-weight: 500; color: #4b5563; }
+
+    /* Pipeline steps */
+    .pipeline-step { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .pipeline-step-icon { width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pipeline-step-icon.complete { background: #dcfce7; }
+    .pipeline-step-icon.complete svg { width: 16px; height: 16px; color: #16a34a; }
+    .pipeline-step-icon.active { background: #dbeafe; }
+    .pipeline-step-icon.active .pulse { width: 10px; height: 10px; border-radius: 9999px; background: #2563eb; animation: pulse 1.5s infinite; }
+    .pipeline-step-icon.pending { background: #f3f4f6; }
+    .pipeline-step-icon.pending .dot { width: 8px; height: 8px; border-radius: 9999px; background: #d1d5db; }
+    .pipeline-step-label { font-size: 14px; }
+    .pipeline-step-label.active { font-weight: 500; color: #111827; }
+    .pipeline-step-label.complete { color: #6b7280; }
+    .pipeline-step-label.pending { color: #9ca3af; }
+    .pipeline-progress-inline { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .pipeline-progress-bar { width: 160px; height: 8px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+    .pipeline-progress-fill { height: 100%; background: #2563eb; border-radius: 9999px; transition: width 0.1s; }
+
+    /* Complete state */
+    .complete-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .complete-icon { width: 40px; height: 40px; border-radius: 9999px; background: #dcfce7; display: flex; align-items: center; justify-content: center; }
+    .complete-icon svg { width: 24px; height: 24px; color: #16a34a; }
+    .complete-title { font-size: 18px; font-weight: 600; color: #111827; }
+    .complete-sub { font-size: 14px; color: #6b7280; }
+    .summary-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px; }
+    .summary-stat { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center; }
+    .summary-stat .val { font-size: 24px; font-weight: 700; color: #111827; }
+    .summary-stat .lbl { font-size: 12px; font-weight: 500; color: #6b7280; }
+    .summary-stat.danger { border-color: #fecaca; background: #fef2f2; }
+    .summary-stat.danger .val { color: #b91c1c; }
+    .summary-stat.danger .lbl { color: #dc2626; }
+    .action-btns { display: flex; gap: 12px; }
+    .btn-primary { background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); text-decoration: none; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: white; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .btn-secondary:hover { background: #f9fafb; }
+
+    /* Spinner */
+    .spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* Compliance chain page */
+    .pipeline-chain { display: flex; align-items: center; gap: 0; justify-content: center; margin: 24px 0; flex-wrap: wrap; }
+    .chain-node { padding: 14px 20px; border-radius: 10px; font-weight: 700; font-size: 14px; text-align: center; }
+    .chain-arrow { font-size: 24px; color: #9ca3af; padding: 0 10px; }
+    .chain-vuln { background: #fef2f2; border: 2px solid rgba(220,38,38,0.3); color: #dc2626; }
+    .chain-cwe { background: #fefce8; border: 2px solid rgba(234,179,8,0.3); color: #a16207; }
+    .chain-nist { background: #eff6ff; border: 2px solid rgba(59,130,246,0.3); color: #2563eb; }
+    .chain-fw { padding: 8px 14px; border-radius: 6px; background: #f0fdf4; border: 1px solid rgba(34,197,94,0.3); color: #15803d; font-weight: 600; font-size: 12px; margin: 3px; }
+    .chain-fw-group { display: flex; flex-direction: column; gap: 6px; }
+
+    /* Scan simulation */
+    .scan-output { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace; font-size: 13px; line-height: 1.8; max-height: 500px; overflow-y: auto; color: #94a3b8; }
+    .scan-line { opacity: 0; animation: fadeIn 0.3s forwards; }
+    .scan-prompt { color: #22c55e; }
+    .scan-dim { color: #64748b; }
+    .scan-critical { color: #ef4444; }
+    .scan-high { color: #f97316; }
+    .scan-medium { color: #eab308; }
+    .scan-success { color: #22c55e; }
+    .scan-cyan { color: #22d3ee; }
+    .scan-bold { font-weight: 700; }
+    .scan-btn { background: #2563eb; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+    .scan-btn:hover { background: #1d4ed8; }
+    .scan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: countUp 0.5s ease forwards; }
+
+    /* Responsive */
+    @media (max-width: 1400px) { .grid-6 { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .grid-6 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3, .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Banner -->
+<div class="banner">
+  <span>You're viewing a demo of CVERiskPilot. Data shown is simulated.</span>
+  <a href="/signup" class="banner-btn">Get Started</a>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 2.18l7 3.12v4.7c0 4.67-3.13 9.06-7 10.2-3.87-1.14-7-5.53-7-10.2V6.3l7-3.12zm-1 5.82v2h2v-2h-2zm0 4v4h2v-4h-2z"/></svg>
+    <span class="brand">CVERiskPilot</span>
+    <span class="demo-badge">Demo</span>
+  </div>
+
+  <div class="sidebar-nav">
+    <!-- Core (no label) -->
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('findings')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+      Findings
+    </div>
+    <div class="nav-item" onclick="showPage('cases')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+      Cases
+    </div>
+    <div class="nav-item" onclick="showPage('upload')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+      Upload
+    </div>
+
+    <div class="nav-section">Compliance</div>
+    <div class="nav-item" onclick="showPage('compliance')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Compliance
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+      Risk Exceptions
+    </div>
+
+    <div class="nav-section">Pipeline</div>
+    <div class="nav-item" onclick="showPage('pipeline')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z"/></svg>
+      Pipeline Scanner
+    </div>
+    <div class="nav-item" onclick="showPage('scan-sim')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/></svg>
+      Scan Simulation
+    </div>
+    <div class="nav-item" onclick="showPage('pr-comment')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+      PR Comment
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+      Scorecard
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z"/></svg>
+      MSSP View
+    </div>
+
+    <div class="nav-section">Reports</div>
+    <div class="nav-item" onclick="showPage('scans')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Reports
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008zm-3 6h.008v.008h-.008v-.008zm0-6h.008v.008h-.008v-.008z"/></svg>
+      Assets
+    </div>
+
+    <div class="nav-section">Management</div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+      Users
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+      Billing
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 012.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/></svg>
+      Audit Log
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+      Notifications
+    </div>
+    <div class="nav-item" onclick="showPage('dashboard')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Settings
+    </div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="sidebar-user-info">
+      <div class="sidebar-user-avatar">DM</div>
+      <div>
+        <div class="sidebar-user-name">Demo User</div>
+        <div class="sidebar-user-email">demo@example.com</div>
+      </div>
+    </div>
+    <div class="sidebar-back" onclick="window.location.href='/'">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      Back to Home
+    </div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+
+  <!-- ==================== DASHBOARD ==================== -->
+  <div class="page active" id="page-dashboard">
+    <div class="space-y-6">
+
+    <!-- Row 1: Stat Cards -->
+    <div class="grid-6">
+      <div class="stat-card">
+        <div class="stat-label">Total Findings</div>
+        <div class="stat-value animate-in">587</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Open Cases</div>
+        <div class="stat-value animate-in">147</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Critical / High</div>
+        <div class="stat-value animate-in red">59</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">KEV-Listed</div>
+        <div class="stat-value animate-in red">8</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg EPSS (Top 10)</div>
+        <div class="stat-value animate-in">34.0%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">MTTR</div>
+        <div class="stat-value animate-in">4.2d</div>
+      </div>
+    </div>
+
+    <!-- Row 2: Severity Breakdown -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-text">
+          <div class="card-title">Severity Breakdown</div>
+          <div class="card-desc">Distribution of vulnerability cases by severity level</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="severity-bar">
+          <div class="sev-crit" style="width:2%">12</div>
+          <div class="sev-high" style="width:8%">47</div>
+          <div class="sev-med" style="width:27%">156</div>
+          <div class="sev-low" style="width:49%">289</div>
+          <div class="sev-info" style="width:14%">83</div>
+        </div>
+        <div class="severity-legend">
+          <div class="severity-legend-item"><div class="dot" style="background:#dc2626"></div> <span class="sev-label">Critical</span> <span class="sev-count">12 (2.0%)</span></div>
+          <div class="severity-legend-item"><div class="dot" style="background:#f97316"></div> <span class="sev-label">High</span> <span class="sev-count">47 (8.0%)</span></div>
+          <div class="severity-legend-item"><div class="dot" style="background:#eab308"></div> <span class="sev-label">Medium</span> <span class="sev-count">156 (26.6%)</span></div>
+          <div class="severity-legend-item"><div class="dot" style="background:#3b82f6"></div> <span class="sev-label">Low</span> <span class="sev-count">289 (49.2%)</span></div>
+          <div class="severity-legend-item"><div class="dot" style="background:#9ca3af"></div> <span class="sev-label">Info</span> <span class="sev-count">83 (14.1%)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: EPSS Top 10 + KEV Widget -->
+    <div class="grid-2-1">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-text">
+            <div class="card-title">EPSS Top 10</div>
+            <div class="card-desc">Highest exploitation probability scores</div>
+          </div>
+        </div>
+        <div class="card-body" style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>CVE ID</th>
+                <th>Title</th>
+                <th>EPSS Score</th>
+                <th>Percentile</th>
+                <th>Severity</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="cve-link">CVE-2021-44228</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="Log4Shell — Legacy App Instances">Log4Shell — Legacy App Instances</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:97.6%"></span></span><span class="epss-score">97.6%</span></td><td style="font-size:12px;color:#4b5563;">99.9%</td><td><span class="badge-sev badge-sev-critical"><span class="dot"></span>CRITICAL</span></td><td><span class="badge-status badge-status-verified_closed">Verified & Closed</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2023-4966</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="CitrixBleed — NetScaler Session Hijack">CitrixBleed — NetScaler Session Hijack</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:96.1%"></span></span><span class="epss-score">96.1%</span></td><td style="font-size:12px;color:#4b5563;">99.8%</td><td><span class="badge-sev badge-sev-critical"><span class="dot"></span>CRITICAL</span></td><td><span class="badge-status badge-status-new">New</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2024-3094</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="XZ Utils Backdoor — Supply Chain Compromise">XZ Utils Backdoor — Supply Chain Compromise</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:95.7%"></span></span><span class="epss-score">95.7%</span></td><td style="font-size:12px;color:#4b5563;">99.8%</td><td><span class="badge-sev badge-sev-critical"><span class="dot"></span>CRITICAL</span></td><td><span class="badge-status badge-status-in_remediation">In Remediation</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2023-34362</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="MOVEit Transfer SQLi — File Exfil Risk">MOVEit Transfer SQLi — File Exfil Risk</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:95.2%"></span></span><span class="epss-score">95.2%</span></td><td style="font-size:12px;color:#4b5563;">99.8%</td><td><span class="badge-sev badge-sev-critical"><span class="dot"></span>CRITICAL</span></td><td><span class="badge-status badge-status-verified_closed">Verified & Closed</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2024-21762</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="Fortinet SSL VPN Out-of-Bounds Write">Fortinet SSL VPN Out-of-Bounds Write</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:94.3%"></span></span><span class="epss-score">94.3%</span></td><td style="font-size:12px;color:#4b5563;">99.7%</td><td><span class="badge-sev badge-sev-critical"><span class="dot"></span>CRITICAL</span></td><td><span class="badge-status badge-status-in_remediation">In Remediation</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2023-22515</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="Confluence RCE — Broken Access Control">Confluence RCE — Broken Access Control</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:91.3%"></span></span><span class="epss-score">91.3%</span></td><td style="font-size:12px;color:#4b5563;">99.3%</td><td><span class="badge-sev badge-sev-critical"><span class="dot"></span>CRITICAL</span></td><td><span class="badge-status badge-status-triage">Triage</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2023-44487</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="HTTP/2 Rapid Reset — DoS across Load Balancers">HTTP/2 Rapid Reset — DoS across LBs</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:82.2%"></span></span><span class="epss-score">82.2%</span></td><td style="font-size:12px;color:#4b5563;">98.1%</td><td><span class="badge-sev badge-sev-high"><span class="dot"></span>HIGH</span></td><td><span class="badge-status badge-status-triage">Triage</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2024-21626</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="Docker runc Container Escape (Leaky Vessels)">Docker runc Container Escape</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:72.8%"></span></span><span class="epss-score">72.8%</span></td><td style="font-size:12px;color:#4b5563;">96.8%</td><td><span class="badge-sev badge-sev-high"><span class="dot"></span>HIGH</span></td><td><span class="badge-status badge-status-in_remediation">In Remediation</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2019-9193</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="PostgreSQL COPY Privilege Escalation">PostgreSQL COPY Privilege Escalation</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:31.2%"></span></span><span class="epss-score">31.2%</span></td><td style="font-size:12px;color:#4b5563;">89.1%</td><td><span class="badge-sev badge-sev-high"><span class="dot"></span>HIGH</span></td><td><span class="badge-status badge-status-accepted_risk">Accepted Risk</span></td></tr>
+              <tr><td><span class="cve-link">CVE-2024-27289</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="Terraform IAM Role Assumption Bypass">Terraform IAM Role Assumption Bypass</td><td><span class="epss-bar-track"><span class="epss-bar-fill" style="width:7.8%"></span></span><span class="epss-score">7.8%</span></td><td style="font-size:12px;color:#4b5563;">63.1%</td><td><span class="badge-sev badge-sev-medium"><span class="dot"></span>MEDIUM</span></td><td><span class="badge-status badge-status-accepted_risk">Accepted Risk</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- KEV Widget -->
+      <div class="kev-widget">
+        <div class="kev-widget-header">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+          <span>KEV-Listed</span>
+        </div>
+        <div class="kev-count">8</div>
+        <div class="kev-desc">Known Exploited Vulnerabilities requiring urgent remediation</div>
+        <div class="kev-deadline">
+          <div class="kev-deadline-label">Nearest deadline</div>
+          <div class="kev-deadline-date" id="kev-due-date"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4: SLA Status + Recent Scans -->
+    <div class="grid-3">
+      <!-- SLA Widget -->
+      <div class="sla-widget">
+        <div class="sla-title">SLA Status</div>
+        <div class="sla-grid">
+          <div class="sla-box breach">
+            <div class="num">3</div>
+            <div class="label">SLA Breaches</div>
+          </div>
+          <div class="sla-box approaching">
+            <div class="num">7</div>
+            <div class="label">Approaching</div>
+          </div>
+        </div>
+        <div class="breach-section-label">Breaches by Severity</div>
+        <div class="breach-row breach-row-crit">
+          <div class="breach-sev-name"><span class="dot" style="background:#ef4444"></span> CRITICAL</div>
+          <div class="breach-sev-count">1</div>
+        </div>
+        <div class="breach-row breach-row-high">
+          <div class="breach-sev-name"><span class="dot" style="background:#f97316"></span> HIGH</div>
+          <div class="breach-sev-count">1</div>
+        </div>
+        <div class="breach-row breach-row-med">
+          <div class="breach-sev-name"><span class="dot" style="background:#eab308"></span> MEDIUM</div>
+          <div class="breach-sev-count">1</div>
+        </div>
+      </div>
+
+      <!-- Recent Scans (spans 2 cols) -->
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+          <div class="card-header-text">
+            <div class="card-title">Recent Scans</div>
+            <div class="card-desc">Latest upload jobs and their processing status</div>
+          </div>
+        </div>
+        <div class="card-body" style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Format</th>
+                <th>Status</th>
+                <th style="text-align:right">Findings</th>
+                <th style="text-align:right">Uploaded</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="font-weight:500;color:#111827;">nessus-weekly-2024-03-15.nessus</td><td><span class="badge-format badge-format-nessus">NESSUS</span></td><td><span class="badge-status badge-status-verified_closed" style="background:#dcfce7;color:#166534;">Completed</span></td><td style="text-align:right;font-family:monospace;font-size:12px;color:#374151;">142</td><td style="text-align:right;font-size:12px;color:#6b7280;" class="relative-time" data-time="2024-03-15T02:00:00Z"></td></tr>
+              <tr><td style="font-weight:500;color:#111827;">sonarqube-report.sarif</td><td><span class="badge-format badge-format-sarif">SARIF</span></td><td><span class="badge-status badge-status-verified_closed" style="background:#dcfce7;color:#166534;">Completed</span></td><td style="text-align:right;font-family:monospace;font-size:12px;color:#374151;">67</td><td style="text-align:right;font-size:12px;color:#6b7280;" class="relative-time" data-time="2024-03-14T09:30:00Z"></td></tr>
+              <tr><td style="font-weight:500;color:#111827;">trivy-containers-2024-03-13.json</td><td><span class="badge-format badge-format-json">JSON</span></td><td><span class="badge-status badge-status-verified_closed" style="background:#dcfce7;color:#166534;">Completed</span></td><td style="text-align:right;font-family:monospace;font-size:12px;color:#374151;">93</td><td style="text-align:right;font-size:12px;color:#6b7280;" class="relative-time" data-time="2024-03-13T18:15:00Z"></td></tr>
+              <tr><td style="font-weight:500;color:#111827;">dependency-track-sbom.cdx.json</td><td><span class="badge-format badge-format-cyclonedx">CYCLONEDX</span></td><td><span class="badge-status badge-status-verified_closed" style="background:#dcfce7;color:#166534;">Completed</span></td><td style="text-align:right;font-family:monospace;font-size:12px;color:#374151;">214</td><td style="text-align:right;font-size:12px;color:#6b7280;" class="relative-time" data-time="2024-03-12T06:00:00Z"></td></tr>
+              <tr><td style="font-weight:500;color:#111827;">qualys-perimeter-scan-q1.xml</td><td><span class="badge-format badge-format-qualys">QUALYS</span></td><td><span class="badge-status badge-status-verified_closed" style="background:#dcfce7;color:#166534;">Completed</span></td><td style="text-align:right;font-family:monospace;font-size:12px;color:#374151;">71</td><td style="text-align:right;font-size:12px;color:#6b7280;" class="relative-time" data-time="2024-03-10T22:45:00Z"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 5: Compliance Scores + Activity Timeline -->
+    <div class="grid-3">
+      <!-- Compliance Scores -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-text">
+            <div class="card-title">Compliance Scores</div>
+            <div class="card-desc">Framework compliance status</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="compliance-item">
+            <div class="compliance-row"><span class="compliance-fw">SOC2</span><span class="compliance-meta">5/7 controls <span class="compliance-pct yellow">78%</span></span></div>
+            <div class="compliance-bar"><div class="compliance-bar-fill yellow" style="width:78%"></div></div>
+          </div>
+          <div class="compliance-item">
+            <div class="compliance-row"><span class="compliance-fw">SSDF</span><span class="compliance-meta">7/8 controls <span class="compliance-pct yellow">82%</span></span></div>
+            <div class="compliance-bar"><div class="compliance-bar-fill yellow" style="width:82%"></div></div>
+          </div>
+          <div class="compliance-item">
+            <div class="compliance-row"><span class="compliance-fw">ASVS</span><span class="compliance-meta">5/7 controls <span class="compliance-pct yellow">71%</span></span></div>
+            <div class="compliance-bar"><div class="compliance-bar-fill yellow" style="width:71%"></div></div>
+          </div>
+          <div class="compliance-link">
+            View all frameworks
+            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Timeline (spans 2 cols) -->
+      <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+          <div class="card-header-text">
+            <div class="card-title">Recent Activity</div>
+            <div class="card-desc">Latest events across the platform</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-scan"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">Nessus weekly scan uploaded</div>
+                <div class="timeline-desc">142 findings ingested from nessus-weekly-2024-03-15.nessus</div>
+                <div class="timeline-time">2024-03-15T02:05:00Z</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-kev"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">New critical case: XZ Utils Backdoor (CVE-2024-3094)</div>
+                <div class="timeline-desc">KEV listed &mdash; assigned to Maria Chen for emergency triage</div>
+                <div class="timeline-time">2024-03-29T08:30:00Z</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-remediation"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">Log4Shell remediation verified</div>
+                <div class="timeline-desc">All 47 findings for CVE-2021-44228 verified closed</div>
+                <div class="timeline-time">2024-03-12T16:20:00Z</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-alert"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">SLA breached: CitrixBleed (CVE-2023-4966)</div>
+                <div class="timeline-desc">Critical severity &mdash; 162 days overdue</div>
+                <div class="timeline-time">2024-03-28T00:00:00Z</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-case"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">Fortinet SSL VPN case assigned to James Walker</div>
+                <div class="timeline-desc">Emergency patching scheduled for next maintenance window</div>
+                <div class="timeline-time">2024-02-09T15:10:00Z</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-case"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">HTTP/2 Rapid Reset moved to TRIAGE</div>
+                <div class="timeline-desc">Impact assessment underway across load balancers</div>
+                <div class="timeline-time">2024-01-17T09:00:00Z</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-policy"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">Risk accepted: jQuery Prototype Pollution</div>
+                <div class="timeline-desc">CVE-2019-11358 &mdash; legacy portal scheduled for EOL Q2</div>
+                <div class="timeline-time">2024-03-01T14:30:00Z</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-icon timeline-icon-remediation"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+              <div class="timeline-content">
+                <div class="timeline-title">MOVEit Transfer SQLi remediation verified</div>
+                <div class="timeline-desc">CVE-2023-34362 &mdash; case closed after patch verification</div>
+                <div class="timeline-time">2024-02-28T11:45:00Z</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /space-y-6 -->
+  </div>
+
+  <!-- ==================== FINDINGS ==================== -->
+  <div class="page" id="page-findings">
+    <div class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">Vulnerability Findings</div>
+      <div class="page-subtitle">Individual scanner findings across all assets</div>
+    </div>
+
+    <div class="info-banner">
+      <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+      <p>Showing simulated vulnerability findings. Upload your own scans to see real data.</p>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search CVE, title, asset..." id="findings-search" oninput="filterFindings()">
+      </div>
+      <select class="filter-select" id="findings-severity" onchange="filterFindings()">
+        <option value="">All Severities</option>
+        <option value="CRITICAL">CRITICAL</option>
+        <option value="HIGH">HIGH</option>
+        <option value="MEDIUM">MEDIUM</option>
+        <option value="LOW">LOW</option>
+        <option value="INFO">INFO</option>
+      </select>
+      <select class="filter-select" id="findings-status" onchange="filterFindings()">
+        <option value="">All Statuses</option>
+        <option value="NEW">New</option>
+        <option value="TRIAGE">Triage</option>
+        <option value="IN_REMEDIATION">In Remediation</option>
+        <option value="VERIFIED_CLOSED">Verified & Closed</option>
+        <option value="ACCEPTED_RISK">Accepted Risk</option>
+      </select>
+      <div class="filter-count">Showing <strong id="findings-count">15</strong> findings</div>
+    </div>
+
+    <div style="overflow-x:auto;border-radius:8px;border:1px solid #e5e7eb;background:white;">
+      <table style="min-width:900px;">
+        <thead>
+          <tr>
+            <th>CVE ID</th>
+            <th>Title</th>
+            <th>Severity</th>
+            <th>CVSS</th>
+            <th>EPSS</th>
+            <th>KEV</th>
+            <th>Scanner</th>
+            <th>Asset</th>
+            <th>Status</th>
+            <th>Discovered</th>
+          </tr>
+        </thead>
+        <tbody id="findings-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <div class="pagination-info">Page <strong>1</strong> of <strong>1</strong></div>
+      <div class="pagination-btns">
+        <span class="pagination-btn">Previous</span>
+        <span class="pagination-btn">Next</span>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== CASES ==================== -->
+  <div class="page" id="page-cases">
+    <div class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">Vulnerability Cases</div>
+      <div class="page-subtitle">Deduplicated vulnerability cases across all scanners and assets</div>
+    </div>
+
+    <div class="info-banner">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+      <p>Showing simulated vulnerability cases. Cases are automatically built from deduplicated findings.</p>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-search">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search CVE, title, case ID..." id="cases-search" oninput="filterCases()">
+      </div>
+      <select class="filter-select" id="cases-severity" onchange="filterCases()">
+        <option value="">All Severities</option>
+        <option value="CRITICAL">Critical</option>
+        <option value="HIGH">High</option>
+        <option value="MEDIUM">Medium</option>
+        <option value="LOW">Low</option>
+        <option value="INFO">Info</option>
+      </select>
+      <select class="filter-select" id="cases-status" onchange="filterCases()">
+        <option value="">All Statuses</option>
+        <option value="NEW">New</option>
+        <option value="TRIAGE">Triage</option>
+        <option value="IN_REMEDIATION">In Remediation</option>
+        <option value="ACCEPTED_RISK">Accepted Risk</option>
+        <option value="VERIFIED_CLOSED">Verified & Closed</option>
+        <option value="FALSE_POSITIVE">False Positive</option>
+      </select>
+    </div>
+
+    <p style="font-size:14px;color:#6b7280;"><span style="font-weight:500;color:#374151;" id="cases-count">10</span> cases</p>
+
+    <div style="overflow-x:auto;border-radius:8px;border:1px solid #e5e7eb;background:white;box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);">
+      <table style="min-width:1000px;">
+        <thead>
+          <tr>
+            <th>Case ID</th>
+            <th>Title</th>
+            <th>Severity</th>
+            <th>CVSS</th>
+            <th>EPSS</th>
+            <th>KEV</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+            <th>Findings</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody id="cases-tbody"></tbody>
+      </table>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== UPLOAD ==================== -->
+  <div class="page" id="page-upload">
+    <div style="max-width:896px;margin:0 auto;" class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">Upload Scan</div>
+      <div class="page-subtitle">Import vulnerability scan results for parsing, enrichment, and case creation &mdash; Demo Mode</div>
+    </div>
+
+    <div class="warn-banner">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 14.5M14.25 3.104c.251.023.501.05.75.082M19.8 14.5l-2.147 2.146a2.25 2.25 0 01-1.591.659H7.938a2.25 2.25 0 01-1.591-.659L4.2 14.5m15.6 0l.147-.146a2.25 2.25 0 000-3.182l-.31-.31"/></svg>
+      <span>Demo Mode &mdash; files are not actually uploaded. This simulates the ingestion pipeline.</span>
+    </div>
+
+    <div style="border-radius:8px;border:1px solid #e5e7eb;background:white;padding:24px;">
+      <!-- Upload zone (idle state) -->
+      <div id="upload-idle">
+        <div class="upload-zone" id="upload-dropzone">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+          <div class="uz-title">Drop scan files here</div>
+          <div class="uz-sub">or click below to browse</div>
+          <button class="uz-btn" onclick="document.getElementById('upload-file-input').click()">Select File</button>
+          <input type="file" id="upload-file-input" style="display:none" accept=".nessus,.sarif,.json,.xml,.csv,.xlsx" onchange="startUploadPipeline(this.files)">
+          <div class="upload-formats">
+            <span>Nessus</span><span>SARIF</span><span>CycloneDX</span><span>Qualys</span><span>OpenVAS</span><span>CSV</span><span>JSON</span><span>OSV</span><span>SPDX</span><span>CSAF</span><span>XLSX</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processing state -->
+      <div id="upload-processing" style="display:none;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+          <svg class="spinner" style="width:20px;height:20px;color:#2563eb;" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+          <span style="font-size:14px;font-weight:500;color:#374151;">Processing <strong id="upload-filename" style="color:#111827;"></strong></span>
+        </div>
+        <div id="upload-steps"></div>
+      </div>
+
+      <!-- Complete state -->
+      <div id="upload-complete" style="display:none;">
+        <div class="complete-header">
+          <div class="complete-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>
+          <div>
+            <div class="complete-title">Processing Complete</div>
+            <div class="complete-sub">All pipeline stages finished successfully</div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <span style="font-size:14px;font-weight:500;color:#374151;" id="upload-complete-filename"></span>
+            <span class="badge-format badge-format-nessus" id="upload-complete-format">NESSUS</span>
+          </div>
+          <div class="summary-grid">
+            <div class="summary-stat"><div class="val">142</div><div class="lbl">Findings Parsed</div></div>
+            <div class="summary-stat"><div class="val">18</div><div class="lbl">Cases Created</div></div>
+            <div class="summary-stat danger"><div class="val">3</div><div class="lbl">KEV Flagged</div></div>
+          </div>
+        </div>
+        <div class="action-btns">
+          <button class="btn-primary" onclick="showPage('findings')">View Findings</button>
+          <button class="btn-secondary" onclick="resetUpload()">Upload Another</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload History -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-text">
+          <div class="card-title">Upload History</div>
+          <div class="card-desc">Recent scan imports and processing results</div>
+        </div>
+      </div>
+      <div class="card-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Format</th>
+              <th>Status</th>
+              <th style="text-align:right">Findings</th>
+              <th style="text-align:right">Cases</th>
+              <th style="text-align:right">Uploaded</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="font-weight:500;color:#111827;">nessus-weekly-2024-03-15.nessus</td><td><span class="badge-format badge-format-nessus">NESSUS</span></td><td><span style="display:inline-flex;align-items:center;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">142</td><td style="text-align:right;color:#374151;">18</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-15T02:00:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">sonarqube-report.sarif</td><td><span class="badge-format badge-format-sarif">SARIF</span></td><td><span style="display:inline-flex;align-items:center;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">67</td><td style="text-align:right;color:#374151;">9</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-14T09:30:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">trivy-containers-2024-03-13.json</td><td><span class="badge-format badge-format-json">JSON</span></td><td><span style="display:inline-flex;align-items:center;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">93</td><td style="text-align:right;color:#374151;">12</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-13T18:15:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">dependency-track-sbom.cdx.json</td><td><span class="badge-format badge-format-cyclonedx">CYCLONEDX</span></td><td><span style="display:inline-flex;align-items:center;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">214</td><td style="text-align:right;color:#374151;">31</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-12T06:00:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">qualys-perimeter-scan-q1.xml</td><td><span class="badge-format badge-format-qualys">QUALYS</span></td><td><span style="display:inline-flex;align-items:center;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">71</td><td style="text-align:right;color:#374151;">8</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-10T22:45:00Z"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== COMPLIANCE CHAIN ==================== -->
+  <div class="page" id="page-pipeline">
+    <div class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">Compliance Mapping Chain</div>
+      <div class="page-subtitle">CVE to CWE to NIST 800-53 to framework control mapping</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="pipeline-chain">
+          <div class="chain-node chain-vuln">CVE-2024-3094<br><small style="font-weight:400;font-size:11px;">XZ Utils Backdoor</small></div>
+          <div class="chain-arrow">&rarr;</div>
+          <div class="chain-node chain-cwe">CWE-506<br><small style="font-weight:400;font-size:11px;">Embedded Malicious Code</small></div>
+          <div class="chain-arrow">&rarr;</div>
+          <div class="chain-node chain-nist">SI-7<br><small style="font-weight:400;font-size:11px;">Software Integrity</small></div>
+          <div class="chain-arrow">&rarr;</div>
+          <div class="chain-fw-group">
+            <div class="chain-fw">SOC2 CC8.1</div>
+            <div class="chain-fw">SSDF PW.4</div>
+            <div class="chain-fw">FedRAMP SI-7</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-header-text"><div class="card-title">Mapping Examples</div></div></div>
+      <div class="card-body" style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>CVE</th><th>CWE</th><th>NIST Control</th><th>Frameworks</th></tr></thead>
+          <tbody>
+            <tr><td><span class="cve-tag">CVE-2024-3094</span></td><td>CWE-506</td><td>SI-7</td><td>SOC2 CC8.1, SSDF PW.4, FedRAMP SI-7</td></tr>
+            <tr><td><span class="cve-tag">CVE-2024-21762</span></td><td>CWE-787</td><td>SI-2</td><td>SOC2 CC7.1, ASVS 14.2, FedRAMP SI-2</td></tr>
+            <tr><td><span class="cve-tag">CVE-2021-44228</span></td><td>CWE-502</td><td>SI-10</td><td>SOC2 CC6.1, ASVS 5.5, FedRAMP SI-10</td></tr>
+            <tr><td><span class="cve-tag">CVE-2023-44487</span></td><td>CWE-400</td><td>SC-5</td><td>SOC2 CC6.6, ASVS 11.2, FedRAMP SC-5</td></tr>
+            <tr><td><span class="cve-tag">CVE-2023-4966</span></td><td>CWE-119</td><td>SI-2</td><td>SOC2 CC7.1, SSDF PW.6, FedRAMP SI-2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== SCAN SIMULATION ==================== -->
+  <div class="page" id="page-scan-sim">
+    <div class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">Scan Simulation</div>
+      <div class="page-subtitle">Watch a live pipeline compliance scan in action</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <button class="scan-btn" id="scan-btn" onclick="runScanSim()">Run Pipeline Scan</button>
+        <div class="scan-output" id="scan-output">
+          <div style="color:#64748b;">Click "Run Pipeline Scan" to start a simulated compliance scan...</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== PR COMMENT ==================== -->
+  <div class="page" id="page-pr-comment">
+    <div class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">PR Comment Preview</div>
+      <div class="page-subtitle">Pipeline scanner automatically posts this to your pull requests</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div style="border:1px solid #e5e7eb;border-radius:8px;padding:24px;background:#f9fafb;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+            <svg style="width:20px;height:20px;color:#3b82f6;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            <strong style="color:#111827;">CVERiskPilot Security Scan</strong>
+            <span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;">PASS</span>
+          </div>
+          <table style="font-size:13px;">
+            <thead><tr><th>Check</th><th>Result</th><th>Details</th></tr></thead>
+            <tbody>
+              <tr><td style="color:#111827;font-weight:500;">Critical CVEs</td><td><span style="color:#16a34a;font-weight:600;">0 found</span></td><td style="color:#6b7280;">No critical vulnerabilities detected</td></tr>
+              <tr><td style="color:#111827;font-weight:500;">High CVEs</td><td><span style="color:#ea580c;font-weight:600;">2 found</span></td><td style="color:#6b7280;">CVE-2024-21626, CVE-2023-44487</td></tr>
+              <tr><td style="color:#111827;font-weight:500;">KEV Match</td><td><span style="color:#16a34a;font-weight:600;">0 matches</span></td><td style="color:#6b7280;">No known exploited vulnerabilities</td></tr>
+              <tr><td style="color:#111827;font-weight:500;">License Risk</td><td><span style="color:#16a34a;font-weight:600;">Clean</span></td><td style="color:#6b7280;">All dependencies use approved licenses</td></tr>
+              <tr><td style="color:#111827;font-weight:500;">SBOM Coverage</td><td><span style="color:#111827;font-weight:600;">98.2%</span></td><td style="color:#6b7280;">247 of 251 components identified</td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#6b7280;display:flex;align-items:center;gap:4px;">
+            Powered by
+            <svg style="width:14px;height:14px;color:#3b82f6;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            <strong style="color:#374151;">CVERiskPilot Pipeline Scanner</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== COMPLIANCE FRAMEWORKS ==================== -->
+  <div class="page" id="page-compliance">
+    <div class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">Compliance Frameworks</div>
+      <div class="page-subtitle">Framework control coverage and compliance status</div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-header"><div class="card-header-text"><div class="card-title">SOC 2 Type II</div></div></div>
+        <div class="card-body">
+          <div style="text-align:center;margin-bottom:16px;"><span style="font-size:36px;font-weight:700;color:#a16207;">78%</span></div>
+          <div class="compliance-bar" style="margin-bottom:12px;"><div class="compliance-bar-fill yellow" style="width:78%"></div></div>
+          <div style="font-size:13px;color:#6b7280;">5 of 7 controls met</div>
+          <div style="margin-top:12px;font-size:12px;color:#6b7280;border-top:1px solid #f3f4f6;padding-top:12px;">
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>CC6.1 — Logical Access</span><span style="color:#16a34a;">Met</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>CC7.1 — System Monitoring</span><span style="color:#16a34a;">Met</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>CC8.1 — Change Management</span><span style="color:#dc2626;">Not Met</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-header-text"><div class="card-title">NIST SSDF</div></div></div>
+        <div class="card-body">
+          <div style="text-align:center;margin-bottom:16px;"><span style="font-size:36px;font-weight:700;color:#a16207;">82%</span></div>
+          <div class="compliance-bar" style="margin-bottom:12px;"><div class="compliance-bar-fill yellow" style="width:82%"></div></div>
+          <div style="font-size:13px;color:#6b7280;">7 of 8 controls met</div>
+          <div style="margin-top:12px;font-size:12px;color:#6b7280;border-top:1px solid #f3f4f6;padding-top:12px;">
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>PW.4 — Reusable Software</span><span style="color:#16a34a;">Met</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>PW.6 — Compiler Settings</span><span style="color:#16a34a;">Met</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>RV.1 — Vulnerability Response</span><span style="color:#dc2626;">Not Met</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-header-text"><div class="card-title">OWASP ASVS</div></div></div>
+        <div class="card-body">
+          <div style="text-align:center;margin-bottom:16px;"><span style="font-size:36px;font-weight:700;color:#a16207;">71%</span></div>
+          <div class="compliance-bar" style="margin-bottom:12px;"><div class="compliance-bar-fill yellow" style="width:71%"></div></div>
+          <div style="font-size:13px;color:#6b7280;">5 of 7 controls met</div>
+          <div style="margin-top:12px;font-size:12px;color:#6b7280;border-top:1px solid #f3f4f6;padding-top:12px;">
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>5.5 — Deserialization</span><span style="color:#16a34a;">Met</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>11.2 — DoS Protection</span><span style="color:#dc2626;">Not Met</span></div>
+            <div style="display:flex;justify-content:space-between;padding:4px 0;"><span>14.2 — Dependency Checks</span><span style="color:#dc2626;">Not Met</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- ==================== RECENT SCANS ==================== -->
+  <div class="page" id="page-scans">
+    <div class="space-y-6">
+    <div class="page-header">
+      <div class="page-title">Recent Scans</div>
+      <div class="page-subtitle">Upload history and processing status</div>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Format</th>
+              <th>Status</th>
+              <th style="text-align:right">Findings</th>
+              <th style="text-align:right">Cases</th>
+              <th style="text-align:right">Uploaded</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="font-weight:500;color:#111827;">nessus-weekly-2024-03-15.nessus</td><td><span class="badge-format badge-format-nessus">NESSUS</span></td><td><span style="display:inline-flex;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">142</td><td style="text-align:right;color:#374151;">18</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-15T02:00:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">sonarqube-report.sarif</td><td><span class="badge-format badge-format-sarif">SARIF</span></td><td><span style="display:inline-flex;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">67</td><td style="text-align:right;color:#374151;">9</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-14T09:30:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">trivy-containers-2024-03-13.json</td><td><span class="badge-format badge-format-json">JSON</span></td><td><span style="display:inline-flex;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">93</td><td style="text-align:right;color:#374151;">12</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-13T18:15:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">dependency-track-sbom.cdx.json</td><td><span class="badge-format badge-format-cyclonedx">CYCLONEDX</span></td><td><span style="display:inline-flex;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">214</td><td style="text-align:right;color:#374151;">31</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-12T06:00:00Z"></td></tr>
+            <tr><td style="font-weight:500;color:#111827;">qualys-perimeter-scan-q1.xml</td><td><span class="badge-format badge-format-qualys">QUALYS</span></td><td><span style="display:inline-flex;border-radius:9999px;padding:2px 10px;font-size:12px;font-weight:600;background:#dcfce7;color:#166534;">COMPLETED</span></td><td style="text-align:right;color:#374151;">71</td><td style="text-align:right;color:#374151;">8</td><td style="text-align:right;color:#6b7280;" class="relative-time" data-time="2024-03-10T22:45:00Z"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// =========================================================================
+// Demo Data — matches apps/web/src/lib/demo-data.ts exactly
+// =========================================================================
+const demoFindings = [
+  { id:'f-001', title:'XZ Utils Backdoor — Malicious Code in liblzma', severity:'CRITICAL', status:'IN_REMEDIATION', cveId:'CVE-2024-3094', cvssScore:10.0, epssScore:0.957, kevListed:true, scannerType:'SCA', assetName:'prod-api-01.acmecorp.io', discoveredAt:'2024-03-29T08:12:00Z', parserFormat:'CYCLONEDX' },
+  { id:'f-002', title:'Fortinet FortiOS SSL VPN — Out-of-Bounds Write RCE', severity:'CRITICAL', status:'IN_REMEDIATION', cveId:'CVE-2024-21762', cvssScore:9.8, epssScore:0.943, kevListed:true, scannerType:'VM', assetName:'fw-edge-01.acmecorp.io', discoveredAt:'2024-02-09T14:30:00Z', parserFormat:'NESSUS' },
+  { id:'f-003', title:'HTTP/2 Rapid Reset DDoS Attack Vector', severity:'HIGH', status:'TRIAGE', cveId:'CVE-2023-44487', cvssScore:7.5, epssScore:0.822, kevListed:true, scannerType:'DAST', assetName:'lb-public-01.acmecorp.io', discoveredAt:'2024-01-15T10:00:00Z', parserFormat:'SARIF' },
+  { id:'f-004', title:'Apache Log4j Remote Code Execution (Log4Shell)', severity:'CRITICAL', status:'VERIFIED_CLOSED', cveId:'CVE-2021-44228', cvssScore:10.0, epssScore:0.976, kevListed:true, scannerType:'SCA', assetName:'app-backend-03.acmecorp.io', discoveredAt:'2023-12-10T16:45:00Z', parserFormat:'CYCLONEDX' },
+  { id:'f-005', title:'Citrix NetScaler ADC — Unauthenticated RCE (CitrixBleed)', severity:'CRITICAL', status:'IN_REMEDIATION', cveId:'CVE-2023-4966', cvssScore:9.4, epssScore:0.961, kevListed:true, scannerType:'VM', assetName:'vpn-gateway.acmecorp.io', discoveredAt:'2023-10-18T09:20:00Z', parserFormat:'NESSUS' },
+  { id:'f-006', title:'Confluence Data Center — Broken Access Control RCE', severity:'CRITICAL', status:'TRIAGE', cveId:'CVE-2023-22515', cvssScore:10.0, epssScore:0.913, kevListed:true, scannerType:'DAST', assetName:'confluence.internal.acmecorp.io', discoveredAt:'2023-10-05T11:05:00Z', parserFormat:'SARIF' },
+  { id:'f-007', title:'MOVEit Transfer SQL Injection — Data Exfiltration', severity:'CRITICAL', status:'VERIFIED_CLOSED', cveId:'CVE-2023-34362', cvssScore:9.8, epssScore:0.952, kevListed:true, scannerType:'DAST', assetName:'filetransfer.acmecorp.io', discoveredAt:'2023-06-01T07:30:00Z', parserFormat:'QUALYS' },
+  { id:'f-008', title:'Spring Framework RCE via Data Binding (Spring4Shell)', severity:'CRITICAL', status:'VERIFIED_CLOSED', cveId:'CVE-2022-22965', cvssScore:9.8, epssScore:0.975, kevListed:true, scannerType:'SCA', assetName:'svc-orders-02.acmecorp.io', discoveredAt:'2023-04-12T13:15:00Z', parserFormat:'CYCLONEDX' },
+  { id:'f-009', title:'OpenSSL X.509 Certificate Verification Buffer Overread', severity:'HIGH', status:'NEW', cveId:'CVE-2022-3602', cvssScore:7.5, epssScore:0.487, kevListed:false, scannerType:'SCA', assetName:'proxy-internal-01.acmecorp.io', discoveredAt:'2024-02-28T18:00:00Z', parserFormat:'OSV' },
+  { id:'f-010', title:'PostgreSQL COPY FROM PROGRAM Privilege Escalation', severity:'HIGH', status:'IN_REMEDIATION', cveId:'CVE-2019-9193', cvssScore:7.2, epssScore:0.312, kevListed:false, scannerType:'VM', assetName:'db-primary-01.acmecorp.io', discoveredAt:'2024-03-05T21:10:00Z', parserFormat:'NESSUS' },
+  { id:'f-011', title:'Node.js undici HTTP Request Smuggling', severity:'MEDIUM', status:'NEW', cveId:'CVE-2024-24758', cvssScore:5.3, epssScore:0.104, kevListed:false, scannerType:'SCA', assetName:'app-frontend-01.acmecorp.io', discoveredAt:'2024-03-10T14:22:00Z', parserFormat:'CYCLONEDX' },
+  { id:'f-012', title:'Docker Container Escape via runc (Leaky Vessels)', severity:'HIGH', status:'TRIAGE', cveId:'CVE-2024-21626', cvssScore:8.6, epssScore:0.728, kevListed:false, scannerType:'CONTAINER', assetName:'k8s-node-04.acmecorp.io', discoveredAt:'2024-02-01T09:45:00Z', parserFormat:'JSON_FORMAT' },
+  { id:'f-013', title:'Terraform AWS Provider — IAM Role Assumption Bypass', severity:'MEDIUM', status:'ACCEPTED_RISK', cveId:'CVE-2024-27289', cvssScore:6.5, epssScore:0.078, kevListed:false, scannerType:'IAC', assetName:'infra-terraform-repo', discoveredAt:'2024-03-08T16:30:00Z', parserFormat:'SARIF' },
+  { id:'f-014', title:'jQuery Prototype Pollution via $.extend()', severity:'LOW', status:'ACCEPTED_RISK', cveId:'CVE-2019-11358', cvssScore:3.7, epssScore:0.021, kevListed:false, scannerType:'SCA', assetName:'legacy-portal.acmecorp.io', discoveredAt:'2024-01-22T11:00:00Z', parserFormat:'CYCLONEDX' },
+  { id:'f-015', title:'SSH Server CBC Mode Information Disclosure', severity:'LOW', status:'NEW', cveId:'CVE-2008-5161', cvssScore:2.6, epssScore:0.009, kevListed:false, scannerType:'VM', assetName:'bastion-01.acmecorp.io', discoveredAt:'2024-03-14T08:55:00Z', parserFormat:'NESSUS' },
+];
+
+const demoCases = [
+  { id:'c-001', title:'XZ Utils Backdoor — Supply Chain Compromise', severity:'CRITICAL', status:'IN_REMEDIATION', cveId:'CVE-2024-3094', cvssScore:10.0, epssScore:0.957, kevListed:true, assignedTo:'Maria Chen', findingCount:14, createdAt:'2024-03-29T08:30:00Z' },
+  { id:'c-002', title:'Fortinet SSL VPN Out-of-Bounds Write', severity:'CRITICAL', status:'IN_REMEDIATION', cveId:'CVE-2024-21762', cvssScore:9.8, epssScore:0.943, kevListed:true, assignedTo:'James Walker', findingCount:3, createdAt:'2024-02-09T15:00:00Z' },
+  { id:'c-003', title:'HTTP/2 Rapid Reset — DoS across Load Balancers', severity:'HIGH', status:'TRIAGE', cveId:'CVE-2023-44487', cvssScore:7.5, epssScore:0.822, kevListed:true, assignedTo:'Sarah Kim', findingCount:7, createdAt:'2024-01-16T10:15:00Z' },
+  { id:'c-004', title:'CitrixBleed — NetScaler Session Hijack', severity:'CRITICAL', status:'NEW', cveId:'CVE-2023-4966', cvssScore:9.4, epssScore:0.961, kevListed:true, assignedTo:'Unassigned', findingCount:2, createdAt:'2023-10-18T09:30:00Z' },
+  { id:'c-005', title:'Confluence RCE — Broken Access Control', severity:'CRITICAL', status:'TRIAGE', cveId:'CVE-2023-22515', cvssScore:10.0, epssScore:0.913, kevListed:true, assignedTo:'David Park', findingCount:4, createdAt:'2023-10-06T11:30:00Z' },
+  { id:'c-006', title:'Log4Shell — Legacy App Instances', severity:'CRITICAL', status:'VERIFIED_CLOSED', cveId:'CVE-2021-44228', cvssScore:10.0, epssScore:0.976, kevListed:true, assignedTo:'Maria Chen', findingCount:47, createdAt:'2023-12-11T08:00:00Z' },
+  { id:'c-007', title:'Docker runc Container Escape (Leaky Vessels)', severity:'HIGH', status:'IN_REMEDIATION', cveId:'CVE-2024-21626', cvssScore:8.6, epssScore:0.728, kevListed:false, assignedTo:'James Walker', findingCount:11, createdAt:'2024-02-02T10:00:00Z' },
+  { id:'c-008', title:'PostgreSQL COPY Privilege Escalation', severity:'HIGH', status:'ACCEPTED_RISK', cveId:'CVE-2019-9193', cvssScore:7.2, epssScore:0.312, kevListed:false, assignedTo:'Sarah Kim', findingCount:5, createdAt:'2024-03-06T21:30:00Z' },
+  { id:'c-009', title:'MOVEit Transfer SQLi — File Exfil Risk', severity:'CRITICAL', status:'VERIFIED_CLOSED', cveId:'CVE-2023-34362', cvssScore:9.8, epssScore:0.952, kevListed:true, assignedTo:'David Park', findingCount:8, createdAt:'2023-06-02T08:00:00Z' },
+  { id:'c-010', title:'Terraform IAM Role Assumption Bypass', severity:'MEDIUM', status:'ACCEPTED_RISK', cveId:'CVE-2024-27289', cvssScore:6.5, epssScore:0.078, kevListed:false, assignedTo:'James Walker', findingCount:2, createdAt:'2024-03-09T16:45:00Z' },
+];
+
+// =========================================================================
+// Badge helpers
+// =========================================================================
+function sevBadge(sev) {
+  const cls = { CRITICAL:'badge-sev-critical', HIGH:'badge-sev-high', MEDIUM:'badge-sev-medium', LOW:'badge-sev-low', INFO:'badge-sev-info' };
+  return '<span class="badge-sev '+(cls[sev]||'badge-sev-info')+'"><span class="dot"></span>'+sev+'</span>';
+}
+
+const statusLabels = { NEW:'New', TRIAGE:'Triage', IN_REMEDIATION:'In Remediation', FIXED_PENDING_VERIFICATION:'Fix Pending', VERIFIED_CLOSED:'Verified & Closed', REOPENED:'Reopened', ACCEPTED_RISK:'Accepted Risk', FALSE_POSITIVE:'False Positive' };
+function statusBadge(st) {
+  const cls = { NEW:'badge-status-new', TRIAGE:'badge-status-triage', IN_REMEDIATION:'badge-status-in_remediation', VERIFIED_CLOSED:'badge-status-verified_closed', ACCEPTED_RISK:'badge-status-accepted_risk', FALSE_POSITIVE:'badge-status-false_positive' };
+  return '<span class="badge-status '+(cls[st]||'badge-status-new')+'">'+(statusLabels[st]||st)+'</span>';
+}
+
+function kevBadge(listed) {
+  if (listed) return '<span class="badge-kev badge-kev-yes"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>KEV-listed</span>';
+  return '<span class="badge-kev badge-kev-no"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Not KEV</span>';
+}
+
+function scannerBadge(type) {
+  const cls = { SCA:'badge-scanner-sca', VM:'badge-scanner-vm', DAST:'badge-scanner-dast', CONTAINER:'badge-scanner-container', IAC:'badge-scanner-iac', SAST:'badge-scanner-sast' };
+  return '<span class="badge-scanner '+(cls[type]||'badge-scanner-sca')+'">'+type+'</span>';
+}
+
+// =========================================================================
+// Navigation
+// =========================================================================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-'+id);
+  if (page) page.classList.add('active');
+  // Highlight matching nav item
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(n => {
+    const onclick = n.getAttribute('onclick') || '';
+    if (onclick.includes("'"+id+"'")) n.classList.add('active');
+  });
+}
+
+// =========================================================================
+// Findings table
+// =========================================================================
+function renderFindings(list) {
+  const tbody = document.getElementById('findings-tbody');
+  document.getElementById('findings-count').textContent = list.length;
+  tbody.innerHTML = list.length === 0
+    ? '<tr><td colspan="10" style="text-align:center;padding:32px;color:#6b7280;">No findings match the current filters. Try adjusting your search criteria.</td></tr>'
+    : list.map(f => '<tr style="cursor:pointer;" class="finding-row">'
+      + '<td><span class="cve-tag">'+f.cveId+'</span></td>'
+      + '<td style="font-weight:500;color:#111827;">'+f.title+'</td>'
+      + '<td>'+sevBadge(f.severity)+'</td>'
+      + '<td style="font-family:monospace;font-size:12px;">'+f.cvssScore.toFixed(1)+'</td>'
+      + '<td style="font-family:monospace;font-size:12px;">'+(f.epssScore*100).toFixed(1)+'%</td>'
+      + '<td>'+kevBadge(f.kevListed)+'</td>'
+      + '<td>'+scannerBadge(f.scannerType)+'</td>'
+      + '<td style="color:#4b5563;">'+f.assetName+'</td>'
+      + '<td>'+statusBadge(f.status)+'</td>'
+      + '<td style="color:#6b7280;">'+new Date(f.discoveredAt).toLocaleDateString()+'</td>'
+      + '</tr>').join('');
+}
+
+function filterFindings() {
+  const q = document.getElementById('findings-search').value.toLowerCase().trim();
+  const sev = document.getElementById('findings-severity').value;
+  const st = document.getElementById('findings-status').value;
+  const filtered = demoFindings.filter(f => {
+    if (sev && f.severity !== sev) return false;
+    if (st && f.status !== st) return false;
+    if (q && !f.cveId.toLowerCase().includes(q) && !f.title.toLowerCase().includes(q) && !f.assetName.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderFindings(filtered);
+}
+
+// =========================================================================
+// Cases table
+// =========================================================================
+function renderCases(list) {
+  const tbody = document.getElementById('cases-tbody');
+  document.getElementById('cases-count').textContent = list.length;
+  tbody.innerHTML = list.length === 0
+    ? '<tr><td colspan="10" style="text-align:center;padding:48px;font-size:14px;color:#6b7280;">No cases match the current filters.</td></tr>'
+    : list.map(c => '<tr style="cursor:pointer;">'
+      + '<td style="font-family:monospace;font-size:14px;color:#4b5563;">'+c.id+'</td>'
+      + '<td style="font-weight:500;color:#111827;">'+c.title+'</td>'
+      + '<td>'+sevBadge(c.severity)+'</td>'
+      + '<td style="font-family:monospace;font-size:14px;color:#374151;">'+c.cvssScore.toFixed(1)+'</td>'
+      + '<td style="font-family:monospace;font-size:14px;color:#374151;">'+(c.epssScore*100).toFixed(1)+'%</td>'
+      + '<td>'+kevBadge(c.kevListed)+'</td>'
+      + '<td>'+statusBadge(c.status)+'</td>'
+      + '<td style="font-size:14px;color:#374151;">'+c.assignedTo+'</td>'
+      + '<td><span style="display:inline-flex;align-items:center;border-radius:9999px;background:#f3f4f6;padding:2px 10px;font-size:12px;font-weight:500;color:#374151;">'+c.findingCount+'</span></td>'
+      + '<td style="font-size:14px;color:#6b7280;">'+new Date(c.createdAt).toLocaleDateString()+'</td>'
+      + '</tr>').join('');
+}
+
+function filterCases() {
+  const q = document.getElementById('cases-search').value.toLowerCase().trim();
+  const sev = document.getElementById('cases-severity').value;
+  const st = document.getElementById('cases-status').value;
+  const filtered = demoCases.filter(c => {
+    if (sev && c.severity !== sev) return false;
+    if (st && c.status !== st) return false;
+    if (q && !c.cveId.toLowerCase().includes(q) && !c.title.toLowerCase().includes(q) && !c.id.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderCases(filtered);
+}
+
+// =========================================================================
+// Upload pipeline simulation
+// =========================================================================
+const PIPELINE_STEPS = [
+  { stage:'uploading', label:'Uploading file...', durationMs:1500 },
+  { stage:'detecting', label:'Detecting format...', durationMs:800 },
+  { stage:'parsing', label:'Parsing findings...', durationMs:2000 },
+  { stage:'enriching', label:'Enriching with EPSS & KEV data...', durationMs:1500 },
+  { stage:'building', label:'Building vulnerability cases...', durationMs:1000 },
+];
+
+let uploadProgress = 0;
+let uploadProgressInterval = null;
+let findingsCounter = 0;
+let findingsCounterInterval = null;
+
+function startUploadPipeline(files) {
+  if (!files || !files.length) return;
+  const fname = files[0].name;
+  document.getElementById('upload-idle').style.display = 'none';
+  document.getElementById('upload-processing').style.display = 'block';
+  document.getElementById('upload-complete').style.display = 'none';
+  document.getElementById('upload-filename').textContent = fname;
+
+  let delay = 0;
+  PIPELINE_STEPS.forEach((step, idx) => {
+    setTimeout(() => updatePipelineSteps(idx, fname), delay);
+    delay += step.durationMs;
+  });
+
+  // Complete
+  setTimeout(() => {
+    document.getElementById('upload-processing').style.display = 'none';
+    document.getElementById('upload-complete').style.display = 'block';
+    document.getElementById('upload-complete-filename').textContent = fname;
+    // Detect format for badge
+    const fmt = detectUploadFormat(fname);
+    const fmtEl = document.getElementById('upload-complete-format');
+    fmtEl.textContent = fmt === 'JSON_FORMAT' ? 'JSON' : fmt;
+    fmtEl.className = 'badge-format badge-format-' + fmt.toLowerCase().replace('_format','');
+  }, delay);
+}
+
+function detectUploadFormat(name) {
+  const n = name.toLowerCase();
+  if (n.endsWith('.nessus')) return 'NESSUS';
+  if (n.endsWith('.sarif')) return 'SARIF';
+  if (n.endsWith('.cdx.json')) return 'CYCLONEDX';
+  if (n.endsWith('.xml')) return 'QUALYS';
+  if (n.endsWith('.csv')) return 'CSV';
+  if (n.endsWith('.json')) return 'JSON_FORMAT';
+  return 'NESSUS';
+}
+
+function updatePipelineSteps(activeIdx, fname) {
+  const el = document.getElementById('upload-steps');
+  el.innerHTML = PIPELINE_STEPS.map((step, idx) => {
+    let iconHtml, labelCls;
+    if (idx < activeIdx) {
+      iconHtml = '<div class="pipeline-step-icon complete"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>';
+      labelCls = 'complete';
+    } else if (idx === activeIdx) {
+      iconHtml = '<div class="pipeline-step-icon active"><div class="pulse"></div></div>';
+      labelCls = 'active';
+    } else {
+      iconHtml = '<div class="pipeline-step-icon pending"><div class="dot"></div></div>';
+      labelCls = 'pending';
+    }
+    let extra = '';
+    if (step.stage === 'detecting' && idx <= activeIdx) {
+      const fmt = detectUploadFormat(fname);
+      extra = '<span class="badge-format badge-format-'+fmt.toLowerCase().replace('_format','')+'" style="margin-left:8px;">'+(fmt==='JSON_FORMAT'?'JSON':fmt)+'</span>';
+    }
+    if (step.stage === 'parsing' && idx === activeIdx) {
+      extra = '<span style="margin-left:8px;font-size:14px;font-weight:600;color:#2563eb;">... / 142</span>';
+    }
+    if (step.stage === 'parsing' && idx < activeIdx) {
+      extra = '<span style="margin-left:8px;font-size:14px;color:#6b7280;">142 findings</span>';
+    }
+    return '<div class="pipeline-step">'+iconHtml+'<span class="pipeline-step-label '+labelCls+'">'+step.label+'</span>'+extra+'</div>';
+  }).join('');
+}
+
+function resetUpload() {
+  document.getElementById('upload-idle').style.display = 'block';
+  document.getElementById('upload-processing').style.display = 'none';
+  document.getElementById('upload-complete').style.display = 'none';
+  document.getElementById('upload-file-input').value = '';
+}
+
+// Drag and drop
+(function() {
+  const zone = document.getElementById('upload-dropzone');
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', e => { e.preventDefault(); zone.classList.remove('dragover'); });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    startUploadPipeline(e.dataTransfer.files);
+  });
+})();
+
+// =========================================================================
+// Scan simulation
+// =========================================================================
+function runScanSim() {
+  const btn = document.getElementById('scan-btn');
+  const out = document.getElementById('scan-output');
+  btn.disabled = true;
+  out.innerHTML = '';
+
+  const lines = [
+    { text: '<span class="scan-prompt">$</span> npx @cveriskpilot/scan --framework soc2,ssdf,asvs', delay: 0 },
+    { text: '', delay: 300 },
+    { text: '<span class="scan-cyan scan-bold">CVERiskPilot Pipeline Scanner v1.0.0</span>', delay: 500 },
+    { text: '<span class="scan-dim">Scanning project dependencies...</span>', delay: 800 },
+    { text: '', delay: 1000 },
+    { text: '<span class="scan-dim">[1/5]</span> Detecting package managers...  <span class="scan-success">npm, pip, go.mod</span>', delay: 1200 },
+    { text: '<span class="scan-dim">[2/5]</span> Building dependency graph...   <span class="scan-success">247 packages</span>', delay: 1800 },
+    { text: '<span class="scan-dim">[3/5]</span> Querying vulnerability DBs...  <span class="scan-success">NVD, OSV, GitHub Advisory</span>', delay: 2400 },
+    { text: '<span class="scan-dim">[4/5]</span> Enriching with EPSS scores...  <span class="scan-success">done</span>', delay: 3000 },
+    { text: '<span class="scan-dim">[5/5]</span> Mapping to frameworks...       <span class="scan-success">3 frameworks</span>', delay: 3600 },
+    { text: '', delay: 3800 },
+    { text: '<span class="scan-bold" style="color:white;">SCAN RESULTS</span>', delay: 4000 },
+    { text: '<span class="scan-dim">----------------------------------------</span>', delay: 4100 },
+    { text: '<span class="scan-critical">CRITICAL  2</span>  <span class="scan-dim">|</span>  <span class="scan-high">HIGH  4</span>  <span class="scan-dim">|</span>  <span class="scan-medium">MEDIUM  8</span>  <span class="scan-dim">|</span>  LOW  3  <span class="scan-dim">|</span>  INFO  1', delay: 4300 },
+    { text: '', delay: 4500 },
+    { text: '<span class="scan-critical scan-bold">CVE-2024-3094</span>  CVSS 10.0  EPSS 95.7%  <span class="scan-critical">[KEV]</span>', delay: 4700 },
+    { text: '  <span class="scan-dim">xz-utils 5.6.0 -> 5.6.1  |  Supply chain backdoor</span>', delay: 4900 },
+    { text: '<span class="scan-critical scan-bold">CVE-2024-21762</span>  CVSS 9.8  EPSS 94.3%  <span class="scan-critical">[KEV]</span>', delay: 5100 },
+    { text: '  <span class="scan-dim">fortios 7.2.3 -> 7.2.7  |  SSL VPN out-of-bounds write</span>', delay: 5300 },
+    { text: '', delay: 5500 },
+    { text: '<span class="scan-bold" style="color:white;">COMPLIANCE MAPPING</span>', delay: 5700 },
+    { text: '<span class="scan-dim">----------------------------------------</span>', delay: 5800 },
+    { text: 'SOC2   <span class="scan-medium">78%</span>  (5/7 controls)  <span class="scan-dim">CC8.1 not met</span>', delay: 6000 },
+    { text: 'SSDF   <span class="scan-medium">82%</span>  (7/8 controls)  <span class="scan-dim">RV.1 not met</span>', delay: 6200 },
+    { text: 'ASVS   <span class="scan-medium">71%</span>  (5/7 controls)  <span class="scan-dim">11.2, 14.2 not met</span>', delay: 6400 },
+    { text: '', delay: 6600 },
+    { text: '<span class="scan-success scan-bold">Scan complete.</span> Results uploaded to CVERiskPilot dashboard.', delay: 6800 },
+    { text: '<span class="scan-dim">View results: https://app.cveriskpilot.com/findings</span>', delay: 7000 },
+  ];
+
+  lines.forEach(line => {
+    setTimeout(() => {
+      const div = document.createElement('div');
+      div.className = 'scan-line';
+      div.innerHTML = line.text || '&nbsp;';
+      div.style.animationDelay = '0s';
+      out.appendChild(div);
+      out.scrollTop = out.scrollHeight;
+    }, line.delay);
+  });
+
+  setTimeout(() => { btn.disabled = false; }, 7200);
+}
+
+// =========================================================================
+// Relative time helper
+// =========================================================================
+function relativeTime(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return '1 day ago';
+  if (days < 30) return days + ' days ago';
+  const months = Math.floor(days / 30);
+  return months === 1 ? '1 month ago' : months + ' months ago';
+}
+
+// =========================================================================
+// KEV due date
+// =========================================================================
+function setKevDueDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 5);
+  const formatted = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const el = document.getElementById('kev-due-date');
+  if (el) el.textContent = formatted + ' (5d remaining)';
+}
+
+// =========================================================================
+// Init
+// =========================================================================
+document.addEventListener('DOMContentLoaded', function() {
+  renderFindings(demoFindings);
+  renderCases(demoCases);
+  setKevDueDate();
+
+  // Set relative times
+  document.querySelectorAll('.relative-time').forEach(el => {
+    const t = el.getAttribute('data-time');
+    if (t) el.textContent = relativeTime(t);
+  });
+});
+</script>
+
+</body>
+</html>

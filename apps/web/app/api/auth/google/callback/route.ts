@@ -7,6 +7,11 @@ import {
   setSessionCookie,
   getGoogleOIDCConfig,
 } from '@cveriskpilot/auth';
+import {
+  STRIPE_PRICES,
+  createCheckoutSession,
+  createSetupCheckoutSession,
+} from '@cveriskpilot/billing';
 
 export const dynamic = 'force-dynamic';
 
@@ -122,10 +127,6 @@ export async function GET(request: NextRequest) {
       // Redis not available — fallback below
     }
 
-    const response = NextResponse.redirect(
-      new URL('/dashboard', origin),
-    );
-
     // Session creation is required — no insecure fallback
     if (!sessionId) {
       console.error('[API] Google OAuth callback: Redis unavailable, cannot create session');
@@ -134,10 +135,48 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Determine post-auth destination: Stripe checkout (new signup) or dashboard (returning user)
+    let redirectUrl = new URL('/dashboard', origin);
+
+    if (result.isNewUser) {
+      const plan = request.cookies.get('crp_oauth_plan')?.value?.toUpperCase() || '';
+      const VALID_PAID_PLANS = new Set(['FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
+
+      try {
+        if (VALID_PAID_PLANS.has(plan)) {
+          const priceKey = `${plan}_MONTHLY`;
+          const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
+          const priceId = priceGetter?.();
+
+          if (priceId) {
+            const checkout = await createCheckoutSession({
+              organizationId: result.organizationId,
+              email: user.email,
+              priceId,
+            });
+            redirectUrl = new URL(checkout.url);
+          }
+        } else {
+          // Free plan or no plan — collect payment method via setup mode
+          const setup = await createSetupCheckoutSession({
+            organizationId: result.organizationId,
+            email: user.email,
+          });
+          redirectUrl = new URL(setup.url);
+        }
+      } catch (stripeErr) {
+        console.error('[Google OAuth] Stripe checkout creation failed:', stripeErr);
+        // Fall through to dashboard — user can upgrade later
+      }
+    }
+
+    const response = NextResponse.redirect(redirectUrl);
+
     setSessionCookie(response, sessionId);
 
-    // Clear the OAuth state cookie
+    // Clear OAuth cookies
     response.cookies.delete('crp_oauth_state');
+    response.cookies.delete('crp_oauth_plan');
 
     return response;
   } catch (error) {

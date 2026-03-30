@@ -39,6 +39,9 @@ export async function GET(request: NextRequest) {
     // Generate CSRF state token
     const state = crypto.randomBytes(32).toString('hex');
 
+    // Capture plan from query string (e.g. /api/auth/google?plan=founders_beta)
+    const plan = request.nextUrl.searchParams.get('plan') || '';
+
     const origin = getSafeOrigin(request);
     const redirectUri = `${origin}/api/auth/google/callback`;
 
@@ -64,6 +67,17 @@ export async function GET(request: NextRequest) {
       path: '/',
       maxAge: 600, // 10 minutes
     });
+
+    // Persist selected plan so the callback can create the right Stripe session
+    if (plan) {
+      response.cookies.set('crp_oauth_plan', plan, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 600,
+      });
+    }
 
     return response;
   } catch (error) {

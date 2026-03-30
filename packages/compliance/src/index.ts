@@ -25,8 +25,13 @@ export type {
 export { SOC2_FRAMEWORK, assessSOC2 } from './frameworks/soc2';
 export { SSDF_FRAMEWORK, assessSSDF } from './frameworks/ssdf';
 export { ASVS_FRAMEWORK, assessASVS } from './frameworks/asvs';
-export { CMMC_FRAMEWORK, assessCMMC } from './frameworks/cmmc';
+export { CMMC_FRAMEWORK, assessCMMC, CMMC_SPRS_WEIGHTS, calculateSPRSScore } from './frameworks/cmmc';
 export { FEDRAMP_FRAMEWORK, assessFedRAMP } from './frameworks/fedramp';
+export { NIST_800_53_FRAMEWORK, assessNIST80053 } from './frameworks/nist-800-53';
+export { GDPR_FRAMEWORK, assessGDPR } from './frameworks/gdpr';
+export { HIPAA_FRAMEWORK, assessHIPAA } from './frameworks/hipaa';
+export { PCI_DSS_FRAMEWORK, assessPCIDSS } from './frameworks/pci-dss';
+export { ISO27001_FRAMEWORK, assessISO27001 } from './frameworks/iso27001';
 
 // NIST 800-53 Control Mapping
 export {

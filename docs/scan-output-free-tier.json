@@ -1,0 +1,64 @@
+{
+  "timestamp": "2026-03-30T00:57:31.983Z",
+  "version": "0.1.7",
+  "scannersRun": [
+    "sbom"
+  ],
+  "frameworks": "all",
+  "summary": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 1,
+    "LOW": 2,
+    "INFO": 0
+  },
+  "totalFindings": 3,
+  "exitCode": 0,
+  "failOnSeverity": "CRITICAL",
+  "durationMs": 29325,
+  "dependencies": 881,
+  "ecosystems": [
+    "npm"
+  ],
+  "verdictSummary": {
+    "TRUE_POSITIVE": 3,
+    "FALSE_POSITIVE": 0,
+    "NEEDS_REVIEW": 0
+  },
+  "findings": [
+    {
+      "title": "@tootallnate/once vulnerable to Incorrect Control Flow Scoping",
+      "severity": "LOW",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "scanner": "sbom",
+      "packageName": "@tootallnate/once",
+      "packageVersion": "2.0.0",
+      "cveIds": [],
+      "cweIds": []
+    },
+    {
+      "title": "Next.js has Unbounded Memory Consumption via PPR Resume Endpoint ",
+      "severity": "LOW",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "scanner": "sbom",
+      "packageName": "next",
+      "packageVersion": "15.5.14",
+      "cveIds": [],
+      "cweIds": []
+    },
+    {
+      "title": "Entity Expansion Limits Bypassed When Set to Zero Due to JavaScript Falsy Evaluation in fast-xml-parser",
+      "severity": "MEDIUM",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "scanner": "sbom",
+      "packageName": "fast-xml-parser",
+      "packageVersion": "5.5.9",
+      "cveIds": [],
+      "cweIds": []
+    }
+  ],
+  "complianceImpact": null
+}

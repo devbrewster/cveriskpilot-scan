@@ -1,0 +1,189 @@
+{
+  "timestamp": "2026-03-30T00:58:04.896Z",
+  "version": "0.1.7",
+  "scannersRun": [
+    "sbom"
+  ],
+  "frameworks": "all",
+  "summary": {
+    "CRITICAL": 0,
+    "HIGH": 0,
+    "MEDIUM": 1,
+    "LOW": 2,
+    "INFO": 0
+  },
+  "totalFindings": 3,
+  "exitCode": 0,
+  "failOnSeverity": "CRITICAL",
+  "durationMs": 32452,
+  "dependencies": 881,
+  "ecosystems": [
+    "npm"
+  ],
+  "verdictSummary": {
+    "TRUE_POSITIVE": 3,
+    "FALSE_POSITIVE": 0,
+    "NEEDS_REVIEW": 0
+  },
+  "findings": [
+    {
+      "title": "@tootallnate/once vulnerable to Incorrect Control Flow Scoping",
+      "severity": "LOW",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "scanner": "sbom",
+      "packageName": "@tootallnate/once",
+      "packageVersion": "2.0.0",
+      "cveIds": [
+        "CVE-2026-3449"
+      ],
+      "cweIds": [
+        "CWE-705"
+      ],
+      "cvssScore": 3.3,
+      "cvssVector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:L",
+      "fixedVersion": "3.0.1",
+      "advisoryUrl": "https://github.com/advisories/GHSA-vpq2-c234-7xj6",
+      "recommendation": "Upgrade @tootallnate/once to >=3.0.1 to fix CVE-2026-3449 (major version change — review for breaking changes)"
+    },
+    {
+      "title": "Next.js has Unbounded Memory Consumption via PPR Resume Endpoint ",
+      "severity": "LOW",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "scanner": "sbom",
+      "packageName": "next",
+      "packageVersion": "15.5.14",
+      "cveIds": [
+        "CVE-2025-59472"
+      ],
+      "cweIds": [
+        "CWE-400",
+        "CWE-409",
+        "CWE-770"
+      ],
+      "fixedVersion": "15.6.0-canary.61",
+      "advisoryUrl": "https://github.com/advisories/GHSA-5f7q-jpqc-wp7h",
+      "recommendation": "Upgrade next to >=15.6.0-canary.61 to fix CVE-2025-59472"
+    },
+    {
+      "title": "Entity Expansion Limits Bypassed When Set to Zero Due to JavaScript Falsy Evaluation in fast-xml-parser",
+      "severity": "MEDIUM",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "scanner": "sbom",
+      "packageName": "fast-xml-parser",
+      "packageVersion": "5.5.9",
+      "cveIds": [],
+      "cweIds": [
+        "CWE-1284"
+      ],
+      "cvssScore": 5.9,
+      "cvssVector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+      "advisoryUrl": "https://github.com/advisories/GHSA-jp2q-39xq-3w4g",
+      "recommendation": "No fix available for this vulnerability in fast-xml-parser. Monitor for upstream patches."
+    }
+  ],
+  "complianceImpact": {
+    "totalAffectedControls": 7,
+    "frameworkSummary": [
+      {
+        "framework": "NIST 800-53",
+        "frameworkId": "nist-800-53",
+        "affectedControls": 2,
+        "controlIds": [
+          "SC-5",
+          "CM-7"
+        ]
+      },
+      {
+        "framework": "CMMC Level 2",
+        "frameworkId": "cmmc-level2",
+        "affectedControls": 2,
+        "controlIds": [
+          "SC.L2-3.13.1",
+          "CM.L2-3.4.2"
+        ]
+      },
+      {
+        "framework": "SOC 2 Type II",
+        "frameworkId": "soc2-type2",
+        "affectedControls": 1,
+        "controlIds": [
+          "CC6.8"
+        ]
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "frameworkId": "fedramp-moderate",
+        "affectedControls": 2,
+        "controlIds": [
+          "SC-7",
+          "CM-6"
+        ]
+      }
+    ],
+    "entries": [
+      {
+        "framework": "NIST 800-53",
+        "controlId": "SC-5",
+        "controlTitle": "Denial-of-Service Protection",
+        "affectedBy": [
+          "CWE-400",
+          "CWE-770"
+        ]
+      },
+      {
+        "framework": "CMMC Level 2",
+        "controlId": "SC.L2-3.13.1",
+        "controlTitle": "Boundary Protection",
+        "affectedBy": [
+          "CWE-400",
+          "CWE-770"
+        ]
+      },
+      {
+        "framework": "SOC 2 Type II",
+        "controlId": "CC6.8",
+        "controlTitle": "Vulnerability Management",
+        "affectedBy": [
+          "CWE-400",
+          "CWE-770"
+        ]
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "controlId": "SC-7",
+        "controlTitle": "Boundary Protection",
+        "affectedBy": [
+          "CWE-400",
+          "CWE-770"
+        ]
+      },
+      {
+        "framework": "NIST 800-53",
+        "controlId": "CM-7",
+        "controlTitle": "Least Functionality",
+        "affectedBy": [
+          "CWE-770"
+        ]
+      },
+      {
+        "framework": "CMMC Level 2",
+        "controlId": "CM.L2-3.4.2",
+        "controlTitle": "Security Configuration Enforcement",
+        "affectedBy": [
+          "CWE-770"
+        ]
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "controlId": "CM-6",
+        "controlTitle": "Configuration Settings",
+        "affectedBy": [
+          "CWE-770"
+        ]
+      }
+    ]
+  }
+}

@@ -9,6 +9,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
+import { execFileSync } from 'node:child_process';
 import type { CanonicalFinding, FindingVerdict } from '../vendor/parsers/types.js';
 
 // ---------------------------------------------------------------------------
@@ -847,6 +848,127 @@ async function matchAdvisories(deps: Dependency[]): Promise<AdvisoryMatch[]> {
 }
 
 // ---------------------------------------------------------------------------
+// npm audit Integration
+// ---------------------------------------------------------------------------
+
+interface NpmAuditVuln {
+  name: string;
+  severity: string;
+  isDirect: boolean;
+  advisoryUrl?: string;
+  cweIds: string[];
+  cvssScore?: number;
+  cvssVector?: string;
+  title?: string;
+  fixName?: string;
+  fixVersion?: string;
+  isSemVerMajor?: boolean;
+}
+
+/**
+ * Run `npm audit --json` and parse the output.
+ * Returns null if npm is unavailable or the command fails.
+ */
+function runNpmAudit(projectDir: string): Map<string, NpmAuditVuln[]> | null {
+  // Only run if package-lock.json exists (npm audit requires it)
+  if (!fs.existsSync(path.join(projectDir, 'package-lock.json'))) return null;
+
+  try {
+    let output: string;
+    try {
+      output = execFileSync('npm', ['audit', '--json'], {
+        cwd: projectDir,
+        encoding: 'utf-8',
+        timeout: 30_000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+    } catch (err: unknown) {
+      // npm audit exits non-zero when vulnerabilities are found — that's expected
+      const execErr = err as { stdout?: string; status?: number };
+      if (execErr.stdout) {
+        output = execErr.stdout;
+      } else {
+        return null;
+      }
+    }
+
+    const audit = JSON.parse(output);
+
+    // npm v7+ uses "vulnerabilities" key; v6 uses "advisories"
+    const vulns = audit.vulnerabilities;
+    if (!vulns || typeof vulns !== 'object') return null;
+
+    const result = new Map<string, NpmAuditVuln[]>();
+
+    for (const [pkgName, entry] of Object.entries(vulns) as [string, Record<string, unknown>][]) {
+      const viaArr = entry.via;
+      if (!Array.isArray(viaArr)) continue;
+
+      const pkgVulns: NpmAuditVuln[] = [];
+
+      for (const via of viaArr) {
+        // via can be a string (transitive reference) or an object (actual advisory)
+        if (typeof via !== 'object' || via === null) continue;
+
+        const viaObj = via as Record<string, unknown>;
+        const cvss = viaObj.cvss as Record<string, unknown> | undefined;
+        const cweRaw = viaObj.cwe;
+        const fixAvail = entry.fixAvailable;
+
+        pkgVulns.push({
+          name: pkgName,
+          severity: (viaObj.severity as string) ?? (entry.severity as string) ?? 'moderate',
+          isDirect: (entry.isDirect as boolean) ?? false,
+          advisoryUrl: (viaObj.url as string) ?? undefined,
+          cweIds: Array.isArray(cweRaw) ? cweRaw.filter((c): c is string => typeof c === 'string') : [],
+          cvssScore: typeof cvss?.score === 'number' ? cvss.score : undefined,
+          cvssVector: typeof cvss?.vectorString === 'string' ? cvss.vectorString : undefined,
+          title: (viaObj.title as string) ?? undefined,
+          fixName: typeof fixAvail === 'object' && fixAvail !== null ? (fixAvail as Record<string, unknown>).name as string : undefined,
+          fixVersion: typeof fixAvail === 'object' && fixAvail !== null ? (fixAvail as Record<string, unknown>).version as string : undefined,
+          isSemVerMajor: typeof fixAvail === 'object' && fixAvail !== null ? (fixAvail as Record<string, unknown>).isSemVerMajor as boolean : undefined,
+        });
+      }
+
+      if (pkgVulns.length > 0) {
+        result.set(pkgName, pkgVulns);
+      }
+    }
+
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Triage Recommendation Generator
+// ---------------------------------------------------------------------------
+
+function generateRecommendation(
+  packageName: string,
+  fixedVersion: string | undefined,
+  cveIds: string[],
+  severity: string,
+  isSemVerMajor?: boolean,
+): string {
+  const cveLabel = cveIds.length > 0 ? cveIds[0] : 'this vulnerability';
+
+  if (fixedVersion) {
+    const majorWarning = isSemVerMajor
+      ? ' (major version change — review for breaking changes)'
+      : '';
+    return `Upgrade ${packageName} to >=${fixedVersion} to fix ${cveLabel}${majorWarning}`;
+  }
+
+  if (severity === 'CRITICAL' || severity === 'HIGH') {
+    return `No fix available for ${cveLabel} in ${packageName}. Consider replacing with an alternative package or applying a workaround.`;
+  }
+
+  return `No fix available for ${cveLabel} in ${packageName}. Monitor for upstream patches.`;
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -882,6 +1004,10 @@ export async function scanDependencies(projectDir: string, _opts?: { onProgress?
 
   // Check advisories (queries OSV API, falls back to hardcoded list)
   const advisoryMatches = await matchAdvisories(dedupedDeps);
+
+  // Run npm audit for enrichment (npm projects only)
+  const npmAuditData = runNpmAudit(projectDir);
+
   const now = new Date();
 
   const findings: CanonicalFinding[] = advisoryMatches.map(({ dep, advisory, nameMatchExact }) => {
@@ -890,7 +1016,6 @@ export async function scanDependencies(projectDir: string, _opts?: { onProgress?
     let verdictReason = '';
 
     if (!nameMatchExact) {
-      // Sub-package matched by substring — CVE likely does not apply
       verdict = 'FALSE_POSITIVE';
       verdictReason = `Package "${dep.name}" matched advisory for "${advisory.packageName}" by substring only — CVE likely applies to the main package, not this sub-package`;
     } else if (dep.version === 'unknown') {
@@ -898,12 +1023,53 @@ export async function scanDependencies(projectDir: string, _opts?: { onProgress?
       verdictReason = 'Package version could not be determined — verify manually';
     }
 
+    // Enrich with npm audit data if available
+    let advisoryUrl: string | undefined;
+    let cvssScore: number | undefined;
+    let cvssVector: string | undefined;
+    let fixedVersion = advisory.fixedVersion;
+    let isSemVerMajor: boolean | undefined;
+
+    const auditVulns = npmAuditData?.get(dep.name);
+    if (auditVulns && auditVulns.length > 0) {
+      // Find the best matching npm audit entry (by title or first available)
+      const match = auditVulns.find((v) =>
+        advisory.cveIds.length > 0 && v.advisoryUrl?.includes('GHSA'),
+      ) ?? auditVulns[0];
+
+      if (match) {
+        advisoryUrl = match.advisoryUrl;
+        if (match.cvssScore !== undefined) cvssScore = match.cvssScore;
+        if (match.cvssVector) cvssVector = match.cvssVector;
+        if (match.fixVersion && !fixedVersion) fixedVersion = match.fixVersion;
+        isSemVerMajor = match.isSemVerMajor;
+      }
+    }
+
+    // Fallback advisory URL from OSV
+    if (!advisoryUrl && advisory.id) {
+      advisoryUrl = advisory.id.startsWith('GHSA-')
+        ? `https://github.com/advisories/${advisory.id}`
+        : `https://osv.dev/vulnerability/${advisory.id}`;
+    }
+
+    const recommendation = generateRecommendation(
+      dep.name,
+      fixedVersion,
+      advisory.cveIds,
+      advisory.severity,
+      isSemVerMajor,
+    );
+
     return {
       title: advisory.title,
       description: `${advisory.description}\n\nSSDF Controls: ${SSDF_CONTROLS.join(', ')}`,
       cveIds: advisory.cveIds,
       cweIds: advisory.cweIds.length > 0 ? advisory.cweIds : SUPPLY_CHAIN_CWES,
       severity: advisory.severity,
+      cvssScore,
+      cvssVector,
+      cvssVersion: cvssVector?.startsWith('CVSS:3') ? '3.1' : undefined,
       verdict,
       verdictReason,
       scannerType: 'sbom',
@@ -913,7 +1079,10 @@ export async function scanDependencies(projectDir: string, _opts?: { onProgress?
       packageName: dep.name,
       packageVersion: dep.version,
       packageEcosystem: dep.ecosystem,
-      fixedVersion: advisory.fixedVersion,
+      fixedVersion,
+      isSemVerMajor,
+      advisoryUrl,
+      recommendation,
       rawObservations: {
         advisoryId: advisory.id,
         vulnerableRange: advisory.vulnerableRange,
@@ -924,6 +1093,61 @@ export async function scanDependencies(projectDir: string, _opts?: { onProgress?
       discoveredAt: now,
     };
   });
+
+  // Add npm audit vulns that OSV missed (npm-only packages)
+  if (npmAuditData) {
+    const existingPkgs = new Set(findings.map((f) => f.packageName));
+    for (const [pkgName, vulns] of npmAuditData) {
+      if (existingPkgs.has(pkgName)) continue;
+
+      const dep = dedupedDeps.find((d) => d.name === pkgName);
+      if (!dep) continue;
+
+      for (const vuln of vulns) {
+        if (!vuln.title) continue; // skip transitive-only entries with no advisory
+
+        const severity = mapOsvSeverity(vuln.severity, vuln.cvssScore);
+        const recommendation = generateRecommendation(
+          pkgName,
+          vuln.fixVersion,
+          [],
+          severity,
+          vuln.isSemVerMajor,
+        );
+
+        findings.push({
+          title: vuln.title,
+          description: `Detected by npm audit.\n\nSSDF Controls: ${SSDF_CONTROLS.join(', ')}`,
+          cveIds: [],
+          cweIds: vuln.cweIds.length > 0 ? vuln.cweIds : SUPPLY_CHAIN_CWES,
+          severity,
+          cvssScore: vuln.cvssScore,
+          cvssVector: vuln.cvssVector,
+          cvssVersion: vuln.cvssVector?.startsWith('CVSS:3') ? '3.1' : undefined,
+          verdict: 'TRUE_POSITIVE',
+          verdictReason: '',
+          scannerType: 'sbom',
+          scannerName: 'cveriskpilot-scan/npm-audit',
+          assetName: projectDir,
+          assetType: 'repository',
+          packageName: dep.name,
+          packageVersion: dep.version,
+          packageEcosystem: dep.ecosystem,
+          fixedVersion: vuln.fixVersion,
+          isSemVerMajor: vuln.isSemVerMajor,
+          advisoryUrl: vuln.advisoryUrl,
+          recommendation,
+          rawObservations: {
+            source: 'npm-audit',
+            purl: buildPurl(dep.ecosystem, dep.name, dep.version),
+            sbomComponentCount: dedupedDeps.length,
+            ssdfControls: [...SSDF_CONTROLS],
+          },
+          discoveredAt: now,
+        });
+      }
+    }
+  }
 
   return {
     dependencies: dedupedDeps,

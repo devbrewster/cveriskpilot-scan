@@ -62,6 +62,10 @@ interface BridgeEntry {
   soc2?: { id: string; title: string };
   fedramp?: { id: string; title: string };
   asvs?: { id: string; title: string };
+  gdpr?: { id: string; title: string };
+  hipaa?: { id: string; title: string };
+  pciDss?: { id: string; title: string };
+  iso27001?: { id: string; title: string };
 }
 
 const NIST_TO_FRAMEWORK_BRIDGE: Record<string, BridgeEntry> = {
@@ -71,6 +75,10 @@ const NIST_TO_FRAMEWORK_BRIDGE: Record<string, BridgeEntry> = {
     soc2: { id: 'CC6.1', title: 'Logical and Physical Access Controls' },
     fedramp: { id: 'AC-3', title: 'Access Enforcement' },
     asvs: { id: 'V1.2', title: 'Authentication Architecture' },
+    gdpr: { id: 'Art.25', title: 'Data Protection by Design and by Default' },
+    hipaa: { id: '164.312(a)', title: 'Access Control' },
+    pciDss: { id: 'Req-7.2', title: 'Access to System Components Appropriately Defined' },
+    iso27001: { id: 'A.8.3', title: 'Information Access Restriction' },
   },
   'AC-4': {
     cmmc: { id: 'SC.L2-3.13.1', title: 'Boundary Protection' },
@@ -109,6 +117,9 @@ const NIST_TO_FRAMEWORK_BRIDGE: Record<string, BridgeEntry> = {
     cmmc: { id: 'AU.L2-3.3.1', title: 'System Auditing' },
     soc2: { id: 'CC7.2', title: 'Incident and Change Management' },
     fedramp: { id: 'AU-2', title: 'Event Logging' },
+    hipaa: { id: '164.312(b)', title: 'Audit Controls' },
+    pciDss: { id: 'Req-10.2', title: 'Audit Logs Implemented to Support Detection' },
+    iso27001: { id: 'A.8.15', title: 'Logging' },
   },
   'AU-3': {
     cmmc: { id: 'AU.L2-3.3.1', title: 'System Auditing' },
@@ -161,6 +172,9 @@ const NIST_TO_FRAMEWORK_BRIDGE: Record<string, BridgeEntry> = {
     soc2: { id: 'CC6.1', title: 'Logical and Physical Access Controls' },
     fedramp: { id: 'IA-2', title: 'Identification and Authentication (Organizational Users)' },
     asvs: { id: 'V1.2', title: 'Authentication Architecture' },
+    hipaa: { id: '164.312(d)', title: 'Person or Entity Authentication' },
+    pciDss: { id: 'Req-8.3', title: 'Strong Authentication Established' },
+    iso27001: { id: 'A.8.5', title: 'Secure Authentication' },
   },
   'IA-5': {
     cmmc: { id: 'IA.L2-3.5.3', title: 'Multifactor Authentication' },
@@ -181,18 +195,20 @@ const NIST_TO_FRAMEWORK_BRIDGE: Record<string, BridgeEntry> = {
 
   // Risk Assessment family
   'RA-3': {
-    cmmc: { id: 'RM.L2-3.11.1', title: 'Risk Assessments' },
+    cmmc: { id: 'RA.L2-3.11.1', title: 'Risk Assessments' },
     soc2: { id: 'CC7.3', title: 'Evaluation of Security Events' },
     fedramp: { id: 'RA-3', title: 'Risk Assessment' },
   },
   'RA-5': {
-    cmmc: { id: 'RM.L2-3.11.2', title: 'Vulnerability Scanning' },
+    cmmc: { id: 'RA.L2-3.11.2', title: 'Vulnerability Scanning' },
     soc2: { id: 'CC6.8', title: 'Vulnerability Management' },
     fedramp: { id: 'RA-5', title: 'Vulnerability Monitoring and Scanning' },
     asvs: { id: 'V14.2', title: 'Dependency Security' },
+    pciDss: { id: 'Req-11.3', title: 'External/Internal Vulnerabilities Regularly Identified' },
+    iso27001: { id: 'A.8.8', title: 'Management of Technical Vulnerabilities' },
   },
   'RA-7': {
-    cmmc: { id: 'RM.L2-3.11.3', title: 'Vulnerability Remediation' },
+    cmmc: { id: 'RA.L2-3.11.3', title: 'Vulnerability Remediation' },
     soc2: { id: 'CC7.3', title: 'Evaluation of Security Events' },
     fedramp: { id: 'RA-7', title: 'Risk Response' },
   },
@@ -233,6 +249,10 @@ const NIST_TO_FRAMEWORK_BRIDGE: Record<string, BridgeEntry> = {
     soc2: { id: 'CC6.1', title: 'Logical and Physical Access Controls' },
     fedramp: { id: 'SC-8', title: 'Transmission Confidentiality and Integrity' },
     asvs: { id: 'V9.1', title: 'Client Communication Security' },
+    gdpr: { id: 'Art.32', title: 'Security of Processing' },
+    hipaa: { id: '164.312(e)', title: 'Transmission Security' },
+    pciDss: { id: 'Req-3.5', title: 'Primary Account Number Secured Wherever Stored' },
+    iso27001: { id: 'A.8.24', title: 'Use of Cryptography' },
   },
   'SC-12': {
     cmmc: { id: 'SC.L2-3.13.11', title: 'CUI Encryption at Rest' },
@@ -267,6 +287,8 @@ const NIST_TO_FRAMEWORK_BRIDGE: Record<string, BridgeEntry> = {
     soc2: { id: 'CC6.8', title: 'Vulnerability Management' },
     fedramp: { id: 'SI-2', title: 'Flaw Remediation' },
     asvs: { id: 'V1.1', title: 'Secure Software Development Lifecycle' },
+    pciDss: { id: 'Req-6.3', title: 'Security Vulnerabilities Identified and Addressed' },
+    iso27001: { id: 'A.8.8', title: 'Management of Technical Vulnerabilities' },
   },
   'SI-3': {
     cmmc: { id: 'SI.L2-3.14.2', title: 'Malicious Code Protection' },
@@ -318,6 +340,10 @@ const FRAMEWORK_META: Record<string, string> = {
   'soc2-type2': 'SOC 2 Type II',
   'fedramp-moderate': 'FedRAMP Moderate',
   'owasp-asvs': 'OWASP ASVS',
+  'gdpr': 'GDPR',
+  'hipaa': 'HIPAA Security Rule',
+  'pci-dss': 'PCI-DSS',
+  'iso-27001': 'ISO 27001:2022',
 };
 
 // ---------------------------------------------------------------------------
@@ -384,6 +410,38 @@ export function mapCweToAllFrameworks(cweId: string): CrossFrameworkMapping[] {
           frameworkName: 'OWASP ASVS',
           controlId: bridge.asvs.id,
           controlTitle: bridge.asvs.title,
+        });
+      }
+      if (bridge.gdpr) {
+        mappedControls.push({
+          frameworkId: 'gdpr',
+          frameworkName: 'GDPR',
+          controlId: bridge.gdpr.id,
+          controlTitle: bridge.gdpr.title,
+        });
+      }
+      if (bridge.hipaa) {
+        mappedControls.push({
+          frameworkId: 'hipaa',
+          frameworkName: 'HIPAA Security Rule',
+          controlId: bridge.hipaa.id,
+          controlTitle: bridge.hipaa.title,
+        });
+      }
+      if (bridge.pciDss) {
+        mappedControls.push({
+          frameworkId: 'pci-dss',
+          frameworkName: 'PCI-DSS',
+          controlId: bridge.pciDss.id,
+          controlTitle: bridge.pciDss.title,
+        });
+      }
+      if (bridge.iso27001) {
+        mappedControls.push({
+          frameworkId: 'iso-27001',
+          frameworkName: 'ISO 27001:2022',
+          controlId: bridge.iso27001.id,
+          controlTitle: bridge.iso27001.title,
         });
       }
     }

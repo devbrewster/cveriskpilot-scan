@@ -5,9 +5,13 @@
  * and exit code explanations.
  */
 
+import { createRequire } from 'node:module';
 import type { CanonicalFinding } from './vendor/parsers/types.js';
 import { mapFindingsToComplianceImpact } from './vendor/compliance/mapping/cross-framework.js';
 import type { ComplianceImpactReport } from './vendor/compliance/mapping/cross-framework.js';
+
+const __require = createRequire(import.meta.url);
+const PKG_VERSION: string = (__require('../package.json') as { version: string }).version;
 
 // ---------------------------------------------------------------------------
 // ANSI Color Codes
@@ -273,7 +277,7 @@ function formatJson(summary: ScanSummary): string {
   return JSON.stringify(
     {
       timestamp: new Date().toISOString(),
-      version: '0.1.7',
+      version: PKG_VERSION,
       scannersRun: summary.scannersRun,
       frameworks: summary.activeFrameworks ?? 'all',
       summary: countBySeverity(summary.findings),
@@ -455,7 +459,7 @@ function formatSarif(summary: ScanSummary): string {
         tool: {
           driver: {
             name: 'CVERiskPilot Scanner',
-            version: '0.1.7',
+            version: PKG_VERSION,
             informationUri: 'https://cveriskpilot.com',
             rules: Array.from(rules.values()).map((r) => ({
               id: r.id,

@@ -57,7 +57,9 @@ import {
 // Version
 // ---------------------------------------------------------------------------
 
-const VERSION = '0.1.7';
+import { createRequire } from 'node:module';
+const __require = createRequire(import.meta.url);
+const VERSION: string = (__require('../package.json') as { version: string }).version;
 const PKG_NAME = '@cveriskpilot/scan';
 
 // ---------------------------------------------------------------------------

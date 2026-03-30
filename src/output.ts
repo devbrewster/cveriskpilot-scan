@@ -141,6 +141,26 @@ function formatTable(summary: ScanSummary): string {
     const displayLimit = 50;
     const displayed = sorted.slice(0, displayLimit);
 
+    // Pre-compute per-finding compliance mappings
+    const findingComplianceMap = new Map<CanonicalFinding, string[]>();
+    const impactForFindings = buildComplianceImpact(summary);
+    if (impactForFindings) {
+      for (const entry of impactForFindings.entries) {
+        for (const cweId of entry.affectedBy) {
+          // Match findings by CWE
+          const normalizedCwe = cweId.replace(/^CWE-/i, '');
+          for (const f of displayed) {
+            if (f.cweIds.some(c => c.replace(/^CWE-/i, '') === normalizedCwe)) {
+              const existing = findingComplianceMap.get(f) ?? [];
+              const tag = `${entry.framework}:${entry.controlId}`;
+              if (!existing.includes(tag)) existing.push(tag);
+              findingComplianceMap.set(f, existing);
+            }
+          }
+        }
+      }
+    }
+
     for (const f of displayed) {
       const location = f.filePath ? `${f.filePath}${f.lineNumber ? `:${f.lineNumber}` : ''}` : f.packageName ?? '';
       const scanner = f.scannerType;
@@ -150,10 +170,14 @@ function formatTable(summary: ScanSummary): string {
         : f.verdict === 'NEEDS_REVIEW' ? c(YELLOW, ' [REVIEW]')
         : c(GREEN, ' [TP]');
       lines.push(
-        `  ${severityBadge(f.severity)}${cvss}${verdictTag} ${c(BOLD, truncate(f.title, 40))} ${c(DIM, truncate(cwe, 10))} ${c(DIM, truncate(location, 25))} ${c(MAGENTA, scanner)}`,
+        `  ${severityBadge(f.severity)}${cvss}${verdictTag} ${c(BOLD, truncate(f.title, 45))} ${c(DIM, cwe)} ${c(DIM, truncate(location, 30))} ${c(MAGENTA, scanner)}`,
       );
       if (f.verdictReason) {
         lines.push(`  ${c(DIM, '           → ' + truncate(f.verdictReason, 90))}`);
+      }
+      const controls = findingComplianceMap.get(f);
+      if (controls && controls.length > 0) {
+        lines.push(`  ${c(CYAN, '           ⚖ ' + controls.join(', '))}`);
       }
       if (f.recommendation) {
         lines.push(`  ${c(CYAN, '           ⮑ ' + truncate(f.recommendation, 90))}`);

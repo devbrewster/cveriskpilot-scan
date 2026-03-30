@@ -66,6 +66,8 @@ const PUBLIC_PATHS = [
   '/robots.txt',
   '/sitemap.xml',
   '/security-policy',
+  '/buy',
+  '/buy/success',
 ];
 
 const PUBLIC_PREFIXES = [
@@ -87,6 +89,7 @@ const API_PUBLIC_PATHS = [
   '/api/webhooks',                          // webhooks have their own HMAC auth
   '/api/integrations/jira/webhook',         // Jira webhook (HMAC auth)
   '/api/connectors/webhook/',               // Scanner webhooks (HMAC auth)
+  '/api/billing/quick-purchase',             // Simplified API purchase (creates account)
   '/api/billing/webhook',                   // Stripe webhook (signature verification)
   '/api/pipeline/scan',                     // uses API key auth, not session
   '/api/health',

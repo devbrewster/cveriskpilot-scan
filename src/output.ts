@@ -142,14 +142,18 @@ function formatTable(summary: ScanSummary): string {
       const location = f.filePath ? `${f.filePath}${f.lineNumber ? `:${f.lineNumber}` : ''}` : f.packageName ?? '';
       const scanner = f.scannerType;
       const cwe = f.cweIds.length > 0 ? f.cweIds[0] : '';
+      const cvss = f.cvssScore !== undefined ? c(YELLOW, ` CVSS:${f.cvssScore}`) : '';
       const verdictTag = f.verdict === 'FALSE_POSITIVE' ? c(DIM, ' [FP]')
         : f.verdict === 'NEEDS_REVIEW' ? c(YELLOW, ' [REVIEW]')
         : c(GREEN, ' [TP]');
       lines.push(
-        `  ${severityBadge(f.severity)}${verdictTag} ${c(BOLD, truncate(f.title, 40))} ${c(DIM, truncate(cwe, 10))} ${c(DIM, truncate(location, 25))} ${c(MAGENTA, scanner)}`,
+        `  ${severityBadge(f.severity)}${cvss}${verdictTag} ${c(BOLD, truncate(f.title, 40))} ${c(DIM, truncate(cwe, 10))} ${c(DIM, truncate(location, 25))} ${c(MAGENTA, scanner)}`,
       );
       if (f.verdictReason) {
         lines.push(`  ${c(DIM, '           → ' + truncate(f.verdictReason, 90))}`);
+      }
+      if (f.recommendation) {
+        lines.push(`  ${c(CYAN, '           ⮑ ' + truncate(f.recommendation, 90))}`);
       }
     }
 
@@ -225,6 +229,11 @@ function formatJson(summary: ScanSummary): string {
         packageVersion: f.packageVersion,
         cveIds: f.cveIds,
         cweIds: f.cweIds,
+        ...(f.cvssScore !== undefined && { cvssScore: f.cvssScore }),
+        ...(f.cvssVector && { cvssVector: f.cvssVector }),
+        ...(f.fixedVersion && { fixedVersion: f.fixedVersion }),
+        ...(f.advisoryUrl && { advisoryUrl: f.advisoryUrl }),
+        ...(f.recommendation && { recommendation: f.recommendation }),
       })),
       complianceImpact: impact
         ? {
@@ -280,17 +289,30 @@ function formatMarkdown(summary: ScanSummary): string {
   lines.push('');
 
   if (summary.findings.length > 0) {
+    const hasEnriched = summary.findings.some((f) => f.recommendation || f.fixedVersion);
     lines.push('## Findings');
     lines.push('');
-    lines.push('| Severity | Verdict | Title | CWE | Location | Scanner |');
-    lines.push('|----------|---------|-------|-----|----------|---------|');
+
+    if (hasEnriched) {
+      lines.push('| Severity | Verdict | Title | CWE | Location | Fix Version | Recommendation |');
+      lines.push('|----------|---------|-------|-----|----------|-------------|----------------|');
+    } else {
+      lines.push('| Severity | Verdict | Title | CWE | Location | Scanner |');
+      lines.push('|----------|---------|-------|-----|----------|---------|');
+    }
 
     const sorted = [...summary.findings].sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
     for (const f of sorted.slice(0, 100)) {
       const location = f.filePath ? `${f.filePath}${f.lineNumber ? `:${f.lineNumber}` : ''}` : f.packageName ?? '';
       const cwe = f.cweIds.length > 0 ? f.cweIds.join(', ') : '-';
       const verdict = f.verdict === 'FALSE_POSITIVE' ? 'FP' : f.verdict === 'NEEDS_REVIEW' ? 'REVIEW' : 'TP';
-      lines.push(`| ${f.severity} | ${verdict} | ${f.title} | ${cwe} | ${location} | ${f.scannerType} |`);
+      if (hasEnriched) {
+        const fix = f.fixedVersion ?? '-';
+        const rec = f.recommendation ?? '-';
+        lines.push(`| ${f.severity} | ${verdict} | ${f.title} | ${cwe} | ${location} | ${fix} | ${rec} |`);
+      } else {
+        lines.push(`| ${f.severity} | ${verdict} | ${f.title} | ${cwe} | ${location} | ${f.scannerType} |`);
+      }
     }
     lines.push('');
   }
@@ -337,6 +359,7 @@ function formatSarif(summary: ScanSummary): string {
         id: ruleId,
         name: f.title,
         shortDescription: f.title,
+        helpUri: f.advisoryUrl,
         cwes: f.cweIds,
       });
     }
@@ -371,6 +394,7 @@ function formatSarif(summary: ScanSummary): string {
               id: r.id,
               name: r.name,
               shortDescription: { text: r.shortDescription },
+              ...(r.helpUri && { helpUri: r.helpUri }),
               properties: {
                 ...(r.cwes.length > 0 && { cwe: r.cwes }),
               },
@@ -395,6 +419,9 @@ function formatSarif(summary: ScanSummary): string {
                   },
                 ]
               : [],
+            ...(f.recommendation && {
+              fixes: [{ description: { text: f.recommendation } }],
+            }),
             properties: {
               severity: f.severity,
               verdict: f.verdict ?? 'TRUE_POSITIVE',
@@ -404,6 +431,9 @@ function formatSarif(summary: ScanSummary): string {
               ...(f.packageVersion && { packageVersion: f.packageVersion }),
               ...(f.cveIds.length > 0 && { cveIds: f.cveIds }),
               ...(f.cweIds.length > 0 && { cweIds: f.cweIds }),
+              ...(f.cvssScore !== undefined && { cvssScore: f.cvssScore }),
+              ...(f.fixedVersion && { fixedVersion: f.fixedVersion }),
+              ...(f.recommendation && { recommendation: f.recommendation }),
             },
           };
         }),

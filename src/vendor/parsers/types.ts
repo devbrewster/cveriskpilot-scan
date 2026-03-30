@@ -37,6 +37,11 @@ export interface CanonicalFinding {
   packageVersion?: string;
   packageEcosystem?: string;
   fixedVersion?: string;
+  isSemVerMajor?: boolean;
+
+  // Enrichment (paid add-on)
+  advisoryUrl?: string;
+  recommendation?: string;
 
   // Evidence
   filePath?: string;

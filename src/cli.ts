@@ -511,6 +511,25 @@ function filterFindings(
 }
 
 // ---------------------------------------------------------------------------
+// Tier Gating — Enriched fields are paid add-on
+// ---------------------------------------------------------------------------
+
+function redactEnrichedFields(findings: CanonicalFinding[]): CanonicalFinding[] {
+  return findings.map((f) => ({
+    ...f,
+    cveIds: [],
+    cweIds: [],
+    cvssScore: undefined,
+    cvssVector: undefined,
+    cvssVersion: undefined,
+    fixedVersion: undefined,
+    isSemVerMajor: undefined,
+    advisoryUrl: undefined,
+    recommendation: undefined,
+  }));
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -734,16 +753,20 @@ async function main(): Promise<void> {
     console.log('');
   }
 
-  // ---- Determine exit code ----
+  // ---- Determine exit code (always uses full findings for accuracy) ----
   const failThreshold = opts.failOn;
   const hasFailure = filteredFindings.some(
     (f) => severityRank(f.severity) <= severityRank(failThreshold),
   );
   const exitCode = hasFailure ? EXIT_VIOLATION : EXIT_PASS;
 
+  // ---- Tier gating: redact enriched fields for free tier ----
+  const isPaidTier = !!opts.apiKey;
+  const outputFindings = isPaidTier ? filteredFindings : redactEnrichedFields(filteredFindings);
+
   // ---- Format and display results ----
   const summary: ScanSummary = {
-    findings: filteredFindings,
+    findings: outputFindings,
     scannersRun,
     depsCount,
     ecosystems,
@@ -759,6 +782,17 @@ async function main(): Promise<void> {
 
   const output = formatOutput(summary, opts.format);
   console.log(output);
+
+  // ---- Upsell message for free tier ----
+  if (!isPaidTier && filteredFindings.length > 0 && isTTY) {
+    const enrichedCount = filteredFindings.filter((f) => f.recommendation || f.advisoryUrl).length;
+    if (enrichedCount > 0) {
+      console.error('');
+      console.error(`  \x1b[33m\x1b[1m${enrichedCount} finding(s)\x1b[0m have CVE details, fix versions, and triage recommendations available.`);
+      console.error(`  Add \x1b[36m--api-key\x1b[0m to unlock enriched scan data. Get your key at \x1b[36mhttps://app.cveriskpilot.com/settings/api\x1b[0m`);
+      console.error('');
+    }
+  }
 
   // ---- Upload if API key provided ----
   if (opts.apiKey && !opts.noUpload && filteredFindings.length > 0) {

@@ -314,7 +314,7 @@ export default function CliReferencePage() {
         </p>
 
         <div className="mt-6 overflow-x-auto rounded-lg border border-gray-800">
-          <table className="w-full min-w-[700px] text-sm">
+          <table className="w-full min-w-175 text-sm">
             <thead>
               <tr className="border-b border-gray-800 bg-gray-900/80">
                 <th className="px-4 py-3 text-left font-medium text-gray-400">Preset</th>
@@ -461,7 +461,7 @@ export default function CliReferencePage() {
 
         {/* Example mappings table */}
         <div className="mt-6 overflow-x-auto rounded-lg border border-gray-800">
-          <table className="w-full min-w-[700px] text-sm">
+          <table className="w-full min-w-175 text-sm">
             <thead>
               <tr className="border-b border-gray-800 bg-gray-900/80">
                 <th className="px-4 py-3 text-left font-medium text-gray-400">Finding</th>

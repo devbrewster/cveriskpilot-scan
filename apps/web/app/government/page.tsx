@@ -155,7 +155,7 @@ export default function GovernmentPage() {
       <NavBar />
       <main>
         {/* ── Hero ─────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 pt-32 pb-20 sm:pt-40 sm:pb-28">
+        <section className="relative overflow-hidden bg-linear-to-b from-slate-950 via-slate-900 to-slate-950 pt-32 pb-20 sm:pt-40 sm:pb-28">
           {/* Background grid */}
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.03]"
@@ -166,8 +166,8 @@ export default function GovernmentPage() {
 
           {/* Background decoration */}
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute top-1/4 -left-48 h-[500px] w-[500px] rounded-full bg-primary-600/8 blur-3xl" />
-            <div className="absolute -right-24 bottom-0 h-[400px] w-[400px] rounded-full bg-primary-800/10 blur-3xl" />
+            <div className="absolute top-1/4 -left-48 h-125 w-125 rounded-full bg-primary-600/8 blur-3xl" />
+            <div className="absolute -right-24 bottom-0 h-100 w-100 rounded-full bg-primary-800/10 blur-3xl" />
           </div>
 
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -183,7 +183,7 @@ export default function GovernmentPage() {
               {/* Headline */}
               <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl lg:leading-[1.1]">
                 Built by{" "}
-                <span className="bg-gradient-to-r from-primary-400 to-primary-300 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-primary-400 to-primary-300 bg-clip-text text-transparent">
                   Veterans
                 </span>
                 , for Government Security Teams
@@ -362,7 +362,7 @@ export default function GovernmentPage() {
                     "Priority support",
                   ].map((f) => (
                     <li key={f} className="flex items-start gap-3 text-sm text-gray-300">
-                      <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                       {f}
@@ -402,7 +402,7 @@ export default function GovernmentPage() {
                     "Dedicated support",
                   ].map((f) => (
                     <li key={f} className="flex items-start gap-3 text-sm text-gray-300">
-                      <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                       {f}
@@ -438,7 +438,7 @@ export default function GovernmentPage() {
                     "On-premise available",
                   ].map((f) => (
                     <li key={f} className="flex items-start gap-3 text-sm text-gray-300">
-                      <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                       {f}
@@ -463,7 +463,7 @@ export default function GovernmentPage() {
         </section>
 
         {/* ── CTA ──────────────────────────────────────────────── */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-950 py-20 sm:py-28">
+        <section className="relative overflow-hidden bg-linear-to-br from-primary-700 via-primary-800 to-primary-950 py-20 sm:py-28">
           {/* Background decoration */}
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-white/5 blur-3xl" />

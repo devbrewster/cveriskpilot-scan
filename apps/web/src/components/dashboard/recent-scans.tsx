@@ -73,7 +73,7 @@ export function RecentScans({ jobs }: RecentScansProps) {
               <td className="py-3 pr-4">
                 <a
                   href={`/upload/${job.id}`}
-                  className="max-w-[280px] truncate font-medium text-gray-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-400"
+                  className="max-w-70 truncate font-medium text-gray-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-400"
                   title={job.filename}
                 >
                   {job.filename}

@@ -61,7 +61,7 @@ export function EpssTop10({ cases }: EpssTop10Props) {
                   {c.cveIds[0] || 'N/A'}
                 </span>
               </td>
-              <td className="max-w-[200px] truncate py-3 pr-4 text-gray-700 dark:text-gray-300" title={c.title}>
+              <td className="max-w-50 truncate py-3 pr-4 text-gray-700 dark:text-gray-300" title={c.title}>
                 {c.title}
               </td>
               <td className="py-3 pr-4">

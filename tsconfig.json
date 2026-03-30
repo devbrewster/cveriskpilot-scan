@@ -78,7 +78,6 @@
     { "path": "packages/stamps" },
     { "path": "packages/storage" },
     { "path": "packages/streaming" },
-    { "path": "packages/whitelabel" },
-    { "path": "apps/web" }
+    { "path": "packages/whitelabel" }
   ]
 }

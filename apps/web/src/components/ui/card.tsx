@@ -8,7 +8,7 @@ interface CardProps {
 
 export function Card({ title, description, action, children, className = '' }: CardProps) {
   return (
-    <div className={`rounded-lg border border-gray-200 bg-white dark:bg-gray-900 shadow-sm dark:border-gray-700 dark:bg-gray-900 ${className}`}>
+    <div className={`rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900 ${className}`}>
       {(title || action) && (
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-gray-800">
           <div>

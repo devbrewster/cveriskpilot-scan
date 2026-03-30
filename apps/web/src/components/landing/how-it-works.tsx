@@ -63,12 +63,12 @@ export function HowItWorks() {
               {/* Connector line (desktop only, between items) */}
               {index < steps.length - 1 && (
                 <div className="absolute top-10 right-0 hidden h-px w-full translate-x-1/2 lg:block">
-                  <div className="h-full w-full bg-gradient-to-r from-primary-300 via-primary-200 to-primary-100 dark:from-primary-700 dark:via-primary-800 dark:to-primary-900" />
+                  <div className="h-full w-full bg-linear-to-r from-primary-300 via-primary-200 to-primary-100 dark:from-primary-700 dark:via-primary-800 dark:to-primary-900" />
                 </div>
               )}
 
               {/* Icon */}
-              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-white dark:bg-gray-900 text-primary-600 shadow-md ring-1 ring-gray-100 transition-shadow hover:shadow-lg dark:bg-gray-800 dark:text-primary-400 dark:ring-gray-700">
+              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-primary-600 shadow-md ring-1 ring-gray-100 transition-shadow hover:shadow-lg dark:bg-gray-800 dark:text-primary-400 dark:ring-gray-700">
                 {step.icon}
                 <span className="absolute -top-2.5 -right-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white shadow-sm">
                   {index + 1}
@@ -79,7 +79,7 @@ export function HowItWorks() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {step.title}
               </h3>
-              <p className="mx-auto mt-2 max-w-[240px] text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+              <p className="mx-auto mt-2 max-w-60 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                 {step.description}
               </p>
             </div>

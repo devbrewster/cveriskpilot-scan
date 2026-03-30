@@ -590,7 +590,7 @@ export default function PipelinePage() {
           automatically.
         </p>
         <div className="mt-6 overflow-x-auto rounded-lg border border-gray-800">
-          <table className="w-full min-w-[600px] text-sm">
+          <table className="w-full min-w-150 text-sm">
             <thead>
               <tr className="border-b border-gray-800 bg-gray-900/80">
                 <th className="px-4 py-3 text-left font-medium text-gray-400">

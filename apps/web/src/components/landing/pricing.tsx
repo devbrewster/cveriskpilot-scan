@@ -112,7 +112,7 @@ export function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="bg-white dark:bg-gray-900 py-20 sm:py-28 dark:bg-gray-950">
+    <section id="pricing" className="bg-white dark:bg-gray-950 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
@@ -137,7 +137,7 @@ export function Pricing() {
             role="switch"
             aria-checked={isAnnual}
             onClick={() => setIsAnnual(!isAnnual)}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
               isAnnual ? 'bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'
             }`}
           >
@@ -164,8 +164,8 @@ export function Pricing() {
               key={plan.name}
               className={`relative flex flex-col rounded-2xl border p-8 transition-shadow duration-200 ${
                 plan.highlighted
-                  ? 'border-primary-500 bg-white dark:bg-gray-900 shadow-xl shadow-primary-100/50 ring-1 ring-primary-500 dark:border-primary-400 dark:bg-gray-900 dark:shadow-primary-900/20 dark:ring-primary-400'
-                  : 'border-gray-200 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/30'
+                  ? 'border-primary-500 bg-white shadow-xl shadow-primary-100/50 ring-1 ring-primary-500 dark:border-primary-400 dark:bg-gray-900 dark:shadow-primary-900/20 dark:ring-primary-400'
+                  : 'border-gray-200 bg-white shadow-sm hover:shadow-md dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/30'
               }`}
             >
               {plan.highlighted && (
@@ -182,7 +182,7 @@ export function Pricing() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {plan.name}
               </h3>
-              <p className="mt-1 min-h-[40px] text-sm text-gray-500 dark:text-gray-400">
+              <p className="mt-1 min-h-10 text-sm text-gray-500 dark:text-gray-400">
                 {plan.description}
               </p>
 
@@ -209,7 +209,7 @@ export function Pricing() {
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
                     <svg
-                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-600 dark:text-primary-400"
+                      className="mt-0.5 h-4 w-4 shrink-0 text-primary-600 dark:text-primary-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={2}

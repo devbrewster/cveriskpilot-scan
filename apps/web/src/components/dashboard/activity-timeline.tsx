@@ -73,7 +73,7 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
   }
 
   return (
-    <div className="max-h-[28rem] overflow-y-auto pr-1">
+    <div className="max-h-112 overflow-y-auto pr-1">
       <div className="relative">
         {events.map((event, idx) => {
           const { color, icon } = eventIcons[event.type] ?? eventIcons.case;
@@ -83,12 +83,12 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
             <div key={event.id} className="relative flex gap-3 pb-6">
               {/* Vertical connector line */}
               {!isLast && (
-                <div className="absolute left-[15px] top-8 h-full w-0.5 bg-gray-200 dark:bg-gray-700" />
+                <div className="absolute left-3.75 top-8 h-full w-0.5 bg-gray-200 dark:bg-gray-700" />
               )}
 
               {/* Icon circle */}
               <div
-                className={`relative z-10 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${color}`}
+                className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${color}`}
               >
                 {icon}
               </div>

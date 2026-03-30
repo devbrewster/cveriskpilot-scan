@@ -60,8 +60,12 @@ RUN npx prisma generate --schema=packages/domain/prisma/schema.prisma
 # Build the Next.js application
 RUN npm run build
 
-# Build the worker service
-RUN npm run build --workspace=apps/worker
+# Bundle the worker into a single self-contained JS file
+RUN npx esbuild apps/worker/src/index.ts \
+    --bundle --platform=node --target=node20 --format=esm \
+    --outfile=apps/worker/dist/index.js \
+    --external:@prisma/client --external:.prisma/client \
+    --banner:js="import{createRequire}from'module';const require=createRequire(import.meta.url);"
 
 # =============================================================================
 # Stage 3: Production runner

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { generateCsrfToken } from '@cveriskpilot/auth';
+import { prisma } from '@/lib/prisma';
 
 /**
  * Helper: attach a CSRF token cookie + include the token in the JSON body
@@ -20,6 +21,17 @@ export async function GET(request: NextRequest) {
     const auth = await requireAuth(request);
     if (!(auth instanceof NextResponse)) {
       const session = auth;
+      // Look up the org's actual tier from the database
+      let tier = 'FREE';
+      try {
+        const org = await prisma.organization.findUnique({
+          where: { id: session.organizationId },
+          select: { tier: true },
+        });
+        if (org?.tier) tier = org.tier;
+      } catch {
+        // DB unavailable — default to FREE
+      }
       return withCsrf({
         authenticated: true,
         userId: session.userId,
@@ -28,7 +40,7 @@ export async function GET(request: NextRequest) {
         email: session.email,
         clientId: session.clientId ?? null,
         clientName: session.clientName ?? null,
-        tier: (session as unknown as Record<string, unknown>).tier as string ?? 'FREE',
+        tier,
       });
     }
   } catch {
@@ -43,6 +55,17 @@ export async function GET(request: NextRequest) {
         const data = JSON.parse(
           Buffer.from(cookie.slice(4), 'base64').toString('utf-8'),
         );
+        // Look up org tier from DB for dev sessions too
+        let devTier = data.tier ?? 'FREE';
+        try {
+          const org = await prisma.organization.findUnique({
+            where: { id: data.organizationId },
+            select: { tier: true },
+          });
+          if (org?.tier) devTier = org.tier;
+        } catch {
+          // DB unavailable — use cookie value
+        }
         return withCsrf({
           authenticated: true,
           userId: data.userId,
@@ -51,7 +74,7 @@ export async function GET(request: NextRequest) {
           email: data.email,
           clientId: data.clientId ?? null,
           clientName: data.clientName ?? null,
-          tier: data.tier ?? 'FREE',
+          tier: devTier,
         });
       } catch {
         // Invalid dev cookie — fall through

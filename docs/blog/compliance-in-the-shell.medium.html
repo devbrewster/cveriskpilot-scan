@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Compliance in the Shell: Why Your Vibe-Coded SaaS Will Die at the Enterprise Door</title>
+  <style>
+    /* Medium-like preview styling */
+    body {
+      max-width: 680px;
+      margin: 40px auto;
+      padding: 0 20px;
+      font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif;
+      font-size: 21px;
+      line-height: 1.58;
+      color: #292929;
+      background: #fff;
+    }
+    h2 { font-size: 34px; font-weight: 700; margin-top: 40px; }
+    h3 { font-size: 26px; font-weight: 700; margin-top: 36px; }
+    h4 { font-size: 22px; font-weight: 700; margin-top: 30px; }
+    p { margin: 20px 0; }
+    a { color: inherit; text-decoration: underline; }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: Menlo, Monaco, "Courier New", monospace;
+      font-size: 16px;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    blockquote {
+      border-left: 3px solid #292929;
+      padding-left: 20px;
+      margin-left: 0;
+      font-style: italic;
+      color: #555;
+    }
+    ul, ol { padding-left: 30px; }
+    li { margin: 8px 0; }
+    hr {
+      border: none;
+      text-align: center;
+      margin: 40px 0;
+    }
+    hr::before {
+      content: "...";
+      font-size: 28px;
+      letter-spacing: 12px;
+      color: #999;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 17px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background: #f5f5f5;
+      font-weight: 700;
+    }
+    .subtitle {
+      font-size: 22px;
+      color: #555;
+      font-style: italic;
+      margin-top: -10px;
+    }
+    .footer-note {
+      font-size: 16px;
+      color: #757575;
+      font-style: italic;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+    .tags {
+      font-size: 14px;
+      color: #999;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Compliance in the Shell: Why Your Vibe-Coded SaaS Will Die at the Enterprise Door</h2>
+
+<p class="subtitle">You shipped fast. You shipped first. Then an enterprise lead asked "are you SOC 2 compliant?" and the deal died on the spot.</p>
+
+<hr>
+
+<p>Most vibe coders are one good distribution channel away from actually making money.</p>
+
+<p>But nobody's building the part that comes after distribution &mdash; the part where an enterprise prospect sends you a security questionnaire, and you realize your entire product runs on dependencies you've never audited, secrets management you haven't thought about, and compliance frameworks you can't even name.</p>
+
+<p>I know because I spent 7 years watching it happen from the other side.</p>
+
+<hr>
+
+<h3>The Enterprise Kill Switch</h3>
+
+<p>I was an Application Security Architect. My job was to evaluate vendors before we let their software touch our infrastructure.</p>
+
+<p>Here's what killed deals:</p>
+
+<ul>
+  <li>"We don't have a SOC 2 report yet."</li>
+  <li>"Our vulnerability management process is... we run npm audit sometimes."</li>
+  <li>"We'll get to compliance when we scale."</li>
+</ul>
+
+<p>Every single time, the conversation ended the same way: <strong>"Come back when you're compliant."</strong></p>
+
+<p>It didn't matter how good the product was. It didn't matter how fast they shipped. Enterprise buyers have procurement checklists, and if you can't check the boxes, you don't get the contract.</p>
+
+<p>The vibe coders building the next wave of SaaS products are about to learn this lesson the hard way.</p>
+
+<hr>
+
+<h3>The Vibe Coding Security Problem</h3>
+
+<p>Let's talk about what's actually happening in vibe-coded projects.</p>
+
+<p>AI coding agents are shipping code at 20x the speed of human developers. That's the whole point. But the security data is ugly:</p>
+
+<ul>
+  <li><strong>87% of AI-generated pull requests</strong> contain at least one vulnerability</li>
+  <li><strong>80% of those vulnerabilities</strong> go undetected by static analysis</li>
+  <li><strong>57% of AI-generated APIs</strong> are publicly accessible</li>
+  <li><strong>89%</strong> rely on insecure authentication methods</li>
+</ul>
+
+<p>You're building faster than ever. But your attack surface is growing faster than your ability to secure it.</p>
+
+<p>And here's the part nobody talks about: <strong>every one of those vulnerabilities maps to a compliance control.</strong> A hardcoded API key isn't just a security finding &mdash; it's a SOC 2 CC6.1 violation, a NIST IA-5 failure, and a CMMC IA.L2-3.5.10 gap. All at once.</p>
+
+<p>You just don't know it yet because nothing in your pipeline tells you.</p>
+
+<hr>
+
+<h3>What "Compliance" Actually Means (for Engineers)</h3>
+
+<p>Compliance isn't paperwork. It's proof.</p>
+
+<p>Proof that you:</p>
+
+<ul>
+  <li>Know what's in your software (SBOM)</li>
+  <li>Detect vulnerabilities before they ship (scanning)</li>
+  <li>Map findings to recognized security standards (control mapping)</li>
+  <li>Track remediation with timelines (POAMs)</li>
+  <li>Can show an auditor the evidence trail (audit logs)</li>
+</ul>
+
+<p>SOC 2, NIST 800-53, CMMC, FedRAMP &mdash; they all ask the same fundamental question: <strong>do you know what's broken, and can you prove you're fixing it?</strong></p>
+
+<p>The problem is that every tool in your pipeline answers a different piece:</p>
+
+<table>
+  <tr><th>Tool</th><th>What it does</th><th>What it doesn't do</th></tr>
+  <tr><td>Snyk</td><td>Finds CVEs in dependencies</td><td>Map them to SOC 2 controls</td></tr>
+  <tr><td>SonarQube</td><td>Flags code quality issues</td><td>Generate POAM entries</td></tr>
+  <tr><td>Trivy</td><td>Scans containers</td><td>Tell you which CMMC practice failed</td></tr>
+  <tr><td>GitHub GHAS</td><td>Opens Dependabot alerts</td><td>Connect to NIST 800-53</td></tr>
+  <tr><td>npm audit</td><td>Lists known vulnerabilities</td><td>Map anything to anything</td></tr>
+</table>
+
+<p>Every scanner finds the problem. None of them tell you which compliance control is affected.</p>
+
+<p>That gap is where deals die, audits fail, and GRC teams burn 40+ hours per quarter in spreadsheets.</p>
+
+<hr>
+
+<h3>The Chain Nobody Built</h3>
+
+<p>Every vulnerability has a CWE classification. CWE-89 is SQL injection. CWE-798 is hardcoded credentials. CWE-79 is cross-site scripting.</p>
+
+<p>NIST maintains mappings from CWEs to 800-53 controls. Every major compliance framework maps back to NIST 800-53.</p>
+
+<p>The chain:</p>
+
+<pre><code>Vulnerability &rarr; CWE &rarr; NIST 800-53 &rarr; SOC 2 / CMMC / FedRAMP / ASVS / SSDF</code></pre>
+
+<p>This chain is publicly documented. It's not proprietary data. But nobody had automated it inside a CI/CD pipeline.</p>
+
+<p>So I quit my job and built it.</p>
+
+<hr>
+
+<h3>One Command. Compliance in the Shell.</h3>
+
+<pre><code>npx @cveriskpilot/scan --preset startup</code></pre>
+
+<p>That's it. No account. No dashboard. No signup. Runs entirely on your machine.</p>
+
+<p><strong>Four scanners in one pass:</strong></p>
+
+<ul>
+  <li><strong>Dependencies</strong> &mdash; package-lock.json, yarn.lock, requirements.txt, Cargo.lock, go.sum, pnpm-lock.yaml, Gemfile.lock, pom.xml, build.gradle</li>
+  <li><strong>Secrets</strong> &mdash; 30+ patterns + Shannon entropy detection for API keys, tokens, private keys, passwords</li>
+  <li><strong>Infrastructure as Code</strong> &mdash; Terraform, CloudFormation, Dockerfile, Kubernetes YAML</li>
+  <li><strong>API Security</strong> &mdash; Static analysis of Next.js API routes for missing auth, RBAC, CSRF, org scoping, mass assignment, rate limiting, input validation</li>
+</ul>
+
+<p><strong>Every finding mapped to 6 frameworks, 135 controls:</strong></p>
+
+<table>
+  <tr><th>Framework</th><th>Controls</th><th>Who needs it</th></tr>
+  <tr><td>NIST 800-53 Rev 5</td><td>45</td><td>Federal agencies, any regulated org</td></tr>
+  <tr><td>SOC 2 Type II</td><td>7</td><td>SaaS companies, cloud services</td></tr>
+  <tr><td>CMMC Level 2</td><td>33</td><td>Defense contractors</td></tr>
+  <tr><td>FedRAMP Moderate</td><td>35</td><td>Federal cloud providers</td></tr>
+  <tr><td>OWASP ASVS 4.0</td><td>7</td><td>Development teams</td></tr>
+  <tr><td>NIST SSDF 1.1</td><td>8</td><td>Secure development lifecycle</td></tr>
+</table>
+
+<p><strong>What this looks like in practice:</strong></p>
+
+<p>Your scan finds a hardcoded database password in <code>config/db.ts</code>.</p>
+
+<p>Old way: "You have a hardcoded secret." Fix it or don't. Nobody knows the compliance impact.</p>
+
+<p>With crp-scan:</p>
+
+<pre><code>CRITICAL  CWE-798  Hard-Coded Credentials  config/db.ts:14
+  Verdict: TRUE_POSITIVE
+  NIST 800-53: IA-5 (Authenticator Management)
+  SOC 2: CC6.1 (Logical Access Controls)
+  CMMC: IA.L2-3.5.10 (Cryptographically-Protected Passwords)
+  FedRAMP: IA-5
+  POAM: Required &mdash; remediation deadline based on severity</code></pre>
+
+<p>One finding. Four frameworks. Four potential audit failures. All surfaced before the code merges.</p>
+
+<hr>
+
+<h3>Presets for Every Compliance Scope</h3>
+
+<p>Not everyone needs all six frameworks. Pick the ones that match your business:</p>
+
+<pre><code># SaaS startup going for SOC 2
+crp-scan --preset startup
+
+# Defense contractor pursuing CMMC
+crp-scan --preset defense
+
+# Federal agency or FedRAMP candidate
+crp-scan --preset federal
+
+# Enterprise with multiple compliance requirements
+crp-scan --preset enterprise
+
+# DevSecOps team focused on secure SDLC
+crp-scan --preset devsecops</code></pre>
+
+<hr>
+
+<h3>Drop It Into Your Pipeline</h3>
+
+<p>Compliance scanning should run on every PR, not once a quarter.</p>
+
+<p><strong>GitHub Actions:</strong></p>
+
+<pre><code>name: Compliance Scan
+on: [push, pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npx @cveriskpilot/scan --preset startup --ci --fail-on critical</code></pre>
+
+<p><code>--ci</code> outputs structured JSON. <code>--fail-on critical</code> blocks the merge if a critical finding is detected. <code>--format sarif</code> pushes results to GitHub's Security tab.</p>
+
+<p>Every PR gets a compliance verdict. Every finding is mapped to controls. The audit trail writes itself.</p>
+
+<hr>
+
+<h3>Auto-Triage: Cutting Through AI-Generated Noise</h3>
+
+<p>AI-generated code produces more findings. Most of them are noise.</p>
+
+<p>Every finding gets one of three automatic verdicts:</p>
+
+<ul>
+  <li><strong>TRUE_POSITIVE</strong> &mdash; Real vulnerability. Maps to compliance controls. Fix it.</li>
+  <li><strong>FALSE_POSITIVE</strong> &mdash; Auto-dismissed. Test fixtures, example files, sample data, placeholder keys.</li>
+  <li><strong>NEEDS_REVIEW</strong> &mdash; Ambiguous. Gitignored files, unknown dependency versions, edge cases.</li>
+</ul>
+
+<p>The <code>API_KEY=your-key-here</code> in your README template? False positive. Auto-dismissed. Your team never sees it.</p>
+
+<p>The <code>DATABASE_URL=postgres://admin:password123@prod-db:5432</code> in your docker-compose? True positive. Mapped to four compliance controls. Flagged before it ships.</p>
+
+<hr>
+
+<h3>This Isn't Another Scanner. It's the Missing Layer.</h3>
+
+<p>I'm not trying to replace Snyk. Or Trivy. Or SonarQube. Those tools are excellent at detection.</p>
+
+<p>This is the compliance mapping layer that none of them built.</p>
+
+<p>You can even feed their output into CVERiskPilot. The platform ingests 11 scanner formats &mdash; Nessus, SARIF, CycloneDX, Qualys, OpenVAS, SPDX, OSV, CSAF, CSV, JSON, XLSX. Every finding gets normalized, enriched with EPSS exploit probability and KEV status, and mapped to controls.</p>
+
+<p>The CLI is the free open-source piece. The platform behind it adds:</p>
+
+<ul>
+  <li>AI-powered triage (Claude classifies findings at scale)</li>
+  <li>Case management (assign findings to owners with SLAs)</li>
+  <li>POAM generation (automatic plan of action and milestones)</li>
+  <li>Jira and ServiceNow sync (push findings to your existing workflow)</li>
+  <li>Compliance dashboards (real-time control coverage scores)</li>
+  <li>Multi-tenant support (MSSP and consultancy mode)</li>
+  <li>Audit-ready exports (PDF reports your auditor will actually accept)</li>
+</ul>
+
+<hr>
+
+<h3>The Real Cost of Ignoring This</h3>
+
+<p>March 2026 alone:</p>
+
+<ul>
+  <li><strong>Langflow</strong> CVE-2026-33017 &mdash; CVSS 9.3, exploited within 20 hours of disclosure</li>
+  <li><strong>Oracle</strong> CVE-2026-21992 &mdash; CVSS 9.8, unauthenticated RCE</li>
+  <li><strong>TELUS Digital</strong> &mdash; 1 petabyte of data stolen including FBI background checks</li>
+  <li><strong>Crunchyroll</strong> &mdash; 6.8 million users exposed via Okta SSO compromise</li>
+  <li><strong>Dutch Ministry of Finance</strong> &mdash; government systems breached</li>
+</ul>
+
+<p>AI-driven cyberattacks are up 89% in 2026. The EU Cyber Resilience Act now legally requires SBOMs for any product with digital elements sold in Europe.</p>
+
+<p>The window between CVE disclosure and active exploitation has collapsed to hours. Your compliance workflow can't take weeks anymore.</p>
+
+<hr>
+
+<h3>Try It Right Now</h3>
+
+<pre><code>npx @cveriskpilot/scan --preset startup</code></pre>
+
+<p>90 seconds. No account. No data leaves your machine. Node.js 20+ required.</p>
+
+<p>Then ask yourself: how long would it take your team to manually map those findings to compliance controls in a spreadsheet?</p>
+
+<p>That's the gap. That's why I built this.</p>
+
+<hr>
+
+<div class="footer-note">
+  <p>I'm George. 7+ years in cybersecurity. I watched security teams drown in scanner output while compliance teams waited for evidence &mdash; two teams, same data, zero automation between them.</p>
+  <p>CVERiskPilot is 100% Veteran Owned, registered in Texas, and built by a solo founder who got tired of being the human spreadsheet between vulnerability data and compliance controls.</p>
+  <p>CLI: <a href="https://npmjs.com/package/@cveriskpilot/scan">npm</a> | <a href="https://github.com/devbrewster/cveriskpilot-scan">GitHub</a><br>
+  Platform: <a href="https://cveriskpilot.com">cveriskpilot.com</a></p>
+</div>
+
+<p class="tags">Tags: DevSecOps &middot; Compliance &middot; Cybersecurity &middot; Vibe Coding &middot; SOC 2 &middot; NIST 800-53 &middot; CMMC &middot; CLI &middot; Open Source &middot; AppSec &middot; Vulnerability Management</p>
+
+</body>
+</html>

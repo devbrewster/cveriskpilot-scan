@@ -154,17 +154,39 @@ crp-scan --preset defense --fail-on high --verbose
 
 ## Output Formats
 
+All formats print to **stdout**. Redirect to a file to save results:
+
+```bash
+# Save JSON results
+crp-scan --preset startup --format json > scan-results.json
+
+# Save SARIF for GitHub Code Scanning upload
+crp-scan --format sarif > results.sarif
+
+# Save Markdown for PR comments
+crp-scan --format markdown > compliance-report.md
+
+# Pipe JSON to jq for quick queries
+crp-scan --format json | jq '.complianceImpact.frameworkSummary'
+```
+
 ### Table (default)
-Colored terminal output with severity badges, findings list, and compliance impact breakdown.
+Colored terminal output with severity badges, per-finding compliance control mapping, and compliance impact summary. Automatically adapts to your terminal width — no information gets cut off.
+
+Each finding shows:
+- Severity badge, verdict, and title
+- File location, CWE ID, and scanner type
+- Triage verdict reason
+- Mapped compliance controls (e.g., `SOC 2 Type II:CC6.1, OWASP ASVS:V1.2`)
 
 ### JSON (`--format json`)
-Structured output with findings, severity summary, and compliance impact per framework.
+Structured output with full finding details (including CWE/CVE IDs), severity summary, verdict breakdown, and complete compliance impact per framework. Ideal for CI/CD integration, dashboards, and programmatic analysis.
 
 ### SARIF (`--format sarif`)
-SARIF 2.1.0 for GitHub Code Scanning, GitLab SAST, and other SARIF-compatible tools.
+SARIF 2.1.0 for GitHub Code Scanning, GitLab SAST, Azure DevOps, and other SARIF-compatible tools.
 
 ### Markdown (`--format markdown`)
-Markdown tables for PR comments and documentation.
+Markdown tables with findings, compliance impact, and summary — suitable for PR comments, wiki pages, and documentation.
 
 ## How Compliance Mapping Works
 

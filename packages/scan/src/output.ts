@@ -107,6 +107,12 @@ function buildComplianceImpact(summary: ScanSummary): ComplianceImpactReport | n
 
 function formatTable(summary: ScanSummary): string {
   const lines: string[] = [];
+  // Detect terminal width: TTY columns → COLUMNS env → default 80
+  const termWidth = process.stdout.columns
+    || (process.env['COLUMNS'] ? parseInt(process.env['COLUMNS'], 10) : 0)
+    || 80;
+  const indent = '           ';  // 11 chars to align under title
+  const contentWidth = termWidth - 4; // 2-char left margin + 2 safety
 
   lines.push('');
   lines.push(c(BOLD + CYAN, '  CVERiskPilot Scan Results'));
@@ -135,7 +141,7 @@ function formatTable(summary: ScanSummary): string {
   // Findings table
   if (summary.findings.length > 0) {
     lines.push(c(BOLD, '  Findings'));
-    lines.push(c(DIM, '  ' + '-'.repeat(100)));
+    lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 100))));
 
     const sorted = [...summary.findings].sort((a, b) => severityRank(a.severity) - severityRank(b.severity));
     const displayLimit = 50;
@@ -147,10 +153,9 @@ function formatTable(summary: ScanSummary): string {
     if (impactForFindings) {
       for (const entry of impactForFindings.entries) {
         for (const cweId of entry.affectedBy) {
-          // Match findings by CWE
           const normalizedCwe = cweId.replace(/^CWE-/i, '');
           for (const f of displayed) {
-            if (f.cweIds.some(c => c.replace(/^CWE-/i, '') === normalizedCwe)) {
+            if (f.cweIds.some(id => id.replace(/^CWE-/i, '') === normalizedCwe)) {
               const existing = findingComplianceMap.get(f) ?? [];
               const tag = `${entry.framework}:${entry.controlId}`;
               if (!existing.includes(tag)) existing.push(tag);
@@ -161,26 +166,46 @@ function formatTable(summary: ScanSummary): string {
       }
     }
 
+    // Dynamic truncation widths based on terminal
+    const titleMax = Math.max(25, Math.min(50, contentWidth - 45));
+    const locMax = Math.max(15, Math.min(35, contentWidth - titleMax - 30));
+    const detailMax = contentWidth - indent.length - 4;  // for → / ⚖ / ⮑ prefix
+
     for (const f of displayed) {
       const location = f.filePath ? `${f.filePath}${f.lineNumber ? `:${f.lineNumber}` : ''}` : f.packageName ?? '';
       const scanner = f.scannerType;
       const cwe = f.cweIds.length > 0 ? f.cweIds[0] : '';
+      const verdictTag = f.verdict === 'FALSE_POSITIVE' ? c(DIM, '[FP]')
+        : f.verdict === 'NEEDS_REVIEW' ? c(YELLOW, '[REVIEW]')
+        : c(GREEN, '[TP]');
+
+      // Line 1: severity + verdict + title
       const cvss = f.cvssScore !== undefined ? c(YELLOW, ` CVSS:${f.cvssScore}`) : '';
-      const verdictTag = f.verdict === 'FALSE_POSITIVE' ? c(DIM, ' [FP]')
-        : f.verdict === 'NEEDS_REVIEW' ? c(YELLOW, ' [REVIEW]')
-        : c(GREEN, ' [TP]');
       lines.push(
-        `  ${severityBadge(f.severity)}${cvss}${verdictTag} ${c(BOLD, truncate(f.title, 45))} ${c(DIM, cwe)} ${c(DIM, truncate(location, 30))} ${c(MAGENTA, scanner)}`,
+        `  ${severityBadge(f.severity)}${cvss} ${verdictTag} ${c(BOLD, truncate(f.title, titleMax))}`,
       );
+      // Line 2: location + CWE + scanner
+      lines.push(
+        `  ${c(DIM, indent)}${c(DIM, truncate(location, locMax))}  ${c(DIM, cwe)}  ${c(MAGENTA, scanner)}`,
+      );
+      // Line 3: verdict reason (wrapped)
       if (f.verdictReason) {
-        lines.push(`  ${c(DIM, '           → ' + truncate(f.verdictReason, 90))}`);
+        wrapText(`→ ${f.verdictReason}`, detailMax).forEach(line =>
+          lines.push(`  ${c(DIM, indent + line)}`),
+        );
       }
+      // Line 4+: compliance controls (wrapped)
       const controls = findingComplianceMap.get(f);
       if (controls && controls.length > 0) {
-        lines.push(`  ${c(CYAN, '           ⚖ ' + controls.join(', '))}`);
+        wrapText(`⚖ ${controls.join(', ')}`, detailMax).forEach(line =>
+          lines.push(`  ${c(CYAN, indent + line)}`),
+        );
       }
+      // Line 5: recommendation (wrapped)
       if (f.recommendation) {
-        lines.push(`  ${c(CYAN, '           ⮑ ' + truncate(f.recommendation, 90))}`);
+        wrapText(`⮑ ${f.recommendation}`, detailMax).forEach(line =>
+          lines.push(`  ${c(CYAN, indent + line)}`),
+        );
       }
     }
 
@@ -194,12 +219,25 @@ function formatTable(summary: ScanSummary): string {
   const impact = buildComplianceImpact(summary);
   if (impact) {
     lines.push(c(BOLD, '  Compliance Impact'));
-    lines.push(c(DIM, '  ' + '-'.repeat(80)));
+    lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 80))));
 
     for (const fw of impact.frameworkSummary) {
-      lines.push(
-        `  ${c(CYAN, fw.frameworkName.padEnd(22))} ${c(YELLOW, `${fw.affectedControlCount}`)} controls affected  ${c(DIM, fw.affectedControlIds.join(', '))}`,
-      );
+      const prefix = `${fw.frameworkName.padEnd(22)} ${fw.affectedControlCount} controls affected  `;
+      const controlsStr = fw.affectedControlIds.join(', ');
+      const availableWidth = contentWidth - prefix.length;
+      if (controlsStr.length <= availableWidth) {
+        lines.push(
+          `  ${c(CYAN, fw.frameworkName.padEnd(22))} ${c(YELLOW, `${fw.affectedControlCount}`)} controls affected  ${c(DIM, controlsStr)}`,
+        );
+      } else {
+        lines.push(
+          `  ${c(CYAN, fw.frameworkName.padEnd(22))} ${c(YELLOW, `${fw.affectedControlCount}`)} controls affected`,
+        );
+        const wrapIndent = '                          ';
+        wrapText(controlsStr, contentWidth - wrapIndent.length).forEach(line =>
+          lines.push(`  ${c(DIM, wrapIndent + line)}`),
+        );
+      }
     }
 
     lines.push('');
@@ -503,4 +541,26 @@ export function severityRank(severity: string): number {
 
 function truncate(s: string, maxLen: number): string {
   return s.length > maxLen ? s.slice(0, maxLen - 3) + '...' : s;
+}
+
+/** Wrap text to fit within maxLen, breaking at commas or spaces. */
+function wrapText(text: string, maxLen: number): string[] {
+  if (text.length <= maxLen) return [text];
+  const wrapped: string[] = [];
+  let remaining = text;
+  while (remaining.length > maxLen) {
+    // Prefer breaking at ", " boundary
+    let breakAt = remaining.lastIndexOf(', ', maxLen);
+    if (breakAt > 0) {
+      breakAt += 2; // include the ", "
+    } else {
+      // Fall back to space
+      breakAt = remaining.lastIndexOf(' ', maxLen);
+    }
+    if (breakAt <= 0) breakAt = maxLen; // no good break point, hard break
+    wrapped.push(remaining.slice(0, breakAt));
+    remaining = remaining.slice(breakAt);
+  }
+  if (remaining.length > 0) wrapped.push(remaining);
+  return wrapped;
 }

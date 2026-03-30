@@ -79,10 +79,10 @@ const frameworkPresets = [
 ];
 
 const outputFormats = [
-  { format: "table", description: "Human-readable table with color-coded severity. Default format for terminal output." },
-  { format: "json", description: "Structured JSON output with full finding details, compliance mappings, and metadata. Ideal for programmatic consumption." },
-  { format: "sarif", description: "SARIF 2.1.0 format for integration with GitHub Code Scanning, Azure DevOps, and other SARIF-compatible tools." },
-  { format: "markdown", description: "Markdown-formatted report suitable for PR comments, wiki pages, and documentation." },
+  { format: "table", description: "Color-coded severity badges with per-finding compliance control mapping (e.g., SOC 2 Type II:CC6.1, OWASP ASVS:V1.2). Adapts to terminal width — no information gets cut off." },
+  { format: "json", description: "Structured JSON with full finding details (CWE/CVE IDs), severity summary, verdict breakdown, and complete compliance impact per framework. Pipe to jq or save with > scan-results.json." },
+  { format: "sarif", description: "SARIF 2.1.0 for GitHub Code Scanning, GitLab SAST, and Azure DevOps. Save with > results.sarif." },
+  { format: "markdown", description: "Markdown tables with findings, compliance impact, and summary. Save with > compliance-report.md for PR comments or wiki pages." },
 ];
 
 const exitCodes = [
@@ -195,7 +195,7 @@ export default function CliReferencePage() {
       <p className="mt-4 text-base leading-relaxed text-gray-400">
         Complete reference for the{" "}
         <code className="rounded bg-gray-800 px-1.5 py-0.5 font-mono text-sm text-gray-300">@cveriskpilot/scan</code>{" "}
-        CLI (v0.1.7). Scans your codebase for vulnerable dependencies, leaked secrets, and
+        CLI (v0.1.8). Scans your codebase for vulnerable dependencies, leaked secrets, and
         IaC misconfigurations, then maps every finding to compliance controls across NIST 800-53,
         SOC 2, CMMC, FedRAMP, ASVS, and SSDF. Zero external dependencies. Requires Node.js 20+.
       </p>
@@ -276,6 +276,32 @@ export default function CliReferencePage() {
             <span className="text-gray-200">&quot;**/test/**&quot;</span>{" "}
             <span className="text-gray-400">--format</span>{" "}
             <span className="text-gray-200">sarif</span>
+          </CodeBlock>
+
+          <CodeBlock title="Save results to file (all formats output to stdout)">
+            <span className="text-gray-500"># JSON — full findings + compliance impact</span>
+            {"\n"}
+            <span className="text-primary-400">crp-scan</span>{" "}
+            <span className="text-gray-400">--format json</span>{" "}
+            <span className="text-gray-200">&gt; scan-results.json</span>
+            {"\n\n"}
+            <span className="text-gray-500"># SARIF — upload to GitHub Code Scanning</span>
+            {"\n"}
+            <span className="text-primary-400">crp-scan</span>{" "}
+            <span className="text-gray-400">--format sarif</span>{" "}
+            <span className="text-gray-200">&gt; results.sarif</span>
+            {"\n\n"}
+            <span className="text-gray-500"># Markdown — paste into PR comments or wiki</span>
+            {"\n"}
+            <span className="text-primary-400">crp-scan</span>{" "}
+            <span className="text-gray-400">--format markdown</span>{" "}
+            <span className="text-gray-200">&gt; compliance-report.md</span>
+            {"\n\n"}
+            <span className="text-gray-500"># Pipe JSON to jq for quick queries</span>
+            {"\n"}
+            <span className="text-primary-400">crp-scan</span>{" "}
+            <span className="text-gray-400">--format json</span>{" "}
+            <span className="text-gray-200">| jq &apos;.complianceImpact.frameworkSummary&apos;</span>
           </CodeBlock>
 
           <CodeBlock title="Upload results to CVERiskPilot platform">

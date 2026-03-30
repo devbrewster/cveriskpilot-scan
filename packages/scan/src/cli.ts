@@ -531,10 +531,10 @@ function filterFindings(
 // ---------------------------------------------------------------------------
 
 function redactEnrichedFields(findings: CanonicalFinding[]): CanonicalFinding[] {
+  // Keep cveIds/cweIds — they come from scanners, not enrichment,
+  // and are required for compliance mapping.
   return findings.map((f) => ({
     ...f,
-    cveIds: [],
-    cweIds: [],
     cvssScore: undefined,
     cvssVector: undefined,
     cvssVersion: undefined,

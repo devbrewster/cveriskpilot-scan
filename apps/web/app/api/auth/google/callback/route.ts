@@ -10,7 +10,6 @@ import {
 import {
   STRIPE_PRICES,
   createCheckoutSession,
-  createSetupCheckoutSession,
 } from '@cveriskpilot/billing';
 
 export const dynamic = 'force-dynamic';
@@ -142,8 +141,9 @@ export async function GET(request: NextRequest) {
       const plan = request.cookies.get('crp_oauth_plan')?.value?.toUpperCase() || '';
       const VALID_PAID_PLANS = new Set(['FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
 
-      try {
-        if (VALID_PAID_PLANS.has(plan)) {
+      // Only redirect to Stripe for paid plans — FREE goes straight to dashboard
+      if (VALID_PAID_PLANS.has(plan)) {
+        try {
           const priceKey = `${plan}_MONTHLY`;
           const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
           const priceId = priceGetter?.();
@@ -156,17 +156,10 @@ export async function GET(request: NextRequest) {
             });
             redirectUrl = new URL(checkout.url);
           }
-        } else {
-          // Free plan or no plan — collect payment method via setup mode
-          const setup = await createSetupCheckoutSession({
-            organizationId: result.organizationId,
-            email: user.email,
-          });
-          redirectUrl = new URL(setup.url);
+        } catch (stripeErr) {
+          console.error('[Google OAuth] Stripe checkout creation failed:', stripeErr);
+          // Fall through to dashboard — user can upgrade later
         }
-      } catch (stripeErr) {
-        console.error('[Google OAuth] Stripe checkout creation failed:', stripeErr);
-        // Fall through to dashboard — user can upgrade later
       }
     }
 

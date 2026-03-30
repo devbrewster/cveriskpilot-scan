@@ -13,7 +13,6 @@ import { UserRole } from '@cveriskpilot/domain';
 import {
   STRIPE_PRICES,
   createCheckoutSession,
-  createSetupCheckoutSession,
 } from '@cveriskpilot/billing';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
 
@@ -115,39 +114,32 @@ export async function POST(request: NextRequest) {
     let checkoutUrl: string | undefined;
     const normalizedPlan = plan?.toUpperCase();
 
-    // Validate plan is a known tier
-    const VALID_PLANS = new Set(['FREE', 'FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
-    const isPaidPlan = normalizedPlan && normalizedPlan !== 'FREE' && VALID_PLANS.has(normalizedPlan);
+    // Paid plans → create Stripe checkout session (account already created on FREE tier)
+    // Webhook will upgrade tier on checkout.session.completed
+    const PAID_PLANS = new Set(['FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
 
-    if (isPaidPlan) {
-      // Paid plan — create a subscription checkout
+    if (normalizedPlan && PAID_PLANS.has(normalizedPlan)) {
       const priceKey = `${normalizedPlan}_MONTHLY`;
       const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
       const priceId = priceGetter?.();
 
-      if (!priceId) {
-        // Missing Stripe price config — don't silently create a free account
-        console.error(`[signup] Missing STRIPE_PRICE_${priceKey} env var for plan ${normalizedPlan}`);
-        return NextResponse.json(
-          { error: `Payment configuration unavailable for ${plan} plan. Please contact support.` },
-          { status: 503 },
-        );
+      if (priceId) {
+        try {
+          const checkout = await createCheckoutSession({
+            organizationId: result.organizationId,
+            email: email!,
+            priceId,
+          });
+          checkoutUrl = checkout.url;
+        } catch (stripeErr) {
+          console.error(`[signup] Stripe checkout creation failed for ${normalizedPlan}:`, stripeErr);
+          // Account is created — user can upgrade later from billing settings
+        }
+      } else {
+        console.warn(`[signup] No Stripe price configured for ${priceKey}, account created on FREE tier`);
       }
-
-      const checkout = await createCheckoutSession({
-        organizationId: result.organizationId,
-        email: email!,
-        priceId,
-      });
-      checkoutUrl = checkout.url;
-    } else {
-      // Free plan, no plan, or unknown plan — collect payment method via Stripe setup mode
-      const setup = await createSetupCheckoutSession({
-        organizationId: result.organizationId,
-        email: email!,
-      });
-      checkoutUrl = setup.url;
     }
+    // FREE tier — no Stripe interaction at all. Straight to dashboard.
 
     const response = NextResponse.json(
       {

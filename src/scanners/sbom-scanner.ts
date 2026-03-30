@@ -10,7 +10,11 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as readline from 'node:readline';
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import type { CanonicalFinding, FindingVerdict } from '../vendor/parsers/types.js';
+
+const __require = createRequire(import.meta.url);
+const VERSION: string = (__require('../../package.json') as { version: string }).version;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -436,7 +440,7 @@ function generateSbom(deps: Dependency[], projectDir: string): CycloneDxBom {
     version: 1,
     metadata: {
       timestamp: new Date().toISOString(),
-      tools: [{ vendor: 'CVERiskPilot', name: 'cveriskpilot-scan', version: '0.1.0' }],
+      tools: [{ vendor: 'CVERiskPilot', name: 'cveriskpilot-scan', version: VERSION }],
       component: { type: 'application', name: projectName, version: '0.0.0' },
     },
     components: deps.map((dep) => ({

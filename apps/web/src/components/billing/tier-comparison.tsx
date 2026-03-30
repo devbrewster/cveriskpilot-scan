@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 // ---------------------------------------------------------------------------
 // Tier data (mirrored from packages/billing/src/config.ts for client use)
@@ -159,6 +160,48 @@ function formatPrice(monthly: number, annual: number, isAnnual: boolean): string
 
 export function TierComparison() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleUpgrade = useCallback(async (tier: string) => {
+    setUpgrading(tier);
+    try {
+      // Fetch CSRF token from session endpoint
+      const sessionRes = await fetch('/api/auth/session');
+      const sessionData = await sessionRes.json();
+      const csrfToken = sessionData?.csrfToken ?? '';
+
+      const res = await fetch('/api/billing/upgrade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': csrfToken,
+        },
+        body: JSON.stringify({
+          targetTier: tier,
+          billingInterval: isAnnual ? 'annual' : 'monthly',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Failed to process upgrade. Please try again.');
+        return;
+      }
+
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        // Tier upgraded directly (subscription swap)
+        router.refresh();
+      }
+    } catch {
+      alert('Network error. Please try again.');
+    } finally {
+      setUpgrading(null);
+    }
+  }, [isAnnual, router]);
 
   return (
     <div className="space-y-12">
@@ -255,16 +298,18 @@ export function TierComparison() {
               ))}
             </ul>
 
-            <a
-              href={plan.ctaHref}
-              className={`mt-auto block w-full rounded-lg py-2.5 text-center text-sm font-semibold transition-colors ${
+            <button
+              type="button"
+              disabled={upgrading === plan.tier}
+              onClick={() => handleUpgrade(plan.tier)}
+              className={`mt-auto block w-full rounded-lg py-2.5 text-center text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 plan.highlighted
                   ? 'bg-primary-600 text-white hover:bg-primary-700'
                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
               }`}
             >
-              {plan.cta}
-            </a>
+              {upgrading === plan.tier ? 'Processing...' : plan.cta}
+            </button>
           </div>
         ))}
       </div>

@@ -1,25 +1,64 @@
 {
-  "strategy": "build in public + security education + product updates",
-  "cadence": "3 posts per week (Mon / Wed / Fri)",
-  "audience": "security engineers, AppSec teams, DevSecOps practitioners, CTOs at growth-stage companies",
+  "strategy": "humor-first founder voice + security education + building in public",
+  "cadence": "2 posts per day (9 AM + 3 PM EST), 7 days/week during launch sprint",
+  "audience": "security engineers, AppSec teams, DevSecOps practitioners, GRC analysts, solo founders",
   "content_mix": {
-    "education": "40% — teach something useful, earn authority",
-    "product": "30% — features, releases, what we shipped",
-    "build_in_public": "20% — process, pipeline, decisions",
-    "community": "10% — engagement, questions, polls"
+    "meme_humor": "30% — relatable security/compliance pain, no product mention needed",
+    "building_in_public": "25% — real founder updates, wins, fails, numbers",
+    "hot_takes": "20% — opinionated, slightly spicy, invite debate",
+    "product_updates": "15% — features, releases, CLI demos. Let the work speak.",
+    "engagement_bait": "10% — polls, questions, confessionals"
   },
-  "schedule": [
-    { "date": "2026-03-17", "id": "2026-03-17-we-joined-x", "type": "announcement", "status": "published", "topic": "We joined X" },
-    { "date": "2026-03-19", "id": "2026-03-19-cve-noise-problem", "type": "education", "status": "draft", "topic": "The CVE noise problem" },
-    { "date": "2026-03-21", "id": "2026-03-21-beta-202-release", "type": "product", "status": "draft", "topic": "Beta 2.0.2 shipped" },
-    { "date": "2026-03-24", "id": "2026-03-24-xlsx-cve-fix", "type": "build_in_public", "status": "draft", "topic": "We patched our own CVE" },
-    { "date": "2026-03-26", "id": "2026-03-26-cvss-problem", "type": "education", "status": "draft", "topic": "CVSS scores lie" },
-    { "date": "2026-03-28", "id": "2026-03-28-cicd-security-gate", "type": "build_in_public", "status": "draft", "topic": "Our CI/CD security gate" },
-    { "date": "2026-03-31", "id": "2026-03-31-soc2-audit-events", "type": "product", "status": "draft", "topic": "SOC2 audit event coverage" },
-    { "date": "2026-04-02", "id": "2026-04-02-cve-triage-framework", "type": "education", "status": "draft", "topic": "How to triage a CVE in 5 steps" },
-    { "date": "2026-04-04", "id": "2026-04-04-upload-formats", "type": "product", "status": "draft", "topic": "XLSX, CSV, JSON, SARIF — we parse all of them" },
-    { "date": "2026-04-07", "id": "2026-04-07-beta-progress", "type": "build_in_public", "status": "draft", "topic": "3 weeks of beta progress" },
-    { "date": "2026-04-09", "id": "2026-04-09-remediation-tracking", "type": "product", "status": "draft", "topic": "Remediation tracking feature" },
-    { "date": "2026-04-11", "id": "2026-04-11-security-team-poll", "type": "community", "status": "draft", "topic": "Poll: how does your team triage CVEs?" }
+  "voice": "See social/config.json voice_guidelines. TL;DR: funny, irreverent, self-deprecating. Never corporate.",
+  "active_campaigns": [
+    {
+      "file": "week1-x-posts.json",
+      "schedule": "2026-03-31 to 2026-04-04",
+      "status": "ready",
+      "posts": 10,
+      "voice": "new"
+    },
+    {
+      "file": "week2-x-posts.json",
+      "schedule": "2026-04-07 to 2026-04-11",
+      "status": "ready",
+      "posts": 10,
+      "voice": "new"
+    },
+    {
+      "file": "week3-4-x-posts.json",
+      "schedule": "2026-04-14 to 2026-04-25",
+      "status": "ready",
+      "posts": 20,
+      "voice": "new"
+    }
+  ],
+  "deprecated_campaigns": [
+    {
+      "file": "campaign-w1-7x-daily.json",
+      "reason": "7x/day caused 403 rate limits, corporate tone"
+    },
+    {
+      "file": "campaign-w2-7x-daily.json",
+      "reason": "replaced by week2-x-posts.json new voice"
+    },
+    {
+      "file": "reposts-best-of-w1.json",
+      "reason": "self-quoting at 12 followers reads desperate"
+    }
+  ],
+  "autopilot": {
+    "status": "active",
+    "sources": ["CISA KEV", "The Hacker News RSS"],
+    "max_per_day": 3,
+    "min_gap_minutes": 120,
+    "voice": "must follow social/config.json voice_guidelines"
+  },
+  "published_history": [
+    { "date": "2026-03-17", "id": "2026-03-17-we-joined-x", "type": "announcement", "status": "published" },
+    { "date": "2026-03-28", "id": "gcp-migration-series", "type": "build_in_public", "status": "published" },
+    { "date": "2026-03-29", "id": "w16-trending-batch", "type": "mixed", "status": "partial — 3 published, 7 killed (403)" },
+    { "date": "2026-03-30", "id": "auto-2026-03-30", "type": "autopilot", "status": "published — 10 posts" },
+    { "date": "2026-03-30", "id": "w1-mon-01 through w1-mon-03", "type": "mixed", "status": "published — 3 posts from old W1 sprint" }
   ]
 }

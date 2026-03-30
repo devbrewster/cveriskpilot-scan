@@ -201,17 +201,33 @@
     .stats-cmd { font-family: monospace; font-size: 12px; color: #64ffda; opacity: 0.7; }
 
     .hero-wm { position: absolute; bottom: 10px; right: 16px; font-size: 10px; color: rgba(255,255,255,0.2); font-weight: 600; font-family: -apple-system, sans-serif; }
+
+    /* Update badge */
+    .update-badge {
+      display: inline-block;
+      background: #1a8917;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 13px;
+      font-family: -apple-system, sans-serif;
+      font-weight: 600;
+      vertical-align: middle;
+      margin-left: 6px;
+    }
   </style>
 </head>
 <body>
   <div class="copy-banner">
-    Medium-ready preview — Select All (Ctrl+A) then paste into Medium's editor
+    Medium-ready preview (v0.1.11 update) — Select All (Ctrl+A) then paste into Medium's editor
     <button onclick="selectContent()">Select Article</button>
   </div>
   <div class="content" id="article">
     <h2>The Missing Link Between CI/CD Scanning and Compliance</h2>
 
-<p><em>Your pipeline catches vulnerabilities. But who maps them to compliance controls?</em></p>
+<p><em>Your pipeline catches vulnerabilities. But who maps them to compliance controls? How one CLI command bridges the gap between scanner output and audit evidence.</em></p>
+
+<p><em>Updated for v0.1.11 — now with 4 scanners, SARIF output, auto-triage verdicts, and API route security analysis.</em></p>
 
 <!-- ═══ HERO IMAGE PICKER ═══ -->
 <div class="hero-picker">
@@ -233,11 +249,11 @@
         <div class="gap-pill gap-scanner">Trivy</div>
       </div>
       <div class="gap-bridge">
-        <div class="gap-arrow">⟵</div>
+        <div class="gap-arrow">&#x27F5;</div>
         <div class="gap-bridge-label">THE MISSING<br>LINK</div>
         <div class="gap-command">npx @cveriskpilot/scan</div>
-        <div class="gap-bridge-sub">CWE → NIST 800-53 →<br>Framework Controls</div>
-        <div class="gap-arrow">⟶</div>
+        <div class="gap-bridge-sub">4 scanners &middot; 6 frameworks<br>135 controls &middot; auto-triage</div>
+        <div class="gap-arrow">&#x27F6;</div>
       </div>
       <div class="gap-side">
         <div class="gap-side-label">Your Compliance</div>
@@ -253,23 +269,23 @@
     <!-- Option D: Chain -->
     <div class="hero-option hero-chain" id="hero-chain">
       <div class="chain-title">The <span>Automated</span> Compliance Chain</div>
-      <div class="chain-subtitle">Every vulnerability mapped to every framework — in one command</div>
+      <div class="chain-subtitle">Every vulnerability mapped to every framework &mdash; in one command</div>
       <div class="chain-flow">
         <div class="chain-node chain-vuln">Vulnerability<br><small style="font-weight:400;font-size:9px;opacity:0.7">CVE-2024-38816</small></div>
-        <div class="chain-arrow">→</div>
+        <div class="chain-arrow">&rarr;</div>
         <div class="chain-node chain-cwe">CWE<br><small style="font-weight:400;font-size:9px;opacity:0.7">CWE-22: Path Traversal</small></div>
-        <div class="chain-arrow">→</div>
+        <div class="chain-arrow">&rarr;</div>
         <div class="chain-node chain-nist">NIST 800-53<br><small style="font-weight:400;font-size:9px;opacity:0.7">SI-2, SI-10, RA-5</small></div>
-        <div class="chain-arrow">→</div>
+        <div class="chain-arrow">&rarr;</div>
         <div class="chain-fws">
-          <div class="chain-fw">SOC 2 — CC7.1</div>
-          <div class="chain-fw">CMMC — SI.L2-3.14.1</div>
-          <div class="chain-fw">FedRAMP — SI-2</div>
+          <div class="chain-fw">SOC 2 &mdash; CC7.1</div>
+          <div class="chain-fw">CMMC &mdash; SI.L2-3.14.1</div>
+          <div class="chain-fw">FedRAMP &mdash; SI-2</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
         <div class="chain-cmd">npx @cveriskpilot/scan --preset enterprise</div>
-        <div class="chain-tag">6 frameworks · 135 controls · zero config</div>
+        <div class="chain-tag">4 scanners &middot; 6 frameworks &middot; 135 controls &middot; auto-triage</div>
       </div>
       <div class="hero-wm">cveriskpilot.com</div>
     </div>
@@ -338,7 +354,7 @@
 
 <h3>Why Scanner Vendors Haven't Fixed This</h3>
 
-<p>Scanner vendors optimize for <strong>detection</strong>. They compete on coverage — how many CVEs in the database, how many languages supported, how fast the scan runs.</p>
+<p>Scanner vendors optimize for <strong>detection</strong>. They compete on coverage &mdash; how many CVEs in the database, how many languages supported, how fast the scan runs.</p>
 
 <p>Compliance frameworks are a different world entirely. They define <strong>controls</strong>, not vulnerabilities.</p>
 
@@ -350,17 +366,19 @@
 
 <h3>The Chain That Makes It Work</h3>
 
-<p>Every vulnerability has a CWE (Common Weakness Enumeration) classification:<br><ul><br><li>CWE-89 = SQL Injection</li><br><li>CWE-79 = Cross-Site Scripting</li><br><li>CWE-798 = Hard-Coded Credentials</li><br></ul></p>
+<p>Every vulnerability has a CWE (Common Weakness Enumeration) classification:</p>
+
+<ul>
+<li>CWE-89 = SQL Injection</li>
+<li>CWE-79 = Cross-Site Scripting</li>
+<li>CWE-798 = Hard-Coded Credentials</li>
+</ul>
 
 <p>NIST maintains mappings from CWEs to 800-53 controls. And every major compliance framework maps back to NIST 800-53.</p>
 
 <p>The chain:</p>
 
-
-
-<pre><code>Vulnerability → CWE → NIST 800-53 → SOC 2 / CMMC / FedRAMP / ASVS / SSDF</code></pre>
-
-
+<pre><code>Vulnerability &rarr; CWE &rarr; NIST 800-53 &rarr; SOC 2 / CMMC / FedRAMP / ASVS / SSDF</code></pre>
 
 <p>This chain is well-documented. It's not proprietary. But nobody had automated it inside the CI/CD pipeline.</p>
 
@@ -368,22 +386,19 @@
 
 <hr>
 
-<h3>One Command. Three Scanners. Six Frameworks.</h3>
+<h3>One Command. Four Scanners. Six Frameworks.</h3>
 
-<p>We built <a href="https://npmjs.com/package/@cveriskpilot/scan">Pipeline Compliance Scanner</a> to close this gap. It's a free CLI that runs three scanners in a single command and maps every finding through the full compliance chain.</p>
-
-
+<p>We built <a href="https://npmjs.com/package/@cveriskpilot/scan">Pipeline Compliance Scanner</a> to close this gap. It's a free CLI that runs <strong>four scanners in parallel</strong> and maps every finding through the full compliance chain.</p>
 
 <pre><code>npx @cveriskpilot/scan --preset startup</code></pre>
-
-
 
 <p><strong>What gets scanned:</strong></p>
 
 <ul>
-<li><strong>Dependencies (SBOM)</strong> — package-lock.json, yarn.lock, requirements.txt, Cargo.lock, go.sum</li>
-<li><strong>Secrets</strong> — API keys, tokens, credentials (30+ patterns + entropy detection)</li>
-<li><strong>Infrastructure as Code</strong> — Terraform, CloudFormation, Dockerfile, Kubernetes</li>
+<li><strong>Dependencies (SBOM)</strong> &mdash; package-lock.json, yarn.lock, pnpm-lock.yaml, requirements.txt, Cargo.lock, go.sum, Gemfile.lock, pom.xml, build.gradle. Generates a CycloneDX 1.5 SBOM and cross-references every package against known advisories.</li>
+<li><strong>Secrets</strong> &mdash; 30+ credential patterns (AWS, Azure, GCP, GitHub, Slack, Stripe, private keys, DB connection strings) plus Shannon entropy detection for unrecognized secret formats.</li>
+<li><strong>Infrastructure as Code</strong> &mdash; 29 rules across Terraform, CloudFormation, Kubernetes manifests, and Dockerfiles. Checks CIS benchmarks: public S3 buckets, missing encryption, overprivileged IAM, exposed ports, disabled logging, root containers.</li>
+<li><strong>API Security</strong> <span class="update-badge">NEW</span> &mdash; Static analysis of Next.js API routes. Catches missing authentication, missing RBAC enforcement, missing CSRF protection on mutations, missing org scoping (tenant isolation gaps), mass assignment, missing rate limiting, and missing input validation. Maps to OWASP Top 10 and CWE IDs.</li>
 </ul>
 
 <p><strong>What you get back:</strong></p>
@@ -391,23 +406,59 @@
 <p>Every finding is classified with a CWE, then mapped to controls across 6 frameworks (135 total):</p>
 
 <ul>
-<li><strong>NIST 800-53 Rev 5</strong> — 45 controls</li>
-<li><strong>SOC 2 Type II</strong> — 7 controls</li>
-<li><strong>CMMC Level 2</strong> — 33 controls</li>
-<li><strong>FedRAMP Moderate</strong> — 35 controls</li>
-<li><strong>OWASP ASVS 4.0</strong> — 7 controls</li>
-<li><strong>NIST SSDF 1.1</strong> — 8 controls</li>
+<li><strong>NIST 800-53 Rev 5</strong> &mdash; 45 controls</li>
+<li><strong>SOC 2 Type II</strong> &mdash; 7 controls</li>
+<li><strong>CMMC Level 2</strong> &mdash; 33 controls</li>
+<li><strong>FedRAMP Moderate</strong> &mdash; 35 controls</li>
+<li><strong>OWASP ASVS 4.0</strong> &mdash; 7 controls</li>
+<li><strong>NIST SSDF 1.1</strong> &mdash; 8 controls</li>
 </ul>
 
-<p>The output doesn't just say "you have a SQL injection vulnerability." It says "this finding affects NIST SI-10, SOC 2 CC6.1, and CMMC SI.L2-3.14.1 — here's the POAM entry."</p>
+<p>The output doesn't just say "you have a SQL injection vulnerability." It says "this finding affects NIST SI-10, SOC 2 CC8.1, and CMMC SI.L2-3.14.1" &mdash; with the exact control IDs your auditor needs.</p>
+
+<hr>
+
+<h3>Auto-Triage: Cutting Through the Noise</h3>
+
+<p>Raw scanner output is noisy. A secrets scanner that flags <code>API_KEY=your-key-here</code> in a README template isn't finding a real secret. A dependency match on "express" when the advisory targets "express-validator" is wasted time.</p>
+
+<p>Every finding gets one of three automatic verdicts:</p>
+
+<ul>
+<li><strong>TRUE_POSITIVE</strong> &mdash; Real vulnerability. Maps to compliance controls. Act on it.</li>
+<li><strong>FALSE_POSITIVE</strong> &mdash; Auto-dismissed. Test fixtures, .env.example files, sample data, regex literals, charset constants, substring-matched packages.</li>
+<li><strong>NEEDS_REVIEW</strong> &mdash; Ambiguous. Gitignored secrets, unknown package versions, edge cases that need a human decision.</li>
+</ul>
+
+<p>Here's the part that matters: <strong>the exit code only counts TRUE_POSITIVE findings.</strong> Your CI pipeline won't break because of a false positive in a test file. And auto-dismissed findings still show in the output &mdash; tagged <code>[FP]</code> with a reason &mdash; so nothing is hidden.</p>
+
+<p>Your team focuses on findings that actually affect your compliance posture instead of chasing noise.</p>
+
+<hr>
+
+<h3>Four Output Formats <span class="update-badge">NEW</span></h3>
+
+<p>Scanner output is only useful if it fits into your workflow. The CLI supports four formats:</p>
+
+<pre><code># Colored terminal output with compliance impact summary (default)
+crp-scan --format table
+
+# Machine-readable JSON &mdash; pipe to jq, feed to your tools, upload to CVERiskPilot
+crp-scan --format json | jq '.complianceImpact'
+
+# GitHub-flavored markdown tables &mdash; ready for PR comments
+crp-scan --format markdown >> SECURITY.md
+
+# SARIF 2.1.0 &mdash; integrates with VS Code, GitHub Code Scanning
+crp-scan --format sarif > results.sarif</code></pre>
+
+<p>SARIF is the standard interchange format for static analysis tools. If your team uses GitHub Code Scanning, VS Code Problem Matcher, or any SARIF-compatible viewer, your compliance scan results show up alongside your existing SAST findings.</p>
 
 <hr>
 
 <h3>Built for Pipelines, Not Quarterly Meetings</h3>
 
 <p>Drop it into GitHub Actions:</p>
-
-
 
 <pre><code>name: Compliance Scan
 on: [push, pull_request]
@@ -419,37 +470,59 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npx @cveriskpilot/scan --preset enterprise --ci --fail-on critical</code></pre>
+      - name: Install dependencies
+        run: npm ci
+      - name: Compliance scan
+        run: |
+          npx @cveriskpilot/scan@latest \
+            --preset enterprise \
+            --api-routes \
+            --ci \
+            --fail-on critical</code></pre>
 
+<p><code>--ci</code> outputs structured JSON with color disabled. <code>--fail-on</code> sets your severity gate. <code>--api-routes</code> enables the API security scanner for Next.js projects. Exit codes:</p>
 
-
-<p><code>--ci</code> outputs structured JSON. <code>--fail-on</code> sets your severity gate.</p>
+<ul>
+<li><code>0</code> &mdash; No TRUE_POSITIVE findings at or above your threshold</li>
+<li><code>1</code> &mdash; Findings detected (only true positives count)</li>
+<li><code>2</code> &mdash; Scanner error (config issue, missing files)</li>
+</ul>
 
 <p>Pick your compliance scope with presets:</p>
 
 <ul>
-<li><strong>federal</strong> — NIST 800-53 + FedRAMP + SSDF</li>
-<li><strong>defense</strong> — NIST 800-53 + CMMC + SSDF</li>
-<li><strong>enterprise</strong> — NIST 800-53 + SOC 2 + ASVS + SSDF</li>
-<li><strong>startup</strong> — SOC 2 + ASVS</li>
-<li><strong>devsecops</strong> — ASVS + SSDF</li>
+<li><strong>startup</strong> &mdash; SOC 2 + ASVS (getting enterprise-ready)</li>
+<li><strong>enterprise</strong> &mdash; NIST 800-53 + SOC 2 + ASVS + SSDF</li>
+<li><strong>federal</strong> &mdash; NIST 800-53 + FedRAMP + SSDF</li>
+<li><strong>defense</strong> &mdash; NIST 800-53 + CMMC + SSDF</li>
+<li><strong>devsecops</strong> &mdash; ASVS + SSDF</li>
+<li><strong>all</strong> &mdash; All 6 frameworks</li>
 </ul>
+
+<p>Or pick exactly the frameworks you need: <code>crp-scan --frameworks soc2,cmmc,asvs</code></p>
+
+<p>Aliases work &mdash; <code>soc2</code>, <code>soc</code>, <code>soc-2</code> all resolve to the same thing. Run <code>crp-scan --list-frameworks</code> to see everything.</p>
 
 <hr>
 
-<h3>Auto-Triage: Cutting Through the Noise</h3>
+<h3>Advanced Filtering <span class="update-badge">NEW</span></h3>
 
-<p>Raw scanner output is noisy. A secrets scanner that flags <code>API_KEY=your-key-here</code> in a README template isn't finding a real secret.</p>
+<p>Real projects have known accepted risks, noisy CWEs, and directories you don't control. The CLI handles all of it:</p>
 
-<p>Every finding gets one of three automatic verdicts:</p>
+<pre><code># Only show HIGH and CRITICAL findings
+crp-scan --severity HIGH --preset startup
 
-<ul>
-<li><strong>TRUE_POSITIVE</strong> — Real vulnerability. Maps to compliance controls. Act on it.</li>
-<li><strong>FALSE_POSITIVE</strong> — Auto-dismissed. Test fixtures, .env.example files, sample data.</li>
-<li><strong>NEEDS_REVIEW</strong> — Ambiguous. Gitignored secrets, unknown versions, edge cases.</li>
-</ul>
+# Exclude accepted risks from your risk register
+crp-scan --exclude-cwe CWE-79,CWE-89 --preset enterprise
 
-<p>Your team focuses on findings that actually affect your compliance posture instead of chasing false positives.</p>
+# Skip generated code and vendor directories
+crp-scan --exclude "generated/**" --exclude "vendor/**"
+
+# Run only one scanner
+crp-scan --deps-only    # Dependencies
+crp-scan --secrets-only # Secrets
+crp-scan --iac-only     # Infrastructure as Code
+crp-scan --api-routes   # API routes (Next.js)</code></pre>
 
 <hr>
 
@@ -460,20 +533,84 @@ jobs:
 <p>This is the compliance mapping layer that sits on top of whatever scanners you already use.</p>
 
 <blockquote>Snyk finds the CVE.<br>SonarQube flags the smell.<br>GitHub GHAS opens the alert.<br>None of them tell you which SOC 2 or CMMC control is affected.</blockquote>
-If your organization already has scanners but still maps findings to compliance controls in spreadsheets — this is what's missing.
+
+<p>If your organization already has scanners but still maps findings to compliance controls in spreadsheets &mdash; this is what's missing.</p>
+
+<hr>
+
+<h3>What the CLI Does and Doesn't Do</h3>
+
+<p>Clarity matters. The CLI is the scanner. The <a href="https://cveriskpilot.com">platform</a> is where compliance becomes continuous.</p>
+
+<p><strong>The CLI does:</strong></p>
+<ul>
+<li>Scan dependencies, secrets, IaC, and API routes</li>
+<li>Map every finding to 6 compliance frameworks (135 controls)</li>
+<li>Auto-triage findings (TRUE_POSITIVE / FALSE_POSITIVE / NEEDS_REVIEW)</li>
+<li>Output in 4 formats (table, JSON, markdown, SARIF)</li>
+<li>Run offline, locally, with zero dependencies</li>
+</ul>
+
+<p><strong>The CLI does NOT:</strong></p>
+<ul>
+<li>Generate POAMs &mdash; that's a <a href="https://cveriskpilot.com">platform</a> feature</li>
+<li>AI-powered deep triage &mdash; the CLI uses heuristics; AI triage is on the platform</li>
+<li>Discover zero-day vulnerabilities &mdash; it maps <em>known</em> CVEs and CWEs</li>
+<li>Certify your SOC 2 compliance &mdash; it maps findings <em>to</em> SOC 2 controls</li>
+<li>Monitor continuously &mdash; it runs on-demand; continuous monitoring is a platform feature</li>
+</ul>
+
+<hr>
+
+<h3>Use It as a Library</h3>
+
+<p><code>@cveriskpilot/scan</code> also works as a Node.js library. Embed scanning into your own tools, custom CI scripts, or internal dashboards:</p>
+
+<pre><code>import { scanDependencies, scanSecrets, scanIaC, formatOutput } from '@cveriskpilot/scan';
+
+const deps = await scanDependencies('/path/to/project');
+const secrets = await scanSecrets('/path/to/project');
+const iac = await scanIaC('/path/to/project');
+
+const allFindings = [...deps, ...secrets, ...iac];
+const output = formatOutput(allFindings, {
+  format: 'json',
+  frameworks: ['soc2-type2', 'owasp-asvs']
+});</code></pre>
 
 <hr>
 
 <h3>The Numbers Tell the Story</h3>
 
 <ul>
-<li><strong>74 days</strong> — average time to remediate a critical vulnerability</li>
-<li><strong>45%</strong> — known vulnerabilities still unpatched after 90 days</li>
-<li><strong>40+ hours/quarter</strong> — GRC team time on manual vulnerability-to-control mapping</li>
-<li><strong>$59B</strong> — projected compliance tooling market by 2030</li>
+<li><strong>74 days</strong> &mdash; average time to remediate a critical vulnerability</li>
+<li><strong>45%</strong> &mdash; known vulnerabilities still unpatched after 90 days</li>
+<li><strong>40+ hours/quarter</strong> &mdash; GRC team time on manual vulnerability-to-control mapping</li>
+<li><strong>$59B</strong> &mdash; projected compliance tooling market by 2030</li>
 </ul>
 
 <p>The cost of manual mapping isn't just time. It's accuracy. Manual processes introduce errors, miss controls, and create audit gaps that surface during the worst possible moment: the actual audit.</p>
+
+<hr>
+
+<h3>What's New in v0.1.11</h3>
+
+<p>Since the initial launch, the scanner has shipped 10 releases. Here's what's changed:</p>
+
+<ul>
+<li><strong>API Security Scanner</strong> &mdash; Static analysis of Next.js API routes for missing auth, RBAC, CSRF, org scoping, mass assignment, rate limiting, and input validation</li>
+<li><strong>SARIF 2.1.0 output</strong> &mdash; Standard format for static analysis results, integrates with VS Code and GitHub Code Scanning</li>
+<li><strong>Enterprise preset</strong> &mdash; NIST 800-53 + SOC 2 + ASVS + SSDF in one flag</li>
+<li><strong>Auto-triage verdicts</strong> &mdash; Every finding classified as TRUE_POSITIVE, FALSE_POSITIVE, or NEEDS_REVIEW with heuristic reasoning</li>
+<li><strong>Parallel scanning</strong> &mdash; 50 files processed concurrently, gitignore-aware directory walking</li>
+<li><strong>Live progress spinner</strong> &mdash; Real-time scan status in terminal, auto-disabled in CI</li>
+<li><strong>Severity filtering</strong> &mdash; <code>--severity HIGH</code> skips medium/low noise</li>
+<li><strong>CWE exclusions</strong> &mdash; <code>--exclude-cwe CWE-79</code> for known accepted risks</li>
+<li><strong>Framework explorer</strong> &mdash; <code>--list-frameworks</code> shows all controls, aliases, and presets</li>
+<li><strong>Update notifier</strong> &mdash; Non-blocking check for newer versions on npm</li>
+<li><strong>Verdict-aware exit codes</strong> &mdash; Only TRUE_POSITIVE findings count toward CI pass/fail</li>
+<li><strong>Library API</strong> &mdash; Import <code>scanDependencies</code>, <code>scanSecrets</code>, <code>scanIaC</code> into your own Node.js tools</li>
+</ul>
 
 <hr>
 
@@ -481,30 +618,32 @@ If your organization already has scanners but still maps findings to compliance 
 
 <p>Runs entirely locally. No account. No data leaves your machine.</p>
 
-
-
 <pre><code># Run without installing
-npx @cveriskpilot/scan --preset startup
+npx @cveriskpilot/scan@latest --preset startup
 
 # Or install globally
 npm install -g @cveriskpilot/scan
-crp-scan --preset enterprise</code></pre>
+crp-scan --preset enterprise
 
+# Include API route analysis (Next.js projects)
+crp-scan --preset enterprise --api-routes
 
+# Output SARIF for IDE integration
+crp-scan --format sarif > compliance-results.sarif</code></pre>
 
-<p>Node.js 20+ required. Zero external dependencies.</p>
+<p>Node.js 20+ required. Zero external dependencies. Works offline.</p>
 
-<p>Free tier includes unlimited local scans. Upload results to <a href="https://cveriskpilot.com">CVERiskPilot</a> for team dashboards, POAM tracking, and audit trails — plans start at $29/month.</p>
+<p>Free tier includes unlimited local scans with all four scanners, all six frameworks, and all output formats. Upload results to <a href="https://cveriskpilot.com">CVERiskPilot</a> for POAM generation, AI-powered triage, case management, and audit-ready reports &mdash; plans start at $29/month.</p>
 
 <hr>
 
 <p><em><a href="https://cveriskpilot.com">CVERiskPilot</a> is 100% Veteran Owned, built in Texas.</em></p>
 
-<p><em>The Pipeline Compliance Scanner is free on <a href="https://npmjs.com/package/@cveriskpilot/scan">npm</a>.</em></p>
+<p><em>The Pipeline Compliance Scanner is free on <a href="https://npmjs.com/package/@cveriskpilot/scan">npm</a>. Source on <a href="https://github.com/devbrewster/cveriskpilot-scan">GitHub</a>.</em></p>
 
 <hr>
 
-<p><strong>Tags:</strong> DevSecOps, Compliance, Cybersecurity, CI/CD, NIST, SOC 2, CMMC, Vulnerability Management, GRC, AppSec</p>
+<p><strong>Tags:</strong> DevSecOps, Compliance, Cybersecurity, CI/CD, NIST, SOC 2, CMMC, Vulnerability Management, GRC, AppSec, SARIF, SBOM</p>
   </div>
   <script>
     function selectContent() {

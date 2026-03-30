@@ -14,12 +14,24 @@
       "published_at": null
     }
   },
-  "tags": ["production-launch", "milestone", "stress-test"],
+  "tags": [
+    "production-launch",
+    "milestone",
+    "stress-test"
+  ],
   "source": {
     "evidence_paths": [
       "tests/stress/production-stress-1000.ts",
       "tests/stress/results/"
     ]
   },
-  "notes": "HOLD: Do not publish until 1000-analyst stress test passes and results are saved. Update content with actual pass rate if needed."
+  "notes": "HOLD: Do not publish until 1000-analyst stress test passes and results are saved. Update content with actual pass rate if needed.",
+  "_review": {
+    "status": "rejected",
+    "issues": [
+      "needs manual review (matches announcement)",
+      "no call to action, opinion, or question — low engagement potential"
+    ],
+    "reviewedAt": "2026-03-30T20:23:03.546Z"
+  }
 }

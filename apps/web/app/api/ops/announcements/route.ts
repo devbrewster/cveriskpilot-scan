@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf, isFounderEmail } from '@cveriskpilot/auth';
 import crypto from 'node:crypto';
 
 // ---------------------------------------------------------------------------
@@ -12,7 +12,7 @@ async function requireOpsAuth(request: NextRequest) {
     return { error: auth };
   }
   const session = auth;
-  if (!session.email?.endsWith('@cveriskpilot.com')) {
+  if (!session.email?.endsWith('@cveriskpilot.com') && !isFounderEmail(session.email ?? '')) {
     return { error: NextResponse.json({ error: 'Internal staff only' }, { status: 403 }) };
   }
   const roleCheck = requireRole(session.role, ADMIN_ROLES);

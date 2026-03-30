@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, isFounderEmail } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/ops/audit — Staff action audit log
@@ -122,7 +122,7 @@ const MOCK_AUDIT_LOG: AuditEntry[] = [
 ];
 
 function isStaffEmail(email: string): boolean {
-  return email.toLowerCase().endsWith(`@${STAFF_DOMAIN}`);
+  return email.toLowerCase().endsWith(`@${STAFF_DOMAIN}`) || isFounderEmail(email);
 }
 
 export async function GET(request: NextRequest) {

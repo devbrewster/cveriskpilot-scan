@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, isFounderEmail } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   if (auth instanceof NextResponse) return auth;
   const session = auth;
 
-  if (!session.email?.endsWith('@cveriskpilot.com')) {
+  if (!session.email?.endsWith('@cveriskpilot.com') && !isFounderEmail(session.email ?? '')) {
     return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
   }
 

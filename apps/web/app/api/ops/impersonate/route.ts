@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf, isFounderEmail } from '@cveriskpilot/auth';
 import * as crypto from 'node:crypto';
 
 // ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ function getClientIp(request: NextRequest): string {
 }
 
 function isStaffEmail(email: string): boolean {
-  return email.toLowerCase().endsWith(`@${STAFF_DOMAIN}`);
+  return email.toLowerCase().endsWith(`@${STAFF_DOMAIN}`) || isFounderEmail(email);
 }
 
 // ---------------------------------------------------------------------------

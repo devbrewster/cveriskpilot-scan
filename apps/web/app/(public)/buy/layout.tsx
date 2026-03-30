@@ -17,8 +17,8 @@ export default function BuyLayout({
         </span>
       </Link>
 
-      {/* Wider card for plan selection */}
-      <div className="w-full max-w-3xl">
+      {/* Full-width desktop layout */}
+      <div className="w-full max-w-6xl">
         {children}
       </div>
     </div>

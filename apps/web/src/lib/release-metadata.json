@@ -1,20 +1,21 @@
 {
   "currentRelease": {
-    "label": "Alpha",
-    "version": "0.2.0",
+    "label": "Beta",
+    "version": "0.3.0",
     "date": "2026-03-30",
-    "status": "alpha",
-    "channel": "alpha",
+    "status": "beta",
+    "channel": "beta",
     "highlights": [
-      { "title": "Landing page conversion overhaul" },
-      { "title": "Security hardening — 13 findings remediated" },
-      { "title": "Session tier fix — reads org tier from database" },
-      { "title": "Founder email ops dashboard access" }
+      { "title": "Full Stripe checkout — signup to paid tier" },
+      { "title": "5 scanner connectors — Tenable, Qualys, CrowdStrike, Rapid7, Snyk" },
+      { "title": "Live compliance scores — SOC 2, SSDF, ASVS on dashboard" },
+      { "title": "13 security findings remediated" },
+      { "title": "43 E2E tests — core flow, billing, AI remediation" }
     ]
   },
   "upcomingPatch": {
-    "version": "0.2.1",
-    "channel": "alpha",
+    "version": "0.3.1",
+    "channel": "beta",
     "releaseType": "patch"
   }
 }

@@ -2,6 +2,16 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@cveriskpilot/auth';
+import { buildAssessmentInput } from '@/lib/compliance-assessment';
+import {
+  SOC2_FRAMEWORK,
+  SSDF_FRAMEWORK,
+  ASVS_FRAMEWORK,
+  assessSOC2,
+  assessSSDF,
+  assessASVS,
+} from '@cveriskpilot/compliance';
+import type { ComplianceAssessmentInput, ComplianceEvidence, ComplianceFramework } from '@cveriskpilot/compliance';
 
 /** Map an AuditLog entry to a dashboard activity event type. */
 function classifyActivityType(
@@ -178,13 +188,47 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // No compliance model in schema — return empty array
-    const complianceScores: {
+    // Run compliance assessments for dashboard summary
+    let complianceScores: {
       framework: string;
       score: number;
-      controlsTotal: number;
-      controlsMet: number;
+      totalControls: number;
+      passingControls: number;
     }[] = [];
+
+    try {
+      const assessmentInput = await buildAssessmentInput(prisma, organizationId);
+
+      const frameworkAssessors: {
+        framework: ComplianceFramework;
+        assess: (input: ComplianceAssessmentInput) => ComplianceEvidence[];
+      }[] = [
+        { framework: SOC2_FRAMEWORK, assess: assessSOC2 },
+        { framework: SSDF_FRAMEWORK, assess: assessSSDF },
+        { framework: ASVS_FRAMEWORK, assess: assessASVS },
+      ];
+
+      complianceScores = frameworkAssessors.map(({ framework, assess }) => {
+        const evidences = assess(assessmentInput);
+        const applicable = evidences.filter((e) => e.status !== 'na');
+        const metCount = evidences.filter((e) => e.status === 'met').length;
+        const partialCount = evidences.filter((e) => e.status === 'partial').length;
+        const score =
+          applicable.length > 0
+            ? Math.round(((metCount + partialCount * 0.5) / applicable.length) * 100)
+            : 0;
+
+        return {
+          framework: framework.name,
+          score,
+          totalControls: framework.controls.length,
+          passingControls: metCount,
+        };
+      });
+    } catch (err) {
+      console.error('[API] Dashboard compliance assessment error:', err);
+      // Graceful degradation — return empty array
+    }
 
     return NextResponse.json({
       severityCounts: severityMap,

@@ -4,9 +4,34 @@
 
 ### Planned
 
-- Connectors package (Tenable/Qualys/Rapid7 adapters)
-- E2E Playwright test coverage
-- Production hardening (Cloud Armor tuning, PgBouncer, CDN)
+- Full observability wiring (OTEL tracing into API handlers)
+- Worker end-to-end verification under load
+- ComplianceScore Prisma model for historical tracking
+
+## 0.3.0-beta — 2026-03-30
+
+### Beta Milestone
+
+CVERiskPilot enters beta. All core flows are functional end-to-end.
+
+### What's Working
+
+- **Stripe checkout**: Signup → payment → tier upgrade/downgrade, webhook handling
+- **Upload pipeline**: Upload → parse (11 formats) → enrich (NVD/EPSS/KEV) → findings → cases
+- **5 scanner connectors**: Tenable, Qualys, CrowdStrike Spotlight, Rapid7 InsightVM, Snyk
+- **Dashboard**: Real data — severity counts, EPSS top 10, KEV, MTTR, SLA, activity feed
+- **43 E2E tests**: Core flow, billing, AI remediation, demo dashboard
+- **Cloud Armor WAF**: OWASP CRS, adaptive DDoS, rate limiting, bot protection
+- **Redis sessions**: TTL, bulk invalidation, founder elevation, in-memory fallback
+
+### New in 0.3.0
+
+- Live compliance scores on dashboard — SOC 2, SSDF, ASVS (computed on-the-fly)
+- Shared `buildAssessmentInput()` helper for compliance assessment
+- Health endpoint performs real Redis PING and GCS bucket check
+- Worker bundled with esbuild — resolves missing module crash
+- Tenant SSO SSRF validation via `validateExternalUrl()`
+- Security policy page + `.well-known/security.txt`
 
 ## 0.2.0-alpha — 2026-03-30
 

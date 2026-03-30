@@ -4,7 +4,7 @@
 CVERiskPilot is a vulnerability management SaaS platform for GRC/compliance teams. It ingests scan results from multiple scanner formats, enriches CVE data, performs AI-powered triage, and manages the remediation lifecycle including POAM generation and compliance framework mapping.
 
 **Business**: CVERiskPilot LLC, 100% Veteran Owned, Texas-registered
-**Version**: 0.1.0-alpha (ground-up rebuild, replacing legacy 2.0-beta on Cloudflare)
+**Version**: 0.3.0-beta (ground-up rebuild, replacing legacy 2.0-beta on Cloudflare)
 **Domain**: cveriskpilot.com
 
 ## Architecture
@@ -160,22 +160,22 @@ FREE, FOUNDERS_BETA, PRO, ENTERPRISE, MSSP
 - Delegate implementation to sub-agents when orchestrating large tasks
 - Never expose secrets/keys/credentials in the context window
 
-## Save Point — 2026-03-28
+## Save Point — 2026-03-30
 
-### Version: 0.1.0-alpha
-First versioned save point on new GCP infrastructure. All prior work committed and clean.
+### Version: 0.3.0-beta
+Beta milestone. All core flows functional end-to-end. Security hardened (13 findings remediated).
 
 ### Build Status: GREEN
-`npm run build` passes.
+`npm run build` passes. Worker healthy on Cloud Run.
 
 ### Repo Stats
-- **13 commits** on `main` (all committed, clean working tree)
 - **74 pages** (app + portal + demo + public)
 - **116 API routes**
 - **90 components** in `apps/web/src/components/`
 - **25 packages** in `packages/`
+- **43 E2E tests** (core flow, billing, AI remediation, demo)
+- **5 scanner connectors** (Tenable, Qualys, CrowdStrike, Rapid7, Snyk)
 - **10 RBAC roles** defined in schema + `packages/auth/src/rbac/permissions.ts`
-- Latest commit: `7deaa37` (2026-03-28)
 
 ### Completed Waves (0-12)
 - **Waves 0-5** (commit `aa63986`): Full MVP scaffold — auth, upload, parsers, enrichment, dashboard, findings, cases, reports, compliance, POAM, portal, demo, billing, teams, clients, portfolio, settings, Terraform, Dockerfile, CI/CD

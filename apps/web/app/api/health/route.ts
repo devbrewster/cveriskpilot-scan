@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Unauthenticated requests get minimal response — no infra details
+  const session = request.cookies.get('crp_session');
+  if (!session?.value) {
+    return NextResponse.json({ status: 'healthy' });
+  }
   const checks: Record<string, 'ok' | 'error'> = {
     app: 'ok',
   };

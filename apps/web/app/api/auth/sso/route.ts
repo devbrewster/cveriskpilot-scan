@@ -3,6 +3,22 @@ import { NextResponse } from 'next/server';
 import { initiateSSO, isWorkOSConfigured } from '@cveriskpilot/auth';
 
 /**
+ * Only allow redirect URIs on our own domain to prevent open redirect attacks.
+ */
+function getSafeRedirectUri(uri: string | null): string | undefined {
+  if (!uri) return undefined;
+  try {
+    const appOrigin = process.env.NEXTAUTH_URL || 'https://cveriskpilot.com';
+    const parsed = new URL(uri, appOrigin);
+    const allowed = new URL(appOrigin);
+    if (parsed.origin === allowed.origin) return uri;
+  } catch {
+    // Malformed URI — ignore
+  }
+  return undefined;
+}
+
+/**
  * GET /api/auth/sso — Redirect the user to the WorkOS SSO login page.
  *
  * Query params:
@@ -20,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = request.nextUrl;
     const organizationId = searchParams.get('organizationId');
-    const redirectUri = searchParams.get('redirectUri') ?? undefined;
+    const redirectUri = getSafeRedirectUri(searchParams.get('redirectUri'));
 
     if (!organizationId) {
       return NextResponse.json(

@@ -63,6 +63,8 @@ const PUBLIC_PATHS = [
   '/privacy',
   '/terms',
   '/government',
+  '/robots.txt',
+  '/sitemap.xml',
 ];
 
 const PUBLIC_PREFIXES = [
@@ -353,12 +355,9 @@ export function middleware(request: NextRequest) {
   if (!isDev) {
     response.headers.set(
       'Strict-Transport-Security',
-      'max-age=31536000; includeSubDomains',
+      'max-age=63072000; includeSubDomains; preload',
     );
   }
-
-  // Expose the nonce so server components can use it (via request header)
-  response.headers.set('x-nonce', nonce);
 
   // --- Structured request log ---
   const duration_ms = Date.now() - start;

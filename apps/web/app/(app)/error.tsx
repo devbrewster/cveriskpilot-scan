@@ -35,7 +35,7 @@ export default function AppError({
           Something went wrong
         </h1>
         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {error.message || 'An unexpected error occurred while loading this page.'}
+          {'An unexpected error occurred.'}
         </p>
         {error.digest && (
           <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">

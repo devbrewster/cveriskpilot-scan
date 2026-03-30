@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 
+const steps = [
+  { num: "1", label: "Create account", detail: "Email or GitHub. 30 seconds." },
+  { num: "2", label: "Run your first scan", detail: "npx @cveriskpilot/scan in any project." },
+  { num: "3", label: "See your risk score", detail: "Prioritized findings, compliance mapped." },
+];
+
 export function CtaSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-primary-950 py-20 sm:py-28">
@@ -17,9 +23,24 @@ export function CtaSection() {
             Start securing your stack in under 90 seconds
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-primary-100">
-            Upload your first scan and see AI-powered remediation in action.
-            No credit card required.
+            No calls. No setup fees. No sales conversations required.
           </p>
+
+          {/* What happens next — 3-step flow */}
+          <div className="mx-auto mt-10 grid max-w-xl gap-4 sm:grid-cols-3">
+            {steps.map((s, i) => (
+              <div key={s.num} className="relative text-center">
+                {i > 0 && (
+                  <div className="absolute left-0 top-1/2 hidden h-px w-full -translate-x-1/2 bg-primary-400/20 sm:block" style={{ width: '50%' }} />
+                )}
+                <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-white ring-1 ring-white/20">
+                  {s.num}
+                </div>
+                <p className="mt-2 text-sm font-semibold text-white">{s.label}</p>
+                <p className="mt-0.5 text-xs text-primary-200">{s.detail}</p>
+              </div>
+            ))}
+          </div>
 
           {/* CTA Buttons */}
           <div className="mx-auto mt-10 flex max-w-md flex-col gap-4 sm:flex-row sm:justify-center">
@@ -41,7 +62,7 @@ export function CtaSection() {
           </div>
 
           <p className="mt-6 text-sm text-primary-200">
-            Free plan includes 3 uploads/month and 50 AI calls.
+            Free plan includes 3 uploads/month and 50 AI calls. No credit card required.
           </p>
 
           {/* Trust badges */}

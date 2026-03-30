@@ -27,7 +27,8 @@ const plans = [
     name: 'Founders Beta',
     monthlyPrice: 29,
     annualPrice: 278,
-    description: 'Early adopter pricing. Locked in forever.',
+    description: 'Early adopter pricing. Locked in forever. Only 50 spots.',
+    urgency: '12 spots remaining',
     features: [
       '250 assets',
       '5 users',
@@ -155,11 +156,9 @@ export function Pricing() {
           <span className={`text-sm font-medium transition-colors ${isAnnual ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
             Annual
           </span>
-          {isAnnual && (
-            <span className="ml-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              Save 20%
-            </span>
-          )}
+          <span className={`ml-1 rounded-full px-2.5 py-0.5 text-xs font-semibold transition-opacity ${isAnnual ? 'bg-green-100 text-green-700 opacity-100 dark:bg-green-900/30 dark:text-green-400' : 'bg-green-100/60 text-green-600/80 opacity-100 dark:bg-green-900/20 dark:text-green-400/60'}`}>
+            Save 20%
+          </span>
         </div>
 
         {/* Pricing Cards */}
@@ -187,6 +186,15 @@ export function Pricing() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {plan.name}
               </h3>
+              {'urgency' in plan && plan.urgency && (
+                <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-600" />
+                  </span>
+                  {plan.urgency}
+                </span>
+              )}
               <p className="mt-1 min-h-10 text-sm text-gray-500 dark:text-gray-400">
                 {plan.description}
               </p>

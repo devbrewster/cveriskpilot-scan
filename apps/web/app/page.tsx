@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import { NavBar } from "@/components/landing/nav-bar";
 import { Hero } from "@/components/landing/hero";
 import { SocialProof } from "@/components/landing/social-proof";
+import { WhoItsFor } from "@/components/landing/who-its-for";
 import { Features } from "@/components/landing/features";
 import { PipelineSection } from "@/components/landing/pipeline-section";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Pricing } from "@/components/landing/pricing";
+import { VeteranOwned } from "@/components/landing/veteran-owned";
 import { CtaSection } from "@/components/landing/cta-section";
 import { Footer } from "@/components/landing/footer";
 
@@ -116,10 +118,12 @@ export default function LandingPage() {
       <main>
         <Hero />
         <SocialProof />
+        <WhoItsFor />
         <Features />
         <PipelineSection />
         <HowItWorks />
         <Pricing />
+        <VeteranOwned />
         <CtaSection />
       </main>
       <Footer />

@@ -1,4 +1,7 @@
+'use client';
+
 import Link from "next/link";
+import { useState } from "react";
 
 export function Hero() {
   return (
@@ -39,13 +42,14 @@ export function Hero() {
 
           {/* Subheadline */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl sm:leading-relaxed">
-            CVERiskPilot unifies vulnerability signals from every scanner into a
-            single, AI-powered remediation system. Prioritize by real exploit
-            risk, not just CVSS.
+            One command. Instant compliance output. No account required.
           </p>
 
+          {/* Zero-to-value: copy-pasteable CLI command */}
+          <CopyableCommand />
+
           {/* CTAs */}
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
               href="/signup"
               className="group inline-flex w-full items-center justify-center rounded-xl bg-primary-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-primary-600/25 transition-all hover:bg-primary-500 hover:shadow-xl hover:shadow-primary-500/30 sm:w-auto"
@@ -72,7 +76,7 @@ export function Hero() {
           </p>
         </div>
 
-        {/* Mock Dashboard */}
+        {/* Mock Terminal Output — shows what you get when you run the command */}
         <div className="mx-auto mt-16 max-w-4xl">
           <div className="rounded-2xl border border-gray-700/40 bg-gray-900/70 p-1.5 shadow-2xl shadow-black/40 ring-1 ring-white/5 backdrop-blur-sm">
             <div className="rounded-xl bg-gray-900 p-4 sm:p-6">
@@ -81,27 +85,44 @@ export function Hero() {
                 <div className="h-3 w-3 rounded-full bg-red-500/70" />
                 <div className="h-3 w-3 rounded-full bg-yellow-500/70" />
                 <div className="h-3 w-3 rounded-full bg-green-500/70" />
-                <span className="ml-3 text-xs font-medium text-gray-500">CVERiskPilot Dashboard</span>
+                <span className="ml-3 text-xs font-medium text-gray-500">Terminal</span>
               </div>
-              {/* Stats row */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <DashboardStat label="Critical" value="12" color="red" />
-                <DashboardStat label="High" value="38" color="orange" />
-                <DashboardStat label="EPSS > 0.5" value="7" color="yellow" />
-                <DashboardStat label="KEV Listed" value="3" color="purple" />
-              </div>
-              {/* Mock table */}
-              <div className="mt-4 overflow-hidden rounded-lg border border-gray-800/80">
-                <div className="grid grid-cols-4 gap-2 border-b border-gray-800 bg-gray-800/40 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-gray-500">
-                  <span>CVE ID</span>
-                  <span>Risk Score</span>
-                  <span>EPSS</span>
-                  <span>Status</span>
-                </div>
-                <MockRow cve="CVE-2026-1234" score="9.8" epss="0.97" status="KEV" statusColor="red" />
-                <MockRow cve="CVE-2026-5678" score="8.5" epss="0.82" status="Exploited" statusColor="orange" />
-                <MockRow cve="CVE-2026-9012" score="7.2" epss="0.45" status="Active" statusColor="yellow" />
-              </div>
+              {/* Terminal output */}
+              <pre className="overflow-x-auto text-xs leading-relaxed sm:text-sm">
+                <code className="text-gray-400">
+                  <span className="text-green-400">$</span>{" "}
+                  <span className="text-white">npx @cveriskpilot/scan --preset startup</span>
+                  {"\n\n"}
+                  <span className="text-gray-500">  Scanning dependencies, secrets, IaC...</span>
+                  {"\n\n"}
+                  <span className="text-white font-semibold">  SCAN RESULTS</span>
+                  {"\n"}
+                  <span className="text-gray-500">  {"─".repeat(48)}</span>
+                  {"\n"}
+                  {"  "}
+                  <span className="text-red-400 font-bold">CRITICAL  1</span>
+                  {"  "}
+                  <span className="text-orange-400 font-bold">HIGH  3</span>
+                  {"  "}
+                  <span className="text-yellow-400 font-bold">MEDIUM  7</span>
+                  {"  "}
+                  <span className="text-green-400 font-bold">LOW  2</span>
+                  {"\n\n"}
+                  <span className="text-white font-semibold">  COMPLIANCE IMPACT</span>
+                  {"\n"}
+                  {"  "}
+                  <span className="text-cyan-400">SOC 2</span>
+                  <span className="text-gray-500">     3 controls affected</span>
+                  {"\n"}
+                  {"  "}
+                  <span className="text-cyan-400">OWASP ASVS</span>
+                  <span className="text-gray-500"> 2 controls affected</span>
+                  {"\n\n"}
+                  {"  "}
+                  <span className="text-red-400 font-bold">EXIT 1</span>
+                  <span className="text-gray-500"> — 1 CRITICAL finding(s) detected</span>
+                </code>
+              </pre>
             </div>
           </div>
         </div>
@@ -110,55 +131,36 @@ export function Hero() {
   );
 }
 
-function DashboardStat({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: string;
-  color: "red" | "orange" | "yellow" | "purple";
-}) {
-  const colorMap = {
-    red: "bg-red-500/10 text-red-400 border-red-500/20",
-    orange: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    yellow: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    purple: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-  };
+function CopyableCommand() {
+  const [copied, setCopied] = useState(false);
+  const command = 'npx @cveriskpilot/scan --preset startup';
+
+  function handleCopy() {
+    navigator.clipboard.writeText(command).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
   return (
-    <div className={`rounded-lg border p-3 ${colorMap[color]}`}>
-      <p className="text-2xl font-bold tabular-nums">{value}</p>
-      <p className="text-xs opacity-80">{label}</p>
+    <div className="mx-auto mt-8 max-w-lg">
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="group flex w-full items-center justify-between rounded-xl border border-gray-700/60 bg-gray-900/80 px-5 py-3.5 font-mono text-sm text-gray-300 backdrop-blur-sm transition-all hover:border-primary-500/40 hover:bg-gray-900"
+      >
+        <span>
+          <span className="text-green-400">$</span>{" "}
+          <span className="text-white">{command}</span>
+        </span>
+        <span className="ml-3 shrink-0 rounded-md bg-gray-800 px-2.5 py-1 text-xs text-gray-400 transition-colors group-hover:bg-primary-600/20 group-hover:text-primary-300">
+          {copied ? 'Copied!' : 'Copy'}
+        </span>
+      </button>
+      <p className="mt-2 text-xs text-gray-500">
+        Zero dependencies. Works offline. Scans deps, secrets, and IaC in seconds.
+      </p>
     </div>
   );
 }
 
-function MockRow({
-  cve,
-  score,
-  epss,
-  status,
-  statusColor,
-}: {
-  cve: string;
-  score: string;
-  epss: string;
-  status: string;
-  statusColor: "red" | "orange" | "yellow";
-}) {
-  const statusColorMap = {
-    red: "bg-red-500/10 text-red-400",
-    orange: "bg-orange-500/10 text-orange-400",
-    yellow: "bg-yellow-500/10 text-yellow-400",
-  };
-  return (
-    <div className="grid grid-cols-4 gap-2 border-b border-gray-800/40 px-4 py-3 text-sm text-gray-300 last:border-b-0 hover:bg-gray-800/20">
-      <span className="font-mono text-xs text-gray-400">{cve}</span>
-      <span className="font-semibold text-red-400 tabular-nums">{score}</span>
-      <span className="text-yellow-400 tabular-nums">{epss}</span>
-      <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColorMap[statusColor]}`}>
-        {status}
-      </span>
-    </div>
-  );
-}

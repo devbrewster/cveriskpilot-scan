@@ -1,5 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
@@ -17,7 +18,31 @@ export async function POST(request: NextRequest) {
   const taskHeader = request.headers.get('x-cloudtasks-taskname');
   const queueHeader = request.headers.get('x-cloudtasks-queuename');
 
-  if (!taskHeader || !queueHeader) {
+  if (taskHeader && queueHeader) {
+    // Cloud Tasks request — validate shared secret to prevent header spoofing.
+    // If CLOUD_TASKS_SECRET is not configured, fall through to session auth.
+    const secret = process.env.CLOUD_TASKS_SECRET;
+    if (!secret) {
+      // Secret not configured — reject; do not allow unauthenticated access
+      console.error('[worker] CLOUD_TASKS_SECRET not set; rejecting Cloud Tasks request');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const authHeader = request.headers.get('authorization') ?? '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Constant-time comparison to prevent timing attacks
+    const secretBuf = Buffer.from(secret, 'utf-8');
+    const tokenBuf = Buffer.from(token, 'utf-8');
+
+    if (secretBuf.length !== tokenBuf.length || !timingSafeEqual(secretBuf, tokenBuf)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  } else {
     // Not a Cloud Tasks request — require PLATFORM_ADMIN session
     const { requireAuth, checkCsrf } = await import('@cveriskpilot/auth');
     const auth = await requireAuth(request);

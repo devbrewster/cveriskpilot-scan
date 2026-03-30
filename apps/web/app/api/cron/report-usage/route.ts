@@ -3,11 +3,17 @@
 // Called by Cloud Scheduler (or any cron) with Bearer token auth.
 // Reports MSSP metered usage for all orgs with active Stripe subscriptions.
 
+import { timingSafeEqual } from 'crypto';
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { reportUsageToStripe, STRIPE_PRICES } from '@cveriskpilot/billing';
 import Stripe from 'stripe';
+
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
 
 export const runtime = 'nodejs';
 export const maxDuration = 120; // allow up to 2 min for many orgs
@@ -23,7 +29,8 @@ export async function POST(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   const cronSecret = process.env.CRON_SECRET;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  const expected = `Bearer ${cronSecret}`;
+  if (!cronSecret || !authHeader || !constantTimeEqual(authHeader, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

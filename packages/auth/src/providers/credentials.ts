@@ -104,7 +104,7 @@ export async function authenticateWithCredentials(
 
   // Check if account is deactivated
   if (user.status === UserStatus.DEACTIVATED) {
-    return { success: false, error: 'Account has been deactivated' };
+    return { success: false, error: 'Invalid email or password' };
   }
 
   // Check if account is locked
@@ -122,7 +122,7 @@ export async function authenticateWithCredentials(
   if (!user.passwordHash) {
     return {
       success: false,
-      error: 'This account does not support password authentication. Use Google sign-in.',
+      error: 'Invalid email or password',
     };
   }
 

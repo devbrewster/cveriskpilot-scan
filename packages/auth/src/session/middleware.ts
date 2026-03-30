@@ -35,7 +35,7 @@ export async function getServerSession(
   if (!sessionId) return null;
 
   // Dev-only: handle base64-encoded cookie from /api/auth/dev-session fallback
-  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production') {
+  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production' && process.env.DEV_SESSION_ENABLED === 'true') {
     try {
       const payload = JSON.parse(
         Buffer.from(sessionId.slice(4), 'base64').toString('utf-8'),
@@ -60,7 +60,7 @@ export async function getServerSessionFromCookies(
   if (!sessionId) return null;
 
   // Dev-only: handle base64-encoded cookie from /api/auth/dev-session fallback
-  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production') {
+  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production' && process.env.DEV_SESSION_ENABLED === 'true') {
     try {
       const payload = JSON.parse(
         Buffer.from(sessionId.slice(4), 'base64').toString('utf-8'),

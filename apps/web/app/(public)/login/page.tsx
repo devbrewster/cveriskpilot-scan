@@ -6,10 +6,17 @@ import Link from "next/link";
 
 type LoginState = 'idle' | 'submitting' | 'mfa_challenge' | 'mfa_verifying' | 'success';
 
+function getSafeCallbackUrl(url: string | null): string {
+  if (!url) return '/dashboard';
+  // Must start with / and not // (protocol-relative)
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  return '/dashboard';
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') ?? searchParams.get('redirect') ?? '/dashboard';
+  const callbackUrl = getSafeCallbackUrl(searchParams.get('callbackUrl') ?? searchParams.get('redirect'));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const ERROR_MESSAGES: Record<string, string> = {

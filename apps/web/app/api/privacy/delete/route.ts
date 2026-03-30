@@ -27,8 +27,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    // Scope user lookup by org to prevent IDOR (PLATFORM_ADMIN can look up any user)
+    const userWhereClause: Record<string, unknown> = { id: userId };
+    if (session.role !== 'PLATFORM_ADMIN') {
+      userWhereClause.organizationId = session.organizationId;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: userWhereClause,
       select: {
         id: true,
         email: true,
@@ -45,8 +51,8 @@ export async function POST(request: NextRequest) {
     if (user.email !== session.email) {
       if (session.role === 'PLATFORM_ADMIN') {
         // Platform admin can delete any user
-      } else if (session.role === 'ORG_OWNER' && user.organizationId === session.organizationId) {
-        // Org owner can delete users in their own org
+      } else if (session.role === 'ORG_OWNER') {
+        // Org owner can delete users in their own org (already scoped by query above)
       } else {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }

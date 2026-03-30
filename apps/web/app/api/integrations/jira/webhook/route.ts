@@ -113,11 +113,14 @@ export async function POST(request: NextRequest) {
         );
       }
     } else {
-      // No webhook secret configured — log warning but allow for backwards compatibility.
-      // Organizations should configure a webhook secret in their Jira integration settings.
-      console.warn(
+      // No webhook secret configured — reject to prevent forged payloads.
+      console.error(
         `[webhook/jira] No webhookSecret configured for org ${ticket.vulnerabilityCase.organizationId}. ` +
-        'Webhook signature verification skipped. Configure a secret in Jira integration settings.',
+        'Rejecting request. Configure a secret in Jira integration settings.',
+      );
+      return NextResponse.json(
+        { error: 'Webhook secret not configured. Configure a secret in Jira integration settings.' },
+        { status: 401 },
       );
     }
 

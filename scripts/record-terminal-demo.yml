@@ -1,0 +1,47 @@
+# Terminalizer config — records CLI scan demo
+# Usage: npx terminalizer record demo --config scripts/record-terminal-demo.yml
+# Then:  npx terminalizer render demo -o social/assets/terminal-demo.gif
+
+command: bash
+cwd: /home/gonti/cveriskpilot
+cols: 100
+rows: 30
+env:
+  recording: true
+
+# Theme
+theme:
+  background: "#0d1117"
+  foreground: "#c9d1d9"
+  cursor: "#64ffda"
+  black: "#484f58"
+  red: "#ff7b72"
+  green: "#7ee787"
+  yellow: "#d29922"
+  blue: "#79c0ff"
+  magenta: "#d2a8ff"
+  cyan: "#64ffda"
+  white: "#f0f6fc"
+
+# Timing
+frameDelay: auto
+maxIdleTime: 2000
+
+# Quality
+quality: 100
+frameBox:
+  type: floating
+  title: "CVERiskPilot — Pipeline Compliance Scanner"
+  style:
+    border: 0px black solid
+    boxShadow: none
+    margin: 0px
+
+watermark:
+  imagePath: ""
+  style:
+    position: absolute
+    right: 15px
+    bottom: 15px
+    width: 100px
+    opacity: 0.9

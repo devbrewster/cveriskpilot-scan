@@ -13,8 +13,9 @@
     "x": {
       "enabled": true,
       "account_handle": "",
-      "character_limit": 280,
+      "character_limit": 25000,
       "url_character_cost": 23,
+      "verified_account": true,
       "tone": "concise, direct, practitioner audience",
       "preferred_format": "headline → bullets → hashtags"
     }
@@ -43,7 +44,7 @@
   "posting_rules": [
     "Do not claim a feature is live unless it appears in currentRelease or the public changelog.",
     "Do not claim a patch is shipped until release metadata promotes it and deployment evidence exists.",
-    "X posts must be at or under 280 characters. URLs count as 23 characters.",
+    "X posts can be up to 25,000 characters (verified account). URLs count as 23 characters. Keep posts concise for engagement — under 500 chars is ideal.",
     "LinkedIn posts must be factually grounded — use highlights and trust signals from release-metadata.json.",
     "approved_by must be set before moving any file from drafts/ to queue/.",
     "The bot must never post a file with status draft — only ready.",

@@ -59,8 +59,14 @@ social/drafts/
 social/queue/
 social/published/
 social/archived/
+social/locks/
+social/engagement/
+social/stagger-*.log
 state/marketing/generated/
 *.tsbuildinfo
+
+# ephemeral scan/debug output
+scan_stderr.txt
 
 # generated security scan reports (may contain detected secrets)
 security_reports_bundle/

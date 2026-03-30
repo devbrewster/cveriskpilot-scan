@@ -24,6 +24,10 @@ const envPath = path.join(root, ".env.local");
 const defaultBatchFile = path.join(root, "social/queue/w16-trending-batch.json");
 const publishedDir = path.join(root, "social/published");
 const logDir = path.join(root, "social/logs");
+const lockDir = path.join(root, "social/locks");
+
+// Verified X accounts can post up to 25,000 characters
+const X_CHAR_LIMIT = 25000;
 
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) throw new Error(`Missing env file: ${filePath}`);
@@ -67,6 +71,40 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// --- Lock file to prevent concurrent publishers ---
+
+function acquireLock(batchFile) {
+  fs.mkdirSync(lockDir, { recursive: true });
+  const lockFile = path.join(lockDir, path.basename(batchFile) + ".lock");
+  if (fs.existsSync(lockFile)) {
+    const lockData = JSON.parse(fs.readFileSync(lockFile, "utf8"));
+    const ageMs = Date.now() - new Date(lockData.ts).getTime();
+    // Stale lock if older than 24 hours (in case a process crashed)
+    if (ageMs < 24 * 60 * 60 * 1000) {
+      throw new Error(
+        `Another publisher is running on ${path.basename(batchFile)} (pid ${lockData.pid}, started ${lockData.ts}). ` +
+        `Delete ${lockFile} if this is stale.`
+      );
+    }
+    log(`Removing stale lock (${Math.round(ageMs / 3600000)}h old)`);
+  }
+  fs.writeFileSync(lockFile, JSON.stringify({ pid: process.pid, ts: new Date().toISOString() }));
+  return lockFile;
+}
+
+function releaseLock(lockFile) {
+  try { fs.unlinkSync(lockFile); } catch { /* ignore */ }
+}
+
+// --- Re-read post status from batch file to catch concurrent updates ---
+
+function reloadPostStatus(filePath, postId) {
+  const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  const posts = Array.isArray(data) ? data : data.posts;
+  const post = posts?.find((p) => p.id === postId);
+  return post?.platforms?.x?.status ?? post?.status;
+}
+
 function log(msg) {
   const ts = new Date().toISOString();
   const line = `[${ts}] ${msg}`;
@@ -97,15 +135,23 @@ function archivePost(post, tweetId, username) {
   return outPath;
 }
 
-function updateBatchFile(filePath, posts) {
-  fs.writeFileSync(filePath, JSON.stringify(posts, null, 2) + "\n");
+function updateBatchFile(filePath, posts, rawData) {
+  // Preserve the original file format (campaign object vs raw array)
+  if (Array.isArray(rawData)) {
+    fs.writeFileSync(filePath, JSON.stringify(posts, null, 2) + "\n");
+  } else {
+    const updated = { ...rawData, posts };
+    fs.writeFileSync(filePath, JSON.stringify(updated, null, 2) + "\n");
+  }
 }
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
-  const posts = JSON.parse(fs.readFileSync(opts.file, "utf8"));
+  const raw = JSON.parse(fs.readFileSync(opts.file, "utf8"));
 
-  if (!Array.isArray(posts)) throw new Error("Batch file must be a JSON array of posts");
+  // Support both formats: raw array of posts, or object with a `posts` key (campaign format)
+  const posts = Array.isArray(raw) ? raw : (Array.isArray(raw.posts) ? raw.posts : null);
+  if (!posts) throw new Error("Batch file must be a JSON array of posts or an object with a `posts` array");
 
   const pending = posts.filter((p) => p.platforms?.x?.status === "ready");
   const queue = pending.slice(opts.startIndex);
@@ -118,8 +164,17 @@ async function main() {
     return;
   }
 
+  // Acquire lock to prevent concurrent publishers (root cause of 403 duplicate errors)
+  let lockFile = null;
+  if (!opts.dryRun) {
+    lockFile = acquireLock(opts.file);
+    log(`Lock acquired: ${lockFile}`);
+  }
+
   let client = null;
   let username = null;
+
+  try {
 
   if (!opts.dryRun) {
     client = getXClient();
@@ -133,8 +188,8 @@ async function main() {
     const content = post.platforms.x.content.trim();
     const charCount = content.length;
 
-    if (charCount > 280) {
-      log(`SKIP ${post.id}: ${charCount} chars exceeds 280 limit`);
+    if (charCount > X_CHAR_LIMIT) {
+      log(`SKIP ${post.id}: ${charCount} chars exceeds ${X_CHAR_LIMIT} limit`);
       continue;
     }
 
@@ -158,12 +213,19 @@ async function main() {
     }
 
     if (opts.dryRun) {
-      log(`DRY RUN [${i + 1}/${queue.length}] ${post.id}: ${charCount}/280 chars`);
+      log(`DRY RUN [${i + 1}/${queue.length}] ${post.id}: ${charCount} chars`);
       log(`  Content: ${content.slice(0, 80)}...`);
       continue;
     }
 
     try {
+      // Re-read status from disk in case another process already published this post
+      const currentStatus = reloadPostStatus(opts.file, post.id);
+      if (currentStatus === "published") {
+        log(`SKIP ${post.id}: already published by another process`);
+        continue;
+      }
+
       const payload = { text: content };
 
       if (post.image_asset) {
@@ -186,7 +248,7 @@ async function main() {
       post.platforms.x.status = "published";
       post.platforms.x.post_id = tweetId;
       post.platforms.x.published_at = new Date().toISOString();
-      updateBatchFile(opts.file, posts);
+      updateBatchFile(opts.file, posts, raw);
 
       // Archive
       const archivedPath = archivePost(post, tweetId, username);
@@ -199,11 +261,15 @@ async function main() {
       post.platforms.x.status = "error";
       post.platforms.x.error = errMsg;
       post.platforms.x.last_error_at = new Date().toISOString();
-      updateBatchFile(opts.file, posts);
+      updateBatchFile(opts.file, posts, raw);
     }
   }
 
   log("Batch complete.");
+
+  } finally {
+    if (lockFile) releaseLock(lockFile);
+  }
 }
 
 try {

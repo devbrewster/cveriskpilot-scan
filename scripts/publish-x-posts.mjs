@@ -100,6 +100,7 @@ function resolveConfig() {
   const queueDir = path.join(root, config.bot_instructions?.queue_dir ?? "social/queue");
   const publishedDir = path.join(root, config.bot_instructions?.published_dir ?? "social/published");
 
+  // Verified X accounts can post up to 25,000 characters
   return {
     config,
     x: {
@@ -107,7 +108,7 @@ function resolveConfig() {
       characterLimit:
         typeof xConfig.character_limit === "number" && xConfig.character_limit > 0
           ? xConfig.character_limit
-          : 280
+          : 25000
     },
     queueDir,
     publishedDir

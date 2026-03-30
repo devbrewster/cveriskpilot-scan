@@ -1,0 +1,1609 @@
+{
+  "timestamp": "2026-03-30T03:46:47.753Z",
+  "version": "0.1.7",
+  "scannersRun": [
+    "api-security"
+  ],
+  "frameworks": "all",
+  "summary": {
+    "CRITICAL": 17,
+    "HIGH": 92,
+    "MEDIUM": 0,
+    "LOW": 0,
+    "INFO": 0
+  },
+  "totalFindings": 109,
+  "exitCode": 1,
+  "failOnSeverity": "CRITICAL",
+  "durationMs": 21,
+  "verdictSummary": {
+    "TRUE_POSITIVE": 109,
+    "FALSE_POSITIVE": 0,
+    "NEEDS_REVIEW": 0
+  },
+  "findings": [
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/admin/onboard/route.ts",
+      "lineNumber": 12,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ai/remediation/route.ts",
+      "lineNumber": 19,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ai/remediation/route.ts",
+      "lineNumber": 19,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/assets/route.ts",
+      "lineNumber": 91,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/billing/portal/route.ts",
+      "lineNumber": 12,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/billing/portal/route.ts",
+      "lineNumber": 12,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/cases/[id]/approval/route.ts",
+      "lineNumber": 12,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/cases/[id]/assign/route.ts",
+      "lineNumber": 10,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/cases/[id]/comments/route.ts",
+      "lineNumber": 66,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/cases/[id]/comments/route.ts",
+      "lineNumber": 66,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/cases/[id]/feedback/route.ts",
+      "lineNumber": 11,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/clients/[id]/delete-data/route.ts",
+      "lineNumber": 10,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/clients/[id]/route.ts",
+      "lineNumber": 58,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/clients/[id]/route.ts",
+      "lineNumber": 122,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/clients/route.ts",
+      "lineNumber": 80,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/[id]/heartbeat/route.ts",
+      "lineNumber": 16,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/[id]/heartbeat/route.ts",
+      "lineNumber": 16,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/[id]/route.ts",
+      "lineNumber": 62,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/[id]/route.ts",
+      "lineNumber": 148,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/[id]/sync/route.ts",
+      "lineNumber": 25,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/[id]/test/route.ts",
+      "lineNumber": 20,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/[id]/test/route.ts",
+      "lineNumber": 20,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/test/route.ts",
+      "lineNumber": 13,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/connectors/test/route.ts",
+      "lineNumber": 13,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/exceptions/[id]/route.ts",
+      "lineNumber": 85,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/exceptions/route.ts",
+      "lineNumber": 116,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/export/bulk/route.ts",
+      "lineNumber": 236,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/export/bulk/route.ts",
+      "lineNumber": 236,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/export/pdf/route.ts",
+      "lineNumber": 321,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/export/pdf/route.ts",
+      "lineNumber": 321,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/bulk/route.ts",
+      "lineNumber": 16,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/bulk/route.ts",
+      "lineNumber": 16,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/bulk/route.ts",
+      "lineNumber": 38,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/config/route.ts",
+      "lineNumber": 22,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/config/route.ts",
+      "lineNumber": 22,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/push/route.ts",
+      "lineNumber": 10,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/push/route.ts",
+      "lineNumber": 10,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/push/route.ts",
+      "lineNumber": 29,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/sync/route.ts",
+      "lineNumber": 8,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/sync/route.ts",
+      "lineNumber": 8,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/jira/sync/route.ts",
+      "lineNumber": 16,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/config/route.ts",
+      "lineNumber": 34,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/config/route.ts",
+      "lineNumber": 66,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/config/route.ts",
+      "lineNumber": 66,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/config/route.ts",
+      "lineNumber": 34,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/config/route.ts",
+      "lineNumber": 181,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/config/route.ts",
+      "lineNumber": 181,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/config/route.ts",
+      "lineNumber": 34,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/push/route.ts",
+      "lineNumber": 57,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/push/route.ts",
+      "lineNumber": 57,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/sync/route.ts",
+      "lineNumber": 65,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/sync/route.ts",
+      "lineNumber": 65,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/integrations/servicenow/sync/route.ts",
+      "lineNumber": 73,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/jobs/process/route.ts",
+      "lineNumber": 15,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/notifications/route.ts",
+      "lineNumber": 67,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/notifications/route.ts",
+      "lineNumber": 67,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/announcements/route.ts",
+      "lineNumber": 122,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/announcements/route.ts",
+      "lineNumber": 122,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/announcements/route.ts",
+      "lineNumber": 198,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/announcements/route.ts",
+      "lineNumber": 198,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/customers/route.ts",
+      "lineNumber": 50,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/flags/route.ts",
+      "lineNumber": 158,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/impersonate/route.ts",
+      "lineNumber": 52,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/impersonate/route.ts",
+      "lineNumber": 52,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/impersonate/route.ts",
+      "lineNumber": 151,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/impersonate/route.ts",
+      "lineNumber": 151,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Authentication on API Route",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/overview/route.ts",
+      "lineNumber": 34,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-306"
+      ],
+      "recommendation": "Fix A07:2021 – Identification and Authentication Failures: API route handler does not call requireAuth() or equivalent authentication check."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/ops/overview/route.ts",
+      "lineNumber": 64,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Authentication on API Route",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/pipeline/comment/route.ts",
+      "lineNumber": 25,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-306"
+      ],
+      "recommendation": "Fix A07:2021 – Identification and Authentication Failures: API route handler does not call requireAuth() or equivalent authentication check."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/portfolio/route.ts",
+      "lineNumber": 15,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/privacy/delete/route.ts",
+      "lineNumber": 11,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/generate/route.ts",
+      "lineNumber": 16,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/generate/route.ts",
+      "lineNumber": 16,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/schedules/[id]/route.ts",
+      "lineNumber": 69,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/schedules/[id]/route.ts",
+      "lineNumber": 69,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/schedules/[id]/route.ts",
+      "lineNumber": 131,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/schedules/[id]/route.ts",
+      "lineNumber": 131,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/schedules/route.ts",
+      "lineNumber": 72,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/reports/schedules/route.ts",
+      "lineNumber": 72,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/service-accounts/route.ts",
+      "lineNumber": 79,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/session/client/route.ts",
+      "lineNumber": 18,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/session/client/route.ts",
+      "lineNumber": 18,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/ai-prompts/route.ts",
+      "lineNumber": 146,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/integrations/jira/route.ts",
+      "lineNumber": 67,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/integrations/jira/route.ts",
+      "lineNumber": 67,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/integrations/jira/route.ts",
+      "lineNumber": 138,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/integrations/jira/route.ts",
+      "lineNumber": 138,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/integrations/jira/test/route.ts",
+      "lineNumber": 9,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/integrations/jira/test/route.ts",
+      "lineNumber": 9,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/ip-allowlist/route.ts",
+      "lineNumber": 102,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/settings/notifications/route.ts",
+      "lineNumber": 47,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/[id]/route.ts",
+      "lineNumber": 47,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/[id]/route.ts",
+      "lineNumber": 138,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/check/route.ts",
+      "lineNumber": 22,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/check/route.ts",
+      "lineNumber": 22,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/check/route.ts",
+      "lineNumber": 36,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/route.ts",
+      "lineNumber": 19,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/route.ts",
+      "lineNumber": 41,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Organization Scoping on Data Access",
+      "severity": "CRITICAL",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/sla/route.ts",
+      "lineNumber": 19,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-639"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: Database query does not include organizationId from session, enabling cross-tenant data access."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/clients/route.ts",
+      "lineNumber": 10,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/clients/route.ts",
+      "lineNumber": 10,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing Role Check on Mutation Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/clients/route.ts",
+      "lineNumber": 74,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-862"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing API handler (POST/PUT/PATCH/DELETE) has auth but no role-based access control check."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/clients/route.ts",
+      "lineNumber": 74,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/members/route.ts",
+      "lineNumber": 10,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/members/route.ts",
+      "lineNumber": 70,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/route.ts",
+      "lineNumber": 52,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/teams/[id]/route.ts",
+      "lineNumber": 86,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/upload/route.ts",
+      "lineNumber": 144,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    },
+    {
+      "title": "Missing CSRF Protection on State-Changing Endpoint",
+      "severity": "HIGH",
+      "verdict": "TRUE_POSITIVE",
+      "verdictReason": "",
+      "filePath": "apps/web/app/api/users/route.ts",
+      "lineNumber": 84,
+      "cveIds": [],
+      "cweIds": [
+        "CWE-352"
+      ],
+      "recommendation": "Fix A01:2021 – Broken Access Control: State-changing endpoint missing checkCsrf() call, vulnerable to cross-site request forgery."
+    }
+  ],
+  "complianceImpact": {
+    "totalAffectedControls": 13,
+    "frameworkSummary": [
+      {
+        "framework": "NIST 800-53",
+        "frameworkId": "nist-800-53",
+        "affectedControls": 3,
+        "controlIds": [
+          "SC-23",
+          "SI-10",
+          "AC-3"
+        ]
+      },
+      {
+        "framework": "CMMC Level 2",
+        "frameworkId": "cmmc-level2",
+        "affectedControls": 3,
+        "controlIds": [
+          "IA.L2-3.5.2",
+          "SI.L2-3.14.1",
+          "AC.L2-3.1.2"
+        ]
+      },
+      {
+        "framework": "SOC 2 Type II",
+        "frameworkId": "soc2-type2",
+        "affectedControls": 2,
+        "controlIds": [
+          "CC6.1",
+          "CC6.8"
+        ]
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "frameworkId": "fedramp-moderate",
+        "affectedControls": 3,
+        "controlIds": [
+          "IA-2",
+          "SI-2",
+          "AC-3"
+        ]
+      },
+      {
+        "framework": "OWASP ASVS",
+        "frameworkId": "owasp-asvs",
+        "affectedControls": 2,
+        "controlIds": [
+          "V1.2",
+          "V5.1"
+        ]
+      }
+    ],
+    "entries": [
+      {
+        "framework": "NIST 800-53",
+        "controlId": "SC-23",
+        "controlTitle": "Session Authenticity",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "CMMC Level 2",
+        "controlId": "IA.L2-3.5.2",
+        "controlTitle": "Authentication",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "SOC 2 Type II",
+        "controlId": "CC6.1",
+        "controlTitle": "Logical and Physical Access Controls",
+        "affectedBy": [
+          "CWE-352",
+          "CWE-862",
+          "CWE-639"
+        ]
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "controlId": "IA-2",
+        "controlTitle": "Identification and Authentication (Organizational Users)",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "OWASP ASVS",
+        "controlId": "V1.2",
+        "controlTitle": "Authentication Architecture",
+        "affectedBy": [
+          "CWE-352",
+          "CWE-862",
+          "CWE-639"
+        ]
+      },
+      {
+        "framework": "NIST 800-53",
+        "controlId": "SI-10",
+        "controlTitle": "Information Input Validation",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "CMMC Level 2",
+        "controlId": "SI.L2-3.14.1",
+        "controlTitle": "Flaw Remediation",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "SOC 2 Type II",
+        "controlId": "CC6.8",
+        "controlTitle": "Vulnerability Management",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "controlId": "SI-2",
+        "controlTitle": "Flaw Remediation",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "OWASP ASVS",
+        "controlId": "V5.1",
+        "controlTitle": "Input Validation",
+        "affectedBy": [
+          "CWE-352"
+        ]
+      },
+      {
+        "framework": "NIST 800-53",
+        "controlId": "AC-3",
+        "controlTitle": "Access Enforcement",
+        "affectedBy": [
+          "CWE-862",
+          "CWE-639"
+        ]
+      },
+      {
+        "framework": "CMMC Level 2",
+        "controlId": "AC.L2-3.1.2",
+        "controlTitle": "Transaction & Function Control",
+        "affectedBy": [
+          "CWE-862",
+          "CWE-639"
+        ]
+      },
+      {
+        "framework": "FedRAMP Moderate",
+        "controlId": "AC-3",
+        "controlTitle": "Access Enforcement",
+        "affectedBy": [
+          "CWE-862",
+          "CWE-639"
+        ]
+      }
+    ]
+  }
+}

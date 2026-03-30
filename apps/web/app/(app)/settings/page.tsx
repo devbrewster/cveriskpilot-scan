@@ -115,7 +115,7 @@ export default function SettingsPage() {
     const t = searchParams.get('tab');
     const resolved = (t && TAB_ALIASES[t]) || (t && TAB_IDS.has(t as TabId) ? (t as TabId) : null);
     if (resolved && resolved !== activeTab) setActiveTab(resolved);
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchParams, activeTab]);
 
   if (!loaded) {
     return (

@@ -88,8 +88,10 @@ COPY --from=build --chown=nextjs:nodejs /app/packages/domain/prisma ./packages/d
 COPY --from=build --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build --chown=nextjs:nodejs /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
-# Copy worker build output
+# Copy worker build output + workspace packages it depends on
 COPY --from=build --chown=nextjs:nodejs /app/apps/worker/dist ./apps/worker/dist
+COPY --from=build --chown=nextjs:nodejs /app/apps/worker/package.json ./apps/worker/package.json
+COPY --from=build --chown=nextjs:nodejs /app/node_modules/@cveriskpilot ./node_modules/@cveriskpilot
 
 # Copy entrypoint script that routes by SERVICE_ROLE
 COPY --from=build --chown=nextjs:nodejs /app/deploy/entrypoint.sh ./entrypoint.sh

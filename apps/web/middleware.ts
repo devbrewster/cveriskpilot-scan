@@ -65,6 +65,7 @@ const PUBLIC_PATHS = [
   '/government',
   '/robots.txt',
   '/sitemap.xml',
+  '/security-policy',
 ];
 
 const PUBLIC_PREFIXES = [

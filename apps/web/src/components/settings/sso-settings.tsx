@@ -93,12 +93,12 @@ export function SsoSettings({ organizationId, tier }: SsoSettingsProps) {
           <p className="mt-1 text-xs text-amber-600">
             Upgrade your plan to enable SAML SSO for your organization.
           </p>
-          <button
-            type="button"
-            className="mt-4 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
+          <a
+            href="/billing"
+            className="mt-4 inline-block rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
           >
             Upgrade Plan
-          </button>
+          </a>
         </div>
       </div>
     );

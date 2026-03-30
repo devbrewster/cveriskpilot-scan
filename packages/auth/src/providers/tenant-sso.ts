@@ -4,6 +4,7 @@
 import type { PrismaClient } from '@cveriskpilot/domain';
 import { UserRole, UserStatus } from '@cveriskpilot/domain';
 import crypto from 'node:crypto';
+import { validateExternalUrl } from '../security/url-validator';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -87,6 +88,22 @@ export async function saveTenantIdPConfig(
   const entitlements = (org.entitlements ?? {}) as Record<string, unknown>;
   const tenantSso = (entitlements.tenantSso ?? {}) as Record<string, TenantIdPConfig>;
 
+  // Validate URLs at configuration time to reject private/internal IPs early
+  const urlsToValidate: { label: string; url: string | undefined }[] = [
+    { label: 'ssoUrl', url: config.ssoUrl },
+    { label: 'tokenEndpoint', url: config.tokenEndpoint },
+    { label: 'userinfoEndpoint', url: config.userinfoEndpoint },
+  ];
+
+  for (const { label, url } of urlsToValidate) {
+    if (url) {
+      const result = validateExternalUrl(url);
+      if (!result.valid) {
+        throw new Error(`Invalid ${label}: ${result.reason}`);
+      }
+    }
+  }
+
   tenantSso[clientId] = config;
 
   await (prisma as any).organization.update({
@@ -163,6 +180,12 @@ export async function handleTenantSSOCallback(
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
+  // Validate token endpoint URL against SSRF (defense-in-depth; also checked at config save time)
+  const tokenUrlCheck = validateExternalUrl(config.tokenEndpoint);
+  if (!tokenUrlCheck.valid) {
+    throw new Error(`Blocked tokenEndpoint URL: ${tokenUrlCheck.reason}`);
+  }
+
   // Exchange code for tokens
   const tokenResponse = await fetch(config.tokenEndpoint, {
     method: 'POST',
@@ -191,6 +214,12 @@ export async function handleTenantSSOCallback(
   // Fetch user info
   if (!config.userinfoEndpoint) {
     throw new Error('Userinfo endpoint is required for OIDC tenant SSO');
+  }
+
+  // Validate userinfo endpoint URL against SSRF (defense-in-depth)
+  const userinfoUrlCheck = validateExternalUrl(config.userinfoEndpoint);
+  if (!userinfoUrlCheck.valid) {
+    throw new Error(`Blocked userinfoEndpoint URL: ${userinfoUrlCheck.reason}`);
   }
 
   const userinfoResponse = await fetch(config.userinfoEndpoint, {

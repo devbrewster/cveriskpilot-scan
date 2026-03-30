@@ -58,6 +58,16 @@ const nextConfig = {
     ];
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/api',
+        destination: '/api-key',
+        permanent: false,
+      },
+    ];
+  },
+
   serverExternalPackages: ['@prisma/client', 'prisma', 'bcryptjs', 'nodemailer', 'ioredis'],
   transpilePackages: [
     '@cveriskpilot/domain',

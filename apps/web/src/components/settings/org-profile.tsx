@@ -355,15 +355,25 @@ export function OrgProfile({ organizationId, tier }: OrgProfileProps) {
           </ul>
 
           <div className="flex items-center gap-3 pt-2">
-            <a
-              href="/api/billing/portal"
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const res = await fetch('/api/billing/portal', { method: 'POST' });
+                  if (!res.ok) throw new Error('Failed to open billing portal');
+                  const { url } = await res.json();
+                  window.location.href = url;
+                } catch {
+                  alert('Unable to open the billing portal. Please try again later.');
+                }
+              }}
               className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
             >
               Manage Billing
-            </a>
+            </button>
             {SHOW_UPGRADE_TIERS.has(tier) && (
               <a
-                href="/pricing"
+                href="/billing"
                 className="rounded-md border border-primary-300 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-primary-700 hover:bg-primary-50"
               >
                 Upgrade Plan

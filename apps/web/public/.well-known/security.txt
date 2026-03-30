@@ -1,0 +1,14 @@
+# CVERiskPilot Security Policy
+# https://securitytxt.org/
+
+Contact: mailto:security@cveriskpilot.com
+Contact: mailto:george.ontiveros@cveriskpilot.com
+Expires: 2027-03-30T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://cveriskpilot.com/.well-known/security.txt
+Policy: https://cveriskpilot.com/security-policy
+
+# We do not currently operate a formal bug bounty program,
+# but we take all responsible disclosure reports seriously.
+# We will acknowledge receipt within 24 hours and provide
+# credit for valid findings (with your permission).

@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { CsrfProvider } from '@/components/csrf-provider';
 import './globals.css';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-TXXFD3FYR1';
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -194,6 +197,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         <ThemeProvider><CsrfProvider>{children}</CsrfProvider></ThemeProvider>
       </body>
+      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </html>
   );
 }

@@ -1,3 +1,5 @@
+<a href="https://www.producthunt.com/products/cveriskpilot?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-cveriskpilot" target="_blank" rel="noopener noreferrer"><img alt="CVERiskPilot - CVE triage on autopilot. Compliance included | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1110874&theme=light&t=1774873023311"></a>
+
 # @cveriskpilot/scan
 
 Pipeline Compliance Scanner — scan your codebase for vulnerable dependencies, hardcoded secrets, and infrastructure-as-code misconfigurations, then automatically map findings to **6 compliance frameworks**.

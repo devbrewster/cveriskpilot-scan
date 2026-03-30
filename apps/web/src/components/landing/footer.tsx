@@ -172,7 +172,7 @@ export function Footer() {
               &copy; {new Date().getFullYear()} CVERiskPilot LLC. All rights reserved. | 100% Veteran Owned Business | San Antonio, TX
             </p>
             <span className="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-[10px] font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-900/30 dark:text-primary-400 dark:ring-primary-400/20">
-              v{process.env.NEXT_PUBLIC_APP_VERSION ?? '0.1.0'}-alpha
+              v{process.env.NEXT_PUBLIC_APP_VERSION ?? '0.2.0'}-alpha
             </span>
           </div>
         </div>

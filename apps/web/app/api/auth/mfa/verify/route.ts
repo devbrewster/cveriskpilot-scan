@@ -149,11 +149,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TOTP verified — delete the temp session key from Redis
-    try {
-      await redis.del(redisKey);
-    } catch {
-      // Non-fatal: key will expire via TTL anyway
+    // TOTP verified — consume the temp session BEFORE creating the real session.
+    // This must succeed; if it fails the temp token remains replayable.
+    const deleted = await redis.del(redisKey);
+    if (deleted === 0) {
+      // Key vanished between GET and DEL — treat as replay / race
+      return NextResponse.json(
+        { error: 'Invalid or expired temporary session' },
+        { status: 401 },
+      );
     }
 
     // Create a real session

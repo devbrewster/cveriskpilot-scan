@@ -82,9 +82,21 @@ export async function getPortalSession(): Promise<PortalSession | null> {
       return null;
     }
 
-    const session = JSON.parse(
+    const parsed = JSON.parse(
       Buffer.from(payload, 'base64').toString('utf-8'),
-    ) as PortalSession;
+    ) as PortalSession & { createdAt?: number };
+
+    // Reject sessions without a timestamp or older than 24 hours
+    const SESSION_MAX_AGE_MS = 86400000; // 24 hours
+    if (!parsed.createdAt || Date.now() - parsed.createdAt > SESSION_MAX_AGE_MS) {
+      return null;
+    }
+
+    const session: PortalSession = {
+      user: parsed.user,
+      organizationId: parsed.organizationId,
+      clientId: parsed.clientId,
+    };
 
     // Validate the session has required fields
     if (
@@ -163,10 +175,11 @@ export function isPortalAdmin(session: PortalSession): boolean {
  * In production, this would create a signed JWT.
  */
 export function createPortalSessionCookie(user: PortalUser): string {
-  const session: PortalSession = {
+  const session: PortalSession & { createdAt: number } = {
     user,
     organizationId: user.organizationId,
     clientId: user.clientId,
+    createdAt: Date.now(),
   };
   const payload = Buffer.from(JSON.stringify(session)).toString('base64');
 

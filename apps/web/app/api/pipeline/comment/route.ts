@@ -63,26 +63,7 @@ export async function POST(req: NextRequest) {
     const month = new Date().toISOString().slice(0, 7); // YYYY-MM
     const limit = TIER_LIMITS[org.tier] ?? TIER_LIMITS['FREE'];
 
-    if (limit !== -1) {
-      const usage = await prisma.pipelineUsage.findUnique({
-        where: { organizationId_month: { organizationId: orgId, month } },
-      });
-
-      const used = usage?.prCommentsUsed ?? 0;
-      if (used >= limit) {
-        return NextResponse.json(
-          {
-            error: `Monthly PR comment limit reached (${limit}/${limit}). Upgrade your plan for more.`,
-            used,
-            limit,
-            tier: org.tier,
-          },
-          { status: 429 },
-        );
-      }
-    }
-
-    // Parse scan results from body
+    // Parse scan results from body (before usage check to fail fast on bad input)
     const body = await req.json();
 
     if (!body || typeof body !== 'object' || !body.findings) {
@@ -95,29 +76,65 @@ export async function POST(req: NextRequest) {
     // Format the PR comment
     const markdown = formatComment(body);
 
-    // Increment usage
-    await prisma.pipelineUsage.upsert({
-      where: { organizationId_month: { organizationId: orgId, month } },
-      create: {
-        organizationId: orgId,
-        month,
-        prCommentsUsed: 1,
-      },
-      update: {
-        prCommentsUsed: { increment: 1 },
-      },
-    });
+    // Atomic usage check + increment in a single transaction to prevent TOCTOU race
+    let usageAfter: number | null = null;
 
-    const currentUsage = await prisma.pipelineUsage.findUnique({
-      where: { organizationId_month: { organizationId: orgId, month } },
-      select: { prCommentsUsed: true },
-    });
+    if (limit !== -1) {
+      const result = await prisma.$transaction(async (tx) => {
+        const usage = await tx.pipelineUsage.findUnique({
+          where: { organizationId_month: { organizationId: orgId, month } },
+        });
+
+        const used = usage?.prCommentsUsed ?? 0;
+        if (used >= limit) return null; // Over limit
+
+        return tx.pipelineUsage.upsert({
+          where: { organizationId_month: { organizationId: orgId, month } },
+          create: {
+            organizationId: orgId,
+            month,
+            prCommentsUsed: 1,
+          },
+          update: {
+            prCommentsUsed: { increment: 1 },
+          },
+        });
+      });
+
+      if (!result) {
+        return NextResponse.json(
+          {
+            error: `Monthly PR comment limit reached (${limit}/${limit}). Upgrade your plan for more.`,
+            used: limit,
+            limit,
+            tier: org.tier,
+          },
+          { status: 429 },
+        );
+      }
+
+      usageAfter = result.prCommentsUsed;
+    } else {
+      // Unlimited tier — still track usage, no limit check needed
+      const result = await prisma.pipelineUsage.upsert({
+        where: { organizationId_month: { organizationId: orgId, month } },
+        create: {
+          organizationId: orgId,
+          month,
+          prCommentsUsed: 1,
+        },
+        update: {
+          prCommentsUsed: { increment: 1 },
+        },
+      });
+      usageAfter = result.prCommentsUsed;
+    }
 
     return NextResponse.json({
       markdown,
       usage: {
         month,
-        prCommentsUsed: currentUsage?.prCommentsUsed ?? 1,
+        prCommentsUsed: usageAfter ?? 1,
         limit: limit === -1 ? 'unlimited' : limit,
         tier: org.tier,
       },

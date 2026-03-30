@@ -2,37 +2,17 @@ import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf, isFounderEmail } from '@cveriskpilot/auth';
 import * as crypto from 'node:crypto';
+import { logAudit } from '@/lib/audit';
+import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
 // POST /api/ops/impersonate — Start a view-as-customer impersonation session
 // DELETE /api/ops/impersonate — End an active impersonation session
+// GET  /api/ops/impersonate — List recent impersonation audit entries
 // ---------------------------------------------------------------------------
 
 /** Allowed email domain for staff impersonation */
 const STAFF_DOMAIN = 'cveriskpilot.com';
-
-/** In-memory store for active impersonation sessions (mock) */
-const activeSessions = new Map<
-  string,
-  {
-    token: string;
-    staffEmail: string;
-    organizationId: string;
-    reason: string;
-    startedAt: string;
-  }
->();
-
-/** In-memory audit log for impersonation events (mock) */
-export const impersonationAuditLog: Array<{
-  id: string;
-  timestamp: string;
-  staffEmail: string;
-  action: 'IMPERSONATE_START' | 'IMPERSONATE_END';
-  targetOrganizationId: string;
-  reason: string;
-  ip: string;
-}> = [];
 
 function getClientIp(request: NextRequest): string {
   return (
@@ -99,40 +79,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Prevent double-impersonation
-    if (activeSessions.has(session.userId)) {
-      return NextResponse.json(
-        {
-          error: 'Conflict',
-          message:
-            'An impersonation session is already active. End it first.',
-        },
-        { status: 409 },
-      );
-    }
-
-    // Generate mock impersonation token
+    // Generate impersonation token
     const token = `imp_${crypto.randomBytes(24).toString('hex')}`;
     const now = new Date().toISOString();
 
-    // Store active session
-    activeSessions.set(session.userId, {
-      token,
-      staffEmail: session.email,
+    // Persist audit log entry
+    await logAudit({
       organizationId,
-      reason: reason.trim(),
-      startedAt: now,
-    });
-
-    // Create audit log entry
-    impersonationAuditLog.push({
-      id: crypto.randomUUID(),
-      timestamp: now,
-      staffEmail: session.email,
-      action: 'IMPERSONATE_START',
-      targetOrganizationId: organizationId,
-      reason: reason.trim(),
-      ip: getClientIp(request),
+      actorId: session.userId,
+      action: 'STATE_CHANGE',
+      entityType: 'Impersonation',
+      entityId: token,
+      actorIp: getClientIp(request),
+      details: {
+        event: 'IMPERSONATE_START',
+        staffEmail: session.email,
+        targetOrganizationId: organizationId,
+        reason: reason.trim(),
+      },
     });
 
     return NextResponse.json({
@@ -173,27 +137,25 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const activeSession = activeSessions.get(session.userId);
-    if (!activeSession) {
-      return NextResponse.json(
-        { error: 'Not Found', message: 'No active impersonation session' },
-        { status: 404 },
-      );
-    }
+    // Find the most recent IMPERSONATE_START for this user that has no
+    // corresponding IMPERSONATE_END yet (best-effort without session store).
+    const body = await request.json().catch(() => null);
+    const organizationId = (body as Record<string, unknown>)?.organizationId as string | undefined;
 
-    // Audit log the end
-    impersonationAuditLog.push({
-      id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-      staffEmail: session.email,
-      action: 'IMPERSONATE_END',
-      targetOrganizationId: activeSession.organizationId,
-      reason: activeSession.reason,
-      ip: getClientIp(request),
+    // Persist audit log entry for session end
+    await logAudit({
+      organizationId: organizationId ?? 'unknown',
+      actorId: session.userId,
+      action: 'STATE_CHANGE',
+      entityType: 'Impersonation',
+      entityId: crypto.randomUUID(),
+      actorIp: getClientIp(request),
+      details: {
+        event: 'IMPERSONATE_END',
+        staffEmail: session.email,
+        targetOrganizationId: organizationId ?? 'unknown',
+      },
     });
-
-    // Remove session
-    activeSessions.delete(session.userId);
 
     return NextResponse.json({
       success: true,
@@ -201,6 +163,55 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error('[ops/impersonate] DELETE error:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET — List recent impersonation audit entries
+// ---------------------------------------------------------------------------
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
+
+    const roleCheck = requireRole(session.role, ADMIN_ROLES);
+    if (roleCheck) return roleCheck;
+
+    if (!isStaffEmail(session.email)) {
+      return NextResponse.json(
+        { error: 'Forbidden', message: 'Staff-only action' },
+        { status: 403 },
+      );
+    }
+
+    const url = new URL(request.url);
+    const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '50', 10), 200);
+
+    const entries = await prisma.auditLog.findMany({
+      where: { entityType: 'Impersonation' },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return NextResponse.json({
+      entries: entries.map((e) => ({
+        id: e.id,
+        timestamp: e.createdAt.toISOString(),
+        actorId: e.actorId,
+        actorIp: e.actorIp,
+        action: (e.details as Record<string, unknown>)?.event ?? e.action,
+        targetOrganizationId: e.organizationId,
+        reason: (e.details as Record<string, unknown>)?.reason ?? null,
+        staffEmail: (e.details as Record<string, unknown>)?.staffEmail ?? null,
+      })),
+    });
+  } catch (error) {
+    console.error('[ops/impersonate] GET error:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 },

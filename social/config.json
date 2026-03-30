@@ -38,6 +38,7 @@
   "source_of_truth": [
     "apps/web/src/lib/release-metadata.json",
     "CHANGELOG.md",
+    "social/product-facts.json",
     "state/active-task.json",
     "state/next-queue.json"
   ],

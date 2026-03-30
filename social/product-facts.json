@@ -1,0 +1,40 @@
+{
+  "_description": "Verified product facts for social media posts. Bot must not claim features that contradict these facts.",
+  "_updated": "2026-03-30",
+  "_version": "0.3.0-beta",
+  "cli_package": {
+    "name": "@cveriskpilot/scan",
+    "command": "npx @cveriskpilot/scan",
+    "version": "0.1.11",
+    "price": "Free (local scans). Enriched data requires API key (paid tier).",
+    "scanners": ["SBOM/dependency vulnerabilities", "Hardcoded secrets", "IaC misconfigurations"],
+    "does_NOT_do": ["POAM generation", "AI triage", "Dashboard upload"],
+    "frameworks_mapped": ["NIST 800-53", "SOC 2", "CMMC", "FedRAMP", "ASVS", "SSDF"],
+    "framework_count": 6,
+    "offline": true,
+    "zero_dependencies": true
+  },
+  "web_platform": {
+    "url": "https://cveriskpilot.com",
+    "does": [
+      "Upload scan results (11 scanner formats)",
+      "Enrich with NVD, EPSS, CISA KEV",
+      "AI-powered triage (Claude)",
+      "Auto-generate POAM entries",
+      "Compliance framework mapping (6 frameworks)",
+      "Case management and remediation tracking",
+      "Executive reports and CSV export",
+      "Connector sync (Tenable, Qualys, CrowdStrike, Rapid7, Snyk)"
+    ],
+    "scanner_formats": 11,
+    "connector_count": 5,
+    "tiers": ["FREE", "FOUNDERS_BETA ($29/mo)", "PRO ($49/mo)", "ENTERPRISE (custom)", "MSSP (metered)"]
+  },
+  "claims_to_avoid": [
+    "Do NOT say the CLI generates POAMs — only the web platform does",
+    "Do NOT say the CLI does AI triage — only the web platform does",
+    "Do NOT say 'zero-day detection' — the tool maps known CVEs, not discovers new ones",
+    "Do NOT claim SOC 2 certification — the tool maps TO SOC 2 controls, it does not certify",
+    "Do NOT say 'real-time' for the CLI — it runs on-demand, not continuously"
+  ]
+}

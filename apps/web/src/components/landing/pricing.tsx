@@ -11,6 +11,7 @@ const plans = [
     description: 'For individual researchers and small teams getting started.',
     features: [
       '1 user',
+      'Pipeline scanner CLI (local scans)',
       '3 uploads per month',
       '3 PR comments per month',
       '50 AI remediation calls',
@@ -30,6 +31,7 @@ const plans = [
     features: [
       '250 assets',
       '5 users',
+      'Pipeline scanner CLI + enriched data',
       'Unlimited uploads',
       '100 PR comments per month',
       '250 AI calls',
@@ -47,6 +49,7 @@ const plans = [
     description: 'For security teams that need full coverage and priority support.',
     features: [
       '10 users',
+      'Pipeline scanner CLI + enriched data',
       'Unlimited uploads',
       'Unlimited PR comments',
       '500 AI remediation calls',
@@ -67,6 +70,7 @@ const plans = [
     description: 'For organizations with advanced security and compliance needs.',
     features: [
       '50 users',
+      'Pipeline scanner CLI + enriched data',
       'Unlimited uploads',
       'Unlimited PR comments',
       '5,000 AI remediation calls',
@@ -87,6 +91,7 @@ const plans = [
     description: 'Multi-tenant managed security service provider.',
     features: [
       'Unlimited everything',
+      'Pipeline scanner CLI + enriched data',
       'Unlimited PR comments',
       'White-label branding',
       'Per-client usage metering',
@@ -234,6 +239,70 @@ export function Pricing() {
               </Link>
             </div>
           ))}
+        </div>
+
+        {/* CLI / Pipeline Scanner breakdown */}
+        <div className="mx-auto mt-20 max-w-4xl">
+          <h3 className="text-center text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Pipeline Scanner CLI
+          </h3>
+          <p className="mt-2 text-center text-gray-600 dark:text-gray-400">
+            Run <code className="rounded bg-gray-100 px-1.5 py-0.5 text-sm font-mono text-gray-800 dark:bg-gray-800 dark:text-gray-200">npx @cveriskpilot/scan</code> in any project or CI/CD pipeline.
+          </p>
+
+          <div className="mt-8 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900/50">
+                  <th className="px-6 py-3 font-semibold text-gray-900 dark:text-white">Feature</th>
+                  <th className="px-6 py-3 text-center font-semibold text-gray-900 dark:text-white">Free</th>
+                  <th className="px-6 py-3 text-center font-semibold text-gray-900 dark:text-white">Paid</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                {[
+                  ['Dependency, secrets, IaC, API route scanners', true, true],
+                  ['6 compliance frameworks (NIST, SOC 2, CMMC, FedRAMP, ASVS, SSDF)', true, true],
+                  ['JSON, SARIF, Markdown, table output', true, true],
+                  ['CI/CD exit codes (pass/fail on severity)', true, true],
+                  ['CVE & CWE identifiers', true, true],
+                  ['CVSS scores & vectors', false, true],
+                  ['Fix version recommendations', false, true],
+                  ['AI remediation guidance', false, true],
+                  ['Advisory URLs & references', false, true],
+                  ['Upload results to dashboard', false, true],
+                  ['PR comments on GitHub', false, true],
+                  ['POAM auto-generation', false, true],
+                ].map(([feature, free, paid]) => (
+                  <tr key={feature as string} className="bg-white dark:bg-gray-950">
+                    <td className="px-6 py-3 text-gray-700 dark:text-gray-300">{feature as string}</td>
+                    <td className="px-6 py-3 text-center">
+                      {free ? (
+                        <span className="text-green-600 dark:text-green-400">&#10003;</span>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-3 text-center">
+                      {paid ? (
+                        <span className="text-green-600 dark:text-green-400">&#10003;</span>
+                      ) : (
+                        <span className="text-gray-300 dark:text-gray-600">&mdash;</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            Generate your API key at{' '}
+            <Link href="/settings?tab=api-keys" className="text-primary-600 underline hover:text-primary-500 dark:text-primary-400">
+              Settings &rarr; API Keys
+            </Link>{' '}
+            to unlock enriched data and dashboard uploads.
+          </p>
         </div>
       </div>
     </section>

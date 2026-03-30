@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
+import { CsrfProvider } from '@/components/csrf-provider';
 import './globals.css';
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -191,7 +192,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider><CsrfProvider>{children}</CsrfProvider></ThemeProvider>
       </body>
     </html>
   );

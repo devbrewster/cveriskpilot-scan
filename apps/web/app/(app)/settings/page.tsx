@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { SlaSettings } from '@/components/settings/sla-settings';
 import { RetentionSettings } from '@/components/settings/retention-settings';
@@ -81,9 +82,40 @@ const tabGroups: TabGroup[] = [
   },
 ];
 
+const TAB_IDS = new Set<TabId>(tabGroups.flatMap((g) => g.tabs.map((t) => t.id)));
+
+// Map URL-friendly aliases to tab IDs (e.g., /settings?tab=api → api-keys)
+const TAB_ALIASES: Record<string, TabId> = {
+  api: 'api-keys',
+  keys: 'api-keys',
+  'api-keys': 'api-keys',
+  'service-accounts': 'service-accounts',
+  sso: 'sso',
+  mfa: 'mfa',
+  jira: 'jira',
+  webhooks: 'webhooks',
+  connectors: 'connectors',
+  sla: 'sla-policies',
+  retention: 'data-retention',
+  notifications: 'notifications',
+  ai: 'ai-prompts',
+  'ip-allowlist': 'ip-allowlist',
+  'org-profile': 'org-profile',
+};
+
 export default function SettingsPage() {
   const { loaded, organizationId, tier } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabId>('org-profile');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const initialTab = (tabParam && TAB_ALIASES[tabParam]) || (tabParam && TAB_IDS.has(tabParam as TabId) ? (tabParam as TabId) : 'org-profile');
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab);
+
+  // Sync tab when URL query changes
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    const resolved = (t && TAB_ALIASES[t]) || (t && TAB_IDS.has(t as TabId) ? (t as TabId) : null);
+    if (resolved && resolved !== activeTab) setActiveTab(resolved);
+  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!loaded) {
     return (

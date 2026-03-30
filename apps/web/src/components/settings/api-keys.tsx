@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Pagination } from '@/components/ui/pagination';
 import { Dialog } from '@/components/ui/dialog';
+import { fetchWithCsrf } from '@/lib/csrf';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -49,9 +50,14 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
     try {
       setLoading(true);
       const res = await fetch('/api/keys');
-      if (!res.ok) throw new Error('Failed to load API keys');
+      if (!res.ok) {
+        const text = await res.text();
+        let msg = 'Failed to load API keys';
+        try { msg = JSON.parse(text).error ?? msg; } catch { /* non-JSON response */ }
+        throw new Error(msg);
+      }
       const data = await res.json();
-      setKeys(data.keys);
+      setKeys(data.keys ?? []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load keys');
@@ -70,9 +76,8 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
     setError(null);
 
     try {
-      const res = await fetch('/api/keys', {
+      const res = await fetchWithCsrf('/api/keys', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: createName,
           scopes: createScopes,
@@ -108,7 +113,7 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
       confirmLabel: 'Revoke',
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
+          const res = await fetchWithCsrf(`/api/keys/${id}`, { method: 'DELETE' });
           if (!res.ok) {
             const data = await res.json();
             throw new Error(data.error ?? 'Failed to revoke key');
@@ -130,7 +135,7 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
       confirmLabel: 'Rotate',
       onConfirm: async () => {
         try {
-          const res = await fetch(`/api/keys/${id}`, { method: 'PUT' });
+          const res = await fetchWithCsrf(`/api/keys/${id}`, { method: 'PUT' });
           if (!res.ok) {
             const data = await res.json();
             throw new Error(data.error ?? 'Failed to rotate key');
@@ -176,6 +181,7 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
   const scopeLabels: Record<string, string> = {
     read: 'Read',
     upload: 'Upload',
+    pipeline: 'Pipeline',
     admin: 'Admin',
     scim: 'SCIM',
   };
@@ -202,6 +208,59 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
         >
           Create API Key
         </button>
+      </div>
+
+      {/* Quick Start: crp-scan CLI setup */}
+      <div className="rounded-lg border border-gray-200 bg-gray-50 dark:bg-gray-800/50 p-5">
+        <div className="flex items-start gap-3">
+          <svg className="h-5 w-5 text-primary-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Pipeline Scanner Setup</h3>
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Scan your codebase for vulnerabilities, secrets, and compliance gaps — results upload to your dashboard automatically.
+            </p>
+            <div className="mt-3 space-y-2">
+              <div>
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300">1. Create a key with Pipeline scope above, then run:</p>
+              </div>
+              <div className="rounded-md bg-gray-900 p-3">
+                <code className="block text-xs text-green-400 font-mono whitespace-pre-wrap">{`npx @cveriskpilot/scan --preset startup --api-key <your-key>`}</code>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mt-2">Or set the key as an environment variable:</p>
+              </div>
+              <div className="rounded-md bg-gray-900 p-3 space-y-1">
+                <code className="block text-xs text-green-400 font-mono">{`export CRP_API_KEY=crp_your_key_here`}</code>
+                <code className="block text-xs text-green-400 font-mono">{`npx @cveriskpilot/scan --preset startup`}</code>
+              </div>
+              <details className="mt-2">
+                <summary className="text-xs font-medium text-primary-600 dark:text-primary-400 cursor-pointer hover:text-primary-800">
+                  More presets &amp; CI/CD examples
+                </summary>
+                <div className="mt-2 space-y-2">
+                  <div className="rounded-md bg-gray-900 p-3 space-y-1">
+                    <code className="block text-xs text-gray-400 font-mono"># Available presets</code>
+                    <code className="block text-xs text-green-400 font-mono">npx @cveriskpilot/scan --preset startup    <span className="text-gray-500"># SOC 2 + ASVS</span></code>
+                    <code className="block text-xs text-green-400 font-mono">npx @cveriskpilot/scan --preset enterprise <span className="text-gray-500"># NIST + SOC 2 + ASVS</span></code>
+                    <code className="block text-xs text-green-400 font-mono">npx @cveriskpilot/scan --preset federal    <span className="text-gray-500"># NIST + CMMC + FedRAMP</span></code>
+                    <code className="block text-xs text-green-400 font-mono">npx @cveriskpilot/scan --preset devsecops  <span className="text-gray-500"># SSDF + ASVS</span></code>
+                    <code className="block text-xs text-green-400 font-mono">npx @cveriskpilot/scan --preset defense    <span className="text-gray-500"># CMMC + NIST + FedRAMP</span></code>
+                    <code className="block text-xs text-green-400 font-mono">npx @cveriskpilot/scan --preset all        <span className="text-gray-500"># All 6 frameworks</span></code>
+                  </div>
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mt-1">GitHub Actions:</p>
+                  <div className="rounded-md bg-gray-900 p-3">
+                    <code className="block text-xs text-green-400 font-mono whitespace-pre-wrap">{`- name: CVERiskPilot Scan
+  run: npx @cveriskpilot/scan --preset startup --ci
+  env:
+    CRP_API_KEY: \${{ secrets.CRP_API_KEY }}`}</code>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+        </div>
       </div>
 
       {error && (
@@ -290,6 +349,8 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
             >
               <option value="read">Read Only</option>
               <option value="read,upload">Read + Upload</option>
+              <option value="pipeline">Pipeline (CI/CD Scanner)</option>
+              <option value="read,upload,pipeline">Read + Upload + Pipeline</option>
               <option value="admin">Admin (Full Access)</option>
               <option value="scim">SCIM Provisioning</option>
             </select>
@@ -341,8 +402,15 @@ export function ApiKeys({ organizationId: _organizationId }: ApiKeysProps) {
           </svg>
           <p className="mt-2 text-sm text-gray-500">No API keys created yet.</p>
           <p className="mt-1 text-xs text-gray-400">
-            Create an API key for programmatic access.
+            Create an API key to connect the pipeline scanner or integrate with your CI/CD.
           </p>
+          <button
+            type="button"
+            onClick={() => { setCreateScopes('pipeline'); setShowCreateModal(true); }}
+            className="mt-3 rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            Create Pipeline Key
+          </button>
         </div>
       ) : (
         <>

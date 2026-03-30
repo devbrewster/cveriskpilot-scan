@@ -161,6 +161,14 @@ export function Footer() {
                   Sales
                 </a>
               </li>
+              <li>
+                <Link
+                  href="/security-policy"
+                  className="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  Security Policy
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

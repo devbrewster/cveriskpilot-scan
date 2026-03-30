@@ -1,6 +1,6 @@
 {
   "name": "@cveriskpilot/scan",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Pipeline Compliance Scanner — scan dependencies, secrets, and IaC for vulnerabilities and map to 6 compliance frameworks",
   "type": "module",
   "bin": {

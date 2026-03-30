@@ -19,17 +19,17 @@ function buildCsp(nonce: string, isDev: boolean): string {
   // we must use 'unsafe-inline' WITHOUT a nonce.
   const scriptSrc = isDev
     ? `'self' 'unsafe-eval' 'unsafe-inline'`
-    : `'self' 'unsafe-inline'`;
+    : `'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com`;
 
   const connectSrc = isDev
     ? `'self' https://api.first.org https://services.nvd.nist.gov ws://localhost:* wss://localhost:*`
-    : `'self' https://api.first.org https://services.nvd.nist.gov`;
+    : `'self' https://api.first.org https://services.nvd.nist.gov https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com`;
 
   return [
     `default-src 'self'`,
     `script-src ${scriptSrc}`,
     `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: blob:`,
+    `img-src 'self' data: blob: https://www.google-analytics.com https://*.google-analytics.com https://*.googletagmanager.com`,
     `font-src 'self'`,
     `connect-src ${connectSrc}`,
     `frame-ancestors 'none'`,

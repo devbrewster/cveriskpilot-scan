@@ -50,34 +50,11 @@
       "@cveriskpilot/streaming": ["packages/streaming/src"],
       "@cveriskpilot/streaming/*": ["packages/streaming/src/*"],
       "@cveriskpilot/whitelabel": ["packages/whitelabel/src"],
-      "@cveriskpilot/whitelabel/*": ["packages/whitelabel/src/*"]
+      "@cveriskpilot/whitelabel/*": ["packages/whitelabel/src/*"],
+      "@cveriskpilot/security-bundle": ["packages/security-bundle/src"],
+      "@cveriskpilot/security-bundle/*": ["packages/security-bundle/src/*"]
     }
   },
-  "references": [
-    { "path": "packages/abac" },
-    { "path": "packages/agents" },
-    { "path": "packages/ai" },
-    { "path": "packages/api-docs" },
-    { "path": "packages/audit" },
-    { "path": "packages/auth" },
-    { "path": "packages/backup" },
-    { "path": "packages/billing" },
-    { "path": "packages/compliance" },
-    { "path": "packages/connectors" },
-    { "path": "packages/db-scale" },
-    { "path": "packages/domain" },
-    { "path": "packages/enrichment" },
-    { "path": "packages/integrations" },
-    { "path": "packages/notifications" },
-    { "path": "packages/observability" },
-    { "path": "packages/parsers" },
-    { "path": "packages/residency" },
-    { "path": "packages/rollout" },
-    { "path": "packages/scan" },
-    { "path": "packages/shared" },
-    { "path": "packages/stamps" },
-    { "path": "packages/storage" },
-    { "path": "packages/streaming" },
-    { "path": "packages/whitelabel" }
-  ]
+  "include": ["packages/*/src/**/*.ts", "apps/web/src/**/*.ts", "apps/web/src/**/*.tsx", "apps/web/app/**/*.ts", "apps/web/app/**/*.tsx"],
+  "exclude": ["node_modules", "**/dist", "**/.next"]
 }

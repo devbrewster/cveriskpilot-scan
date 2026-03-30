@@ -38,6 +38,7 @@ COPY packages/whitelabel/package.json ./packages/whitelabel/
 COPY packages/audit/package.json ./packages/audit/
 COPY packages/connectors/package.json ./packages/connectors/
 COPY packages/scan/package.json ./packages/scan/
+COPY packages/security-bundle/package.json ./packages/security-bundle/
 
 RUN npm ci --ignore-scripts
 
@@ -72,7 +73,7 @@ RUN npx esbuild apps/worker/src/index.ts \
 # =============================================================================
 FROM node:20-alpine AS runner
 
-RUN apk add --no-cache libc6-compat openssl openssl
+RUN apk add --no-cache libc6-compat openssl
 
 WORKDIR /app
 

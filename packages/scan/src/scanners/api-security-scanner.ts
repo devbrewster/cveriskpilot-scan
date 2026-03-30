@@ -499,20 +499,18 @@ export async function scanApiSecurity(
     const relativePath = path.relative(dir, v.filePath);
 
     return {
-      id: `${v.ruleId}-${relativePath}-${v.httpMethod}`,
-      scanner: 'api-security',
       title: rule.title,
-      severity: rule.severity,
       description: v.detail,
+      cveIds: [],
+      cweIds: rule.cweIds,
+      severity: rule.severity,
+      scannerType: 'api-security',
+      scannerName: 'CVERiskPilot API Security Scanner',
       filePath: relativePath,
       lineNumber: v.lineNumber,
-      cweIds: rule.cweIds,
-      cveIds: [],
-      complianceImpact: rule.nistControls.map((ctrl) => ({
-        frameworkId: 'nist-800-53',
-        controlId: ctrl,
-        controlTitle: ctrl,
-      })),
+      assetName: relativePath,
+      rawObservations: { ruleId: v.ruleId, httpMethod: v.httpMethod },
+      discoveredAt: new Date(),
       recommendation: `Fix ${rule.owaspCategory}: ${rule.description}`,
     };
   });

@@ -7,7 +7,7 @@
       "account_handle": "",
       "character_limit": null,
       "recommended_length": "600-1200",
-      "tone": "professional, technical, founder voice",
+      "tone": "professional but human, founder voice, occasional humor ok",
       "preferred_format": "hook line → 3 bullet points → call to action → hashtags"
     },
     "x": {
@@ -16,24 +16,78 @@
       "character_limit": 25000,
       "url_character_cost": 23,
       "verified_account": true,
-      "tone": "concise, direct, practitioner audience",
-      "preferred_format": "headline → bullets → hashtags"
+      "tone": "funny, relatable, irreverent. Talk like a security engineer who's seen things. Memes welcome. Self-deprecating founder humor. Never corporate.",
+      "preferred_format": "varies by content type — see content_mix"
     }
   },
+  "content_mix": {
+    "_description": "Target ratio for content types. Engagement comes from variety, not just product posts.",
+    "meme_humor": {
+      "ratio": "30%",
+      "description": "Security/compliance memes, relatable dev pain, hot takes. NO product mention required. Goal: follows and engagement.",
+      "examples": [
+        "The compliance spreadsheet that's been 'almost done' since Q2 2024",
+        "POV: your auditor asks for evidence and you open a shared Google Drive",
+        "Normalize admitting your SBOM is a package.json you haven't looked at in 6 months"
+      ]
+    },
+    "building_in_public": {
+      "ratio": "25%",
+      "description": "Real founder updates — wins, fails, decisions, numbers. Authenticity > polish.",
+      "examples": [
+        "Day 847 of building a security tool solo. Today I fixed 13 vulns in my own code. The irony is not lost on me.",
+        "Shipped beta today. 38 Prisma models, 116 API routes, 1 founder. Send coffee.",
+        "Got a responsible disclosure email about my security product. Spent the day eating my own dog food."
+      ]
+    },
+    "hot_takes": {
+      "ratio": "20%",
+      "description": "Opinionated views on security/compliance industry. Slightly spicy. Invite debate.",
+      "examples": [
+        "Your SOC 2 Type II doesn't mean you're secure. It means you documented how you're insecure.",
+        "If your vulnerability scanner can't map to a compliance framework, it's just a very expensive grep.",
+        "Unpopular opinion: most GRC teams would rather have a good CLI than another dashboard"
+      ]
+    },
+    "product_updates": {
+      "ratio": "15%",
+      "description": "Actual feature announcements, CLI demos, changelogs. Keep it brief. Let the work speak.",
+      "examples": [
+        "v0.3.0-beta just shipped. Compliance scores live on dashboard. npx @cveriskpilot/scan"
+      ]
+    },
+    "engagement_bait": {
+      "ratio": "10%",
+      "description": "Polls, questions, 'what's your...' posts. Get people talking.",
+      "examples": [
+        "What's the longest a critical vuln has sat unpatched in your org? Wrong answers only.",
+        "Rate your org's patch management: fire emoji or dumpster fire emoji",
+        "What compliance framework do you hate the most and why is it CMMC"
+      ]
+    }
+  },
+  "voice_guidelines": [
+    "Write like a human, not a brand. First person singular (I/my), not plural (we/our).",
+    "Humor > authority. Being funny earns more trust than being impressive.",
+    "Self-deprecation is a superpower. Laugh at yourself before you sell.",
+    "Never use: 'excited to announce', 'thrilled to share', 'game-changing', 'revolutionary', 'leveraging AI'.",
+    "Hashtags: max 2-3, at the end, never in the middle of a sentence. Skip them entirely on meme/humor posts.",
+    "If a post reads like it came from a marketing team, rewrite it.",
+    "Short posts (under 280 chars) outperform threads. Save threads for genuine deep dives.",
+    "Emojis: sparingly. One per post max. Never the rocket emoji."
+  ],
   "hashtags": {
-    "always": ["#CVERiskPilot"],
-    "release": ["#AppSec", "#DevSecOps", "#VulnerabilityManagement"],
-    "security": ["#AppSec", "#SOC2", "#DevSecOps", "#SecurityEngineering"],
-    "feature": ["#AppSec", "#DevSecOps", "#ProductUpdate"],
-    "cicd": ["#DevSecOps", "#CICD", "#GitLab"],
-    "compliance": ["#SOC2", "#Compliance", "#SecurityEngineering"]
+    "always": [],
+    "product": ["#CVERiskPilot"],
+    "security": ["#AppSec", "#DevSecOps"],
+    "compliance": ["#SOC2", "#GRC"],
+    "builder": ["#buildinpublic", "#indiehacker"]
   },
   "content_cadence": {
-    "release": "immediately after release metadata promotes and deployment evidence exists",
-    "security_fix": "immediately after the fix ships — lead with the CVE or control name",
-    "feature": "after user-visible behavior is confirmed in currentRelease",
-    "progress": "twice per week while active beta work is shipping",
-    "cicd_milestone": "when a meaningful pipeline or SDLC gate is completed"
+    "daily": "1-2 posts per day, mix of types per content_mix ratios",
+    "release": "immediately after deployment, building_in_public tone",
+    "security_news": "react to trending CVEs/breaches within 4 hours with a take, not a recap",
+    "engagement": "reply to comments within 2 hours during active hours"
   },
   "source_of_truth": [
     "apps/web/src/lib/release-metadata.json",
@@ -44,12 +98,13 @@
   ],
   "posting_rules": [
     "Do not claim a feature is live unless it appears in currentRelease or the public changelog.",
-    "Do not claim a patch is shipped until release metadata promotes it and deployment evidence exists.",
-    "X posts can be up to 25,000 characters (verified account). URLs count as 23 characters. Keep posts concise for engagement — under 500 chars is ideal.",
-    "LinkedIn posts must be factually grounded — use highlights and trust signals from release-metadata.json.",
+    "Check social/product-facts.json before making any product claims — especially CLI vs platform capabilities.",
+    "Humor posts do NOT need product mentions. Building audience > selling.",
+    "Never fake engagement metrics or testimonials.",
     "approved_by must be set before moving any file from drafts/ to queue/.",
     "The bot must never post a file with status draft — only ready.",
-    "Do not paste internal evidence paths or report filenames verbatim into public posts."
+    "Do not paste internal evidence paths or report filenames verbatim into public posts.",
+    "Vary content types — never post 3 product updates in a row. Follow the content_mix ratios."
   ],
   "bot_instructions": {
     "queue_dir": "social/queue",

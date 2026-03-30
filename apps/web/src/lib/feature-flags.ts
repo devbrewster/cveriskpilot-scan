@@ -65,14 +65,25 @@ interface OrgEntitlements {
   disabledFeatures?: string[];
 }
 
+/** Founder/owner emails — all features always unlocked */
+const FOUNDER_EMAILS = new Set([
+  'gontiveros292@gmail.com',
+  'george.ontiveros@cveriskpilot.com',
+]);
+
 /**
  * Check if a feature is enabled for a given tier + optional org overrides.
+ * Founder emails bypass all tier restrictions.
  */
 export function isFeatureEnabled(
   tier: Tier,
   flag: FeatureFlag,
   entitlements?: OrgEntitlements | null,
+  email?: string | null,
 ): boolean {
+  // Founders get everything
+  if (email && FOUNDER_EMAILS.has(email.toLowerCase().trim())) return true;
+
   // Per-org overrides take precedence
   if (entitlements?.enabledFeatures?.includes(flag)) return true;
   if (entitlements?.disabledFeatures?.includes(flag)) return false;
@@ -85,9 +96,10 @@ export function isFeatureEnabled(
 export function getEnabledFeatures(
   tier: Tier,
   entitlements?: OrgEntitlements | null,
+  email?: string | null,
 ): FeatureFlag[] {
   const allFlags = Object.values(FeatureFlag);
-  return allFlags.filter((flag) => isFeatureEnabled(tier, flag, entitlements));
+  return allFlags.filter((flag) => isFeatureEnabled(tier, flag, entitlements, email));
 }
 
 /** Human-readable labels */

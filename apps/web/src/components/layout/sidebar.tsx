@@ -13,6 +13,12 @@ import { ClientSwitcher } from '@/components/layout/client-switcher';
 /** Roles that get full access to all features (standalone / owner tier). */
 const FULL_ACCESS_ROLES = new Set(['PLATFORM_ADMIN', 'ORG_OWNER']);
 
+/** Founder/owner emails — always get full access including platform admin. */
+const FOUNDER_EMAILS = new Set([
+  'gontiveros292@gmail.com',
+  'george.ontiveros@cveriskpilot.com',
+]);
+
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   PLATFORM_SUPPORT: ['org:read', 'cases:read', 'audit:read'],
   SECURITY_ADMIN: ['org:read', 'org:manage_teams', 'org:manage_api_keys', 'scans:upload', 'cases:read', 'cases:triage', 'cases:assign', 'audit:read', 'exceptions:approve'],
@@ -24,8 +30,9 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
   CLIENT_VIEWER: ['cases:read'],
 };
 
-function hasPermission(role: string | null, permission: string): boolean {
+function hasPermission(role: string | null, permission: string, email?: string | null): boolean {
   if (!role) return false;
+  if (email && FOUNDER_EMAILS.has(email.toLowerCase().trim())) return true;
   if (FULL_ACCESS_ROLES.has(role)) return true;
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }
@@ -322,7 +329,7 @@ export function Sidebar() {
           ...section,
           items: section.items.filter((item) => {
             if (!item.requiredPermission) return true;
-            return hasPermission(role, item.requiredPermission);
+            return hasPermission(role, item.requiredPermission, email);
           }),
         }))
         .filter((section) => section.items.length > 0)

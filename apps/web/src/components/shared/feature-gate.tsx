@@ -8,6 +8,7 @@ import {
   FEATURE_MIN_TIER,
   type Tier,
 } from '@/lib/feature-flags';
+import { useAuth } from '@/lib/auth-context';
 
 interface FeatureGateProps {
   flag: FeatureFlag;
@@ -28,7 +29,8 @@ export function FeatureGate({
   children,
   fallback,
 }: FeatureGateProps) {
-  const enabled = isFeatureEnabled(tier, flag, entitlements);
+  const { email } = useAuth();
+  const enabled = isFeatureEnabled(tier, flag, entitlements, email);
 
   if (enabled) {
     return <>{children}</>;

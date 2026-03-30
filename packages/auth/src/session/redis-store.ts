@@ -20,6 +20,17 @@ export interface Session {
   clientName?: string;
 }
 
+/** Founder/owner emails — always elevated to PLATFORM_ADMIN with all features */
+const FOUNDER_EMAILS = new Set([
+  'gontiveros292@gmail.com',
+  'george.ontiveros@cveriskpilot.com',
+]);
+
+/** Check if an email belongs to a founder */
+export function isFounderEmail(email: string): boolean {
+  return FOUNDER_EMAILS.has(email.toLowerCase().trim());
+}
+
 /** Default session TTL: 24 hours in seconds */
 const DEFAULT_SESSION_TTL_SECONDS = 24 * 60 * 60;
 
@@ -142,8 +153,12 @@ export async function createSession(
   const sessionId = crypto.randomUUID();
   const now = new Date();
 
+  // Auto-elevate founder emails to PLATFORM_ADMIN
+  const effectiveRole = isFounderEmail(data.email) ? 'PLATFORM_ADMIN' as typeof data.role : data.role;
+
   const session: Session = {
     ...data,
+    role: effectiveRole,
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + ttlSeconds * 1000).toISOString(),
   };

@@ -271,15 +271,46 @@ Findings automatically appear in your repo's **Security > Code scanning** tab wh
 
 ## Compliance Badge
 
-Add a compliance status badge to your README:
+Add a real-time compliance status badge to your project README. The badge queries your organization's scan results and shows pass/fail status.
+
+### Example Badges
+
+| Status | Badge | Markdown |
+|--------|-------|----------|
+| Passing | ![compliance-passing](https://img.shields.io/badge/compliance-passing-4caf50?style=flat&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAxTDMgNXY2YzAgNS41NSAzLjg0IDEwLjc0IDkgMTIgNS4xNi0xLjI2IDktNi40NSA5LTEyVjVsLTktNHoiLz48L3N2Zz4=&logoColor=white) | `![Compliance](https://cveriskpilot.com/api/badge/YOUR_ORG_ID)` |
+| 3 high | ![compliance-high](https://img.shields.io/badge/compliance-3%20high-ff9800?style=flat&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAxTDMgNXY2YzAgNS41NSAzLjg0IDEwLjc0IDkgMTIgNS4xNi0xLjI2IDktNi40NSA5LTEyVjVsLTktNHoiLz48L3N2Zz4=&logoColor=white) | `![Compliance](https://cveriskpilot.com/api/badge/YOUR_ORG_ID)` |
+| 5 critical | ![compliance-critical](https://img.shields.io/badge/compliance-5%20critical-e53935?style=flat&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAxTDMgNXY2YzAgNS41NSAzLjg0IDEwLjc0IDkgMTIgNS4xNi0xLjI2IDktNi40NSA5LTEyVjVsLTktNHoiLz48L3N2Zz4=&logoColor=white) | `![Compliance](https://cveriskpilot.com/api/badge/YOUR_ORG_ID)` |
+
+### Usage
 
 ```markdown
+<!-- Basic badge -->
+![Compliance](https://cveriskpilot.com/api/badge/YOUR_ORG_ID)
+
+<!-- CMMC-specific badge -->
+![CMMC](https://cveriskpilot.com/api/badge/YOUR_ORG_ID?framework=cmmc)
+
+<!-- Large style -->
+![Compliance](https://cveriskpilot.com/api/badge/YOUR_ORG_ID?style=for-the-badge)
+
+<!-- Combine with other badges -->
+![Build](https://github.com/your-org/your-repo/actions/workflows/ci.yml/badge.svg)
 ![Compliance](https://cveriskpilot.com/api/badge/YOUR_ORG_ID)
 ```
 
-Options:
-- `?framework=cmmc` — show specific framework status
-- `?style=for-the-badge` — badge style (flat, flat-square, for-the-badge, plastic)
+### Query Parameters
+
+| Parameter | Values | Default | Description |
+|-----------|--------|---------|-------------|
+| `framework` | `nist`, `soc2`, `cmmc`, `fedramp`, `asvs`, `ssdf` | `all` | Filter to a specific framework |
+| `style` | `flat`, `flat-square`, `for-the-badge`, `plastic` | `flat` | Badge visual style |
+
+### How It Works
+
+1. The badge endpoint queries your org's unresolved findings by severity
+2. Returns a 302 redirect to a shields.io SVG badge
+3. Badge is cached for 5 minutes for performance
+4. Only exposes pass/fail status — no finding details are leaked
 
 ## Presets
 
@@ -298,6 +329,10 @@ See [`action/examples/`](./action/examples/) for ready-to-use workflow files:
 - **compliance-scan.yml** — Basic PR compliance gate
 - **defense-contractor.yml** — CMMC/defense preset with strict thresholds
 - **scheduled-audit.yml** — Weekly audit with auto-issue creation
+
+## Documentation
+
+For a complete deep-dive into architecture, scanners, compliance mapping, CI/CD patterns, and FAQ, see the **[Complete Guide](./docs/GUIDE.md)**.
 
 ## About
 

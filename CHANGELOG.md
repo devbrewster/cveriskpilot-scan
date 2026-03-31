@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.13 (2026-03-31)
+
+### Features
+
+- **GitHub Action SARIF upload** — findings now auto-upload to GitHub Security > Code scanning tab via `github/codeql-action/upload-sarif@v3` (enabled by default with `upload-sarif: 'true'`)
+- **Example workflows** — 3 ready-to-copy workflows: basic PR gate, defense/CMMC preset, weekly scheduled audit with auto-issue creation
+- **Compliance badge API** — `/api/badge/:orgId` endpoint returns shields.io compliance status badge for READMEs
+- **README overhaul** — full GitHub Action docs with input/output tables, badge usage, preset reference, example workflow links
+
 ## 0.1.12 (2026-03-31)
 
 ### Improvements

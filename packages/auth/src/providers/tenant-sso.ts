@@ -5,6 +5,7 @@ import type { PrismaClient } from '@cveriskpilot/domain';
 import { UserRole, UserStatus } from '@cveriskpilot/domain';
 import crypto from 'node:crypto';
 import { validateExternalUrl } from '../security/url-validator';
+import { parseSAMLResponse, extractSAMLProfile } from '../security/saml-parser';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -170,8 +171,8 @@ export async function handleTenantSSOCallback(
   clientId: string,
   config: TenantIdPConfig,
 ): Promise<TenantSSOProfile> {
-  if (config.provider !== 'oidc') {
-    throw new Error('Only OIDC tenant SSO callback is currently supported');
+  if (config.provider === 'saml') {
+    return handleSAMLCallback(code, config);
   }
 
   if (!config.clientId || !config.clientSecret || !config.tokenEndpoint) {
@@ -240,6 +241,42 @@ export async function handleTenantSSOCallback(
     sub: userinfo.sub as string,
     groups: userinfo.groups as string[] | undefined,
     rawAttributes: userinfo,
+  };
+}
+
+/**
+ * Handle SAML POST callback.
+ * The `samlResponse` parameter is the Base64-encoded SAMLResponse from the IdP.
+ */
+async function handleSAMLCallback(
+  samlResponse: string,
+  config: TenantIdPConfig,
+): Promise<TenantSSOProfile> {
+  if (!config.certificate) {
+    throw new Error('IdP certificate is required for SAML assertion verification');
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const expectedAudience = `${baseUrl}/api/auth/saml/metadata`;
+
+  const result = await parseSAMLResponse(samlResponse, {
+    idpCertificate: config.certificate,
+    expectedAudience,
+    clockSkewSeconds: 120,
+  });
+
+  if (!result.valid || !result.assertion) {
+    throw new Error(`SAML assertion validation failed: ${result.error}`);
+  }
+
+  const profile = extractSAMLProfile(result.assertion);
+
+  return {
+    email: profile.email,
+    name: profile.name,
+    sub: result.assertion.nameId,
+    groups: profile.groups,
+    rawAttributes: result.assertion.attributes as Record<string, unknown>,
   };
 }
 

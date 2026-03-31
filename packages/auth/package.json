@@ -20,9 +20,11 @@
     "@simplewebauthn/server": "^13.3.0",
     "bcryptjs": "^2.4.3",
     "ioredis": "^5.4.0",
-    "otpauth": "^9.3.0"
+    "otpauth": "^9.3.0",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/xml2js": "^0.4.14"
   }
 }

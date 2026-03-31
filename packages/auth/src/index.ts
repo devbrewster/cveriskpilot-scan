@@ -26,3 +26,4 @@ export * from './security/csrf-guard';
 export * from './security/webauthn';
 export * from './security/password-policy';
 export * from './security/ip-allowlist';
+export * from './security/saml-parser';

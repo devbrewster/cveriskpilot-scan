@@ -47,9 +47,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    // Check if already assigned
-    const existing = await prisma.clientTeamAssignment.findUnique({
-      where: { teamId_clientId: { teamId, clientId } },
+    // Check if already assigned (team org-ownership verified above)
+    const existing = await prisma.clientTeamAssignment.findFirst({
+      where: {
+        teamId,
+        clientId,
+        team: { organizationId: session.organizationId },
+      },
     });
     if (existing) {
       return NextResponse.json(
@@ -109,8 +113,13 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const existing = await prisma.clientTeamAssignment.findUnique({
-      where: { teamId_clientId: { teamId, clientId } },
+    // Verify assignment exists and team belongs to org (defense in depth)
+    const existing = await prisma.clientTeamAssignment.findFirst({
+      where: {
+        teamId,
+        clientId,
+        team: { organizationId: session.organizationId },
+      },
     });
     if (!existing) {
       return NextResponse.json(
@@ -119,8 +128,8 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       );
     }
 
-    await prisma.clientTeamAssignment.delete({
-      where: { teamId_clientId: { teamId, clientId } },
+    await prisma.clientTeamAssignment.deleteMany({
+      where: { teamId, clientId, team: { organizationId: session.organizationId } },
     });
 
     return NextResponse.json({ success: true });

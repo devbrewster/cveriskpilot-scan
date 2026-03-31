@@ -72,6 +72,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const runningJob = await prisma.syncJob.findFirst({
       where: {
         connectorId: id,
+        organizationId: session.organizationId,
         status: { in: ['PENDING', 'RUNNING', 'POLLING', 'DOWNLOADING', 'PROCESSING'] },
       },
     });

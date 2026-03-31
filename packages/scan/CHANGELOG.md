@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.12 (2026-03-31)
+
+### Improvements
+
+- **Secrets scanner — documentation FP reduction** — `postgres://` and `DATABASE_URL=` matches in `.md`/`.html` files containing `example` (case-insensitive) are now auto-dismissed as `FALSE_POSITIVE`
+- **API security — tenant isolation variable tracking** — scanner now recognizes when `organizationId` is passed via named variables (e.g. `orgFilter`, `caseWhere`, `pipelineWhere`) spread into `where` clauses, eliminating false positives on already-scoped queries
+- **API security — cross-org aggregate detection** — `organization.count`, `.aggregate`, and `.groupBy` queries are recognized as intentional cross-org operations and no longer flagged
+- **API security — public endpoint awareness** — routes with `// no auth required`, `// public`, or `/** public endpoint */` JSDoc comments are classified as `NEEDS_REVIEW` instead of `TRUE_POSITIVE`
+
 ## 0.1.7 (2026-03-29)
 
 ### Fixes

@@ -36,9 +36,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
-    // Check if already a member
-    const existing = await prisma.teamMembership.findUnique({
-      where: { userId_teamId: { userId, teamId } },
+    // Check if already a member (team org-ownership verified above)
+    const existing = await prisma.teamMembership.findFirst({
+      where: {
+        userId,
+        teamId,
+        team: { organizationId: session.organizationId },
+      },
     });
     if (existing) {
       return NextResponse.json(
@@ -99,8 +103,13 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
-    const existing = await prisma.teamMembership.findUnique({
-      where: { userId_teamId: { userId, teamId } },
+    // Verify membership exists and team belongs to org (defense in depth)
+    const existing = await prisma.teamMembership.findFirst({
+      where: {
+        userId,
+        teamId,
+        team: { organizationId: session.organizationId },
+      },
     });
     if (!existing) {
       return NextResponse.json(
@@ -109,8 +118,8 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       );
     }
 
-    await prisma.teamMembership.delete({
-      where: { userId_teamId: { userId, teamId } },
+    await prisma.teamMembership.deleteMany({
+      where: { userId, teamId, team: { organizationId: session.organizationId } },
     });
 
     return NextResponse.json({ success: true });

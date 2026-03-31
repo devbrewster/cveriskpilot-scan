@@ -59,12 +59,12 @@ export async function POST(
     // Count records that will be affected
     const [findingsCount, casesCount, assetsCount, artifactsCount, commentsCount] =
       await Promise.all([
-        prisma.finding.count({ where: { clientId } }),
-        prisma.vulnerabilityCase.count({ where: { clientId } }),
-        prisma.asset.count({ where: { clientId } }),
-        prisma.scanArtifact.count({ where: { clientId } }),
+        prisma.finding.count({ where: { clientId, organizationId: session.organizationId } }),
+        prisma.vulnerabilityCase.count({ where: { clientId, organizationId: session.organizationId } }),
+        prisma.asset.count({ where: { clientId, organizationId: session.organizationId } }),
+        prisma.scanArtifact.count({ where: { clientId, organizationId: session.organizationId } }),
         prisma.comment.count({
-          where: { vulnerabilityCase: { clientId } },
+          where: { vulnerabilityCase: { clientId, organizationId: session.organizationId } },
         }),
       ]);
 

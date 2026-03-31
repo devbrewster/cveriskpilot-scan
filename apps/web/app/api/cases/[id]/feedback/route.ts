@@ -93,8 +93,8 @@ export async function POST(
       if (correctedSeverity) updateData.severityOverride = correctedSeverity;
       if (correctedVerdict) updateData.triageVerdict = correctedVerdict;
       if (Object.keys(updateData).length > 0) {
-        await prisma.vulnerabilityCase.update({
-          where: { id },
+        await prisma.vulnerabilityCase.updateMany({
+          where: { id, organizationId: session.organizationId },
           data: updateData,
         });
       }

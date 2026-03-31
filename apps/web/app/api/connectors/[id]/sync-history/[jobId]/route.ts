@@ -52,6 +52,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       where: {
         id: jobId,
         connectorId: id,
+        organizationId: session.organizationId,
       },
       include: {
         logs: {

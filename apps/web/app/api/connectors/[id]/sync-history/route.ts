@@ -67,7 +67,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const [jobs, total] = await prisma.$transaction([
       prisma.syncJob.findMany({
-        where: { connectorId: id },
+        where: { connectorId: id, organizationId: session.organizationId },
         orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
           createdAt: true,
         },
       }),
-      prisma.syncJob.count({ where: { connectorId: id } }),
+      prisma.syncJob.count({ where: { connectorId: id, organizationId: session.organizationId } }),
     ]);
 
     return NextResponse.json({

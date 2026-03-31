@@ -96,7 +96,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     const client = await prisma.client.update({
-      where: { id },
+      where: { id, organizationId: session.organizationId },
       data,
     });
 
@@ -147,9 +147,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    // Soft-delete
-    await prisma.client.update({
-      where: { id },
+    // Soft-delete (org-scoped to prevent TOCTOU)
+    await prisma.client.updateMany({
+      where: { id, organizationId: session.organizationId },
       data: { deletedAt: new Date() },
     });
 

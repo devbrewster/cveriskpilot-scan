@@ -32,7 +32,7 @@ export async function GET(
     const order = searchParams.get('order') === 'newest' ? 'desc' : 'asc';
 
     const comments = await prisma.comment.findMany({
-      where: { vulnerabilityCaseId: id, deletedAt: null },
+      where: { vulnerabilityCaseId: id, organizationId: session.organizationId, deletedAt: null },
       include: {
         user: {
           select: { id: true, name: true, email: true },

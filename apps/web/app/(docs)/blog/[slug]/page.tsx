@@ -95,7 +95,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function markdownTableToHtml(md: string): string {
   // Match markdown tables: header row, separator row, data rows
   return md.replace(
-    /^(\|.+\|)\n(\|[\s:|-]+\|)\n((?:\|.+\|\n?)+)/gm,
+    /^(\|[^\n]+\|)\n(\|[\s:|-]+\|)\n((?:\|[^\n]+\|\n?){1,200})/gm,
     (_match, headerRow: string, _sep: string, bodyBlock: string) => {
       const headers = headerRow.split("|").filter((c: string) => c.trim()).map((c: string) => c.trim());
       const rows = bodyBlock.trim().split("\n").map((row: string) =>

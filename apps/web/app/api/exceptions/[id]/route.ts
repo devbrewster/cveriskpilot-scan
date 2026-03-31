@@ -220,9 +220,9 @@ export async function PUT(
 
       return NextResponse.json({ ...result, derivedStatus: 'APPROVED' });
     } else {
-      // Reject
+      // Reject — re-verify org ownership on the update path (defense in depth)
       const updated = await prisma.riskException.update({
-        where: { id },
+        where: { id, organizationId: session.organizationId },
         data: {
           evidence: {
             ...(existing.evidence as Record<string, unknown> ?? {}),

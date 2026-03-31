@@ -204,7 +204,7 @@ Every finding gets one of three automatic verdicts:
 
 The `API_KEY=your-key-here` in your README template? False positive. Auto-dismissed. Your team never sees it.
 
-The `DATABASE_URL=postgres://admin:password123@prod-db:5432` in your docker-compose? True positive. Mapped to four compliance controls. Flagged before it ships.
+The `DATABASE_URL=postgres://EXAMPLE_USER:EXAMPLE_PASS@db-host.example:5432/myapp` in your docker-compose? True positive. Mapped to four compliance controls. Flagged before it ships.
 
 ---
 

@@ -89,7 +89,7 @@ export async function PATCH(request: NextRequest) {
     const updated = await prisma.$transaction(async (tx: any) => {
       // Bulk update statuses
       const result = await tx.vulnerabilityCase.updateMany({
-        where: { id: { in: validIds } },
+        where: { id: { in: validIds }, organizationId: session.organizationId },
         data: { status: status as any },
       });
 

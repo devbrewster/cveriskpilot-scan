@@ -285,8 +285,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 3: Link artifact to the job
-    await prisma.uploadJob.update({
-      where: { id: jobId },
+    await prisma.uploadJob.updateMany({
+      where: { id: jobId, organizationId },
       data: { artifactId },
     });
 

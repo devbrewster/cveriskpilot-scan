@@ -84,8 +84,8 @@ export async function POST(
         },
       });
 
-      await prisma.vulnerabilityCase.update({
-        where: { id },
+      await prisma.vulnerabilityCase.updateMany({
+        where: { id, organizationId: session.organizationId },
         data: { approvalStatus: 'PENDING' },
       });
 
@@ -142,8 +142,8 @@ export async function POST(
       },
     });
 
-    await prisma.vulnerabilityCase.update({
-      where: { id },
+    await prisma.vulnerabilityCase.updateMany({
+      where: { id, organizationId: session.organizationId },
       data: {
         approvalStatus: decision,
         approvedById: decision === 'APPROVED' ? session.userId : null,

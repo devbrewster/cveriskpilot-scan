@@ -743,6 +743,28 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
           verdictReason = 'File is a sample/report data file containing example findings, not actual secrets';
         }
 
+        // Example/placeholder connection strings in documentation files (.md, .html)
+        if (verdict === 'TRUE_POSITIVE' && (pattern.id === 'db-connection-password' || pattern.id === 'db-password-env')) {
+          const ext = path.extname(filePath).toLowerCase();
+          if (ext === '.md' || ext === '.html') {
+            if (/example/i.test(matchedText)) {
+              verdict = 'FALSE_POSITIVE';
+              verdictReason = 'Example/placeholder connection string in documentation';
+            }
+          }
+        }
+
+        // DATABASE_URL with example/placeholder values in documentation files
+        if (verdict === 'TRUE_POSITIVE' && /DATABASE_URL\s*[=:]/.test(line)) {
+          const ext = path.extname(filePath).toLowerCase();
+          if (ext === '.md' || ext === '.html') {
+            if (/example/i.test(line)) {
+              verdict = 'FALSE_POSITIVE';
+              verdictReason = 'Example/placeholder connection string in documentation';
+            }
+          }
+        }
+
         // Gitignored file — real secret locally but not in version control
         if (verdict === 'TRUE_POSITIVE' && fileIsGitignored) {
           verdict = 'NEEDS_REVIEW';

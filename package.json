@@ -1,7 +1,7 @@
 {
   "name": "@cveriskpilot/scan",
-  "version": "0.1.11",
-  "description": "Pipeline Compliance Scanner — scan dependencies, secrets, and IaC for vulnerabilities and map to 6 compliance frameworks",
+  "version": "0.1.12",
+  "description": "Compliance as a Service CLI — scan dependencies, secrets, and IaC, then auto-map every finding to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, and SSDF controls",
   "type": "module",
   "bin": {
     "cveriskpilot-scan": "./dist/cli.js",
@@ -28,11 +28,12 @@
     "test:watch": "vitest"
   },
   "keywords": [
+    "compliance-as-a-service",
+    "compliance",
     "security",
     "vulnerability",
     "scanner",
-    "compliance",
-    "nist",
+    "nist-800-53",
     "soc2",
     "cmmc",
     "fedramp",
@@ -44,7 +45,9 @@
     "devsecops",
     "poam",
     "cwe",
-    "cve"
+    "cve",
+    "audit",
+    "grc"
   ],
   "author": "CVERiskPilot LLC",
   "license": "Apache-2.0",

@@ -33,6 +33,8 @@ export interface ApiSecurityViolation {
   lineNumber: number;
   httpMethod: string;
   detail: string;
+  verdict?: 'TRUE_POSITIVE' | 'FALSE_POSITIVE' | 'NEEDS_REVIEW';
+  verdictReason?: string;
 }
 
 export interface ApiSecurityScanResult {
@@ -123,6 +125,21 @@ const rules: ApiSecurityRule[] = [
       // Extract the function body for this method
       const hasAuth = /requireAuth\s*\(/.test(content);
       if (hasAuth) return [];
+
+      // If the route has an explicit comment indicating it's intentionally public, downgrade
+      // (these routes aren't in the isPublicRoute() list but are documented as public)
+      const hasPublicComment = /\/\*\*[\s\S]*?(?:no\s+auth\s+required|public\s+endpoint|public\s+route|unauthenticated)[\s\S]*?\*\/|\/\/\s*(?:no\s+auth\s+required|public\b)/i.test(content);
+      if (hasPublicComment) {
+        return [{
+          ruleId: 'API-AUTH-001',
+          filePath,
+          lineNumber: findLine(content, methodRegex),
+          httpMethod,
+          detail: `${httpMethod} handler missing requireAuth() but has public/no-auth comment — verify intentional`,
+          verdict: 'NEEDS_REVIEW',
+          verdictReason: 'Route has explicit public/no-auth comment — likely intentionally unauthenticated',
+        }];
+      }
 
       return [{
         ruleId: 'API-AUTH-001',
@@ -217,6 +234,19 @@ const rules: ApiSecurityRule[] = [
       // Check for org scoping patterns (dot access, destructuring, or local variable)
       const hasOrgScope = /session\.organizationId|\{\s*organizationId\s*\}\s*=\s*session|resolveClientScope|orgId|onboardTenant|const organizationId\s*=/.test(content);
       if (hasOrgScope) return [];
+
+      // Check for org scoping via a variable that contains organizationId used in where clauses
+      // e.g., const orgFilter = { organizationId ... } then prisma.model.findMany({ where: orgFilter })
+      const orgFilterVarMatch = content.match(/const\s+(\w+(?:Filter|Scope|Where|Condition)\w*)\s*=\s*\{[^}]*organizationId/);
+      if (orgFilterVarMatch) {
+        const varName = orgFilterVarMatch[1]!;
+        // Verify the variable is used in a where clause
+        const whereUsage = new RegExp(`where\\s*:\\s*(?:\\{[^}]*\\.\\.\\.\\s*${varName}|${varName}\\b)`);
+        if (whereUsage.test(content)) return [];
+      }
+
+      // Cross-org aggregate queries (e.g., billing counts) are intentional
+      if (/organization\.count|organization\.aggregate|organization\.groupBy/.test(content)) return [];
 
       return [{
         ruleId: 'API-TENANT-001',
@@ -512,6 +542,8 @@ export async function scanApiSecurity(
       rawObservations: { ruleId: v.ruleId, httpMethod: v.httpMethod },
       discoveredAt: new Date(),
       recommendation: `Fix ${rule.owaspCategory}: ${rule.description}`,
+      ...(v.verdict && { verdict: v.verdict }),
+      ...(v.verdictReason && { verdictReason: v.verdictReason }),
     };
   });
 

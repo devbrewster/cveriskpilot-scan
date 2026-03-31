@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 import { getOrgTier, checkBillingGate, trackUpload } from '@/lib/billing';
 import crypto from 'crypto';
@@ -118,6 +118,12 @@ async function saveToLocal(
   await fs.mkdir(uploadsDir, { recursive: true });
 
   const localPath = path.join(uploadsDir, filename);
+
+  // SECURITY: Verify resolved path stays within uploads directory (path traversal guard)
+  if (!localPath.startsWith(uploadsDir + path.sep) && localPath !== uploadsDir) {
+    throw new Error('Path traversal detected — file path escapes upload directory');
+  }
+
   await fs.writeFile(localPath, buffer);
 
   return {
@@ -150,8 +156,8 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, WRITE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'scans:upload');
+    if (permError) return permError;
 
     const organizationId = session.organizationId;
     const uploadedById = session.userId;

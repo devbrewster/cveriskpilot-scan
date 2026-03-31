@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, checkCsrf, requireRole, WRITE_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, requirePerm } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/cases/[id]/comments — list comments for a case
@@ -75,8 +75,8 @@ export async function POST(
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleCheck = requireRole(session.role, WRITE_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'cases:comment');
+    if (permError) return permError;
 
     const { id } = await params;
     const body = await request.json();

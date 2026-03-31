@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, generateApiKey, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, generateApiKey, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 import { UserRole, UserStatus } from '@cveriskpilot/domain';
 
@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const permError = requirePerm(session.role, 'org:manage_api_keys');
+    if (permError) return permError;
 
     const serviceAccounts = await (prisma as any).user.findMany({
       where: {
@@ -85,8 +88,8 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, ADMIN_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:manage_api_keys');
+    if (permError) return permError;
 
     let body: Record<string, unknown>;
     try {

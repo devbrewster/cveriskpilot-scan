@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, requirePerm } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // CIDR Validation
@@ -108,8 +108,8 @@ export async function PUT(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleCheck = requireRole(session.role, ADMIN_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     let body: Record<string, unknown>;
     try {

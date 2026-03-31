@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -78,8 +78,8 @@ export async function PUT(
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleCheck = requireRole(session.role, WRITE_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'cases:export');
+    if (permError) return permError;
 
     const { id } = await params;
 
@@ -121,6 +121,17 @@ export async function PUT(
     }
     if (body.enabled !== undefined && typeof body.enabled !== 'boolean') {
       return NextResponse.json({ error: 'enabled must be a boolean' }, { status: 400 });
+    }
+
+    // SECURITY: Validate clientId belongs to the session's organization
+    if (body.clientId !== undefined && body.clientId !== null) {
+      const clientBelongsToOrg = await prisma.client.findFirst({
+        where: { id: body.clientId, organizationId: session.organizationId, deletedAt: null },
+        select: { id: true },
+      });
+      if (!clientBelongsToOrg) {
+        return NextResponse.json({ error: 'Client not found in your organization' }, { status: 403 });
+      }
     }
 
     // Build the update payload from provided fields
@@ -175,8 +186,8 @@ export async function DELETE(
     const csrfError2 = checkCsrf(request);
     if (csrfError2) return csrfError2;
 
-    const roleCheck2 = requireRole(session.role, WRITE_ROLES);
-    if (roleCheck2) return roleCheck2;
+    const permError2 = requirePerm(session.role, 'cases:export');
+    if (permError2) return permError2;
 
     const { id } = await params;
 

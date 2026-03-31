@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, checkCsrf, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, getSensitiveWriteLimiter, requirePerm } from '@cveriskpilot/auth';
 import { onboardTenant } from '@cveriskpilot/auth/org/onboarding';
 
 /**
@@ -28,9 +28,8 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    if (session.role !== 'PLATFORM_ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const permError = requirePerm(session.role, 'platform:admin');
+    if (permError) return permError;
 
     const body = await request.json();
     const { orgName, ownerEmail, ownerName, ownerPassword, tier, features, defaultClientName } = body;

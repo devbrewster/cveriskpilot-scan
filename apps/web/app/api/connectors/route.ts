@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, validateExternalUrl, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, validateExternalUrl, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import {
   getConnectorStatus,
@@ -41,8 +41,8 @@ export async function POST(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     // CSRF protection
     const csrfError = checkCsrf(request);

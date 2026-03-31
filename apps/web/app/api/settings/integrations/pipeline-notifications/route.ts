@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
-import { requireAuth } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm } from '@cveriskpilot/auth';
 import { isValidSlackWebhookUrl } from '@cveriskpilot/integrations';
 import { isValidTeamsWebhookUrl } from '@cveriskpilot/integrations';
 
@@ -92,14 +92,8 @@ export async function PUT(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
-    // Require admin role
-    const adminRoles = ['PLATFORM_ADMIN', 'PLATFORM_SUPPORT', 'ORG_OWNER', 'SECURITY_ADMIN'];
-    if (!adminRoles.includes(session.role)) {
-      return NextResponse.json(
-        { error: 'Forbidden: admin role required' },
-        { status: 403 },
-      );
-    }
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     const organizationId = session.organizationId;
     const body = await request.json();

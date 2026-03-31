@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, isFounderEmail } from '@cveriskpilot/auth';
+import { requireAuth } from '@cveriskpilot/auth';
 
 /**
  * GET /api/ops/billing
@@ -10,8 +10,9 @@ export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
   const session = auth;
-  if (!session.email?.endsWith('@cveriskpilot.com') && !isFounderEmail(session.email ?? '')) {
-    return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
+  // SECURITY: Require PLATFORM_ADMIN or PLATFORM_SUPPORT role, not just email domain
+  if (!['PLATFORM_ADMIN', 'PLATFORM_SUPPORT'].includes(session.role)) {
+    return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
   }
   const mrr = 42_850;
   const arr = mrr * 12;

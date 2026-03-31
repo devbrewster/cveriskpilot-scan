@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { logAudit } from '@/lib/audit';
 
@@ -90,9 +90,9 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    // Only admins can invite users
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    // Only users with manage_users permission can invite users
+    const permError = requirePerm(session.role, 'org:manage_users');
+    if (permError) return permError;
 
     const body = await request.json();
     const { email, role, name } = body;

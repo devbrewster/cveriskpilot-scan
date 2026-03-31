@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -78,14 +78,25 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleCheck = requireRole(session.role, WRITE_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'cases:export');
+    if (permError) return permError;
 
     const body = await request.json();
     const validationError = validateScheduleBody(body);
 
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    // SECURITY: Validate clientId belongs to the session's organization
+    if (body.clientId) {
+      const clientBelongsToOrg = await prisma.client.findFirst({
+        where: { id: body.clientId, organizationId: session.organizationId, deletedAt: null },
+        select: { id: true },
+      });
+      if (!clientBelongsToOrg) {
+        return NextResponse.json({ error: 'Client not found in your organization' }, { status: 403 });
+      }
     }
 
     const schedule = await prisma.reportSchedule.create({

@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, ADMIN_ROLES, validateExternalUrl, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, validateExternalUrl, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // In-memory Jira configuration store (per org)
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleCheck = requireRole(session.role, ADMIN_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     const organizationId = session.organizationId;
     const body = await request.json();

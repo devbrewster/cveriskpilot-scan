@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:manage_teams');
+    if (permError) return permError;
 
     // CSRF protection
     const csrfError = checkCsrf(request);

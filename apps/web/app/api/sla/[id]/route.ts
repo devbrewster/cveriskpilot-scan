@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
@@ -56,8 +56,8 @@ export async function PUT(
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     const { id } = await params;
     const body = await request.json();
@@ -150,8 +150,8 @@ export async function DELETE(
     const csrfError2 = checkCsrf(request);
     if (csrfError2) return csrfError2;
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     const { id } = await params;
 

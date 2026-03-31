@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { requireAuth, getSensitiveWriteLimiter, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, getSensitiveWriteLimiter, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { getOrgTier, checkBillingGate, trackAiCall } from '@/lib/billing';
 import { prisma } from '@/lib/prisma';
 
@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
   const csrfError = checkCsrf(request);
   if (csrfError) return csrfError;
 
-  const roleCheck = requireRole(session.role, WRITE_ROLES);
-  if (roleCheck) return roleCheck;
+  const permError = requirePerm(session.role, 'cases:triage');
+  if (permError) return permError;
 
   // Rate limiting — 10 req/min per user
   try {
@@ -66,7 +66,15 @@ export async function POST(request: NextRequest) {
 
     const gate = await checkBillingGate(orgId, tier, 'ai_remediation');
     if (!gate.allowed) {
-      return errorResponse(403, gate.reason ?? 'AI call limit reached');
+      return NextResponse.json(
+        {
+          error: gate.reason ?? 'AI call limit reached',
+          code: 'BILLING_LIMIT_EXCEEDED',
+          upgradeRequired: gate.upgradeRequired,
+          upgradeUrl: '/settings/billing',
+        },
+        { status: 402 },
+      );
     }
 
     const limit = await checkAiRateLimit(orgId, tier);

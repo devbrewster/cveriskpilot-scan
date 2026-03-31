@@ -1,8 +1,9 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
+import { getOrgTier, checkBillingGate, trackAiCall } from '@/lib/billing';
 import { enrichFindings } from '@cveriskpilot/enrichment';
 import type { CanonicalFinding } from '@cveriskpilot/parsers';
 
@@ -22,8 +23,24 @@ export async function POST(
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, WRITE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'ai:advisory');
+    if (permError) return permError;
+
+    // Billing gate
+    const orgId = session.organizationId;
+    const tier = await getOrgTier(orgId);
+    const gate = await checkBillingGate(orgId, tier, 'ai_remediation');
+    if (!gate.allowed) {
+      return NextResponse.json(
+        {
+          error: gate.reason ?? 'AI call limit reached',
+          code: 'BILLING_LIMIT_EXCEEDED',
+          upgradeRequired: gate.upgradeRequired,
+          upgradeUrl: '/settings/billing',
+        },
+        { status: 402 },
+      );
+    }
 
     const { id } = await params;
 
@@ -141,6 +158,10 @@ export async function POST(
         data: caseUpdate,
       });
     }
+
+    // Track AI usage for billing
+    const clientId = (session as unknown as Record<string, string>).clientId ?? orgId;
+    await trackAiCall(orgId, clientId).catch(() => {});
 
     // Audit log
     await logAudit({

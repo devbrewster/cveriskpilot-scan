@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -58,8 +58,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:manage_teams');
+    if (permError) return permError;
 
     const { id } = await context.params;
     const body = await request.json();
@@ -103,8 +103,8 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const csrfError2 = checkCsrf(request);
     if (csrfError2) return csrfError2;
 
-    const roleError2 = requireRole(session.role, MANAGE_ROLES);
-    if (roleError2) return roleError2;
+    const permError2 = requirePerm(session.role, 'org:manage_teams');
+    if (permError2) return permError2;
 
     const { id } = await context.params;
 

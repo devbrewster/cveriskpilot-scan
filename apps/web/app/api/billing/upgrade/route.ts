@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, requirePerm } from '@cveriskpilot/auth';
 import {
   STRIPE_PRICES,
   getEntitlements,
@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, ADMIN_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:manage_billing');
+    if (permError) return permError;
 
     const body = await request.json();
     const { targetTier, billingInterval = 'monthly' } = body;
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       ? `${tier}_ANNUAL`
       : `${tier}_MONTHLY`;
 
-    const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
+    const priceGetter = (STRIPE_PRICES as Record<string, (() => string | null) | undefined>)[priceKey];
     const priceId = priceGetter?.();
 
     if (!priceId) {
@@ -109,25 +109,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If they already have a subscription, update it via Stripe portal
+    // If they already have a subscription, update it
     if (org.stripeSubscriptionId && org.stripeCustomerId) {
       const Stripe = (await import('stripe')).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         apiVersion: '2025-02-24.acacia',
       });
 
+      const existing = await stripe.subscriptions.retrieve(org.stripeSubscriptionId);
+      const baseItem = existing.items.data.find(
+        (item) => item.price.recurring?.usage_type !== 'metered',
+      );
+
+      if (!baseItem) {
+        return NextResponse.json(
+          { error: 'Could not find base subscription item to update' },
+          { status: 400 },
+        );
+      }
+
+      // Update only the base plan item — preserve metered items (MSSP)
       await stripe.subscriptions.update(org.stripeSubscriptionId, {
-        items: [
-          {
-            id: (await stripe.subscriptions.retrieve(org.stripeSubscriptionId)).items.data[0]?.id,
-            price: priceId,
-          },
-        ],
+        items: [{ id: baseItem.id, price: priceId }],
         proration_behavior: 'create_prorations',
         metadata: { organizationId },
       });
 
-      // Update local tier immediately
+      // Update local tier after Stripe confirms
       await prisma.organization.update({
         where: { id: organizationId },
         data: {

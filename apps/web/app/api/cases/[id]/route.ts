@@ -1,8 +1,8 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
-import { isValidTransition, getValidNextStatuses } from '@/lib/workflow';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
+import { validateTransition, getValidNextStatuses } from '@/lib/workflow';
 import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
@@ -89,8 +89,8 @@ export async function PATCH(
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
-    const roleError = requireRole(session.role, WRITE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'cases:update');
+    if (permError) return permError;
 
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
@@ -107,19 +107,34 @@ export async function PATCH(
     // Fetch current case
     const current = await prisma.vulnerabilityCase.findFirst({
       where: { id, organizationId: session.organizationId },
-      select: { id: true, status: true, organizationId: true },
+      select: { id: true, status: true, organizationId: true, requiresApproval: true, approvalStatus: true },
     });
 
     if (!current) {
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
-    // Validate status transition if status is being changed
+    // Validate status transition (including approval gates) if status is being changed
     if (status && status !== current.status) {
-      if (!isValidTransition(current.status, status)) {
+      const validation = validateTransition(current.status, status, {
+        requiresApproval: current.requiresApproval,
+        approvalStatus: current.approvalStatus,
+      });
+
+      if (!validation.valid) {
+        if (validation.needsApproval) {
+          return NextResponse.json(
+            {
+              error: validation.error,
+              needsApproval: true,
+              approvalEndpoint: `/api/cases/${id}/approval`,
+            },
+            { status: 403 },
+          );
+        }
         return NextResponse.json(
           {
-            error: `Invalid status transition from ${current.status} to ${status}`,
+            error: validation.error,
             validTransitions: getValidNextStatuses(current.status),
           },
           { status: 400 },
@@ -129,7 +144,13 @@ export async function PATCH(
 
     // Build update data
     const updateData: Record<string, unknown> = {};
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) {
+      updateData.status = status;
+      // Reset approval status after a successful transition
+      if (status !== current.status) {
+        updateData.approvalStatus = null;
+      }
+    }
     if (assignedToId !== undefined) updateData.assignedToId = assignedToId;
     if (remediationNotes !== undefined) updateData.remediationNotes = remediationNotes;
 

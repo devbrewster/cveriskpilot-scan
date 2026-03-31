@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, requirePerm } from '@cveriskpilot/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -148,9 +148,8 @@ export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth instanceof NextResponse) return auth;
   const session = auth;
-  if (session.role !== 'PLATFORM_ADMIN') {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
+  const permError = requirePerm(session.role, 'platform:admin');
+  if (permError) return permError;
 
   return NextResponse.json({ flags });
 }
@@ -164,9 +163,8 @@ export async function PUT(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    if (session.role !== 'PLATFORM_ADMIN') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const permError2 = requirePerm(session.role, 'platform:admin');
+    if (permError2) return permError2;
 
     const body = await request.json();
     const { flagId, enabled, orgId } = body as {

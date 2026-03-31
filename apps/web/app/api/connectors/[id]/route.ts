@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, MANAGE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 import {
   getConnector,
@@ -39,8 +39,8 @@ export async function GET(
       return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
     }
 
-    // Verify connector belongs to the user's organization
-    if ((connector as any).organizationId && (connector as any).organizationId !== session.organizationId) {
+    // SECURITY: Verify connector belongs to the user's organization (always enforce, even if null)
+    if ((connector as any).organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
     }
 
@@ -77,8 +77,8 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     // Verify connector belongs to the user's organization
     const existing = await getConnector(prisma, id);
@@ -166,8 +166,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid ID parameter' }, { status: 400 });
     }
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     // Verify connector belongs to the user's organization
     const existing = await getConnector(prisma, id);

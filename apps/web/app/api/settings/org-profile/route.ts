@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
@@ -78,8 +78,8 @@ export async function PUT(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
-    const roleError = requireRole(session.role, ADMIN_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;

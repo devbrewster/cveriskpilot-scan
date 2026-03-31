@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, requireRole, ADMIN_ROLES, checkCsrf, isFounderEmail } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf, isFounderEmail } from '@cveriskpilot/auth';
 import * as crypto from 'node:crypto';
 import { logAudit } from '@/lib/audit';
 import { prisma } from '@/lib/prisma';
@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleCheck = requireRole(session.role, ADMIN_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'platform:admin');
+    if (permError) return permError;
 
     // Only @cveriskpilot.com staff can impersonate
     if (!isStaffEmail(session.email)) {
@@ -127,8 +127,8 @@ export async function DELETE(request: NextRequest) {
     const csrfError2 = checkCsrf(request);
     if (csrfError2) return csrfError2;
 
-    const roleCheck = requireRole(session.role, ADMIN_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'platform:admin');
+    if (permError) return permError;
 
     if (!isStaffEmail(session.email)) {
       return NextResponse.json(
@@ -179,8 +179,8 @@ export async function GET(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
-    const roleCheck = requireRole(session.role, ADMIN_ROLES);
-    if (roleCheck) return roleCheck;
+    const permError = requirePerm(session.role, 'platform:admin');
+    if (permError) return permError;
 
     if (!isStaffEmail(session.email)) {
       return NextResponse.json(

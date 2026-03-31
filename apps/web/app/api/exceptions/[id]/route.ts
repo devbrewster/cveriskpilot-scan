@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 
 // ---------------------------------------------------------------------------
@@ -117,22 +117,9 @@ export async function PUT(
       );
     }
 
-    // Verify the approver has the right role
-    const approver = await prisma.user.findUnique({
-      where: { id: approvedById },
-      select: { id: true, role: true },
-    });
-
-    if (!approver) {
-      return NextResponse.json({ error: 'Approver not found' }, { status: 404 });
-    }
-
-    if (!['ORG_OWNER', 'SECURITY_ADMIN', 'PLATFORM_ADMIN'].includes(approver.role)) {
-      return NextResponse.json(
-        { error: 'Only ORG_OWNER, SECURITY_ADMIN, or PLATFORM_ADMIN can approve/reject exceptions' },
-        { status: 403 },
-      );
-    }
+    // Verify the approver has the right permission
+    const permError = requirePerm(session.role, 'exceptions:approve');
+    if (permError) return permError;
 
     const existing = await prisma.riskException.findFirst({
       where: { id, organizationId: session.organizationId },

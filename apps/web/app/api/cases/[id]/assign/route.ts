@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, requireRole, WRITE_ROLES, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // PUT /api/cases/[id]/assign — assign or unassign a case
@@ -19,8 +19,8 @@ export async function PUT(
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, WRITE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'cases:assign');
+    if (permError) return permError;
 
     const { id } = await params;
     const body = await request.json();

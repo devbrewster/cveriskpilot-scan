@@ -4,8 +4,7 @@ import { prisma } from '@/lib/prisma';
 import {
   requireAuth,
   generateApiKey,
-  requireRole,
-  MANAGE_ROLES,
+  requirePerm,
   checkCsrf,
   getSensitiveWriteLimiter,
 } from '@cveriskpilot/auth';
@@ -19,6 +18,9 @@ export async function GET(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    const permError = requirePerm(session.role, 'org:manage_api_keys');
+    if (permError) return permError;
 
     const keys = await (prisma as any).apiKey.findMany({
       where: { organizationId: session.organizationId },
@@ -88,8 +90,8 @@ export async function POST(request: NextRequest) {
       // Redis not available — skip rate limiting
     }
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:manage_api_keys');
+    if (permError) return permError;
 
     // CSRF protection
     const csrfError = checkCsrf(request);

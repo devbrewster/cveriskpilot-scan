@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
+import { requireAuth, checkCsrf, requirePerm } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
@@ -74,8 +74,8 @@ export async function PUT(request: NextRequest) {
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
 
-    const roleError = requireRole(session.role, ADMIN_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:update');
+    if (permError) return permError;
 
     const organizationId = session.organizationId;
 

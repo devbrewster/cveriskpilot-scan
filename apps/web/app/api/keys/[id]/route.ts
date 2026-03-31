@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, generateApiKey, requireRole, MANAGE_ROLES, getSensitiveWriteLimiter, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, generateApiKey, requirePerm, getSensitiveWriteLimiter, checkCsrf } from '@cveriskpilot/auth';
 
 /**
  * PUT /api/keys/[id] — Rotate an API key.
@@ -24,8 +24,8 @@ export async function PUT(
       }
     } catch { /* Redis unavailable — allow request */ }
 
-    const roleError = requireRole(session.role, MANAGE_ROLES);
-    if (roleError) return roleError;
+    const permError = requirePerm(session.role, 'org:manage_api_keys');
+    if (permError) return permError;
 
     // CSRF protection
     const csrfError = checkCsrf(request);
@@ -121,8 +121,8 @@ export async function DELETE(
       }
     } catch { /* Redis unavailable — allow request */ }
 
-    const roleError2 = requireRole(session.role, MANAGE_ROLES);
-    if (roleError2) return roleError2;
+    const permError2 = requirePerm(session.role, 'org:manage_api_keys');
+    if (permError2) return permError2;
 
     // CSRF protection
     const csrfError2 = checkCsrf(request);

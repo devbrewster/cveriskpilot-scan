@@ -9,6 +9,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
   verifyTOTPToken,
+  verifyBackupCode,
   createSession,
   setSessionCookie,
   getLoginLimiter,
@@ -49,10 +50,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate 6-digit format
-    if (!/^\d{6}$/.test(token)) {
+    // Determine if this is a TOTP code (6 digits) or backup code (8 hex chars)
+    const isTOTP = /^\d{6}$/.test(token);
+    const isBackupCode = /^[A-Fa-f0-9]{8}$/.test(token);
+
+    if (!isTOTP && !isBackupCode) {
       return NextResponse.json(
-        { error: 'Token must be a 6-digit code' },
+        { error: 'Token must be a 6-digit TOTP code or an 8-character backup code' },
         { status: 400 },
       );
     }
@@ -125,6 +129,7 @@ export async function POST(request: NextRequest) {
         role: true,
         mfaEnabled: true,
         mfaSecret: true,
+        mfaBackupCodes: true,
         organizationId: true,
       },
     });
@@ -136,9 +141,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify the TOTP token against the user's secret
-    const isValid = verifyTOTPToken(token, user.mfaSecret);
-    if (!isValid) {
+    // Verify: try TOTP first, then backup code as fallback
+    let verified = false;
+    let verifyMethod = 'TOTP';
+
+    if (isTOTP) {
+      verified = verifyTOTPToken(token, user.mfaSecret);
+    }
+
+    // If not a TOTP code (or TOTP failed and input looks like backup code), try backup codes
+    if (!verified && isBackupCode) {
+      const backupCodes: string[] = user.mfaBackupCodes ?? [];
+      if (backupCodes.length > 0) {
+        const matchIndex = verifyBackupCode(token, backupCodes);
+        if (matchIndex >= 0) {
+          verified = true;
+          verifyMethod = 'BACKUP_CODE';
+          // Consume the used backup code (remove from stored hashes)
+          const updatedCodes = [...backupCodes];
+          updatedCodes.splice(matchIndex, 1);
+          await (prisma as any).user.update({
+            where: { id: user.id },
+            data: { mfaBackupCodes: updatedCodes },
+          });
+        }
+      }
+    }
+
+    if (!verified) {
       // Audit log for failed MFA attempt
       try {
         const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
@@ -150,7 +180,7 @@ export async function POST(request: NextRequest) {
             action: 'LOGIN',
             entityType: 'MFA',
             entityId: user.id,
-            details: { success: false, method: 'TOTP' },
+            details: { success: false, method: verifyMethod },
             hash: `mfa-fail-${user.id}-${Date.now()}`,
           },
         });
@@ -164,7 +194,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TOTP verified — consume the temp session BEFORE creating the real session.
+    // Verified — consume the temp session BEFORE creating the real session.
     // This must succeed; if it fails the temp token remains replayable.
     const deleted = await redis.del(redisKey);
     if (deleted === 0) {
@@ -204,7 +234,7 @@ export async function POST(request: NextRequest) {
           action: 'LOGIN',
           entityType: 'MFA',
           entityId: user.id,
-          details: { success: true, method: 'TOTP' },
+          details: { success: true, method: verifyMethod },
           hash: `mfa-success-${user.id}-${Date.now()}`,
         },
       });

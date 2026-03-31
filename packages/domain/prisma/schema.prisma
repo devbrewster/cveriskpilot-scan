@@ -203,6 +203,7 @@ model Organization {
   triageFeedbacks     TriageFeedback[]
   caseApprovals       CaseApproval[]
 
+  @@index([createdAt])
   @@map("organizations")
 }
 
@@ -232,6 +233,7 @@ model Client {
 
   @@unique([organizationId, slug])
   @@index([organizationId])
+  @@index([organizationId, deletedAt])
   @@map("clients")
 }
 
@@ -245,6 +247,7 @@ model User {
   githubId           String?    @map("github_id")
   mfaEnabled         Boolean    @default(false) @map("mfa_enabled")
   mfaSecret          String?    @map("mfa_secret")
+  mfaBackupCodes     String[]   @default([]) @map("mfa_backup_codes")
   role               UserRole   @default(VIEWER) @map("role")
   status             UserStatus @default(PENDING_INVITE) @map("status")
   lastLoginAt        DateTime?  @map("last_login_at")
@@ -270,6 +273,7 @@ model User {
 
   @@unique([organizationId, email])
   @@index([organizationId])
+  @@index([organizationId, deletedAt])
   @@map("users")
 }
 
@@ -342,6 +346,7 @@ model Asset {
   @@index([organizationId, clientId])
   @@index([organizationId, type])
   @@index([organizationId, environment])
+  @@index([organizationId, deletedAt])
   @@index([clientId])
   @@map("assets")
 }
@@ -370,6 +375,7 @@ model Finding {
 
   @@index([organizationId, clientId, createdAt])
   @@index([organizationId, scannerType])
+  @@index([discoveredAt])
   @@index([clientId])
   @@index([assetId])
   @@index([dedupKey])
@@ -436,6 +442,8 @@ model VulnerabilityCase {
   @@index([organizationId, clientId, status])
   @@index([organizationId, status])
   @@index([organizationId, severity])
+  @@index([organizationId, severity, status])
+  @@index([organizationId, triageVerdict])
   @@index([organizationId, dueAt])
   @@index([clientId])
   @@index([assignedToId])
@@ -672,19 +680,19 @@ model SlaPolicy {
 }
 
 model ApiKey {
-  id              String    @id @default(cuid()) @map("id")
-  organizationId  String    @map("organization_id")
-  name            String    @map("name")
-  keyHash         String    @map("key_hash")
-  scope           String    @map("scope")
-  assignedClients String[]  @map("assigned_clients")
-  expiresAt            DateTime? @map("expires_at")
-  rotationRequiredBy   DateTime? @map("rotation_required_by")
-  lastUsedAt           DateTime? @map("last_used_at")
-  requestCount         Int       @default(0) @map("request_count")
-  lastErrorAt          DateTime? @map("last_error_at")
-  errorCount           Int       @default(0) @map("error_count")
-  createdAt            DateTime  @default(now()) @map("created_at")
+  id                 String    @id @default(cuid()) @map("id")
+  organizationId     String    @map("organization_id")
+  name               String    @map("name")
+  keyHash            String    @map("key_hash")
+  scope              String    @map("scope")
+  assignedClients    String[]  @map("assigned_clients")
+  expiresAt          DateTime? @map("expires_at")
+  rotationRequiredBy DateTime? @map("rotation_required_by")
+  lastUsedAt         DateTime? @map("last_used_at")
+  requestCount       Int       @default(0) @map("request_count")
+  lastErrorAt        DateTime? @map("last_error_at")
+  errorCount         Int       @default(0) @map("error_count")
+  createdAt          DateTime  @default(now()) @map("created_at")
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -716,6 +724,7 @@ model AuditLog {
   @@index([organizationId, entityType, entityId])
   @@index([organizationId, createdAt])
   @@index([organizationId, action])
+  @@index([createdAt])
   @@map("audit_logs")
 }
 

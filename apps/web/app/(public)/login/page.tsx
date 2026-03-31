@@ -269,6 +269,21 @@ export default function LoginPage() {
         Sign in with GitHub
       </button>
 
+      {/* Enterprise SSO */}
+      <button
+        type="button"
+        onClick={() => {
+          const domain = prompt('Enter your company email domain (e.g. acme.com):');
+          if (domain) window.location.href = `/api/auth/sso?domain=${encodeURIComponent(domain)}`;
+        }}
+        className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-750"
+      >
+        <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+        </svg>
+        Enterprise SSO (SAML/OIDC)
+      </button>
+
       {/* Divider */}
       <div className="my-6 flex items-center gap-3">
         <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />

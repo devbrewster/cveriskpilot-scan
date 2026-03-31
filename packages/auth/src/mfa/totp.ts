@@ -1,6 +1,7 @@
 // TOTP MFA for CVERiskPilot
-// Handles secret generation, QR code URI creation, and token verification
+// Handles secret generation, QR code URI creation, token verification, and backup codes
 
+import crypto from 'node:crypto';
 import * as OTPAuth from 'otpauth';
 
 /** TOTP configuration constants */
@@ -79,4 +80,38 @@ export function verifyTOTPToken(
   // validate() returns the time step difference or null if invalid
   const delta = totp.validate({ token, window: TOTP_WINDOW });
   return delta !== null;
+}
+
+// ---------------------------------------------------------------------------
+// Backup Codes — one-time-use recovery codes for MFA
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate backup codes for MFA recovery.
+ * Each code is 8 alphanumeric uppercase characters (5 random bytes → hex).
+ */
+export function generateBackupCodes(count = 10): string[] {
+  const codes: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const bytes = crypto.randomBytes(5);
+    codes.push(bytes.toString('hex').slice(0, 8).toUpperCase());
+  }
+  return codes;
+}
+
+/**
+ * Hash a backup code for storage (we store hashes, not plaintext).
+ * Input is normalized to uppercase and trimmed before hashing.
+ */
+export function hashBackupCode(code: string): string {
+  return crypto.createHash('sha256').update(code.toUpperCase().trim()).digest('hex');
+}
+
+/**
+ * Verify a backup code against stored hashes.
+ * Returns the index of the matching code, or -1 if not found.
+ */
+export function verifyBackupCode(code: string, hashedCodes: string[]): number {
+  const hash = hashBackupCode(code);
+  return hashedCodes.findIndex(h => h === hash);
 }

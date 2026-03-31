@@ -224,7 +224,7 @@ Signup → billing → upload → dashboard flow is REAL and working. Revenue bl
 | 11 | `complianceScores` returns empty array (no compliance model in Prisma) | Schema gap |
 | 12 | Demo route group `(demo)` duplicates dashboard logic | Could share components |
 | 13 | Generic error messages on most API routes ("Internal server error") | Poor DX |
-| 14 | No 2FA backup codes implemented | Security gap |
+| 14 | ~~No 2FA backup codes implemented~~ FIXED | Security gap |
 | 15 | Missing DB indexes: `Organization.createdAt`, `Finding.discoveredAt`, composite `(orgId, deletedAt)` | Query performance |
 
 ### What Works Well

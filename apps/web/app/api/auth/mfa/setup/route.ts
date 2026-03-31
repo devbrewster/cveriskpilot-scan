@@ -5,13 +5,14 @@
 
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import {
   getServerSessionFromCookies,
   generateTOTPSecret,
   verifyTOTPToken,
+  generateBackupCodes,
+  hashBackupCode,
   getRedisClient,
 } from '@cveriskpilot/auth';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
@@ -55,10 +56,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Generate backup codes
-    const backupCodes = Array.from({ length: 8 }, () =>
-      crypto.randomBytes(4).toString('hex').toUpperCase(),
-    );
+    // Generate backup codes (stored in Redis alongside secret for confirmation)
+    const backupCodes = generateBackupCodes(10);
+    try {
+      await redis.set(
+        `crp:mfa_setup_codes:${session.userId}`,
+        JSON.stringify(backupCodes),
+        'EX',
+        600, // 10 minutes, same as setup secret
+      );
+    } catch {
+      // Non-fatal: codes can be regenerated via the backup-codes endpoint
+    }
 
     return NextResponse.json({
       secret,
@@ -155,20 +164,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Token is valid — enable MFA for the user
+    // Retrieve backup codes from Redis (generated during GET)
+    let hashedBackupCodes: string[] = [];
+    try {
+      const codesRaw = await redis.get(`crp:mfa_setup_codes:${session.userId}`);
+      if (codesRaw) {
+        const codes: string[] = JSON.parse(codesRaw);
+        hashedBackupCodes = codes.map(hashBackupCode);
+      }
+    } catch {
+      // Non-fatal: user can regenerate via backup-codes endpoint
+    }
+
+    // Token is valid — enable MFA for the user and store hashed backup codes
     await (prisma as any).user.update({
       where: { id: session.userId },
       data: {
         mfaEnabled: true,
         mfaSecret: pendingSecret,
+        mfaBackupCodes: hashedBackupCodes,
       },
     });
 
-    // Clean up the pending setup key
+    // Clean up the pending setup keys
     try {
       await redis.del(redisKey);
+      await redis.del(`crp:mfa_setup_codes:${session.userId}`);
     } catch {
-      // Non-fatal: key will expire via TTL anyway
+      // Non-fatal: keys will expire via TTL anyway
     }
 
     return NextResponse.json({

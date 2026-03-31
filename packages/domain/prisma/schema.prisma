@@ -205,6 +205,8 @@ model Organization {
   merkleNodes         MerkleNode[]
   auditSignatures     AuditSignature[]
   merkleTreeStates    MerkleTreeState[]
+  findingTrends       FindingTrend[]
+  complianceSnapshots ComplianceSnapshot[]
 
   @@index([createdAt])
   @@map("organizations")
@@ -1111,4 +1113,44 @@ model MerkleTreeState {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("merkle_tree_states")
+}
+
+// ---------------------------------------------------------------------------
+// Cortex Analytics — Trend Detection + Compliance Snapshots
+// ---------------------------------------------------------------------------
+
+model FindingTrend {
+  id            String   @id @default(cuid()) @map("id")
+  organizationId String  @map("organization_id")
+  caseId        String?  @map("case_id")
+  metric        String   @map("metric") // new_cve, resolved_cve, epss_jump, severity_change, kev_added
+  cveId         String?  @map("cve_id")
+  previousValue String?  @map("previous_value")
+  currentValue  String   @map("current_value")
+  delta         Float?   @map("delta")
+  severity      Severity? @map("severity")
+  detectedAt    DateTime @default(now()) @map("detected_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, detectedAt])
+  @@index([organizationId, metric])
+  @@index([caseId])
+  @@map("finding_trends")
+}
+
+model ComplianceSnapshot {
+  id             String   @id @default(cuid()) @map("id")
+  organizationId String   @map("organization_id")
+  framework      String   @map("framework")
+  score          Float    @map("score")
+  controlsTotal  Int      @map("controls_total")
+  controlsMet    Int      @map("controls_met")
+  snapshotAt     DateTime @default(now()) @map("snapshot_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, framework, snapshotAt])
+  @@index([organizationId, snapshotAt])
+  @@map("compliance_snapshots")
 }

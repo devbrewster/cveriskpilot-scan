@@ -5,3 +5,4 @@ export * from './clients/kev';
 export * from './cache/redis-cache';
 export * from './scoring/risk-score';
 export * from './pipeline/enrich-pipeline';
+export * from './trends';

@@ -24,7 +24,7 @@ resource "google_sql_database_instance" "main" {
       enabled                        = true
       point_in_time_recovery_enabled = var.environment == "prod" ? true : false
       start_time                     = "03:00"
-      transaction_log_retention_days = 7
+      transaction_log_retention_days = 14
 
       backup_retention_settings {
         retained_backups = 14

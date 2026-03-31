@@ -113,8 +113,8 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Basic email format check
-    if (contactEmail && !contactEmail.includes('@')) {
+    // Email format validation
+    if (contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
       return NextResponse.json(
         { error: 'contactEmail must be a valid email address' },
         { status: 400 },

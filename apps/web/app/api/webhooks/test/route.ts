@@ -1,6 +1,6 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
-import { requireAuth, validateExternalUrl } from '@cveriskpilot/auth';
+import { requireAuth, validateExternalUrl, checkCsrf, requireRole, ADMIN_ROLES } from '@cveriskpilot/auth';
 import { prisma } from '@/lib/prisma';
 import { sendWebhook } from '@cveriskpilot/integrations';
 import type { WebhookPayload } from '@cveriskpilot/integrations';
@@ -14,6 +14,14 @@ export async function POST(request: NextRequest) {
     const auth = await requireAuth(request);
     if (auth instanceof NextResponse) return auth;
     const session = auth;
+
+    // RBAC — only admins can test webhooks
+    const roleError = requireRole(session.role, ADMIN_ROLES);
+    if (roleError) return roleError;
+
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const organizationId = session.organizationId;
     const body = await request.json();

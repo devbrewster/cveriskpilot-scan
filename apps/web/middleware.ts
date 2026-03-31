@@ -235,9 +235,11 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // --- Ops domain gate: /ops/* and /api/ops/* require @cveriskpilot.com or founder email ---
-  // Founder emails get ops access regardless of domain (Edge-safe, no Node imports)
-  const FOUNDER_EMAILS_SET = new Set(['gontiveros292@gmail.com', 'george.ontiveros@cveriskpilot.com']);
+  // --- Ops domain gate: /ops/* and /api/ops/* require @cveriskpilot.com or platform admin email ---
+  // Platform admin emails get ops access regardless of domain (Edge-safe, no Node imports)
+  const PLATFORM_ADMIN_EMAILS_SET = new Set(
+    (process.env.PLATFORM_ADMIN_EMAILS ?? '').split(',').map((e: string) => e.toLowerCase().trim()).filter(Boolean),
+  );
   if (pathname.startsWith('/ops') || pathname.startsWith('/api/ops')) {
     const sessionCookie = request.cookies.get('crp_session');
     if (!sessionCookie?.value) {
@@ -267,10 +269,10 @@ export function middleware(request: NextRequest) {
     // The route-level handlers (added in Wave 22a) will verify the staff domain.
     // We still block page routes since they don't have route-level auth.
     if (isOpaqueToken && !pathname.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Internal staff only' }, { status: 403 });
+      return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    if (email && !email.endsWith('@cveriskpilot.com') && !FOUNDER_EMAILS_SET.has(email.toLowerCase())) {
+    if (email && !email.endsWith('@cveriskpilot.com') && !PLATFORM_ADMIN_EMAILS_SET.has(email.toLowerCase())) {
       const duration_ms = Date.now() - start;
       writeRequestLog('WARNING', `${request.method} ${pathname} 403 ${duration_ms}ms (ops domain denied)`, {
         method: request.method,

@@ -65,11 +65,13 @@ interface OrgEntitlements {
   disabledFeatures?: string[];
 }
 
-/** Founder/owner emails — all features always unlocked */
-const FOUNDER_EMAILS = new Set([
-  'gontiveros292@gmail.com',
-  'george.ontiveros@cveriskpilot.com',
-]);
+/** Platform admin emails — read from PLATFORM_ADMIN_EMAILS env var (comma-separated) */
+const PLATFORM_ADMIN_EMAILS: Set<string> = new Set(
+  (process.env.PLATFORM_ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.toLowerCase().trim())
+    .filter(Boolean),
+);
 
 /**
  * Check if a feature is enabled for a given tier + optional org overrides.
@@ -81,8 +83,8 @@ export function isFeatureEnabled(
   entitlements?: OrgEntitlements | null,
   email?: string | null,
 ): boolean {
-  // Founders get everything
-  if (email && FOUNDER_EMAILS.has(email.toLowerCase().trim())) return true;
+  // Platform admins get everything
+  if (email && PLATFORM_ADMIN_EMAILS.has(email.toLowerCase().trim())) return true;
 
   // Per-org overrides take precedence
   if (entitlements?.enabledFeatures?.includes(flag)) return true;

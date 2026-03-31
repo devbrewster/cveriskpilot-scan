@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, generateApiKey, requireRole, MANAGE_ROLES, getSensitiveWriteLimiter } from '@cveriskpilot/auth';
+import { requireAuth, generateApiKey, requireRole, MANAGE_ROLES, getSensitiveWriteLimiter, checkCsrf } from '@cveriskpilot/auth';
 
 /**
  * PUT /api/keys/[id] — Rotate an API key.
@@ -12,21 +12,24 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
+    const session = auth;
+
     try {
       const limiter = getSensitiveWriteLimiter();
-      const allowed = await limiter.check(ip);
+      const allowed = await limiter.check(session.userId);
       if (!allowed) {
         return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
       }
     } catch { /* Redis unavailable — allow request */ }
 
-    const auth = await requireAuth(request);
-    if (auth instanceof NextResponse) return auth;
-    const session = auth;
-
     const roleError = requireRole(session.role, MANAGE_ROLES);
     if (roleError) return roleError;
+
+    // CSRF protection
+    const csrfError = checkCsrf(request);
+    if (csrfError) return csrfError;
 
     const { id } = await params;
 
@@ -106,21 +109,24 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const ip2 = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const auth2 = await requireAuth(request);
+    if (auth2 instanceof NextResponse) return auth2;
+    const session = auth2;
+
     try {
       const limiter2 = getSensitiveWriteLimiter();
-      const allowed2 = await limiter2.check(ip2);
+      const allowed2 = await limiter2.check(session.userId);
       if (!allowed2) {
         return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
       }
     } catch { /* Redis unavailable — allow request */ }
 
-    const auth2 = await requireAuth(request);
-    if (auth2 instanceof NextResponse) return auth2;
-    const session = auth2;
-
     const roleError2 = requireRole(session.role, MANAGE_ROLES);
     if (roleError2) return roleError2;
+
+    // CSRF protection
+    const csrfError2 = checkCsrf(request);
+    if (csrfError2) return csrfError2;
 
     const { id } = await params;
 

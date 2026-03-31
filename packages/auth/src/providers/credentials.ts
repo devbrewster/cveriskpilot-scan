@@ -6,7 +6,7 @@ import type { PrismaClient } from '@cveriskpilot/domain';
 import { UserStatus } from '@cveriskpilot/domain';
 
 /** Number of bcrypt salt rounds */
-const BCRYPT_SALT_ROUNDS = 12;
+const BCRYPT_SALT_ROUNDS = 14;
 
 /** Maximum failed login attempts before lockout */
 const MAX_FAILED_ATTEMPTS = 5;

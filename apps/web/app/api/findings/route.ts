@@ -20,8 +20,10 @@ export async function GET(request: NextRequest) {
     const epssMin = searchParams.get('epssMin');
     const search = searchParams.get('search');
     const clientId = searchParams.get('clientId');
-    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '25', 10)));
+    const rawPage = parseInt(searchParams.get('page') ?? '1', 10);
+    const page = Math.max(1, isNaN(rawPage) ? 1 : rawPage);
+    const rawLimit = parseInt(searchParams.get('limit') ?? '25', 10);
+    const limit = Math.min(100, Math.max(1, isNaN(rawLimit) ? 25 : rawLimit));
     const sortBy = searchParams.get('sortBy') ?? 'createdAt';
     const sortOrder = (searchParams.get('sortOrder') ?? 'desc') as 'asc' | 'desc';
 

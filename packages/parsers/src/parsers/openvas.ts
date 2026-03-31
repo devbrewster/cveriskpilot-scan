@@ -36,8 +36,8 @@ export async function parseOpenvas(
   const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
-    allowBooleanAttributes: true,
-    parseAttributeValue: true,
+    allowBooleanAttributes: false,
+    parseAttributeValue: false,
     trimValues: true,
     processEntities: false,
   });

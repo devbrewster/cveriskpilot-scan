@@ -123,6 +123,18 @@ function Spinner() {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function isValidUrl(url: string): boolean {
+  try {
+    return ['http:', 'https:'].includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -344,14 +356,18 @@ export function AiRemediation({
           <ul className="mt-2 list-inside list-disc space-y-1">
             {result.references.map((ref, idx) => (
               <li key={idx}>
-                <a
-                  href={ref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 underline hover:text-blue-800"
-                >
-                  {ref}
-                </a>
+                {isValidUrl(ref) ? (
+                  <a
+                    href={ref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 underline hover:text-blue-800"
+                  >
+                    {ref}
+                  </a>
+                ) : (
+                  <span className="text-sm text-gray-600">{ref}</span>
+                )}
               </li>
             ))}
           </ul>

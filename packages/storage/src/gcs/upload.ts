@@ -54,6 +54,58 @@ export function buildGcsPath(
 }
 
 // ---------------------------------------------------------------------------
+// File validation
+// ---------------------------------------------------------------------------
+
+const ALLOWED_EXTENSIONS = new Set([
+  '.xml', '.json', '.csv', '.xlsx', '.sarif', '.nessus', '.html', '.txt', '.pdf',
+]);
+
+/**
+ * Validates and sanitizes an upload filename.
+ * Returns { valid: true } if OK, or { valid: false, error } with a reason.
+ */
+export function validateUploadFile(filename: string): { valid: boolean; error?: string } {
+  if (!filename || filename.trim().length === 0) {
+    return { valid: false, error: 'Filename is empty' };
+  }
+
+  // Strip path traversal components
+  const sanitized = sanitizeFilename(filename);
+
+  // Check extension
+  const dotIndex = sanitized.lastIndexOf('.');
+  if (dotIndex === -1) {
+    return { valid: false, error: `File has no extension. Allowed: ${[...ALLOWED_EXTENSIONS].join(', ')}` };
+  }
+  const ext = sanitized.slice(dotIndex).toLowerCase();
+  if (!ALLOWED_EXTENSIONS.has(ext)) {
+    return { valid: false, error: `Extension "${ext}" is not allowed. Allowed: ${[...ALLOWED_EXTENSIONS].join(', ')}` };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Sanitize a filename: strip path separators and traversal sequences,
+ * replace non-alphanumeric characters (except -, _, .) with underscores.
+ */
+export function sanitizeFilename(filename: string): string {
+  let name = filename;
+  // Remove path traversal sequences
+  name = name.replace(/\.\./g, '');
+  // Remove path separators
+  name = name.replace(/[/\\]/g, '');
+  // Replace non-safe characters with underscore
+  name = name.replace(/[^a-zA-Z0-9\-_.]/g, '_');
+  // Collapse multiple underscores
+  name = name.replace(/_{2,}/g, '_');
+  // Remove leading/trailing underscores and dots
+  name = name.replace(/^[_.]+|[_.]+$/g, '');
+  return name || 'unnamed_file';
+}
+
+// ---------------------------------------------------------------------------
 // Upload
 // ---------------------------------------------------------------------------
 
@@ -65,7 +117,14 @@ export async function uploadToGCS(params: UploadParams): Promise<UploadResult> {
     return uploadToLocal(params);
   }
 
-  const { buffer, filename, organizationId, clientId, mimeType, jobId } = params;
+  const { buffer, filename: rawFilename, organizationId, clientId, mimeType, jobId } = params;
+
+  // Validate and sanitize filename
+  const validation = validateUploadFile(rawFilename);
+  if (!validation.valid) {
+    throw new Error(`Upload rejected: ${validation.error}`);
+  }
+  const filename = sanitizeFilename(rawFilename);
 
   const bucketName = getBucketName();
   const gcsPath = buildGcsPath(organizationId, clientId, filename, jobId);
@@ -114,7 +173,7 @@ export async function downloadFromGCS(
 export async function generateSignedUrl(
   bucket: string,
   path: string,
-  expiresMinutes = 60,
+  expiresMinutes = 15,
 ): Promise<string> {
   const storage = getStorage();
   const [url] = await storage

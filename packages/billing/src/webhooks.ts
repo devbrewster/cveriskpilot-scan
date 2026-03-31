@@ -83,9 +83,21 @@ async function handleCheckoutCompleted(
 
   const db = prisma as {
     organization: {
+      findUnique: (args: Record<string, unknown>) => Promise<Record<string, unknown> | null>;
       update: (args: Record<string, unknown>) => Promise<unknown>;
     };
   };
+
+  // Verify that the Stripe customer matches the org to prevent metadata spoofing
+  const org = await db.organization.findUnique({ where: { id: organizationId } });
+  if (!org) {
+    console.error('[billing] Webhook org not found', { organizationId });
+    return;
+  }
+  if (org.stripeCustomerId && customerId && org.stripeCustomerId !== customerId) {
+    console.error('[billing] Webhook customer mismatch', { expected: org.stripeCustomerId, got: customerId });
+    return;
+  }
 
   await db.organization.update({
     where: { id: organizationId },

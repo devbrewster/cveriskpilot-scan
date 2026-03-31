@@ -3,9 +3,10 @@ import { handleWebhookEvent } from '../webhooks';
 import type Stripe from 'stripe';
 
 // Minimal mock Prisma client
-function createMockPrisma() {
+function createMockPrisma(orgOverrides: Record<string, unknown> = {}) {
   return {
     organization: {
+      findUnique: vi.fn(async () => ({ id: 'org_123', stripeCustomerId: null, ...orgOverrides })),
       update: vi.fn(async () => ({})),
     },
   };

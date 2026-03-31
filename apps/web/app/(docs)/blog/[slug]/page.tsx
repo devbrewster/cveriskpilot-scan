@@ -17,6 +17,15 @@ interface BlogPost {
 }
 
 const POSTS: Record<string, BlogPost> = {
+  "compliance-in-the-shell": {
+    title: "Compliance in the Shell: Why Your Vibe-Coded SaaS Will Die at the Enterprise Door",
+    description:
+      "Most vibe coders are one good distribution channel away from making money. Nobody's building the part where an enterprise prospect asks 'are you SOC 2 compliant?' and the deal dies.",
+    date: "2026-03-30",
+    author: "George — CVERiskPilot",
+    tags: ["Vibe Coding", "Compliance", "SOC 2", "AppSec", "Open Source", "DevSecOps", "NIST 800-53", "CMMC"],
+    ogImage: "/graphics/og-hero.svg",
+  },
   "missing-link-cicd-compliance": {
     title: "The Missing Link Between CI/CD Scanning and Compliance",
     description:
@@ -83,8 +92,32 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /*  Simple markdown → HTML (no external deps)                         */
 /* ------------------------------------------------------------------ */
 
+function markdownTableToHtml(md: string): string {
+  // Match markdown tables: header row, separator row, data rows
+  return md.replace(
+    /^(\|.+\|)\n(\|[\s:|-]+\|)\n((?:\|.+\|\n?)+)/gm,
+    (_match, headerRow: string, _sep: string, bodyBlock: string) => {
+      const headers = headerRow.split("|").filter((c: string) => c.trim()).map((c: string) => c.trim());
+      const rows = bodyBlock.trim().split("\n").map((row: string) =>
+        row.split("|").filter((c: string) => c.trim()).map((c: string) => c.trim()),
+      );
+      const thCells = headers.map((h: string) => `<th class="px-4 py-2 text-left text-sm font-semibold text-slate-200 bg-slate-800/50">${h}</th>`).join("");
+      const bodyRows = rows
+        .map((cols: string[]) => {
+          const tds = cols.map((c: string) => `<td class="px-4 py-2 text-sm text-slate-300 border-t border-slate-700/50">${c}</td>`).join("");
+          return `<tr>${tds}</tr>`;
+        })
+        .join("");
+      return `<div class="overflow-x-auto my-6"><table class="w-full border-collapse rounded-lg border border-slate-700"><thead><tr>${thCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>`;
+    },
+  );
+}
+
 function markdownToHtml(md: string): string {
-  return md
+  // Pre-process tables before other transformations
+  const withTables = markdownTableToHtml(md);
+
+  return withTables
     // Remove frontmatter if present
     .replace(/^---[\s\S]*?---\n*/m, "")
     // Code blocks (```lang ... ```)
@@ -111,8 +144,11 @@ function markdownToHtml(md: string): string {
     .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc text-slate-300">$1</li>')
     // Ordered list items
     .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal text-slate-300">$2</li>')
-    // Links [text](url)
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 underline hover:text-blue-300" target="_blank" rel="noopener noreferrer">$1</a>')
+    // Links [text](url) — validate protocol to prevent javascript: XSS
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, url) => {
+      const safeUrl = /^https?:\/\//.test(url) ? url : '#';
+      return `<a href="${safeUrl}" class="text-blue-400 underline hover:text-blue-300" target="_blank" rel="noopener noreferrer">${text}</a>`;
+    })
     // Horizontal rules
     .replace(/^---$/gm, '<hr class="my-8 border-slate-700" />')
     // Paragraphs (lines not already tagged)

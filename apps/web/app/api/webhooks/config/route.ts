@@ -314,6 +314,20 @@ export async function DELETE(request: NextRequest) {
     if (auth instanceof NextResponse) return auth;
     const session = auth;
 
+    // Rate limiting — 10 req/min per user
+    try {
+      const limiter = getSensitiveWriteLimiter();
+      const rl = await limiter.check(`webhook_config:${session.userId}`);
+      if (!rl.allowed) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          { status: 429, headers: { 'Retry-After': String(rl.retryAfter ?? 60) } },
+        );
+      }
+    } catch {
+      // Redis not available — skip rate limiting
+    }
+
     // CSRF protection
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;

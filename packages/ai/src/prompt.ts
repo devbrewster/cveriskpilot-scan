@@ -6,6 +6,22 @@ import type { RemediationRequest } from './types';
 import { redactSensitiveData } from './redaction';
 
 // ---------------------------------------------------------------------------
+// Prompt injection sanitization
+// ---------------------------------------------------------------------------
+
+/**
+ * Strip markdown syntax and control characters from user-provided text before
+ * embedding it in an AI prompt. This mitigates prompt-injection attacks where
+ * crafted CVE titles/descriptions attempt to override system instructions.
+ */
+function sanitizeForPrompt(text: string, maxLen = 500): string {
+  return text
+    .replace(/[`*_~\[\](){}#>|\\]/g, '')  // strip markdown syntax
+    .replace(/\n{3,}/g, '\n\n')            // collapse excessive newlines
+    .slice(0, maxLen);
+}
+
+// ---------------------------------------------------------------------------
 // Org-specific prompt customization
 // ---------------------------------------------------------------------------
 
@@ -121,10 +137,10 @@ export function buildRemediationPrompt(params: RemediationRequest): {
   const lines: string[] = [];
 
   lines.push(`## Vulnerability Case`);
-  lines.push(`**Title:** ${redacted.title}`);
+  lines.push(`**Title:** ${sanitizeForPrompt(redacted.title, 300)}`);
 
   if (redacted.description) {
-    lines.push(`**Description:** ${redacted.description}`);
+    lines.push(`**Description:** ${sanitizeForPrompt(redacted.description, 2000)}`);
   }
 
   // CVE / CWE
@@ -158,7 +174,7 @@ export function buildRemediationPrompt(params: RemediationRequest): {
 
   // Package info (SCA)
   if (params.packageName) {
-    lines.push(`**Package:** ${params.packageName}${params.packageVersion ? `@${params.packageVersion}` : ''}`);
+    lines.push(`**Package:** ${sanitizeForPrompt(params.packageName, 200)}${params.packageVersion ? `@${sanitizeForPrompt(params.packageVersion, 50)}` : ''}`);
   }
 
   // Asset context

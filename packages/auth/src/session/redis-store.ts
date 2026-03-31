@@ -20,15 +20,16 @@ export interface Session {
   clientName?: string;
 }
 
-/** Founder/owner emails — always elevated to PLATFORM_ADMIN with all features */
-const FOUNDER_EMAILS = new Set([
-  'gontiveros292@gmail.com',
-  'george.ontiveros@cveriskpilot.com',
-]);
+/** Platform admin emails — read from PLATFORM_ADMIN_EMAILS env var (comma-separated) */
+function getPlatformAdminEmails(): Set<string> {
+  const raw = process.env.PLATFORM_ADMIN_EMAILS ?? '';
+  if (!raw.trim()) return new Set();
+  return new Set(raw.split(',').map((e) => e.toLowerCase().trim()).filter(Boolean));
+}
 
-/** Check if an email belongs to a founder */
+/** Check if an email belongs to a platform admin */
 export function isFounderEmail(email: string): boolean {
-  return FOUNDER_EMAILS.has(email.toLowerCase().trim());
+  return getPlatformAdminEmails().has(email.toLowerCase().trim());
 }
 
 /** Default session TTL: 24 hours in seconds */
@@ -44,6 +45,29 @@ let redisInstance: Redis | null = null;
 
 /** In-memory session store for local dev when Redis is unavailable */
 const memoryStore = new Map<string, { value: string; expiresAt: number }>();
+
+/** Maximum entries in the in-memory fallback store to prevent unbounded growth */
+const MEMORY_STORE_MAX_ENTRIES = 10_000;
+
+/** Evict expired entries from the in-memory store, then oldest if still over cap */
+function evictMemoryStore(): void {
+  const now = Date.now();
+  // First pass: remove expired entries
+  for (const [key, entry] of memoryStore) {
+    if (entry.expiresAt <= now) {
+      memoryStore.delete(key);
+    }
+  }
+  // Second pass: if still over cap, delete oldest entries
+  if (memoryStore.size > MEMORY_STORE_MAX_ENTRIES) {
+    const excess = memoryStore.size - MEMORY_STORE_MAX_ENTRIES;
+    const iter = memoryStore.keys();
+    for (let i = 0; i < excess; i++) {
+      const next = iter.next();
+      if (!next.done) memoryStore.delete(next.value);
+    }
+  }
+}
 
 
 /**
@@ -77,6 +101,7 @@ const memorySetStore = new Map<string, Set<string>>();
 function createMemoryRedisProxy(): Redis {
   const proxy = {
     async set(key: string, value: string, _mode?: string, ttl?: number) {
+      evictMemoryStore();
       const expiresAt = ttl ? Date.now() + ttl * 1000 : Date.now() + 86400000;
       memoryStore.set(key, { value, expiresAt });
       return 'OK';

@@ -43,7 +43,7 @@ export function hashApiKey(key: string): string {
  * Generate a new API key with the format: crp_{orgSlug}_{random32chars}
  */
 export function generateApiKey(orgSlug: string): GeneratedApiKey {
-  const randomPart = crypto.randomBytes(24).toString('base64url').slice(0, 32);
+  const randomPart = crypto.randomBytes(32).toString('base64url').slice(0, 43);
   const key = `crp_${orgSlug}_${randomPart}`;
   const keyHash = hashApiKey(key);
   const last4 = key.slice(-4);

@@ -97,7 +97,8 @@ export async function POST(request: NextRequest) {
     const PAID_PLANS = new Set(['FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
 
     if (normalizedPlan && PAID_PLANS.has(normalizedPlan)) {
-      const priceKey = billingInterval === 'annual'
+      const validInterval = billingInterval === 'annual' ? 'annual' : 'monthly';
+      const priceKey = validInterval === 'annual'
         ? `${normalizedPlan}_ANNUAL`
         : `${normalizedPlan}_MONTHLY`;
 

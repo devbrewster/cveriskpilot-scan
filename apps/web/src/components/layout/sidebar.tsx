@@ -13,11 +13,13 @@ import { ClientSwitcher } from '@/components/layout/client-switcher';
 /** Roles that get full access to all features (standalone / owner tier). */
 const FULL_ACCESS_ROLES = new Set(['PLATFORM_ADMIN', 'ORG_OWNER']);
 
-/** Founder/owner emails — always get full access including platform admin. */
-const FOUNDER_EMAILS = new Set([
-  'gontiveros292@gmail.com',
-  'george.ontiveros@cveriskpilot.com',
-]);
+/** Platform admin emails — read from NEXT_PUBLIC_PLATFORM_ADMIN_EMAILS env var (comma-separated) */
+const PLATFORM_ADMIN_EMAILS: Set<string> = new Set(
+  (process.env.NEXT_PUBLIC_PLATFORM_ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.toLowerCase().trim())
+    .filter(Boolean),
+);
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   PLATFORM_SUPPORT: ['org:read', 'cases:read', 'audit:read'],
@@ -32,7 +34,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
 
 function hasPermission(role: string | null, permission: string, email?: string | null): boolean {
   if (!role) return false;
-  if (email && FOUNDER_EMAILS.has(email.toLowerCase().trim())) return true;
+  if (email && PLATFORM_ADMIN_EMAILS.has(email.toLowerCase().trim())) return true;
   if (FULL_ACCESS_ROLES.has(role)) return true;
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
 }

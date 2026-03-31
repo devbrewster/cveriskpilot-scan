@@ -52,10 +52,12 @@ interface FilterDropdownProps {
 }
 
 export function FilterDropdown({ label, options, value, onChange }: FilterDropdownProps) {
+  const selectId = `filter-${label.toLowerCase().replace(/\s+/g, '-')}`;
   return (
     <div className="flex items-center gap-2">
-      <label className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">{label}</label>
+      <label htmlFor={selectId} className="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">{label}</label>
       <select
+        id={selectId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"

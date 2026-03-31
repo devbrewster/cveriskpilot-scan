@@ -326,6 +326,9 @@ resource "google_cloud_run_v2_service" "worker" {
     }
   }
 
+  # Workers process async jobs via Cloud Tasks / Pub/Sub — never accept external traffic
+  ingress = "INGRESS_TRAFFIC_INTERNAL_ONLY"
+
   depends_on = [
     google_secret_manager_secret.app_secrets,
     google_service_networking_connection.private_vpc,

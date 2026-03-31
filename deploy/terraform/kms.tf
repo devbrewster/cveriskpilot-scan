@@ -21,7 +21,7 @@ resource "google_kms_crypto_key" "default_tenant_key" {
 
   version_template {
     algorithm        = "GOOGLE_SYMMETRIC_ENCRYPTION"
-    protection_level = "SOFTWARE"
+    protection_level = var.environment == "prod" ? "HSM" : "SOFTWARE"
   }
 
   lifecycle {

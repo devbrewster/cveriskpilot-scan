@@ -17,6 +17,24 @@ interface BlogPost {
 }
 
 const POSTS: Record<string, BlogPost> = {
+  "npm-supply-chain-compliance": {
+    title: "Two npm Supply Chain Attacks in One Day — Here's What Your Compliance Framework Says About It",
+    description:
+      "Axios v1.14.1 was hijacked and Claude Code leaked 512K lines of source. These trigger specific compliance controls that require documented evidence of detection and response.",
+    date: "2026-03-31",
+    author: "George — CVERiskPilot",
+    tags: ["Supply Chain Security", "npm", "DevSecOps", "Compliance", "NIST 800-53", "SOC 2", "CMMC"],
+    ogImage: "/graphics/og-hero.svg",
+  },
+  "we-scanned-ourselves": {
+    title: "We Scanned Ourselves: What 87 Findings Taught Us About Our Own Compliance Posture",
+    description:
+      "We pointed our own scanner at our own codebase. 87 findings, 48 true positives, 8 compliance controls affected. Real scan data, not a demo.",
+    date: "2026-03-31",
+    author: "George — CVERiskPilot",
+    tags: ["Dogfooding", "Security Scanning", "SOC 2", "OWASP ASVS", "DevSecOps", "Vulnerability Management"],
+    ogImage: "/graphics/og-hero.svg",
+  },
   "compliance-in-the-shell": {
     title: "Compliance in the Shell: Why Your Vibe-Coded SaaS Will Die at the Enterprise Door",
     description:
@@ -31,7 +49,7 @@ const POSTS: Record<string, BlogPost> = {
     description:
       "Your pipeline catches vulnerabilities. But who maps them to compliance controls? The 40-hour/quarter gap that costs GRC teams real money.",
     date: "2026-03-29",
-    author: "CVERiskPilot",
+    author: "George — CVERiskPilot",
     tags: ["DevSecOps", "Compliance", "CI/CD", "NIST 800-53", "SOC 2", "CMMC", "Vulnerability Management"],
     ogImage: "/graphics/og-pipeline.svg",
   },

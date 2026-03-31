@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ serviceAccounts: accountsWithKeys });
   } catch (error) {
     console.error('[API] GET /api/service-accounts error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to manage service accounts.' }, { status: 500 });
   }
 }
 
@@ -179,6 +179,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('[API] POST /api/service-accounts error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to manage service accounts.' }, { status: 500 });
   }
 }

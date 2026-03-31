@@ -23,6 +23,26 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: "npm-supply-chain-compliance",
+    title:
+      "Two npm Supply Chain Attacks in One Day — Here's What Your Compliance Framework Says About It",
+    excerpt:
+      "Axios v1.14.1 was hijacked and Claude Code leaked 512K lines of source. If you're tracking compliance, these trigger specific controls that require documented evidence.",
+    date: "2026-03-31",
+    readTime: "7 min read",
+    tags: ["Supply Chain", "npm", "Compliance", "NIST 800-53", "SOC 2"],
+  },
+  {
+    slug: "we-scanned-ourselves",
+    title:
+      "We Scanned Ourselves: What 87 Findings Taught Us About Our Own Compliance Posture",
+    excerpt:
+      "We pointed our own scanner at our own codebase. 87 findings, 48 true positives, 8 compliance controls affected. Real data from a real scan.",
+    date: "2026-03-31",
+    readTime: "8 min read",
+    tags: ["Dogfooding", "Security Scanning", "SOC 2", "DevSecOps"],
+  },
+  {
     slug: "compliance-in-the-shell",
     title:
       "Compliance in the Shell: Why Your Vibe-Coded SaaS Will Die at the Enterprise Door",

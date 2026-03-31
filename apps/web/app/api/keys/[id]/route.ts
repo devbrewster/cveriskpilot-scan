@@ -97,7 +97,7 @@ export async function PUT(
     });
   } catch (error) {
     console.error(`[API] PUT /api/keys/[id] error:`, error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to manage API key.' }, { status: 500 });
   }
 }
 
@@ -165,6 +165,6 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: 'API key revoked' });
   } catch (error) {
     console.error(`[API] DELETE /api/keys/[id] error:`, error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to manage API key.' }, { status: 500 });
   }
 }

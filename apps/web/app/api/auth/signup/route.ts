@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
 
     console.error('[API] POST /api/auth/signup error:', error instanceof Error ? error.stack : error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Account creation failed. Please try again.' },
       { status: 500 },
     );
   }

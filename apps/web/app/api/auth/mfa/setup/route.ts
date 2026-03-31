@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[API] GET /api/auth/mfa/setup error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'MFA setup failed. Please try again.' },
       { status: 500 },
     );
   }
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[API] POST /api/auth/mfa/setup error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'MFA setup failed. Please try again.' },
       { status: 500 },
     );
   }

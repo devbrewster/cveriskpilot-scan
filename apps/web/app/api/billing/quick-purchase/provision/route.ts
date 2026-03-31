@@ -127,6 +127,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[API] POST /api/billing/quick-purchase/provision error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Provisioning failed. Please try again.' }, { status: 500 });
   }
 }

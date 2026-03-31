@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[API] POST /api/auth/mfa/verify error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'MFA verification failed. Please try again.' },
       { status: 500 },
     );
   }

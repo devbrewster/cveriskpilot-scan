@@ -8,23 +8,22 @@ Most vibe coders are one good distribution channel away from actually making mon
 
 But nobody's building the part that comes after distribution — the part where an enterprise prospect sends you a security questionnaire, and you realize your entire product runs on dependencies you've never audited, secrets management you haven't thought about, and compliance frameworks you can't even name.
 
-I know because I spent 7 years watching it happen from the other side.
+I know because I've spent 7+ years in cybersecurity, and I've seen how enterprise procurement actually works.
 
 ---
 
 ## The Enterprise Kill Switch
 
-I was an Application Security Architect. My job was to evaluate vendors before we let their software touch our infrastructure.
+Every enterprise buyer has a security questionnaire. Before your product touches their infrastructure, someone on their security team runs through a checklist. And the questions are always the same:
 
-Here's what killed deals:
+- "Do you have a SOC 2 report?"
+- "What's your vulnerability management process?"
+- "Can you provide an SBOM?"
+- "How do you map findings to compliance controls?"
 
-- "We don't have a SOC 2 report yet."
-- "Our vulnerability management process is... we run npm audit sometimes."
-- "We'll get to compliance when we scale."
+If the answer to any of those is "we'll get to it when we scale," the conversation is over. "Come back when you're compliant."
 
-Every single time, the conversation ended the same way: "Come back when you're compliant."
-
-It didn't matter how good the product was. It didn't matter how fast they shipped. Enterprise buyers have procurement checklists, and if you can't check the boxes, you don't get the contract.
+It doesn't matter how good the product is. It doesn't matter how fast you shipped. Enterprise buyers have procurement checklists, and if you can't check the boxes, you don't get the contract.
 
 The vibe coders building the next wave of SaaS products are about to learn this lesson the hard way.
 
@@ -92,7 +91,7 @@ Vulnerability → CWE → NIST 800-53 → SOC 2 / CMMC / FedRAMP / ASVS / SSDF
 
 This chain is publicly documented. It's not proprietary data. But nobody had automated it inside a CI/CD pipeline.
 
-So I quit my job and built it.
+So I built it.
 
 ---
 
@@ -259,9 +258,9 @@ That's the gap. That's why I built this.
 
 ## About
 
-I'm George. 7+ years in cybersecurity. I watched security teams drown in scanner output while compliance teams waited for evidence — two teams, same data, zero automation between them.
+I'm George. 7+ years in cybersecurity. I kept seeing the same gap — scanner output in one system, compliance evidence in a spreadsheet, and no automation between them.
 
-CVERiskPilot is 100% Veteran Owned, registered in Texas, and built by a solo founder who got tired of being the human spreadsheet between vulnerability data and compliance controls.
+CVERiskPilot is 100% Veteran Owned, registered in Texas, and built by a solo founder who decided to automate the bridge between vulnerability data and compliance controls instead of doing it by hand one more time.
 
 The CLI is free and open source: [npm](https://npmjs.com/package/@cveriskpilot/scan) | [GitHub](https://github.com/devbrewster/cveriskpilot-scan)
 

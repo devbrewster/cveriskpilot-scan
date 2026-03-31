@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ keys: maskedKeys });
   } catch (error) {
     console.error('[API] GET /api/keys error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to manage API keys.' }, { status: 500 });
   }
 }
 
@@ -188,6 +188,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('[API] POST /api/keys error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to manage API keys.' }, { status: 500 });
   }
 }

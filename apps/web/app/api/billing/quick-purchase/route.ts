@@ -174,6 +174,6 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('[API] POST /api/billing/quick-purchase error:', error instanceof Error ? error.stack : error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Purchase failed. Please try again or contact support.' }, { status: 500 });
   }
 }

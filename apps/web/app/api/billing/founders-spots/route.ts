@@ -47,7 +47,7 @@ export async function GET() {
   } catch (error) {
     console.error('[API] GET /api/billing/founders-spots error:', error instanceof Error ? error.message : error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to check available spots.' },
       { status: 500 },
     );
   }

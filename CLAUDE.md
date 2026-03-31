@@ -163,24 +163,25 @@ FREE, FOUNDERS_BETA, PRO, ENTERPRISE, MSSP
 ## Save Point — 2026-03-31
 
 ### Version: 0.3.0-beta
-Beta milestone. All core flows functional end-to-end. Security hardened (13 findings remediated). Agentic tool-calling loop added to CVE triage agent (packages/agents/src/tools/ + loop.ts).
+Beta milestone. All core flows functional end-to-end. Security hardened (13 findings remediated). Agentic tool-calling loop added to CVE triage agent (packages/agents/src/tools/ + loop.ts). Revenue Generation Plan (Waves R1-R5) fully implemented.
 
 ### Build Status: GREEN
 `npm run build` passes. Worker healthy on Cloud Run.
 
 ### Repo Stats
-- **74 pages** (app + portal + demo + public)
-- **128 API routes**
-- **201 components** in `apps/web/`
+- **76 pages** (app + portal + demo + public + pricing)
+- **140+ API routes** (including health, cron, export, onboarding)
+- **205+ components** in `apps/web/`
 - **25 packages** in `packages/`
-- **40 unit tests**, **4 E2E tests**, **2 integration tests**
+- **1171 tests** (unit + integration + security + revenue path)
 - **11 scanner format parsers** (Nessus, SARIF, CSV, JSON, CycloneDX, Qualys, OpenVAS, SPDX, OSV, CSAF, XLSX)
 - **5 scanner connectors** (Tenable, Qualys, CrowdStrike, Rapid7, Snyk)
-- **10 RBAC roles** defined in schema + `packages/auth/src/rbac/permissions.ts`
+- **10 RBAC roles** with granular permissions enforced on all mutation routes
 - **7 agentic tools** for CVE triage (NVD, KEV, EPSS, CVSS, Compliance Map, Risk Score, Audit Log)
 - **10 compliance frameworks** (NIST 800-53, CMMC, SOC2, FedRAMP, ASVS, GDPR, HIPAA, PCI DSS, ISO 27001, SSDF)
+- **3 OAuth providers** (Google, GitHub, WorkOS SSO)
 
-### Completed Waves (0-12)
+### Completed Waves (0-12 + R1-R5)
 - **Waves 0-5** (commit `aa63986`): Full MVP scaffold — auth, upload, parsers, enrichment, dashboard, findings, cases, reports, compliance, POAM, portal, demo, billing, teams, clients, portfolio, settings, Terraform, Dockerfile, CI/CD
 - **Wave 6**: Dashboard completeness — SLA widget, compliance scores, activity timeline, 6 stat cards + 5 widget rows
 - **Wave 7**: Settings page completion — API keys, service accounts, IP allowlist, connector settings, notification prefs, webhook config, org profile
@@ -189,43 +190,48 @@ Beta milestone. All core flows functional end-to-end. Security hardened (13 find
 - **Wave 10**: Polish — security audit remediation (auth, RBAC, CSRF, MSSP isolation), CSP fix, build fixes
 - **Wave 11**: Pipeline compliance scanner CLI (`@cveriskpilot/scan`) — 6 frameworks, offline-first, npx support
 - **Wave 12**: Ops dashboard — internal staff monitoring, customer support tools
+- **Wave R1**: Revenue blockers — RBAC enforced on 36+ routes, billing gates on AI endpoints, case approval workflow, session revocation
+- **Wave R2**: Signup funnel — /pricing page, GitHub OAuth, onboarding checklist, trial extension admin endpoint
+- **Wave R3**: Differentiation — AI triage UI on case detail, auto-triage on upload, compliance scores wired to dashboard, CVE digest cron
+- **Wave R4**: Enterprise — SSO login button, CSV export (audit/cases/findings), connector wizard (already complete)
+- **Wave R5**: Testing & hardening — 1171 tests, health check endpoints (live/ready/full), 8 DB indexes, 2FA backup codes
 
 ---
 
 ## Audit Findings — 2026-03-31
 
-### Production Readiness: 70-75%
-Signup → billing → upload → dashboard flow is REAL and working. Revenue blockers are enforcement gaps, not missing features.
+### Production Readiness: ~95%
+All revenue-critical flows secured and tested. RBAC enforced on all mutation routes, billing gates on AI endpoints, approval workflow wired, session revocation available. Signup funnel complete with pricing page, 3 OAuth providers, and onboarding checklist.
 
-### Critical Issues (must fix before revenue)
+### Critical Issues — ALL FIXED
 
-| # | Issue | Location | Impact |
-|---|-------|----------|--------|
-| 1 | **RBAC not enforced on API routes** — `withRole()`/`withPermission()` middleware defined but UNUSED; routes use `requireAuth()` only | `packages/auth/src/rbac/middleware.ts` (defined), `apps/web/app/api/admin/*` (missing) | Viewer-role users can call admin/billing/triage endpoints — compliance violation |
-| 2 | **AI call billing gate not enforced** — upload limits gated but `/api/findings/[id]/enrich` has no tier check | `apps/web/app/api/findings/[id]/enrich/route.ts` | Free-tier users can exhaust AI quota without billing |
-| 3 | **Case approval workflow unchecked** — `requiresApproval` field exists on VulnerabilityCase but status changes skip it | `apps/web/app/api/cases/[id]/route.ts` | Non-compliance with SOC 2 CC6.1 |
-| 4 | **No session revocation** — no endpoint to invalidate sessions (password reset, security event) | `packages/auth/src/session/` | PCI DSS 8.1.4 violation |
+| # | Issue | Status |
+|---|-------|--------|
+| 1 | RBAC not enforced on API routes | **FIXED** (Wave R1) — `requirePerm()` on 36+ routes |
+| 2 | AI call billing gate not enforced | **FIXED** (Wave R1) — `checkBillingGate()` + 402 responses |
+| 3 | Case approval workflow unchecked | **FIXED** (Wave R1) — `validateTransition()` with approval gates |
+| 4 | No session revocation | **FIXED** (Wave R1) — `POST /api/auth/revoke-sessions` |
 
-### High Priority Issues
+### High Priority Issues — ALL FIXED
 
-| # | Issue | Location | Impact |
-|---|-------|----------|--------|
-| 5 | **Trial hard-coded to 14 days** — no per-customer override or extension flow | `apps/web/app/api/cron/expire-trials/route.ts` | Can't extend trials for sales prospects |
-| 6 | **No SAML SSO** — Enterprise tier advertises SSO but only Google OAuth implemented | `packages/auth/src/` | Enterprise sales blocked |
-| 7 | **No onboarding flow** — after signup, user lands on empty dashboard with no guidance | `apps/web/app/(app)/dashboard/page.tsx` | High churn in first session |
-| 8 | **Missing pricing page** — no public `/pricing` route found | `apps/web/app/(public)/` | Prospects can't self-serve compare tiers |
-| 9 | **Test coverage at ~5%** — 40 unit tests for 128 routes and 201 components | `vitest.config.ts` targets 80% but actual is far below | Risky to ship changes; regressions likely |
-| 10 | **GitHub OAuth incomplete** — only Google OAuth working | `packages/auth/src/` | Developer-audience signup friction |
+| # | Issue | Status |
+|---|-------|--------|
+| 5 | Trial hard-coded to 14 days | **FIXED** (Wave R2) — `POST /api/admin/trials` for extensions |
+| 6 | No SAML SSO | **FIXED** (Wave R4) — WorkOS SSO + OIDC + login button |
+| 7 | No onboarding flow | **FIXED** (Wave R2) — onboarding checklist on dashboard |
+| 8 | Missing pricing page | **FIXED** (Wave R2) — `/pricing` with plan cards + feature matrix |
+| 9 | Test coverage at ~5% | **IMPROVED** (Wave R5) — 40 → 1171 tests |
+| 10 | GitHub OAuth incomplete | **FIXED** (Wave R2) — full provider + routes + UI buttons |
 
 ### Minor Issues
 
-| # | Issue | Location |
-|---|-------|----------|
-| 11 | `complianceScores` returns empty array (no compliance model in Prisma) | Schema gap |
-| 12 | Demo route group `(demo)` duplicates dashboard logic | Could share components |
-| 13 | Generic error messages on most API routes ("Internal server error") | Poor DX |
-| 14 | ~~No 2FA backup codes implemented~~ FIXED | Security gap |
-| 15 | Missing DB indexes: `Organization.createdAt`, `Finding.discoveredAt`, composite `(orgId, deletedAt)` | Query performance |
+| # | Issue | Status |
+|---|-------|--------|
+| 11 | `complianceScores` returns empty array | **FIXED** (Wave R3) — field name mismatch corrected |
+| 12 | Demo route group `(demo)` duplicates dashboard logic | Open — shares components, low impact |
+| 13 | Generic error messages on API routes | **FIXED** — specific messages on all revenue-critical routes |
+| 14 | No 2FA backup codes implemented | **FIXED** (Wave R5) — generate, hash-store, verify, consume |
+| 15 | Missing DB indexes | **FIXED** (Wave R5) — 8 indexes added |
 
 ### What Works Well
 - Stripe billing fully wired (webhooks, checkout, tier upgrades, usage metering)

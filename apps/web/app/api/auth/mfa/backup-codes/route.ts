@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[API] POST /api/auth/mfa/backup-codes error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to generate backup codes. Please try again.' },
       { status: 500 },
     );
   }

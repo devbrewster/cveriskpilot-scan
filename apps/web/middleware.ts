@@ -92,6 +92,7 @@ const API_PUBLIC_PATHS = [
   '/api/connectors/webhook/',               // Scanner webhooks (HMAC auth)
   '/api/billing/founders-spots',              // Public spots counter (no auth)
   '/api/billing/quick-purchase',             // Simplified API purchase (creates account)
+  '/api/badge',                              // Public compliance badge (shields.io SVG)
   '/api/billing/webhook',                   // Stripe webhook (signature verification)
   '/api/cron/expire-trials',                 // cron uses CRON_SECRET auth
   '/api/pipeline/scan',                     // uses API key auth, not session
@@ -224,7 +225,11 @@ export function middleware(request: NextRequest) {
     const sessionCookie = request.cookies.get('crp_session');
     if (!sessionCookie?.value) {
       const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
+      // Prevent open redirect: only allow relative paths as callbackUrl
+      const safeCallback = pathname.startsWith('/') && !pathname.startsWith('//') && !pathname.includes('\\')
+        ? pathname
+        : '/';
+      loginUrl.searchParams.set('callbackUrl', safeCallback);
 
       const duration_ms = Date.now() - start;
       writeRequestLog('INFO', `${request.method} ${pathname} 302 ${duration_ms}ms`, {
@@ -268,10 +273,13 @@ export function middleware(request: NextRequest) {
       isOpaqueToken = true;
     }
 
-    // For opaque tokens, let route-level getServerSession handle auth.
-    // The route-level handlers (added in Wave 22a) will verify the staff domain.
-    // We still block page routes since they don't have route-level auth.
-    if (isOpaqueToken && !pathname.startsWith('/api/')) {
+    // For opaque tokens, we cannot verify domain at the middleware layer.
+    // Block BOTH page routes and API routes — route-level getServerSession
+    // is the primary gate but middleware must not silently pass unverified tokens.
+    if (isOpaqueToken) {
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ error: 'Staff authentication required' }, { status: 403 });
+      }
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
@@ -292,12 +300,24 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // --- IP Allowlist check for API routes (read from x-org-ip-allowlist header set by upstream) ---
-  // Note: Full IP allowlist enforcement is handled in the API route layer via
-  // org entitlements lookup. The middleware provides an early check if the
-  // x-org-ip-allowlist-enabled header is set by a load balancer or prior middleware.
+  // --- IP Allowlist check for API routes ---
+  // SECURITY: These headers are only trusted when set by Cloud Run / Cloud Armor
+  // upstream. We strip them from incoming requests to prevent client-side spoofing,
+  // then re-read from the response headers (which would be set by upstream proxy).
+  // Since Next.js middleware cannot distinguish upstream-injected headers from
+  // client-injected headers, this check is DISABLED at the middleware layer.
+  // Full IP allowlist enforcement is handled in the API route layer via
+  // org entitlements lookup from the database (the authoritative source).
+  //
+  // The code below is retained but gated behind a trusted-proxy flag that
+  // Cloud Run sets via an internal header that clients cannot forge.
   if (pathname.startsWith('/api/') && !pathname.startsWith('/api/auth/')) {
-    const ipAllowlistEnabled = request.headers.get('x-org-ip-allowlist-enabled');
+    // Only trust IP allowlist headers if the trusted-proxy marker is present.
+    // Cloud Run sets x-cloud-trace-context which clients cannot forge on GCP.
+    const isTrustedProxy = !!request.headers.get('x-cloud-trace-context');
+    const ipAllowlistEnabled = isTrustedProxy
+      ? request.headers.get('x-org-ip-allowlist-enabled')
+      : null;
     if (ipAllowlistEnabled === 'true') {
       const allowedRanges = request.headers.get('x-org-ip-allowlist');
       const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();

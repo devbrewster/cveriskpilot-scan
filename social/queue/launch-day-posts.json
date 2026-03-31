@@ -1,0 +1,44 @@
+{
+  "campaign": "Launch Day — Product Hunt + Founders Beta",
+  "schedule": "2026-04-07",
+  "platform": "x",
+  "voice": "excited but genuine, founder personality",
+  "posts": [
+    {
+      "id": "launch-announcement",
+      "slot": "7:00 AM CT",
+      "type": "product_updates",
+      "status": "ready",
+      "pin": true,
+      "content": "We just launched on Product Hunt 🚀\n\nCVERiskPilot: Your scanner found 8,000 CVEs. We tell you which 50 actually matter.\n\n→ AI triage that shows its work\n→ 10 compliance frameworks built-in\n→ Works with Nessus, Qualys, Trivy, Snyk + 7 more\n\nFounders Beta: $29/mo (first 50 spots)\n\nhttps://cveriskpilot.com/launch\n\n#cybersecurity #producthunt #buildinpublic"
+    },
+    {
+      "id": "launch-demo-thread",
+      "slot": "9:00 AM CT",
+      "type": "building_in_public",
+      "status": "ready",
+      "content": "Here's what happens when you upload a Nessus scan to CVERiskPilot:\n\n1. Parser identifies 8,247 findings\n2. Dedup reduces to 1,203 unique CVEs\n3. Enrichment pulls EPSS + KEV data\n4. AI triage flags 47 that actually need attention\n\nFrom 8,247 → 47 in under 60 seconds.\n\nTry the demo (no signup): https://cveriskpilot.com/demo"
+    },
+    {
+      "id": "launch-veteran-owned",
+      "slot": "12:00 PM CT",
+      "type": "building_in_public",
+      "status": "ready",
+      "content": "Building a vulnerability management SaaS as a solo veteran founder in Texas.\n\n100% bootstrapped. No VC. Just a DD-214 and a lot of Claude API calls.\n\nIf you're a defense contractor needing CMMC compliance, or a startup needing SOC 2 — this was built for you.\n\nhttps://cveriskpilot.com\n\n#veteranowned #sdvosb #buildinpublic"
+    },
+    {
+      "id": "launch-cli-teaser",
+      "slot": "3:00 PM CT",
+      "type": "product_updates",
+      "status": "ready",
+      "content": "Free open-source pipeline scanner:\n\nnpx cveriskpilot-scan --path . --framework nist-800-53\n\nScans your repo for:\n• Dependency vulnerabilities (SCA)\n• Hardcoded secrets\n• IaC misconfigurations\n• SBOM generation\n\nMaps findings to compliance controls. Zero config.\n\n#devsecops #cybersecurity"
+    },
+    {
+      "id": "launch-metrics",
+      "slot": "8:00 PM CT",
+      "type": "building_in_public",
+      "status": "ready",
+      "content": "Launch day stats:\n\n• Signups: [UPDATE WITH REAL NUMBER]\n• Scans uploaded: [UPDATE]\n• PH upvotes: [UPDATE]\n• Founders Beta conversions: [UPDATE]\n\nHonest numbers. No vanity metrics.\n\nThank you to everyone who checked us out today. 🙏\n\n#buildinpublic #launchday"
+    }
+  ]
+}

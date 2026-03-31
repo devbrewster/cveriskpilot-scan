@@ -18,6 +18,7 @@ resource "google_sql_database_instance" "main" {
     ip_configuration {
       ipv4_enabled    = false
       private_network = "projects/${var.project_id}/global/networks/default"
+      require_ssl     = true
     }
 
     backup_configuration {
@@ -125,6 +126,7 @@ resource "google_sql_database_instance" "read_replica" {
     ip_configuration {
       ipv4_enabled    = false
       private_network = "projects/${var.project_id}/global/networks/default"
+      require_ssl     = true
     }
 
     database_flags {

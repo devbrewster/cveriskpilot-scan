@@ -139,3 +139,13 @@ export function resolveFrameworks(raw: string[]): FrameworkResolution {
 export function resolvePreset(preset: string): string[] | null {
   return FRAMEWORK_PRESETS[preset.toLowerCase()] ?? null;
 }
+
+// ---------------------------------------------------------------------------
+// AI Enrichment Defaults
+// ---------------------------------------------------------------------------
+
+export const AI_DEFAULT_OLLAMA_URL = 'http://127.0.0.1:11434';
+export const AI_DEFAULT_LLAMACPP_URL = 'http://127.0.0.1:8080';
+export const AI_DEFAULT_MODEL = 'llama3.2';
+export const AI_REQUEST_TIMEOUT_MS = 30_000;
+export const AI_TOTAL_TIMEOUT_MS = 120_000;

@@ -428,6 +428,218 @@ Priority: Protect revenue flows from regressions.
 
 ---
 
+## GTM Acceleration Plan — 2026-03-31
+
+### Current GTM Assets (what's already built)
+
+| Asset | Status | Sophistication |
+|-------|--------|---------------|
+| X automation (drafts + publish + schedule) | Live | High — Claude-powered research, ReACT autopilot, engagement feedback loop |
+| Engagement analytics | Live | Medium — per-type metrics, best-hour tracking, 40 posts analyzed |
+| Homepage + hero + social proof | Live | Medium — JSON-LD, structured data |
+| Pricing page | Live | Medium — tier matrix, FAQ, JSON-LD |
+| Government/CMMC vertical pages | Live | High — SDVOSB badge, CMMC countdown, NIST 800-171 mapping |
+| Demo dashboard (no login) | Live | High — 27 sub-routes, realistic data, full product experience |
+| CLI lead gen (`npx @cveriskpilot/scan`) | Live | High — offline, zero-config, 6 frameworks, npm ecosystem |
+| Blog (4 posts) | Live | Medium — SEO metadata, OG tags, canonical URLs |
+| Sitemap + robots.txt + SEO | Live | Medium — 17 pages indexed, AI crawlers blocked |
+| Email templates (transactional) | Ready | Low — 4 templates built, no nurture sequences |
+| API docs (OpenAPI spec) | Ready | Medium — spec exists, no public page |
+| Content calendar (40 posts queued) | Live | High — 4 weeks pre-loaded, approval workflow |
+| Brand voice guidelines | Live | High — detailed tone rules, forbidden phrases, platform-specific |
+
+### GTM Gaps (money left on table)
+
+#### Gap 1: CLI → Platform funnel is broken
+The CLI (`npx @cveriskpilot/scan`) is a strong lead gen tool but has **no downstream conversion path**.
+- No "upload these results to CVERiskPilot" CTA in CLI output
+- No telemetry on CLI usage (how many runs/day?)
+- No email capture at any point
+- CLI findings aren't uploadable to the platform without manual reformatting
+
+#### Gap 2: Email nurture doesn't exist
+4 transactional templates built but **zero marketing/nurture sequences**:
+- No welcome email after signup
+- No "you haven't uploaded yet" re-engagement
+- No weekly CVE digest (planned in R3.4 but not wired)
+- No trial expiration warning emails
+- No upgrade nudges when free-tier limits approached
+- Blog has no subscribe CTA
+
+#### Gap 3: Content amplification is single-channel
+Social automation is sophisticated (X only) but:
+- LinkedIn not automated (config exists but no publisher script)
+- Blog posts not cross-posted to dev communities (HN, Reddit, dev.to, GitHub Discussions)
+- No newsletter to distribute blog content
+- No RSS feed for blog
+
+#### Gap 4: No conversion tracking
+- No analytics on signup → upload → paid funnel
+- No A/B testing on pricing page or CTAs
+- Engagement feedback tracks X metrics but not website conversions
+- Can't answer "which X post drove the most signups?"
+
+#### Gap 5: Demo → signup friction
+Demo is excellent (27 routes, realistic data) but:
+- No "Start your own" CTA inside the demo
+- No comparison ("You're viewing demo data — upload your real scans")
+- No email gate on demo access (missed lead capture)
+
+### GTM Acceleration Waves
+
+#### Wave G1: CLI-to-Platform Bridge (High Impact, Low Effort)
+
+**G1.1 — CLI upload CTA**
+After scan results, print:
+```
+┌─────────────────────────────────────────────────────┐
+│  Upload these results to CVERiskPilot for:           │
+│  • AI-powered triage with source citations           │
+│  • Compliance mapping across 10 frameworks           │
+│  • POAM generation for auditors                      │
+│  • Team collaboration and SLA tracking               │
+│                                                      │
+│  → https://cveriskpilot.com/upload?ref=cli           │
+│  Free tier: 50 assets, 50 AI calls/month             │
+└─────────────────────────────────────────────────────┘
+```
+- File: `packages/scan/` — add to report output
+- Track `?ref=cli` UTM param in signup flow
+
+**G1.2 — CLI JSON export for platform upload**
+- Add `--output json` flag that produces platform-compatible upload format
+- Users can drag-drop the JSON into `/upload` page
+- Reduces friction from "CLI user" to "platform user"
+
+**G1.3 — CLI usage telemetry (opt-in)**
+- Anonymous: framework used, finding counts, scan duration
+- With consent: email for follow-up
+- Respect `DO_NOT_TRACK` env var
+- Gives data on: how many people use the CLI, what frameworks they care about
+
+#### Wave G2: Email Nurture Sequences (High Impact, Medium Effort)
+
+**G2.1 — Welcome sequence (5 emails over 14 days)**
+1. Day 0: "Welcome — here's how to upload your first scan" (link to upload page)
+2. Day 1: "Your scan results explained" (link to findings + what CVSS/EPSS/KEV mean)
+3. Day 3: "Set up compliance tracking" (link to compliance frameworks page)
+4. Day 7: "See what AI triage found" (link to case detail with triage results)
+5. Day 12: "Your trial ends in 2 days — here's what you'll lose" (upgrade CTA)
+- Files: `packages/notifications/src/email/templates.ts`, new cron job
+
+**G2.2 — Re-engagement emails**
+- "You haven't uploaded a scan in 7 days" (triggered by activity check)
+- "New CVEs affecting your stack" (weekly, based on last SBOM)
+- "Your compliance score changed" (triggered by new findings)
+- Gate: only for active accounts, respect unsubscribe
+
+**G2.3 — Billing lifecycle emails**
+- Trial expiration warning (3 days, 1 day, expired)
+- Usage approaching limit (80%, 95%, 100%)
+- Payment failed / card expiring
+- Upgrade confirmation with feature unlock summary
+
+**G2.4 — Blog subscribe CTA**
+- Add email capture form to blog layout
+- "Get weekly CVE intelligence + compliance tips"
+- Store subscribers in `Notification` preferences
+- Weekly digest cron: new blog posts + top KEV additions
+
+#### Wave G3: Content Amplification (Medium Impact, Low Effort)
+
+**G3.1 — LinkedIn automation**
+- Config already exists in `social/config.json` for LinkedIn
+- Build `scripts/publish-linkedin-posts.mjs` mirroring X publisher
+- Repurpose X content with longer-form expansion (600-1200 chars)
+- Target: GRC professionals, CISOs, compliance managers
+
+**G3.2 — Blog RSS feed**
+- Add `/blog/rss.xml` route (Next.js API route generating RSS 2.0)
+- Submit to: Feedly, Inoreader, dev.to RSS import
+- Enables: newsletter tools, aggregators, automatic syndication
+
+**G3.3 — Dev community cross-posting**
+- After each blog post: auto-create discussion on GitHub repo
+- Script to format blog post for Hacker News submission
+- dev.to cross-post via API (canonical URL back to cveriskpilot.com)
+
+**G3.4 — "Compliance Control of the Week" series**
+- Automated X thread: pick a NIST 800-53 control, explain in plain English, map to CWEs
+- Source data from `packages/compliance/src/mapping/nist-800-53.ts`
+- 16 control families × 4+ controls each = 64+ weeks of content
+- Establishes authority in compliance space
+
+#### Wave G4: Conversion Optimization (Medium Impact, Medium Effort)
+
+**G4.1 — Demo-to-signup bridge**
+- Add persistent banner in demo: "This is sample data. Upload your real scans →"
+- Add "Start Free" button to every demo page header
+- Track demo page visits → signup conversion rate
+
+**G4.2 — Pricing page A/B testing**
+- Test: "Start Free" vs "Start 14-Day Pro Trial" as primary CTA
+- Test: showing annual pricing first vs monthly
+- Test: highlighting Founders Beta scarcity ("12 of 50 spots remaining")
+- Use feature flags (`packages/rollout/`) for variant assignment
+
+**G4.3 — Signup-to-upload analytics**
+- Track funnel: visit → signup → first upload → first triage → paid conversion
+- Add events at each step (use existing `packages/observability/`)
+- Weekly report: where users drop off, time-to-first-upload, conversion rate by source
+
+**G4.4 — UTM tracking across all channels**
+- CLI: `?ref=cli`
+- X posts: `?ref=x&post={id}`
+- LinkedIn: `?ref=linkedin`
+- Blog: `?ref=blog&slug={slug}`
+- Demo: `?ref=demo`
+- Store UTM source on Organization record for attribution
+
+#### Wave G5: Vertical GTM (High Impact, High Effort)
+
+**G5.1 — CMMC compliance package**
+- Bundle: CLI scan + platform triage + POAM export + SPRS score
+- Target: defense contractors with CMMC Level 2 deadline (Nov 10, 2026)
+- Outreach: CMMC-AB marketplace listing, defense industry events, PTAC offices
+- Content: "CMMC compliance in 30 days with CVERiskPilot" blog post + landing page
+- Price: Pro tier ($149/mo) positioned as "fraction of consultant cost ($5K-50K)"
+
+**G5.2 — SOC 2 readiness report**
+- Free tool: upload scan → get SOC 2 gap analysis PDF
+- Email-gated: requires signup to download
+- Shows: which controls are affected, what to fix, estimated effort
+- Upsell: "Track remediation progress with CVERiskPilot Pro"
+
+**G5.3 — Healthcare compliance package**
+- HIPAA-focused landing page (similar to /government and /cmmc)
+- Highlight: PHI/ePHI risk assessment, HIPAA control mapping, breach notification workflow
+- Target: healthcare IT teams, HIPAA security officers
+
+**G5.4 — Partner/reseller program**
+- For MSSPs and security consultants
+- White-label option (MSSP tier already supports it)
+- Revenue share: 20% recurring commission
+- Onboarding: dedicated partner portal, co-branded reports
+
+### GTM Priority Matrix
+
+| Wave | Effort | Revenue Impact | Timeline |
+|------|--------|---------------|----------|
+| G1 (CLI bridge) | Low | High — converts existing CLI users | Week 1 |
+| G2 (Email nurture) | Medium | High — reduces churn, drives upgrades | Week 1-2 |
+| G3 (Content amplification) | Low | Medium — expands reach 3-5x | Week 2-3 |
+| G4 (Conversion optimization) | Medium | High — improves funnel efficiency | Week 3-4 |
+| G5 (Vertical GTM) | High | Very High — opens enterprise pipeline | Week 4-8 |
+
+### Immediate Actions (this week)
+1. Add CLI upload CTA to scan output (G1.1) — 30 min
+2. Add blog email subscribe CTA (G2.4) — 1 hour
+3. Add demo-to-signup banner (G4.1) — 1 hour
+4. Add UTM tracking to signup route (G4.4) — 2 hours
+5. Publish "Compliance Control of the Week" first post on X (G3.4) — use existing autopilot
+
+---
+
 ### Known Issues
 - `complianceScores` returns empty array (scheduled for Wave R3.3)
 - Demo route group `(demo)` duplicates dashboard logic — could share components better

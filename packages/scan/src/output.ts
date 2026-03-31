@@ -9,6 +9,7 @@ import { createRequire } from 'node:module';
 import type { CanonicalFinding } from './vendor/parsers/types.js';
 import { mapFindingsToComplianceImpact } from './vendor/compliance/mapping/cross-framework.js';
 import type { ComplianceImpactReport } from './vendor/compliance/mapping/cross-framework.js';
+import type { AiEnrichmentResult } from './ai/types.js';
 
 const __require = createRequire(import.meta.url);
 const PKG_VERSION: string = (__require('../package.json') as { version: string }).version;
@@ -76,6 +77,7 @@ export interface ScanSummary {
   exitCode: number;
   durationMs: number;
   activeFrameworks?: string[];
+  aiResult?: AiEnrichmentResult;
 }
 
 export function formatOutput(summary: ScanSummary, format: OutputFormat): string {
@@ -211,6 +213,13 @@ function formatTable(summary: ScanSummary): string {
           lines.push(`  ${c(CYAN, indent + line)}`),
         );
       }
+      // Line 6: AI remediation (inline per-finding)
+      const findingIdx = summary.findings.indexOf(f);
+      if (summary.aiResult?.remediations.has(findingIdx)) {
+        wrapText(`→ AI: ${summary.aiResult.remediations.get(findingIdx)!}`, detailMax).forEach(line =>
+          lines.push(`  ${c(GREEN, indent + line)}`),
+        );
+      }
     }
 
     if (summary.findings.length > displayLimit) {
@@ -247,6 +256,50 @@ function formatTable(summary: ScanSummary): string {
     lines.push('');
     lines.push(`  ${c(DIM, `Total: ${impact.totalAffectedControls} controls affected across ${impact.frameworkSummary.length} frameworks`)}`);
     lines.push('');
+  }
+
+  // AI Enrichment (if available)
+  if (summary.aiResult) {
+    const ai = summary.aiResult;
+    lines.push(c(BOLD + CYAN, '  AI Risk Assessment'));
+    lines.push(c(DIM, '  ' + '\u2500'.repeat(Math.min(contentWidth, 80))));
+    lines.push(c(DIM, `  Generated locally via offline LLM in ${ai.durationMs}ms. No data sent externally.`));
+    lines.push('');
+
+    if (ai.riskSummary) {
+      wrapText(ai.riskSummary, contentWidth - 4).forEach(line =>
+        lines.push(`  ${line}`),
+      );
+      lines.push('');
+    }
+
+    if (ai.remediations.size > 0) {
+      lines.push(c(BOLD, '  AI Remediations'));
+      for (const [idx, text] of ai.remediations) {
+        const finding = summary.findings[idx];
+        const label = finding ? finding.title.slice(0, 60) : `Finding #${idx}`;
+        lines.push(`  ${c(YELLOW, `[${idx}]`)} ${label}`);
+        wrapText(`    ${text}`, contentWidth - 4).forEach(line =>
+          lines.push(`  ${line}`),
+        );
+      }
+      lines.push('');
+    }
+
+    if (ai.priorityOrder.length > 0) {
+      lines.push(c(BOLD, '  Remediation Priority'));
+      ai.priorityOrder.forEach((idx, rank) => {
+        const finding = summary.findings[idx];
+        const label = finding ? `${finding.severity} — ${finding.title.slice(0, 50)}` : `Finding #${idx}`;
+        lines.push(`  ${c(CYAN, `${rank + 1}.`)} ${label}`);
+      });
+      lines.push('');
+    }
+
+    if (ai.errors.length > 0) {
+      lines.push(c(DIM, `  AI warnings: ${ai.errors.join('; ')}`));
+      lines.push('');
+    }
   }
 
   // Exit code explanation
@@ -288,7 +341,7 @@ function formatJson(summary: ScanSummary): string {
       dependencies: summary.depsCount,
       ecosystems: summary.ecosystems,
       verdictSummary: countByVerdict(summary.findings),
-      findings: summary.findings.map((f) => ({
+      findings: summary.findings.map((f, idx) => ({
         title: f.title,
         severity: f.severity,
         verdict: f.verdict ?? 'TRUE_POSITIVE',
@@ -305,7 +358,10 @@ function formatJson(summary: ScanSummary): string {
         ...(f.fixedVersion && { fixedVersion: f.fixedVersion }),
         ...(f.advisoryUrl && { advisoryUrl: f.advisoryUrl }),
         ...(f.recommendation && { recommendation: f.recommendation }),
+        ...(summary.aiResult?.remediations.has(idx) && { aiRemediation: summary.aiResult.remediations.get(idx) }),
       })),
+      ...(summary.aiResult?.riskSummary ? { aiRiskSummary: summary.aiResult.riskSummary } : {}),
+      ...(summary.aiResult && summary.aiResult.priorityOrder.length > 0 ? { aiPriorityOrder: summary.aiResult.priorityOrder } : {}),
       complianceImpact: impact
         ? {
             totalAffectedControls: impact.totalAffectedControls,
@@ -323,6 +379,17 @@ function formatJson(summary: ScanSummary): string {
             })),
           }
         : null,
+      ...(summary.aiResult
+        ? {
+            aiAnalysis: {
+              durationMs: summary.aiResult.durationMs,
+              riskSummary: summary.aiResult.riskSummary || undefined,
+              remediations: Object.fromEntries(summary.aiResult.remediations),
+              priorityOrder: summary.aiResult.priorityOrder,
+              errors: summary.aiResult.errors.length > 0 ? summary.aiResult.errors : undefined,
+            },
+          }
+        : {}),
     },
     null,
     2,
@@ -402,6 +469,42 @@ function formatMarkdown(summary: ScanSummary): string {
     lines.push('');
     lines.push(`**Total:** ${impact.totalAffectedControls} controls affected across ${impact.frameworkSummary.length} frameworks`);
     lines.push('');
+  }
+
+  // AI Risk Assessment
+  if (summary.aiResult) {
+    const ai = summary.aiResult;
+    lines.push('## AI Risk Assessment');
+    lines.push('');
+    lines.push(`> Generated locally via offline LLM in ${ai.durationMs}ms. No data sent externally.`);
+    lines.push('');
+
+    if (ai.riskSummary) {
+      lines.push(ai.riskSummary);
+      lines.push('');
+    }
+
+    if (ai.remediations.size > 0) {
+      lines.push('### Remediations');
+      lines.push('');
+      for (const [idx, text] of ai.remediations) {
+        const finding = summary.findings[idx];
+        const label = finding ? finding.title : `Finding #${idx}`;
+        lines.push(`- **${label}**: ${text}`);
+      }
+      lines.push('');
+    }
+
+    if (ai.priorityOrder.length > 0) {
+      lines.push('### Remediation Priority');
+      lines.push('');
+      ai.priorityOrder.forEach((idx, rank) => {
+        const finding = summary.findings[idx];
+        const label = finding ? `${finding.severity} — ${finding.title}` : `Finding #${idx}`;
+        lines.push(`${rank + 1}. ${label}`);
+      });
+      lines.push('');
+    }
   }
 
   lines.push('## Exit Status');

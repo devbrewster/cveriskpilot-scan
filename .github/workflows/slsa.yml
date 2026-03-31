@@ -71,8 +71,10 @@ jobs:
 
       - name: Output image reference
         id: image
+        env:
+          IMAGE_REF: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}
         run: |
-          echo "image=${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE_REF}" >> "$GITHUB_OUTPUT"
 
   # ── SLSA provenance generation ───────────────────────────────────────────
   provenance:
@@ -102,8 +104,12 @@ jobs:
         uses: slsa-framework/slsa-verifier/actions/installer@v2.6.0
 
       - name: Verify SLSA provenance
+        env:
+          IMAGE: ${{ needs.build.outputs.image }}
+          DIGEST: ${{ needs.build.outputs.digest }}
+          REPO: ${{ github.repository }}
         run: |
           slsa-verifier verify-image \
-            "${{ needs.build.outputs.image }}@${{ needs.build.outputs.digest }}" \
-            --source-uri "github.com/${{ github.repository }}" \
+            "${IMAGE}@${DIGEST}" \
+            --source-uri "github.com/${REPO}" \
             --source-branch "main"

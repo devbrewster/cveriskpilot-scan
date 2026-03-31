@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.14 (2026-03-31)
+
+### Features
+
+- **Offline AI enrichment** (`--ai`) — local LLM integration via Ollama or llama.cpp for AI-powered remediation guidance, executive risk summaries, and priority ordering
+- **Secured by design** — AI client enforces localhost-only connections (`validateLocalhostUrl()`), strips sensitive data before LLM inference, zero external dependencies
+- **Auto-detection** — automatically discovers running Ollama or llama.cpp servers, no configuration needed
+- **Time-budgeted** — AI phase runs within configurable time limit (default 120s), returns partial results on timeout
+- **All output formats** — AI analysis rendered in table, JSON, markdown, and SARIF output
+- **Zero overhead** — dynamic imports ensure no performance impact when `--ai` is not used
+
+### CLI Flags
+
+- `--ai` — enable offline AI enrichment
+- `--ai-provider <name>` — force provider (ollama/llamacpp, auto-detected by default)
+- `--ai-model <model>` — model name (default: llama3.2)
+- `--ai-url <url>` — LLM endpoint URL (must be localhost)
+
 ## 0.1.13 (2026-03-31)
 
 ### Features

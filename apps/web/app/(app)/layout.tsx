@@ -3,6 +3,7 @@ import { Header } from '@/components/layout/header';
 import { ToastProvider } from '@/components/ui/toast';
 import { ClientContextProvider } from '@/components/layout/client-context-provider';
 import { AuthContextProvider } from '@/components/layout/auth-context-provider';
+import { TrialBanner } from '@/components/layout/trial-banner';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -10,6 +11,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AuthContextProvider>
           <ClientContextProvider>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+              <TrialBanner />
               <Sidebar />
               <div className="pl-64">
                 <Header />

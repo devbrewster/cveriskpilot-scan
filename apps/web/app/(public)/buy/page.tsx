@@ -1,10 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 type Plan = 'FREE' | 'FOUNDERS_BETA' | 'PRO';
 type BillingInterval = 'monthly' | 'annual';
+
+interface FoundersSpots {
+  total: number;
+  taken: number;
+  remaining: number;
+}
 
 const PLANS = [
   {
@@ -12,25 +18,25 @@ const PLANS = [
     name: 'Free',
     monthlyPrice: 0,
     annualPrice: 0,
-    description: 'Try the scanner — no credit card needed',
-    features: ['1 user', '50 assets', '3 uploads / month', '50 AI calls / month', 'CLI scanner access'],
+    description: 'Unlimited CLI scans with compliance mapping',
+    features: ['1 user', '50 assets', '3 uploads / month', '50 AI calls / month', 'Unlimited CLI scans', '6 compliance frameworks'],
   },
   {
     id: 'FOUNDERS_BETA' as Plan,
     name: 'Founders Beta',
     monthlyPrice: 29,
     annualPrice: 278,
-    description: 'Locked pricing for early adopters',
-    features: ['5 users', '250 assets', 'Unlimited uploads', '250 AI calls / month', 'CLI scanner access', 'Priority support'],
+    description: 'Everything in Pro — locked at early adopter pricing forever',
+    features: ['5 users', '250 assets', 'Unlimited uploads', '250 AI calls / month', 'All Pro features', 'Price locked forever'],
     badge: 'Best Value',
   },
   {
     id: 'PRO' as Plan,
     name: 'Pro',
-    monthlyPrice: 49,
-    annualPrice: 470,
-    description: 'Full platform with dashboard access',
-    features: ['10 users', '500 assets', 'Unlimited uploads', '500 AI calls / month', 'CLI scanner access', 'Full web dashboard', 'Compliance mapping', 'PDF/CSV reports'],
+    monthlyPrice: 149,
+    annualPrice: 1428,
+    description: 'Full compliance automation for security teams',
+    features: ['10 users', '1,000 assets', 'Unlimited uploads', '1,000 AI calls / month', 'POAM auto-generation', 'Jira & ServiceNow sync', 'Executive PDF reports', 'SLA policy engine'],
     badge: 'Most Popular',
   },
 ];
@@ -41,9 +47,26 @@ export default function BuyPage() {
   const [interval, setInterval] = useState<BillingInterval>('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [foundersSpots, setFoundersSpots] = useState<FoundersSpots | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  useEffect(() => {
+    fetch('/api/billing/founders-spots')
+      .then((res) => res.json())
+      .then((data: FoundersSpots) => {
+        setFoundersSpots(data);
+        // If sold out and Founders Beta is selected, switch to Pro
+        if (data.remaining === 0 && selectedPlan === 'FOUNDERS_BETA') {
+          setSelectedPlan('PRO');
+        }
+      })
+      .catch(() => {
+        // Silently fail — hardcoded fallback is fine
+      });
+  }, []);
+
+  const foundersSoldOut = foundersSpots !== null && foundersSpots.remaining === 0;
+
+  async function handlePurchase(startTrial = false) {
     if (!email) {
       setError('Email is required');
       return;
@@ -55,7 +78,12 @@ export default function BuyPage() {
       const res = await fetch('/api/billing/quick-purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, plan: selectedPlan, billingInterval: interval }),
+        body: JSON.stringify({
+          email,
+          plan: selectedPlan,
+          billingInterval: interval,
+          ...(startTrial ? { trial: true } : {}),
+        }),
       });
 
       const data = await res.json();
@@ -66,7 +94,9 @@ export default function BuyPage() {
         return;
       }
 
-      if (data.checkoutUrl) {
+      if (data.trial) {
+        window.location.href = '/buy/success?plan=pro-trial';
+      } else if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
       } else {
         window.location.href = '/buy/success?plan=free';
@@ -77,8 +107,13 @@ export default function BuyPage() {
     }
   }
 
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    handlePurchase(false);
+  }
+
   return (
-    <div className="space-y-10">
+    <div className="mx-auto max-w-6xl space-y-10">
       {/* Hero */}
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
@@ -121,24 +156,33 @@ export default function BuyPage() {
         </div>
       </div>
 
-      {/* Plan cards — full width grid */}
+      {/* Plan cards — wide desktop layout */}
       <div className="grid gap-6 lg:grid-cols-3">
         {PLANS.map((plan) => {
           const price = interval === 'annual' ? plan.annualPrice : plan.monthlyPrice;
           const isSelected = selectedPlan === plan.id;
+          const isFoundersBeta = plan.id === 'FOUNDERS_BETA';
+          const isDisabled = isFoundersBeta && foundersSoldOut;
 
           return (
             <button
               key={plan.id}
               type="button"
-              onClick={() => setSelectedPlan(plan.id)}
+              onClick={() => !isDisabled && setSelectedPlan(plan.id)}
+              disabled={isDisabled}
               className={`relative rounded-2xl border-2 p-8 text-left transition-all ${
-                isSelected
-                  ? 'border-primary-600 bg-primary-50/50 shadow-lg shadow-primary-600/10 ring-1 ring-primary-600 dark:bg-primary-950/20'
-                  : 'border-gray-200 bg-white shadow-sm hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
+                isDisabled
+                  ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60 dark:border-gray-800 dark:bg-gray-950'
+                  : isSelected
+                    ? 'border-primary-600 bg-primary-50/50 shadow-lg shadow-primary-600/10 ring-1 ring-primary-600 dark:bg-primary-950/20'
+                    : 'border-gray-200 bg-white shadow-sm hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
               }`}
             >
-              {plan.badge && (
+              {isDisabled ? (
+                <span className="absolute -top-3 right-4 rounded-full bg-gray-500 px-3 py-1 text-xs font-semibold text-white">
+                  Sold Out
+                </span>
+              ) : plan.badge ? (
                 <span className={`absolute -top-3 right-4 rounded-full px-3 py-1 text-xs font-semibold ${
                   plan.badge === 'Most Popular'
                     ? 'bg-primary-600 text-white'
@@ -146,15 +190,17 @@ export default function BuyPage() {
                 }`}>
                   {plan.badge}
                 </span>
-              )}
+              ) : null}
 
               <div className="flex items-center gap-3">
                 <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
-                  isSelected
-                    ? 'border-primary-600 bg-primary-600'
-                    : 'border-gray-300 dark:border-gray-600'
+                  isDisabled
+                    ? 'border-gray-300 dark:border-gray-600'
+                    : isSelected
+                      ? 'border-primary-600 bg-primary-600'
+                      : 'border-gray-300 dark:border-gray-600'
                 }`}>
-                  {isSelected && (
+                  {isSelected && !isDisabled && (
                     <svg className="h-3 w-3 text-white" viewBox="0 0 12 12">
                       <path d="M10 3L4.5 8.5 2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
@@ -163,12 +209,47 @@ export default function BuyPage() {
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
               </div>
 
+              {/* Founders Beta spots counter */}
+              {isFoundersBeta && foundersSpots && (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">
+                      {foundersSpots.taken} of {foundersSpots.total} spots claimed
+                    </span>
+                    <span className={`font-semibold ${
+                      foundersSpots.remaining === 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : foundersSpots.remaining < 10
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-green-600 dark:text-green-400'
+                    }`}>
+                      {foundersSpots.remaining === 0
+                        ? 'Sold out'
+                        : `${foundersSpots.remaining} left`
+                      }
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        foundersSpots.remaining === 0
+                          ? 'bg-red-500'
+                          : foundersSpots.remaining < 10
+                            ? 'bg-amber-500'
+                            : 'bg-primary-600'
+                      }`}
+                      style={{ width: `${(foundersSpots.taken / foundersSpots.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="mt-6">
                 {price === 0 ? (
                   <span className="text-4xl font-bold text-gray-900 dark:text-white">Free</span>
                 ) : (
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-gray-900 dark:text-white">
+                    <span className={`text-4xl font-bold ${isDisabled ? 'text-gray-400 line-through dark:text-gray-600' : 'text-gray-900 dark:text-white'}`}>
                       ${interval === 'annual' ? Math.round(price / 12) : price}
                     </span>
                     <span className="text-base text-gray-500 dark:text-gray-400">/mo</span>
@@ -226,18 +307,31 @@ export default function BuyPage() {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-primary-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading
-              ? 'Setting up...'
-              : selectedPlan === 'FREE'
-                ? 'Get free API key'
-                : `Continue to checkout — $${interval === 'annual' ? PLANS.find(p => p.id === selectedPlan)!.annualPrice : PLANS.find(p => p.id === selectedPlan)!.monthlyPrice}${interval === 'annual' ? '/yr' : '/mo'}`
-            }
-          </button>
+          <div className="flex items-end gap-3">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-primary-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading
+                ? 'Setting up...'
+                : selectedPlan === 'FREE'
+                  ? 'Get free API key'
+                  : `Continue to checkout — $${interval === 'annual' ? PLANS.find(p => p.id === selectedPlan)!.annualPrice : PLANS.find(p => p.id === selectedPlan)!.monthlyPrice}${interval === 'annual' ? '/yr' : '/mo'}`
+              }
+            </button>
+
+            {selectedPlan === 'PRO' && (
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => handlePurchase(true)}
+                className="rounded-lg border border-primary-600 px-6 py-3 text-sm font-semibold text-primary-600 transition-colors hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-950/20"
+              >
+                Start 14-day free trial
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-400 dark:text-gray-500">

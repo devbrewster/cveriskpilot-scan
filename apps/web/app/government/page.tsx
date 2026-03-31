@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { NavBar } from "@/components/landing/nav-bar";
 import { Footer } from "@/components/landing/footer";
+import { CmmcCountdown } from "@/components/landing/cmmc-countdown";
 
 export const metadata: Metadata = {
   title: "CVERiskPilot for Government | SDVOSB Veteran-Owned",
@@ -248,6 +249,46 @@ export default function GovernmentPage() {
           </div>
         </section>
 
+        {/* ── CMMC Deadline Countdown ──────────────────────────── */}
+        <section className="border-b border-gray-800 bg-slate-950 py-16 sm:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-3xl">
+              <CmmcCountdown
+                targetDate="2026-11-10T00:00:00-05:00"
+                label="CMMC Level 2 Deadline"
+              />
+
+              <div className="mt-8 text-center">
+                <p className="text-lg text-gray-300">
+                  Are you ready? Run a CMMC self-assessment in 90 seconds.
+                </p>
+
+                {/* Copyable command */}
+                <div className="mx-auto mt-5 max-w-lg">
+                  <pre className="overflow-x-auto rounded-xl border border-gray-700 bg-gray-900 px-5 py-4 text-left text-sm text-green-400">
+                    <code>npx @cveriskpilot/scan --preset defense</code>
+                  </pre>
+                </div>
+
+                <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                  <Link
+                    href="/buy"
+                    className="inline-flex items-center justify-center rounded-xl bg-primary-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary-600/25 transition-all hover:bg-primary-500 hover:shadow-xl hover:shadow-primary-500/30"
+                  >
+                    Get Started
+                  </Link>
+                  <Link
+                    href="/cmmc"
+                    className="inline-flex items-center justify-center rounded-xl border border-primary-500/30 bg-primary-500/10 px-8 py-3.5 text-base font-semibold text-primary-300 transition-all hover:border-primary-400/50 hover:bg-primary-500/20"
+                  >
+                    CMMC Compliance Details
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── Compliance Capabilities ──────────────────────────── */}
         <section className="bg-gray-950 py-20 sm:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -350,14 +391,14 @@ export default function GovernmentPage() {
                   For individual security teams and small agencies.
                 </p>
                 <div className="mt-6 flex items-baseline">
-                  <span className="text-4xl font-extrabold tabular-nums text-white">$49</span>
+                  <span className="text-4xl font-extrabold tabular-nums text-white">$149</span>
                   <span className="ml-1 text-sm text-gray-400">/month</span>
                 </div>
                 <ul className="mt-8 space-y-3">
                   {[
                     "10 users",
                     "Unlimited uploads",
-                    "500 AI remediation calls",
+                    "1,000 AI remediation calls",
                     "POAM generation",
                     "Priority support",
                   ].map((f) => (
@@ -387,14 +428,14 @@ export default function GovernmentPage() {
                   For agencies with advanced compliance and SSO needs.
                 </p>
                 <div className="mt-6 flex items-baseline">
-                  <span className="text-4xl font-extrabold tabular-nums text-white">$199</span>
-                  <span className="ml-1 text-sm text-gray-400">/month</span>
+                  <span className="text-4xl font-extrabold tabular-nums text-white">Custom</span>
                 </div>
+                <p className="mt-1 text-xs text-gray-500">Tailored to your agency</p>
                 <ul className="mt-8 space-y-3">
                   {[
-                    "50 users",
+                    "Unlimited users & assets",
                     "Unlimited uploads",
-                    "5,000 AI remediation calls",
+                    "Unlimited AI remediation calls",
                     "SSO / SAML / SCIM",
                     "NIST 800-53 mapping",
                     "CMMC Level 2 tracking",

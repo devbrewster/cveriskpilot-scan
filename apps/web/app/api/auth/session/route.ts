@@ -23,12 +23,14 @@ export async function GET(request: NextRequest) {
       const session = auth;
       // Look up the org's actual tier from the database
       let tier = 'FREE';
+      let trialEndsAt: string | null = null;
       try {
         const org = await prisma.organization.findUnique({
           where: { id: session.organizationId },
-          select: { tier: true },
+          select: { tier: true, trialEndsAt: true },
         });
         if (org?.tier) tier = org.tier;
+        if (org?.trialEndsAt) trialEndsAt = org.trialEndsAt.toISOString();
       } catch {
         // DB unavailable — default to FREE
       }
@@ -41,6 +43,7 @@ export async function GET(request: NextRequest) {
         clientId: session.clientId ?? null,
         clientName: session.clientName ?? null,
         tier,
+        trialEndsAt,
       });
     }
   } catch {
@@ -57,12 +60,14 @@ export async function GET(request: NextRequest) {
         );
         // Look up org tier from DB for dev sessions too
         let devTier = data.tier ?? 'FREE';
+        let devTrialEndsAt: string | null = null;
         try {
           const org = await prisma.organization.findUnique({
             where: { id: data.organizationId },
-            select: { tier: true },
+            select: { tier: true, trialEndsAt: true },
           });
           if (org?.tier) devTier = org.tier;
+          if (org?.trialEndsAt) devTrialEndsAt = org.trialEndsAt.toISOString();
         } catch {
           // DB unavailable — use cookie value
         }
@@ -75,6 +80,7 @@ export async function GET(request: NextRequest) {
           clientId: data.clientId ?? null,
           clientName: data.clientName ?? null,
           tier: devTier,
+          trialEndsAt: devTrialEndsAt,
         });
       } catch {
         // Invalid dev cookie — fall through

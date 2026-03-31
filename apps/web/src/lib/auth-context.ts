@@ -24,6 +24,8 @@ export interface AuthContextValue {
   role: UserRole | null;
   email: string | null;
   tier: string | null;
+  /** ISO date string — set when org is on a Pro trial */
+  trialEndsAt: string | null;
   clientId: string | null;
   clientName: string | null;
 }
@@ -36,6 +38,7 @@ export const AuthContext = createContext<AuthContextValue>({
   role: null,
   email: null,
   tier: null,
+  trialEndsAt: null,
   clientId: null,
   clientName: null,
 });

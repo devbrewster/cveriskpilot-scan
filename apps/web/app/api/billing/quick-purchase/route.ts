@@ -41,10 +41,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { email, plan, billingInterval = 'monthly' } = body as {
+    const { email, plan, billingInterval = 'monthly', trial = false } = body as {
       email?: string;
       plan?: string;
       billingInterval?: string;
+      trial?: boolean;
     };
 
     if (!email || typeof email !== 'string') {
@@ -96,16 +97,47 @@ export async function POST(request: NextRequest) {
 
     const PAID_PLANS = new Set(['FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
 
+    // Block Founders Beta signups when all 50 spots are taken
+    if (normalizedPlan === 'FOUNDERS_BETA') {
+      const foundersBetaCount = await prisma.organization.count({
+        where: { tier: 'FOUNDERS_BETA' },
+      });
+      if (foundersBetaCount >= 50) {
+        return NextResponse.json(
+          { error: 'Founders Beta is sold out. Upgrade to Pro instead.' },
+          { status: 409 },
+        );
+      }
+    }
+
+    // Handle 14-day Pro trial — skip Stripe, upgrade org directly
+    if (trial && normalizedPlan === 'PRO') {
+      await prisma.organization.update({
+        where: { id: result.organizationId },
+        data: {
+          tier: 'PRO',
+          trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      const response = NextResponse.json(
+        { success: true, checkoutUrl: null, trial: true },
+        { status: 201 },
+      );
+      setSessionCookie(response, sessionId);
+      return response;
+    }
+
     if (normalizedPlan && PAID_PLANS.has(normalizedPlan)) {
       const validInterval = billingInterval === 'annual' ? 'annual' : 'monthly';
       const priceKey = validInterval === 'annual'
         ? `${normalizedPlan}_ANNUAL`
         : `${normalizedPlan}_MONTHLY`;
 
-      const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
+      const priceGetter = (STRIPE_PRICES as Record<string, (() => string | null) | undefined>)[priceKey];
       const priceId = priceGetter?.();
 
-      if (priceId) {
+      if (priceId && priceId.length > 0) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_BASE_URL || 'http://localhost:3000';
         const checkout = await createCheckoutSession({
           organizationId: result.organizationId,

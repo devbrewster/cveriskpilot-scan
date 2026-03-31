@@ -12,6 +12,7 @@ function applySession(data: Record<string, unknown>): AuthContextValue {
     role: data.role as UserRole,
     email: data.email as string,
     tier: (data.tier as string) ?? 'FREE',
+    trialEndsAt: (data.trialEndsAt as string) ?? null,
     clientId: (data.clientId as string) ?? null,
     clientName: (data.clientName as string) ?? null,
   };
@@ -26,6 +27,7 @@ export function AuthContextProvider({ children }: { children: React.ReactNode })
     role: null,
     email: null,
     tier: null,
+    trialEndsAt: null,
     clientId: null,
     clientName: null,
   });

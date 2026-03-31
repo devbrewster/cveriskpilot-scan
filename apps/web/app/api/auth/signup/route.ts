@@ -40,12 +40,13 @@ export async function POST(request: NextRequest) {
     // Parse body first before anything else
     const body = await request.json() as Record<string, unknown>;
 
-    const { name, email, password, orgName, plan } = body as {
+    const { name, email, password, orgName, plan, billingInterval } = body as {
       name?: string;
       email?: string;
       password?: string;
       orgName?: string;
       plan?: string;
+      billingInterval?: string;
     };
 
     // Validate required fields
@@ -118,12 +119,26 @@ export async function POST(request: NextRequest) {
     // Webhook will upgrade tier on checkout.session.completed
     const PAID_PLANS = new Set(['FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
 
+    // Block Founders Beta signups when all 50 spots are taken
+    if (normalizedPlan === 'FOUNDERS_BETA') {
+      const foundersBetaCount = await prisma.organization.count({
+        where: { tier: 'FOUNDERS_BETA' },
+      });
+      if (foundersBetaCount >= 50) {
+        return NextResponse.json(
+          { error: 'Founders Beta is sold out. Upgrade to Pro instead.' },
+          { status: 409 },
+        );
+      }
+    }
+
     if (normalizedPlan && PAID_PLANS.has(normalizedPlan)) {
-      const priceKey = `${normalizedPlan}_MONTHLY`;
-      const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
+      const interval = billingInterval === 'annual' ? 'ANNUAL' : 'MONTHLY';
+      const priceKey = `${normalizedPlan}_${interval}`;
+      const priceGetter = (STRIPE_PRICES as Record<string, (() => string | null) | undefined>)[priceKey];
       const priceId = priceGetter?.();
 
-      if (priceId) {
+      if (priceId && priceId.length > 0) {
         try {
           const checkout = await createCheckoutSession({
             organizationId: result.organizationId,

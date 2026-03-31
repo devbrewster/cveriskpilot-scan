@@ -1,107 +1,113 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+
+interface FoundersSpots {
+  total: number;
+  taken: number;
+  remaining: number;
+}
 
 const plans = [
   {
     name: 'Free',
     monthlyPrice: 0,
     annualPrice: 0,
-    description: 'For individual researchers and small teams getting started.',
+    description: 'Unlimited CLI scans with full compliance mapping. No account needed.',
     features: [
-      '1 user',
-      'Pipeline scanner CLI (local scans)',
-      '3 uploads per month',
-      '3 PR comments per month',
+      'Unlimited local CLI scans',
+      '6 compliance frameworks',
+      '3 dashboard uploads per month',
+      'Auto-triage (TP / FP / Review)',
       '50 AI remediation calls',
       '50 assets',
+      'JSON, SARIF, Markdown output',
       'Community support',
-      'Standard reports',
     ],
     cta: 'Get Started Free',
     ctaHref: '/signup?plan=free',
+    planKey: 'free',
     highlighted: false,
   },
   {
     name: 'Founders Beta',
     monthlyPrice: 29,
     annualPrice: 278,
-    description: 'Early adopter pricing. Locked in forever. Only 50 spots.',
-    urgency: '12 spots remaining',
+    description: 'Everything in Pro — locked at early adopter pricing forever. Only 50 spots.',
     features: [
-      '250 assets',
-      '5 users',
-      'Pipeline scanner CLI + enriched data',
+      'Everything in Pro',
+      'Price locked forever',
+      '5 users, 250 assets',
       'Unlimited uploads',
       '100 PR comments per month',
-      '250 AI calls',
+      '250 AI triage calls',
       'Email support',
     ],
-    cta: 'Join Founders Beta',
+    cta: 'Lock In $29/mo Forever',
     ctaHref: '/signup?plan=founders_beta',
+    planKey: 'founders_beta',
     highlighted: false,
     badge: 'Limited',
   },
   {
     name: 'Pro',
-    monthlyPrice: 49,
-    annualPrice: 470,
-    description: 'For security teams that need full coverage and priority support.',
+    monthlyPrice: 149,
+    annualPrice: 1428,
+    description: 'Full compliance automation for teams preparing for SOC 2 or CMMC.',
     features: [
-      '10 users',
-      'Pipeline scanner CLI + enriched data',
-      'Unlimited uploads',
-      'Unlimited PR comments',
-      '500 AI remediation calls',
-      '500 assets',
-      'Priority support',
+      '10 users, 1,000 assets',
+      'Unlimited uploads & PR comments',
+      '1,000 AI triage & remediation calls',
+      'POAM auto-generation',
       'Executive PDF reports',
-      'Scan-over-scan comparison',
+      'Jira & ServiceNow sync',
+      'Scan-over-scan trend analysis',
       'SLA policy engine',
+      'Priority support',
     ],
-    cta: 'Get Started',
+    cta: 'Start 14-Day Trial',
     ctaHref: '/signup?plan=pro',
+    planKey: 'pro',
     highlighted: true,
   },
   {
     name: 'Enterprise',
-    monthlyPrice: 199,
-    annualPrice: 1910,
-    description: 'For organizations with advanced security and compliance needs.',
+    monthlyPrice: -1,
+    annualPrice: -1,
+    description: 'For organizations with SSO, SCIM, and advanced compliance requirements.',
     features: [
-      '50 users',
-      'Pipeline scanner CLI + enriched data',
-      'Unlimited uploads',
-      'Unlimited PR comments',
-      '5,000 AI remediation calls',
-      '5,000 assets',
-      'SSO / SAML / SCIM',
-      'Custom parser formats (coming soon)',
-      'ABAC policies',
-      'Dedicated support',
+      'Unlimited users & assets',
+      'SSO / SAML / OIDC',
+      'SCIM provisioning',
+      'ABAC policies & custom roles',
+      'Unlimited AI calls',
+      'Custom parser formats',
+      'Audit log exports',
+      'Dedicated account manager',
+      '99.9% SLA',
     ],
-    cta: 'Contact Sales',
+    cta: 'Talk to Sales',
     ctaHref: 'mailto:sales@cveriskpilot.com?subject=Enterprise%20Plan',
     highlighted: false,
   },
   {
     name: 'MSSP',
-    monthlyPrice: 499,
-    annualPrice: 4790,
-    description: 'Multi-tenant managed security service provider.',
+    monthlyPrice: -1,
+    annualPrice: -1,
+    description: 'Multi-tenant compliance platform for managed security providers.',
     features: [
-      'Unlimited everything',
-      'Pipeline scanner CLI + enriched data',
-      'Unlimited PR comments',
+      'Everything in Enterprise',
       'White-label branding',
+      'Multi-tenant isolation',
       'Per-client usage metering',
       'Bulk tenant onboarding',
-      'Usage-based billing',
-      'Full API access',
+      'Usage-based billing API',
+      'Full REST API access',
       'Dedicated support channel',
+      'Custom SLAs',
     ],
-    cta: 'Contact Sales',
+    cta: 'Talk to Sales',
     ctaHref: 'mailto:sales@cveriskpilot.com?subject=MSSP%20Plan',
     highlighted: false,
     badge: 'For MSSPs',
@@ -109,6 +115,7 @@ const plans = [
 ];
 
 function formatPrice(monthly: number, annual: number, isAnnual: boolean): string {
+  if (monthly < 0) return 'Custom';
   if (monthly === 0) return '$0';
   if (isAnnual) return `$${Math.round(annual / 12)}`;
   return `$${monthly}`;
@@ -116,6 +123,14 @@ function formatPrice(monthly: number, annual: number, isAnnual: boolean): string
 
 export function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
+  const [foundersSpots, setFoundersSpots] = useState<FoundersSpots | null>(null);
+
+  useEffect(() => {
+    fetch('/api/billing/founders-spots')
+      .then((res) => res.json())
+      .then((data: FoundersSpots) => setFoundersSpots(data))
+      .catch(() => { /* silently fail */ });
+  }, []);
 
   return (
     <section id="pricing" className="bg-white dark:bg-gray-950 py-20 sm:py-28">
@@ -126,10 +141,10 @@ export function Pricing() {
             Pricing
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-            Simple, transparent pricing
+            Compliance automation at every scale
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Start free. Upgrade when you need more power.
+            CLI scans are free forever. Full platform starts at $149/month — a fraction of what legacy compliance tools charge.
           </p>
         </div>
 
@@ -186,13 +201,22 @@ export function Pricing() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {plan.name}
               </h3>
-              {'urgency' in plan && plan.urgency && (
-                <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+              {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining > 0 && (
+                <span className={`mt-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                  foundersSpots.remaining < 10
+                    ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                }`}>
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75" />
-                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-600" />
+                    <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${foundersSpots.remaining < 10 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                    <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${foundersSpots.remaining < 10 ? 'bg-red-600' : 'bg-amber-600'}`} />
                   </span>
-                  {plan.urgency}
+                  Only {foundersSpots.remaining} spots left
+                </span>
+              )}
+              {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining === 0 && (
+                <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                  Sold Out
                 </span>
               )}
               <p className="mt-1 min-h-10 text-sm text-gray-500 dark:text-gray-400">
@@ -203,18 +227,20 @@ export function Pricing() {
                 <span className="text-4xl font-extrabold tabular-nums text-gray-900 dark:text-white">
                   {formatPrice(plan.monthlyPrice, plan.annualPrice, isAnnual)}
                 </span>
-                <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">
-                  /month
-                </span>
+                {plan.monthlyPrice >= 0 && (
+                  <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">
+                    /month
+                  </span>
+                )}
               </div>
               {isAnnual && plan.monthlyPrice > 0 && (
                 <p className="mt-1 text-xs text-primary-600 dark:text-primary-400">
                   ${plan.annualPrice}/yr billed annually
                 </p>
               )}
-              {plan.name === 'MSSP' && (
+              {plan.monthlyPrice < 0 && (
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  + per-client usage
+                  Tailored to your organization
                 </p>
               )}
 
@@ -235,16 +261,24 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <Link
-                href={plan.ctaHref}
-                className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200 ${
-                  plan.highlighted
-                    ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-500/25'
-                    : 'border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-800'
-                }`}
-              >
-                {plan.cta}
-              </Link>
+              {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining === 0 ? (
+                <span className="mt-6 block w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-100 py-2.5 text-center text-sm font-semibold text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500">
+                  Sold Out
+                </span>
+              ) : (
+                <Link
+                  href={'planKey' in plan && plan.planKey && isAnnual
+                    ? `${plan.ctaHref}&billing=annual`
+                    : plan.ctaHref}
+                  className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200 ${
+                    plan.highlighted
+                      ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-500/25'
+                      : 'border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  {plan.cta}
+                </Link>
+              )}
             </div>
           ))}
         </div>

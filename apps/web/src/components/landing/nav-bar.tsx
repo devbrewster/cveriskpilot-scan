@@ -87,14 +87,14 @@ export function NavBar() {
             Pricing
           </a>
           <Link
-            href="/docs"
+            href="/developers"
             className={`text-sm font-medium transition-colors ${
               scrolled
                 ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                 : "text-gray-300 hover:text-white"
             }`}
           >
-            Docs
+            Developers
           </Link>
           <Link
             href="/blog"
@@ -200,11 +200,11 @@ export function NavBar() {
               Pricing
             </a>
             <Link
-              href="/docs"
+              href="/developers"
               className="text-sm font-medium text-gray-600 dark:text-gray-400"
               onClick={() => setMobileOpen(false)}
             >
-              Docs
+              Developers
             </Link>
             <Link
               href="/blog"

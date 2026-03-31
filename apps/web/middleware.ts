@@ -73,9 +73,10 @@ const PUBLIC_PATHS = [
 
 const PUBLIC_PREFIXES = [
   '/demo',
-  '/docs',       // documentation is public
-  '/blog',       // blog is public
-  '/portal',     // portal has its own auth via crp_portal_session
+  '/docs',         // documentation is public
+  '/developers',   // developer portal is public
+  '/blog',         // blog is public
+  '/portal',       // portal has its own auth via crp_portal_session
   '/_next',
 ];
 
@@ -96,6 +97,7 @@ const API_PUBLIC_PATHS = [
   '/api/billing/webhook',                   // Stripe webhook (signature verification)
   '/api/cron/expire-trials',                 // cron uses CRON_SECRET auth
   '/api/pipeline/scan',                     // uses API key auth, not session
+  '/api/events/ingest',                     // scanner webhook ingestion (API key auth)
   '/api/health',
   '/api/docs',
 ];

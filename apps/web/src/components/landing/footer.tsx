@@ -139,26 +139,26 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/docs"
+                  href="/developers"
                   className="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
-                  Documentation
+                  Developer Portal
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/docs/cli"
+                  href="/developers/webhooks"
+                  className="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                >
+                  Webhooks
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/developers#cli"
                   className="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
                   CLI Reference
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/docs/github-action"
-                  className="text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                >
-                  GitHub Action
                 </Link>
               </li>
             </ul>

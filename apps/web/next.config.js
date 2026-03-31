@@ -8,6 +8,8 @@ const rootPkg = JSON.parse(readFileSync(resolve(__dirname, '../../package.json')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Use separate dist dir in dev to avoid root-owned .next permission conflicts
+  ...(process.env.NODE_ENV !== 'production' && { distDir: '.next-dev' }),
   env: {
     NEXT_PUBLIC_APP_VERSION: rootPkg.version,
   },

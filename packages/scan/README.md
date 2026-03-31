@@ -38,10 +38,11 @@ crp-scan /path/to/your/project
 
 ## What It Does
 
-1. **Scans** your project for vulnerabilities across three dimensions:
+1. **Scans** your project for vulnerabilities across four dimensions:
    - **SBOM/SCA** — Detects vulnerable dependencies in `package-lock.json`, `yarn.lock`, `requirements.txt`, `Cargo.lock`, `go.sum`, and more
    - **Secrets** — Finds hardcoded API keys, passwords, private keys, and tokens using 30+ regex patterns + entropy detection
    - **IaC** — Checks Terraform, Dockerfile, Kubernetes YAML, and CloudFormation for security misconfigurations
+   - **API Routes** — Detects missing authentication, CSRF protection, and input validation on API endpoints
 
 2. **Maps** every finding to compliance controls via CWE:
    ```

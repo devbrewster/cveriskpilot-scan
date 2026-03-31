@@ -66,9 +66,9 @@ So we did.
 
 ---
 
-## One Command. Three Scanners. Six Frameworks.
+## One Command. Four Scanners. Six Frameworks.
 
-We built [Pipeline Compliance Scanner](https://npmjs.com/package/@cveriskpilot/scan) to close this gap. It's a free CLI that runs three scanners in a single command and maps every finding through the full compliance chain.
+We built [Pipeline Compliance Scanner](https://npmjs.com/package/@cveriskpilot/scan) to close this gap. It's a free CLI that runs four scanners in a single command and maps every finding through the full compliance chain.
 
 ```bash
 npx @cveriskpilot/scan --preset startup

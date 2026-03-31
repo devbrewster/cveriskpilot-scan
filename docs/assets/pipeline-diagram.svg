@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="Inter, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+    <linearGradient id="scanner" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f"/>
+      <stop offset="100%" style="stop-color:#172554"/>
+    </linearGradient>
+    <linearGradient id="engine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#14532d"/>
+      <stop offset="100%" style="stop-color:#052e16"/>
+    </linearGradient>
+    <linearGradient id="framework" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4c1d95"/>
+      <stop offset="100%" style="stop-color:#3b0764"/>
+    </linearGradient>
+    <linearGradient id="output" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#713f12"/>
+      <stop offset="100%" style="stop-color:#451a03"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="900" fill="url(#bg)" rx="12"/>
+
+  <!-- Title -->
+  <text x="600" y="45" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="700">CVERiskPilot Pipeline Architecture</text>
+  <text x="600" y="68" text-anchor="middle" fill="#94a3b8" font-size="13">One command. Four scanners. Six frameworks. Full compliance mapping.</text>
+
+  <!-- STAGE 1: Scanners -->
+  <text x="60" y="110" fill="#60a5fa" font-size="11" font-weight="600" letter-spacing="2">STAGE 1 — SCAN</text>
+
+  <!-- Scanner boxes -->
+  <rect x="40" y="120" width="260" height="100" rx="8" fill="url(#scanner)" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="170" y="145" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">SBOM / SCA</text>
+  <text x="170" y="165" text-anchor="middle" fill="#cbd5e1" font-size="10">package-lock, yarn.lock, go.sum</text>
+  <text x="170" y="180" text-anchor="middle" fill="#cbd5e1" font-size="10">requirements.txt, Cargo.lock</text>
+  <text x="170" y="200" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">897 deps scanned</text>
+
+  <rect x="320" y="120" width="260" height="100" rx="8" fill="url(#scanner)" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="450" y="145" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">Secrets</text>
+  <text x="450" y="165" text-anchor="middle" fill="#cbd5e1" font-size="10">30+ regex patterns + entropy</text>
+  <text x="450" y="180" text-anchor="middle" fill="#cbd5e1" font-size="10">API keys, tokens, passwords</text>
+  <text x="450" y="200" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">1,001 files scanned</text>
+
+  <rect x="600" y="120" width="260" height="100" rx="8" fill="url(#scanner)" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="730" y="145" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">IaC</text>
+  <text x="730" y="165" text-anchor="middle" fill="#cbd5e1" font-size="10">Terraform, Dockerfile, K8s</text>
+  <text x="730" y="180" text-anchor="middle" fill="#cbd5e1" font-size="10">CloudFormation, Compose</text>
+  <text x="730" y="200" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">22 files, 29 rules</text>
+
+  <rect x="880" y="120" width="270" height="100" rx="8" fill="url(#scanner)" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1015" y="145" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="700">API Routes</text>
+  <text x="1015" y="165" text-anchor="middle" fill="#cbd5e1" font-size="10">Auth checks, CSRF, input val</text>
+  <text x="1015" y="180" text-anchor="middle" fill="#cbd5e1" font-size="10">Next.js, Express handlers</text>
+  <text x="1015" y="200" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">129 routes analyzed</text>
+
+  <!-- Parallel indicator -->
+  <line x1="40" y1="230" x2="1150" y2="230" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="600" y="248" text-anchor="middle" fill="#64748b" font-size="10" font-style="italic">All 4 scanners run in parallel — 28 seconds total</text>
+
+  <!-- STAGE 2: Verdict Engine -->
+  <text x="60" y="280" fill="#4ade80" font-size="11" font-weight="600" letter-spacing="2">STAGE 2 — TRIAGE</text>
+
+  <rect x="140" y="290" width="920" height="90" rx="8" fill="url(#engine)" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="600" y="315" text-anchor="middle" fill="#86efac" font-size="15" font-weight="700">Verdict Engine — Auto-Triage</text>
+  <text x="600" y="340" text-anchor="middle" fill="#cbd5e1" font-size="12">87 findings detected → classified automatically</text>
+
+  <!-- Verdict boxes -->
+  <rect x="200" y="345" width="180" height="28" rx="4" fill="#16a34a" fill-opacity="0.3" stroke="#22c55e" stroke-width="1"/>
+  <text x="290" y="364" text-anchor="middle" fill="#4ade80" font-size="12" font-weight="600">48 True Positive (55%)</text>
+
+  <rect x="400" y="345" width="200" height="28" rx="4" fill="#64748b" fill-opacity="0.3" stroke="#64748b" stroke-width="1"/>
+  <text x="500" y="364" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="600">26 False Positive (30%)</text>
+
+  <rect x="620" y="345" width="200" height="28" rx="4" fill="#eab308" fill-opacity="0.2" stroke="#eab308" stroke-width="1"/>
+  <text x="720" y="364" text-anchor="middle" fill="#fde047" font-size="12" font-weight="600">13 Needs Review (15%)</text>
+
+  <!-- STAGE 3: CWE Bridge -->
+  <text x="60" y="415" fill="#a78bfa" font-size="11" font-weight="600" letter-spacing="2">STAGE 3 — CWE BRIDGE</text>
+
+  <rect x="140" y="425" width="920" height="80" rx="8" fill="url(#framework)" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="600" y="450" text-anchor="middle" fill="#c4b5fd" font-size="15" font-weight="700">CWE Mapping Engine — 70+ CWEs mapped</text>
+  <text x="600" y="475" text-anchor="middle" fill="#cbd5e1" font-size="12">Finding → CWE ID → Compliance Control IDs</text>
+
+  <!-- Top CWEs -->
+  <rect x="200" y="480" width="140" height="20" rx="3" fill="#7c3aed" fill-opacity="0.3"/>
+  <text x="270" y="494" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">CWE-862 (45)</text>
+  <rect x="355" y="480" width="140" height="20" rx="3" fill="#7c3aed" fill-opacity="0.3"/>
+  <text x="425" y="494" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">CWE-798 (35)</text>
+  <rect x="510" y="480" width="140" height="20" rx="3" fill="#7c3aed" fill-opacity="0.3"/>
+  <text x="580" y="494" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">CWE-306 (2)</text>
+  <rect x="665" y="480" width="140" height="20" rx="3" fill="#7c3aed" fill-opacity="0.3"/>
+  <text x="735" y="494" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="600">CWE-200 (2)</text>
+
+  <!-- STAGE 4: Compliance Frameworks -->
+  <text x="60" y="540" fill="#fb923c" font-size="11" font-weight="600" letter-spacing="2">STAGE 4 — COMPLIANCE MAPPING</text>
+
+  <rect x="40" y="550" width="175" height="75" rx="8" fill="url(#output)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="127" y="575" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="700">NIST 800-53</text>
+  <text x="127" y="595" text-anchor="middle" fill="#cbd5e1" font-size="11">45 controls</text>
+  <text x="127" y="612" text-anchor="middle" fill="#94a3b8" font-size="9">SI-10, SA-11, AC-4...</text>
+
+  <rect x="230" y="550" width="175" height="75" rx="8" fill="url(#output)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="317" y="575" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="700">SOC 2 Type II</text>
+  <text x="317" y="595" text-anchor="middle" fill="#cbd5e1" font-size="11">7 controls</text>
+  <text x="317" y="612" text-anchor="middle" fill="#94a3b8" font-size="9">CC6.1, CC8.1, CC7.2...</text>
+
+  <rect x="420" y="550" width="175" height="75" rx="8" fill="url(#output)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="507" y="575" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="700">CMMC Level 2</text>
+  <text x="507" y="595" text-anchor="middle" fill="#cbd5e1" font-size="11">33 controls</text>
+  <text x="507" y="612" text-anchor="middle" fill="#94a3b8" font-size="9">SI.L2-3.14, AC.L2-3.1...</text>
+
+  <rect x="610" y="550" width="175" height="75" rx="8" fill="url(#output)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="697" y="575" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="700">FedRAMP Mod</text>
+  <text x="697" y="595" text-anchor="middle" fill="#cbd5e1" font-size="11">35 controls</text>
+  <text x="697" y="612" text-anchor="middle" fill="#94a3b8" font-size="9">SI-2, SA-11, AC-2...</text>
+
+  <rect x="800" y="550" width="175" height="75" rx="8" fill="url(#output)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="887" y="575" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="700">OWASP ASVS</text>
+  <text x="887" y="595" text-anchor="middle" fill="#cbd5e1" font-size="11">7 controls</text>
+  <text x="887" y="612" text-anchor="middle" fill="#94a3b8" font-size="9">V1.2, V14.2, V1.1...</text>
+
+  <rect x="990" y="550" width="165" height="75" rx="8" fill="url(#output)" stroke="#f97316" stroke-width="1.5"/>
+  <text x="1072" y="575" text-anchor="middle" fill="#fdba74" font-size="12" font-weight="700">NIST SSDF</text>
+  <text x="1072" y="595" text-anchor="middle" fill="#cbd5e1" font-size="11">8 controls</text>
+  <text x="1072" y="612" text-anchor="middle" fill="#94a3b8" font-size="9">PO.1, PS.1, PW.1...</text>
+
+  <!-- STAGE 5: Output -->
+  <text x="60" y="665" fill="#38bdf8" font-size="11" font-weight="600" letter-spacing="2">STAGE 5 — OUTPUT</text>
+
+  <!-- Free outputs -->
+  <rect x="40" y="678" width="680" height="85" rx="8" fill="#0f172a" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="0"/>
+  <text x="50" y="696" fill="#4ade80" font-size="10" font-weight="700">FREE — No account required</text>
+
+  <rect x="55" y="705" width="95" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="102" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">Terminal</text>
+  <text x="102" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">table output</text>
+
+  <rect x="160" y="705" width="95" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="207" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">JSON</text>
+  <text x="207" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">CI/CD pipelines</text>
+
+  <rect x="265" y="705" width="95" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="312" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">SARIF</text>
+  <text x="312" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">GitHub Security</text>
+
+  <rect x="370" y="705" width="95" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="417" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">Markdown</text>
+  <text x="417" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">reports</text>
+
+  <rect x="475" y="705" width="110" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="530" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">PR Comment</text>
+  <text x="530" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">GitHub Action</text>
+
+  <rect x="595" y="705" width="110" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="650" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">Badge</text>
+  <text x="650" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">shields.io</text>
+
+  <!-- Paid outputs -->
+  <rect x="740" y="678" width="420" height="85" rx="8" fill="#0f172a" stroke="#f97316" stroke-width="1.5"/>
+  <text x="750" y="696" fill="#fb923c" font-size="10" font-weight="700">PAID — API Key Required</text>
+
+  <rect x="755" y="705" width="95" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="802" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">Dashboard</text>
+  <text x="802" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">trends + history</text>
+
+  <rect x="860" y="705" width="95" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="907" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">Auto-POAM</text>
+  <text x="907" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">milestones</text>
+
+  <rect x="965" y="705" width="85" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="1007" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">AI Triage</text>
+  <text x="1007" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">remediation</text>
+
+  <rect x="1060" y="705" width="85" height="48" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="1102" y="726" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">Jira Sync</text>
+  <text x="1102" y="742" text-anchor="middle" fill="#94a3b8" font-size="9">ServiceNow</text>
+
+  <!-- Arrows -->
+  <g stroke="#475569" stroke-width="1.5" fill="none" marker-end="url(#arrow)">
+    <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/></marker></defs>
+    <!-- Scanners to verdict -->
+    <line x1="170" y1="220" x2="170" y2="290"/>
+    <line x1="450" y1="220" x2="450" y2="290"/>
+    <line x1="730" y1="220" x2="730" y2="290"/>
+    <line x1="1015" y1="220" x2="1015" y2="290"/>
+    <!-- Verdict to CWE -->
+    <line x1="600" y1="380" x2="600" y2="425"/>
+    <!-- CWE to frameworks -->
+    <line x1="600" y1="505" x2="600" y2="550"/>
+    <!-- Frameworks to output -->
+    <line x1="600" y1="625" x2="600" y2="678"/>
+  </g>
+
+  <!-- Footer -->
+  <text x="600" y="800" text-anchor="middle" fill="#64748b" font-size="11">CVERiskPilot v0.3.0-beta | cveriskpilot.com | 100% Veteran Owned</text>
+
+  <!-- Data flow formula -->
+  <rect x="200" y="820" width="800" height="35" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="600" y="843" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="600">
+    Finding  →  CWE  →  NIST 800-53  →  SOC 2 / CMMC / FedRAMP / ASVS / SSDF
+  </text>
+
+  <!-- Rosetta stone label -->
+  <text x="600" y="872" text-anchor="middle" fill="#94a3b8" font-size="10" font-style="italic">CWE is the Rosetta Stone — every scanner speaks it, every framework maps from it</text>
+</svg>

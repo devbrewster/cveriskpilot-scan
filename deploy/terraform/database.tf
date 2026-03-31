@@ -105,7 +105,7 @@ resource "google_secret_manager_secret_iam_member" "cloudrun_db_password" {
 # -----------------------------------------------------------------------------
 
 resource "google_sql_database_instance" "read_replica" {
-  count = var.environment == "prod" ? 1 : 0
+  count = var.enable_read_replica ? 1 : 0
 
   name                 = "cveriskpilot-${var.environment}-replica"
   database_version     = "POSTGRES_16"
@@ -165,10 +165,10 @@ output "db_private_ip" {
 
 output "db_replica_connection_name" {
   description = "Cloud SQL read replica connection name (production only)"
-  value       = var.environment == "prod" ? google_sql_database_instance.read_replica[0].connection_name : null
+  value       = var.enable_read_replica ? google_sql_database_instance.read_replica[0].connection_name : null
 }
 
 output "db_replica_private_ip" {
   description = "Cloud SQL read replica private IP (production only)"
-  value       = var.environment == "prod" ? google_sql_database_instance.read_replica[0].private_ip_address : null
+  value       = var.enable_read_replica ? google_sql_database_instance.read_replica[0].private_ip_address : null
 }

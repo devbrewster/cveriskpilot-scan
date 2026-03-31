@@ -62,6 +62,24 @@ variable "blocked_countries" {
   default     = []
 }
 
+variable "enable_read_replica" {
+  description = "Enable Cloud SQL read replica (adds ~$50/mo). Disable to save costs at low traffic."
+  type        = bool
+  default     = false
+}
+
+variable "cloudrun_min_instances" {
+  description = "Minimum always-on Cloud Run web instances. 2 for HA, 1 to save costs."
+  type        = number
+  default     = 2
+}
+
+variable "enable_redis" {
+  description = "Enable Cloud Memorystore Redis (~$35/mo). Disable to use in-app caching."
+  type        = bool
+  default     = true
+}
+
 variable "vertex_project_id" {
   description = "GCP project ID for Vertex AI (Claude via Vertex). Defaults to the main project_id if not set."
   type        = string

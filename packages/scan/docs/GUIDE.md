@@ -16,7 +16,7 @@
 
 ## Overview
 
-CVERiskPilot Scanner (`@cveriskpilot/scan`) is a zero-dependency compliance scanner that runs locally or in CI/CD. It scans three dimensions — dependencies (SBOM/SCA), hardcoded secrets, and infrastructure-as-code — then maps every finding to 6 compliance frameworks through CWE bridging.
+CVERiskPilot Scanner (`@cveriskpilot/scan`) is a zero-dependency compliance scanner that runs locally or in CI/CD. It scans four dimensions — dependencies (SBOM/SCA), hardcoded secrets, infrastructure-as-code, and API routes — then maps every finding to 6 compliance frameworks through CWE bridging.
 
 **Key design principles:**
 - **Offline-first** — no API keys or network access required for scanning

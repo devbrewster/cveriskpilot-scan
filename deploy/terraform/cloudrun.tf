@@ -31,7 +31,7 @@ resource "google_cloud_run_v2_service" "web" {
     service_account = google_service_account.cloudrun.email
 
     scaling {
-      min_instance_count = var.environment == "prod" ? 2 : 1
+      min_instance_count = var.cloudrun_min_instances
       max_instance_count = 10
     }
 

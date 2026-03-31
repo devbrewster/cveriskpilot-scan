@@ -3,6 +3,8 @@
 # -----------------------------------------------------------------------------
 
 resource "google_redis_instance" "main" {
+  count = var.enable_redis ? 1 : 0
+
   name           = "cveriskpilot-${var.environment}"
   tier           = "BASIC"
   memory_size_gb = var.redis_memory_size_gb
@@ -27,10 +29,10 @@ resource "google_redis_instance" "main" {
 
 output "redis_host" {
   description = "Memorystore Redis host IP"
-  value       = google_redis_instance.main.host
+  value       = var.enable_redis ? google_redis_instance.main[0].host : null
 }
 
 output "redis_port" {
   description = "Memorystore Redis port"
-  value       = google_redis_instance.main.port
+  value       = var.enable_redis ? google_redis_instance.main[0].port : null
 }

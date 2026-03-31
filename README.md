@@ -219,6 +219,86 @@ This means a single SQL injection finding (CWE-89) automatically surfaces as:
 - Node.js 20+
 - No external dependencies — everything runs locally
 
+## GitHub Action
+
+```yaml
+# .github/workflows/compliance.yml
+name: Compliance Scan
+on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: write
+  security-events: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: devbrewster/cveriskpilot-scan@main
+        with:
+          preset: all
+          fail-on: critical
+```
+
+### Action Inputs
+
+| Input | Description | Default |
+|-------|-------------|---------|
+| `preset` | Framework preset: `federal`, `defense`, `enterprise`, `startup`, `devsecops`, `all` | `all` |
+| `fail-on` | Severity threshold: `critical`, `high`, `medium`, `low` | `critical` |
+| `scanners` | Limit scanners: `deps`, `secrets`, `iac` (comma-separated) | all |
+| `comment` | Post results as PR comment | `true` |
+| `upload-sarif` | Upload SARIF to GitHub Security tab | `true` |
+| `exclude` | Glob patterns to exclude (comma-separated) | |
+| `api-key` | CVERiskPilot API key for dashboard upload | |
+| `github-token` | Token for PR comments (auto-provided) | `GITHUB_TOKEN` |
+
+### Action Outputs
+
+| Output | Description |
+|--------|-------------|
+| `exit-code` | `0` = pass, `1` = fail |
+| `total-findings` | Total findings count |
+| `critical-count` | Critical severity count |
+| `controls-affected` | Compliance controls impacted |
+| `comment-id` | PR comment ID (if posted) |
+
+## GitHub Security Tab (SARIF)
+
+Findings automatically appear in your repo's **Security > Code scanning** tab when `upload-sarif` is enabled. No additional setup required.
+
+## Compliance Badge
+
+Add a compliance status badge to your README:
+
+```markdown
+![Compliance](https://cveriskpilot.com/api/badge/YOUR_ORG_ID)
+```
+
+Options:
+- `?framework=cmmc` — show specific framework status
+- `?style=for-the-badge` — badge style (flat, flat-square, for-the-badge, plastic)
+
+## Presets
+
+| Preset | Frameworks |
+|--------|-----------|
+| `federal` | NIST 800-53, FedRAMP |
+| `defense` | NIST 800-53, CMMC, FedRAMP |
+| `enterprise` | NIST 800-53, SOC 2, ASVS, SSDF |
+| `startup` | SOC 2, ASVS |
+| `devsecops` | ASVS, SSDF |
+| `all` | All 6 frameworks |
+
+## Example Workflows
+
+See [`action/examples/`](./action/examples/) for ready-to-use workflow files:
+- **compliance-scan.yml** — Basic PR compliance gate
+- **defense-contractor.yml** — CMMC/defense preset with strict thresholds
+- **scheduled-audit.yml** — Weekly audit with auto-issue creation
+
 ## About
 
 Built by [CVERiskPilot LLC](https://cveriskpilot.com) — 100% Veteran Owned, Texas.

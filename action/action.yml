@@ -31,6 +31,10 @@ inputs:
     description: 'CVERiskPilot API key for dashboard upload + PR comment posting (or set CRP_API_KEY env)'
     required: false
     default: ''
+  upload-sarif:
+    description: 'Upload SARIF results to GitHub Security tab (true/false)'
+    required: false
+    default: 'true'
   comment:
     description: 'Post results as a PR comment (true/false)'
     required: false
@@ -240,11 +244,19 @@ runs:
             core.setOutput('comment-id', created.id);
           }
 
-    - name: Upload SARIF (if requested)
-      if: inputs.format == 'sarif'
+    - name: Generate SARIF
+      if: inputs.upload-sarif == 'true'
       shell: bash
       run: |
-        npx --yes @cveriskpilot/scan@latest --preset ${{ inputs.preset }} --format sarif > "$RUNNER_TEMP/crp-results.sarif"
+        npx --yes @cveriskpilot/scan@latest --ci --preset ${{ inputs.preset }} --fail-on info --format sarif > "$RUNNER_TEMP/crp-results.sarif" 2>/dev/null || true
+
+    - name: Upload SARIF to GitHub Security
+      if: inputs.upload-sarif == 'true'
+      uses: github/codeql-action/upload-sarif@v3
+      continue-on-error: true
+      with:
+        sarif_file: ${{ runner.temp }}/crp-results.sarif
+        category: cveriskpilot
 
     - name: Fail on threshold
       if: steps.scan.outputs.scan-exit != '0'

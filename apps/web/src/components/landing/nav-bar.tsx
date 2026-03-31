@@ -107,16 +107,6 @@ export function NavBar() {
             Blog
           </Link>
           <Link
-            href="/launch"
-            className={`text-sm font-medium transition-colors ${
-              scrolled
-                ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                : "text-gray-300 hover:text-white"
-            }`}
-          >
-            Launch
-          </Link>
-          <Link
             href="/demo"
             className={`text-sm font-medium transition-colors ${
               scrolled
@@ -222,13 +212,6 @@ export function NavBar() {
               onClick={() => setMobileOpen(false)}
             >
               Blog
-            </Link>
-            <Link
-              href="/launch"
-              className="text-sm font-medium text-gray-600 dark:text-gray-400"
-              onClick={() => setMobileOpen(false)}
-            >
-              Launch
             </Link>
             <Link
               href="/demo"

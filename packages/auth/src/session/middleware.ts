@@ -28,6 +28,40 @@ export function getSessionIdFromRequest(request: NextRequest): string | null {
  * Get the current server-side session from a Next.js request.
  * Returns null if no valid session exists.
  */
+
+// SECURITY: Known valid roles — reject dev cookies with unknown roles
+const VALID_ROLES = ['PLATFORM_ADMIN', 'PLATFORM_SUPPORT', 'ORG_OWNER', 'SECURITY_ADMIN', 'ANALYST', 'DEVELOPER', 'VIEWER', 'SERVICE_ACCOUNT', 'CLIENT_ADMIN', 'CLIENT_VIEWER'];
+
+/**
+ * Parse and validate a dev-session cookie payload.
+ * Returns a Session object if valid, null otherwise.
+ * SECURITY: Schema-validates the payload to prevent arbitrary session injection.
+ */
+function parseDevSession(sessionId: string): Session | null {
+  if (!sessionId.startsWith('dev:') || process.env.NODE_ENV === 'production' || process.env.DEV_SESSION_ENABLED !== 'true') {
+    return null;
+  }
+  try {
+    const payload = JSON.parse(
+      Buffer.from(sessionId.slice(4), 'base64').toString('utf-8'),
+    );
+    if (
+      typeof payload !== 'object' || payload === null ||
+      typeof payload.userId !== 'string' || !payload.userId ||
+      typeof payload.organizationId !== 'string' || !payload.organizationId ||
+      typeof payload.role !== 'string' || !payload.role ||
+      typeof payload.email !== 'string' || !payload.email
+    ) {
+      return null;
+    }
+    if (!VALID_ROLES.includes(payload.role)) return null;
+    if (payload.expiresAt && new Date(payload.expiresAt) < new Date()) return null;
+    return payload as Session;
+  } catch {
+    return null;
+  }
+}
+
 export async function getServerSession(
   request: NextRequest,
 ): Promise<Session | null> {
@@ -35,16 +69,8 @@ export async function getServerSession(
   if (!sessionId) return null;
 
   // Dev-only: handle base64-encoded cookie from /api/auth/dev-session fallback
-  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production' && process.env.DEV_SESSION_ENABLED === 'true') {
-    try {
-      const payload = JSON.parse(
-        Buffer.from(sessionId.slice(4), 'base64').toString('utf-8'),
-      );
-      return payload as Session;
-    } catch {
-      return null;
-    }
-  }
+  const devSession = parseDevSession(sessionId);
+  if (devSession) return devSession;
 
   return getSession(sessionId);
 }
@@ -60,16 +86,8 @@ export async function getServerSessionFromCookies(
   if (!sessionId) return null;
 
   // Dev-only: handle base64-encoded cookie from /api/auth/dev-session fallback
-  if (sessionId.startsWith('dev:') && process.env.NODE_ENV !== 'production' && process.env.DEV_SESSION_ENABLED === 'true') {
-    try {
-      const payload = JSON.parse(
-        Buffer.from(sessionId.slice(4), 'base64').toString('utf-8'),
-      );
-      return payload as Session;
-    } catch {
-      return null;
-    }
-  }
+  const devSession = parseDevSession(sessionId);
+  if (devSession) return devSession;
 
   return getSession(sessionId);
 }

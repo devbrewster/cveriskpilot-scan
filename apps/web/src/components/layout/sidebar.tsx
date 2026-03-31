@@ -13,9 +13,9 @@ import { ClientSwitcher } from '@/components/layout/client-switcher';
 /** Roles that get full access to all features (standalone / owner tier). */
 const FULL_ACCESS_ROLES = new Set(['PLATFORM_ADMIN', 'ORG_OWNER']);
 
-/** Platform admin emails — read from NEXT_PUBLIC_PLATFORM_ADMIN_EMAILS env var (comma-separated) */
+/** Platform admin emails — server-side only (NEVER use NEXT_PUBLIC_ to avoid leaking admin emails to client bundle) */
 const PLATFORM_ADMIN_EMAILS: Set<string> = new Set(
-  (process.env.NEXT_PUBLIC_PLATFORM_ADMIN_EMAILS ?? '')
+  (process.env.PLATFORM_ADMIN_EMAILS ?? '')
     .split(',')
     .map((e) => e.toLowerCase().trim())
     .filter(Boolean),

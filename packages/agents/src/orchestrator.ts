@@ -15,7 +15,11 @@ import type {
   AgentToolSet,
   AuditLogEntry,
   NormalisedResult,
-} from "./types";
+} from "./types.js";
+
+import { runAgentLoop } from "./loop.js";
+import type { LoopResult } from "./loop.js";
+import type { ToolCallRecord } from "./types.js";
 
 // ---------------------------------------------------------------------------
 // Agent Router — maps agentId to allowed tool sets
@@ -24,7 +28,15 @@ import type {
 const AGENT_TOOL_SETS: Record<AgentId, AgentToolSet> = {
   "cve-triage": {
     agentId: "cve-triage",
-    allowedTools: ["kev-lookup", "epss-lookup", "cvss-parser", "scan-parser", "notification"],
+    allowedTools: [
+      "nvd-lookup",
+      "kev-lookup",
+      "epss-lookup",
+      "cvss-parser",
+      "compliance-map",
+      "risk-score",
+      "audit-log",
+    ],
     systemPromptKey: "CVE_TRIAGE_SYSTEM_PROMPT",
   },
   "product-engineer": {
@@ -43,6 +55,9 @@ const AGENT_TOOL_SETS: Record<AgentId, AgentToolSet> = {
     systemPromptKey: "GROWTH_SYSTEM_PROMPT",
   },
 };
+
+/** Agents that use the iterative tool-calling loop instead of single-shot */
+const TOOL_LOOP_AGENTS: Set<AgentId> = new Set(["cve-triage"]);
 
 export function getAgentToolSet(agentId: AgentId): AgentToolSet {
   return AGENT_TOOL_SETS[agentId];
@@ -227,10 +242,10 @@ export function normaliseAgentResult<T>(
  * Execute an agent task end-to-end:
  * 1. Build context
  * 2. Write "started" audit entry
- * 3. Call Claude via @cveriskpilot/ai shared client
+ * 3. Call Claude — either via tool-calling loop or single-shot
  * 4. Write "completed" audit entry
  * 5. Evaluate HITL gate
- * 6. Return result
+ * 6. Return result (with toolCalls if loop was used)
  */
 export async function runAgent(input: OrchestratorInput): Promise<OrchestratorResult> {
   const context = buildAgentContext({
@@ -241,8 +256,7 @@ export async function runAgent(input: OrchestratorInput): Promise<OrchestratorRe
     payload: input.payload,
   });
 
-  // Validate agent exists in tool-set registry
-  getAgentToolSet(input.agentId);
+  const agentToolSet = getAgentToolSet(input.agentId);
 
   await writeAuditEntry({
     eventType: "agent_task_started",
@@ -257,21 +271,50 @@ export async function runAgent(input: OrchestratorInput): Promise<OrchestratorRe
     decision: "pending",
   });
 
-  // Use the shared client from @cveriskpilot/ai
-  const { getClient } = await import("@cveriskpilot/ai");
-  const client = getClient();
+  let rawOutput: string;
+  let toolCalls: ToolCallRecord[] | undefined;
+  let loopResult: LoopResult | undefined;
 
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
-    system: input.systemPrompt,
-    messages: [{ role: "user", content: input.taskPrompt }],
-  });
+  if (TOOL_LOOP_AGENTS.has(input.agentId)) {
+    // ---- Agentic tool-calling loop ----
+    loopResult = await runAgentLoop(input.taskPrompt, {
+      maxIterations: 10,
+      model: "claude-sonnet-4-20250514",
+      maxTokens: 4096,
+      allowedTools: agentToolSet.allowedTools,
+      systemPrompt: input.systemPrompt,
+      toolContext: {
+        organizationId: input.organizationId,
+        taskId: input.taskId,
+        agentId: input.agentId,
+        auditLog: [],
+      },
+    });
 
-  const rawOutput = message.content
-    .filter((b) => b.type === "text")
-    .map((b) => (b as { type: "text"; text: string }).text)
-    .join("\n");
+    rawOutput = loopResult.finalResponse;
+    toolCalls = loopResult.toolCalls;
+
+    // Write tool audit entries
+    for (const entry of loopResult.auditLog) {
+      await writeAuditEntry(entry);
+    }
+  } else {
+    // ---- Single-shot (non-tool agents) ----
+    const { getClient } = await import("@cveriskpilot/ai");
+    const client = getClient();
+
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
+      system: input.systemPrompt,
+      messages: [{ role: "user", content: input.taskPrompt }],
+    });
+
+    rawOutput = message.content
+      .filter((b) => b.type === "text")
+      .map((b) => (b as { type: "text"; text: string }).text)
+      .join("\n");
+  }
 
   await writeAuditEntry({
     eventType: "agent_task_completed",
@@ -282,7 +325,7 @@ export async function runAgent(input: OrchestratorInput): Promise<OrchestratorRe
     actionType: "run_agent",
     gateLevel: 0,
     inputHash: "0",
-    outputSummary: `Agent completed: ${rawOutput.slice(0, 200)}`,
+    outputSummary: `Agent completed (${toolCalls?.length ?? 0} tool calls): ${rawOutput.slice(0, 200)}`,
     decision: "auto_pass",
   });
 
@@ -301,6 +344,9 @@ export async function runAgent(input: OrchestratorInput): Promise<OrchestratorRe
     rawOutput,
     gateDecision,
     completedAt: new Date().toISOString(),
+    toolCalls,
+    iterations: loopResult?.iterations,
+    truncated: loopResult?.truncated,
   };
 }
 

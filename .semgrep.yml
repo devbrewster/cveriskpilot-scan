@@ -1,0 +1,70 @@
+rules:
+  # Custom rules for CVERiskPilot codebase patterns
+
+  - id: crp-missing-org-scope
+    patterns:
+      - pattern: |
+          prisma.$MODEL.findMany({ where: { ... } })
+      - pattern-not: |
+          prisma.$MODEL.findMany({ where: { ..., organizationId: ... } })
+      - pattern-not: |
+          prisma.$MODEL.findMany({ where: { ..., vulnerabilityCase: { organizationId: ... } } })
+    message: >
+      Prisma query without organizationId filter — potential tenant isolation bypass.
+      All queries on tenant-scoped models must include organizationId in the where clause.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-284: Improper Access Control"
+      owasp: "A01:2021 Broken Access Control"
+
+  - id: crp-no-ssrf-check-on-fetch
+    patterns:
+      - pattern: fetch($URL, ...)
+      - pattern-not-inside: |
+          const $CHECK = validateExternalUrl($URL);
+          ...
+          fetch($URL, ...)
+      - pattern-not-inside: |
+          const $CHECK = isUrlSafe($URL);
+          ...
+          fetch($URL, ...)
+      - metavariable-pattern:
+          metavariable: $URL
+          pattern-not: |
+            "..."
+    message: >
+      fetch() call with non-literal URL without SSRF validation.
+      Call validateExternalUrl() before making outbound requests with user-controlled URLs.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-918: Server-Side Request Forgery"
+
+  - id: crp-next-public-sensitive
+    pattern: process.env.NEXT_PUBLIC_$VAR
+    message: >
+      NEXT_PUBLIC_ env vars are exposed in the client JS bundle.
+      Never use NEXT_PUBLIC_ for secrets, admin emails, internal URLs, or API keys.
+    languages: [typescript, javascript]
+    severity: INFO
+    metadata:
+      category: security
+      cwe: "CWE-200: Exposure of Sensitive Information"
+
+  - id: crp-raw-json-parse-redis
+    patterns:
+      - pattern: JSON.parse($RAW) as $TYPE
+      - pattern-inside: |
+          const $RAW = await redis.get(...);
+          ...
+    message: >
+      Redis data cast with 'as' without runtime validation.
+      Use zod or manual schema checks before trusting data from Redis.
+    languages: [typescript]
+    severity: WARNING
+    metadata:
+      category: security
+      cwe: "CWE-502: Deserialization of Untrusted Data"

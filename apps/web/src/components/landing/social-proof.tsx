@@ -1,7 +1,7 @@
 const stats = [
-  { value: "8,000+", label: "CVEs processed per scan", sublabel: "in under 90 seconds" },
-  { value: "11", label: "Scanner formats supported", sublabel: "Nessus, SARIF, CycloneDX, and more" },
-  { value: "6", label: "Compliance frameworks", sublabel: "NIST, SOC 2, CMMC, FedRAMP, ASVS, SSDF" },
+  { value: "135", label: "Compliance controls mapped", sublabel: "across 6 frameworks, automatically" },
+  { value: "60%", label: "of GRC teams still use spreadsheets", sublabel: "we replace the spreadsheet" },
+  { value: "90s", label: "from scan to compliance verdict", sublabel: "not 40 hours per quarter" },
 ];
 
 export function SocialProof() {

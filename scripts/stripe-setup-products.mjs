@@ -27,9 +27,9 @@ const TIERS = [
   {
     name: 'CVERiskPilot — Pro',
     tier: 'PRO',
-    monthlyPrice: 4900,
-    annualPrice: 47000,
-    description: 'For security teams. 10 users, 500 assets, unlimited uploads, priority support.',
+    monthlyPrice: 14900,
+    annualPrice: 142800,
+    description: 'Full compliance automation. 10 users, 1,000 assets, unlimited uploads, priority support.',
   },
   {
     name: 'CVERiskPilot — Enterprise',

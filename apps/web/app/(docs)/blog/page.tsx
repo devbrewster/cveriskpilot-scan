@@ -23,6 +23,16 @@ export const metadata: Metadata = {
 
 const posts = [
   {
+    slug: "compliance-in-the-shell",
+    title:
+      "Compliance in the Shell: Why Your Vibe-Coded SaaS Will Die at the Enterprise Door",
+    excerpt:
+      "Most vibe coders are one good distribution channel away from making money. But nobody's building the part that comes after — the part where an enterprise prospect asks 'are you SOC 2 compliant?' and the deal dies.",
+    date: "2026-03-30",
+    readTime: "10 min read",
+    tags: ["Vibe Coding", "Compliance", "SOC 2", "AppSec", "Open Source"],
+  },
+  {
     slug: "missing-link-cicd-compliance",
     title: "The Missing Link Between CI/CD Scanning and Compliance",
     excerpt:

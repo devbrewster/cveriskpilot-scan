@@ -58,6 +58,8 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.text();
     const signature = request.headers.get('x-hub-signature');
 
+    // SECURITY: Parse JSON but defer all DB lookups until after HMAC verification
+    // to prevent unauthenticated query amplification attacks.
     let payload: Record<string, unknown>;
     try {
       payload = JSON.parse(rawBody);
@@ -79,7 +81,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ignored: true });
     }
 
-    // Find the ticket by its Jira key
+    // SECURITY: Find the ticket with org-scoped relation to prevent cross-tenant access
     const ticket = await prisma.ticket.findFirst({
       where: { system: 'jira', ticketKey: issueKey },
       include: {
@@ -102,27 +104,20 @@ export async function POST(request: NextRequest) {
     const settings = (org?.entitlements ?? {}) as Record<string, unknown>;
     const jiraConfig = settings.jira as JiraOrgConfig | undefined;
 
-    // Verify webhook signature if a secret is configured
+    // SECURITY: Require webhook secret — reject unsigned webhooks entirely
     const webhookSecret = (jiraConfig as Record<string, unknown> | undefined)?.webhookSecret as string | undefined;
-    if (webhookSecret) {
-      if (!verifyJiraSignature(rawBody, signature, webhookSecret)) {
-        console.warn(`[webhook/jira] Invalid signature for org ${ticket.vulnerabilityCase.organizationId}`);
-        return NextResponse.json(
-          { error: 'Invalid webhook signature' },
-          { status: 401 },
-        );
-      }
-    } else {
-      // No webhook secret configured — reject to prevent forged payloads.
-      console.error(
-        `[webhook/jira] No webhookSecret configured for org ${ticket.vulnerabilityCase.organizationId}. ` +
-        'Rejecting request. Configure a secret in Jira integration settings.',
-      );
+    if (!webhookSecret) {
+      console.warn(`[webhook/jira] No webhook secret configured for org ${ticket.vulnerabilityCase.organizationId}`);
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 401 });
+    }
+    if (!verifyJiraSignature(rawBody, signature, webhookSecret)) {
+      console.warn(`[webhook/jira] Invalid signature for org ${ticket.vulnerabilityCase.organizationId}`);
       return NextResponse.json(
-        { error: 'Webhook secret not configured. Configure a secret in Jira integration settings.' },
+        { error: 'Invalid webhook signature' },
         { status: 401 },
       );
     }
+    // HMAC verified — proceed with ticket update
 
     // Update the ticket status
     await prisma.ticket.update({

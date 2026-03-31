@@ -40,5 +40,40 @@ steps:
     args: ['run', 'test']
     waitFor: ['prisma-generate']
 
+  # ── Security: Semgrep SAST ───────────────────────────────────────────
+  - name: 'returntocorp/semgrep'
+    id: 'semgrep'
+    entrypoint: 'semgrep'
+    args:
+      - 'scan'
+      - '--config=auto'
+      - '--config=p/owasp-top-ten'
+      - '--config=p/typescript'
+      - '--severity=ERROR'
+      - '--exclude=node_modules'
+      - '--exclude=.next'
+      - '.'
+    allowFailure: true
+    waitFor: ['-']  # run immediately, parallel with other steps
+
+  # ── Security: Gitleaks secrets scan ──────────────────────────────────
+  - name: 'zricethezav/gitleaks:latest'
+    id: 'gitleaks'
+    args:
+      - 'detect'
+      - '--source=/workspace'
+      - '--exit-code=1'
+      - '--redact'
+    allowFailure: true
+    waitFor: ['-']
+
+  # ── Security: CVERiskPilot compliance scan ───────────────────────────
+  - name: 'node:20'
+    id: 'crp-scan'
+    entrypoint: 'npx'
+    args: ['@cveriskpilot/scan@latest', '--preset=startup']
+    allowFailure: true
+    waitFor: ['install']
+
 options:
   logging: CLOUD_LOGGING_ONLY

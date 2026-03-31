@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     // Look up the temp session from Redis (server-side validation)
     const redis = getRedisClient();
     const redisKey = `crp:mfa_temp:${tempSessionId}`;
-    let tempData: { userId: string; organizationId: string } | null = null;
+    let tempData: { userId: string; organizationId: string; boundIp?: string } | null = null;
 
     try {
       const raw = await redis.get(redisKey);
@@ -97,6 +97,21 @@ export async function POST(request: NextRequest) {
         { error: 'Invalid temporary session' },
         { status: 401 },
       );
+    }
+
+    // SECURITY: Verify the MFA completion comes from the same IP that initiated login
+    if (tempData.boundIp && tempData.boundIp !== 'unknown') {
+      const verifyIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+        ?? request.headers.get('x-real-ip')
+        ?? 'unknown';
+      if (verifyIp !== tempData.boundIp) {
+        // Delete the temp session to prevent further attempts
+        await redis.del(redisKey).catch(() => {});
+        return NextResponse.json(
+          { error: 'Session validation failed. Please log in again.' },
+          { status: 401 },
+        );
+      }
     }
 
     const userId = tempData.userId;

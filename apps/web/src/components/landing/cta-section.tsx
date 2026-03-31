@@ -3,9 +3,9 @@
 import Link from "next/link";
 
 const steps = [
-  { num: "1", label: "Create account", detail: "Email or GitHub. 30 seconds." },
-  { num: "2", label: "Run your first scan", detail: "npx @cveriskpilot/scan in any project." },
-  { num: "3", label: "See your risk score", detail: "Prioritized findings, compliance mapped." },
+  { num: "1", label: "Run the CLI", detail: "npx @cveriskpilot/scan --preset startup" },
+  { num: "2", label: "See compliance impact", detail: "Every finding mapped to 6 frameworks." },
+  { num: "3", label: "Ship audit-ready evidence", detail: "POAMs, reports, and control scores." },
 ];
 
 export function CtaSection() {
@@ -20,10 +20,10 @@ export function CtaSection() {
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Start securing your stack in under 90 seconds
+            Close the compliance gap in under 90 seconds
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-primary-100">
-            No calls. No setup fees. No sales conversations required.
+            No annual contracts. No setup fees. No sales calls required. Just compliance in the shell.
           </p>
 
           {/* What happens next — 3-step flow */}
@@ -62,7 +62,7 @@ export function CtaSection() {
           </div>
 
           <p className="mt-6 text-sm text-primary-200">
-            Free plan includes 3 uploads/month and 50 AI calls. No credit card required.
+            Free CLI scans are unlimited. Platform includes 3 uploads/month and 50 AI calls. No credit card required.
           </p>
 
           {/* Trust badges */}

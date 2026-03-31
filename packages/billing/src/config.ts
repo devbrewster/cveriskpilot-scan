@@ -21,17 +21,17 @@ export const TIER_ENTITLEMENTS = {
   },
   PRO: {
     max_users: 10,
-    max_assets: 500,
+    max_assets: 1000,
     max_monthly_uploads: 'unlimited',
-    max_ai_calls: 500,
+    max_ai_calls: 1000,
     api_rate_limit: 500,      // 500 req/min
     features: ['api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view', 'scheduled_reports'],
   },
   ENTERPRISE: {
-    max_users: 50,
-    max_assets: 5000,
+    max_users: 'unlimited',
+    max_assets: 'unlimited',
     max_monthly_uploads: 'unlimited',
-    max_ai_calls: 5000,
+    max_ai_calls: 'unlimited',
     api_rate_limit: 2000,     // 2,000 req/min
     features: [
       'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',
@@ -79,29 +79,31 @@ export const TIER_CONFIGS: Record<TierName, TierConfig> = {
   PRO: {
     name: 'Pro',
     tier: 'PRO',
-    monthlyPrice: 49,
-    annualPrice: 470, // ~$39.17/mo — 20% off
-    description: 'For security teams that need full coverage.',
+    monthlyPrice: 149,
+    annualPrice: 1428, // ~$119/mo — 20% off
+    description: 'Full compliance automation for teams preparing for SOC 2 or CMMC.',
     entitlements: TIER_ENTITLEMENTS.PRO,
     isPublic: true,
   },
   ENTERPRISE: {
     name: 'Enterprise',
     tier: 'ENTERPRISE',
-    monthlyPrice: 199,
-    annualPrice: 1910, // ~$159.17/mo — 20% off
-    description: 'For organizations with advanced security needs.',
+    monthlyPrice: -1,  // custom pricing — contact sales
+    annualPrice: -1,
+    description: 'Enterprise compliance automation with SSO, SCIM, and custom policies.',
     entitlements: TIER_ENTITLEMENTS.ENTERPRISE,
     isPublic: true,
+    isContactSales: true,
   },
   MSSP: {
     name: 'MSSP',
     tier: 'MSSP',
-    monthlyPrice: 499,
-    annualPrice: 4790, // ~$399.17/mo — 20% off
-    description: 'Multi-tenant managed security service provider.',
+    monthlyPrice: -1,  // custom pricing — contact sales
+    annualPrice: -1,
+    description: 'Multi-tenant compliance platform for managed security providers.',
     entitlements: TIER_ENTITLEMENTS.MSSP,
     isPublic: true,
+    isContactSales: true,
     hasUsageBilling: true,
   },
 };
@@ -110,15 +112,15 @@ export const TIER_CONFIGS: Record<TierName, TierConfig> = {
  * Stripe price IDs read from environment variables.
  */
 export const STRIPE_PRICES = {
-  PRO_MONTHLY: () => process.env.STRIPE_PRICE_PRO_MONTHLY ?? '',
-  PRO_ANNUAL: () => process.env.STRIPE_PRICE_PRO_ANNUAL ?? '',
-  FOUNDERS_BETA_MONTHLY: () => process.env.STRIPE_PRICE_FOUNDERS_BETA_MONTHLY ?? '',
-  FOUNDERS_BETA_ANNUAL: () => process.env.STRIPE_PRICE_FOUNDERS_BETA_ANNUAL ?? '',
-  ENTERPRISE_MONTHLY: () => process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY ?? '',
-  ENTERPRISE_ANNUAL: () => process.env.STRIPE_PRICE_ENTERPRISE_ANNUAL ?? '',
-  MSSP_MONTHLY: () => process.env.STRIPE_PRICE_MSSP_MONTHLY ?? '',
-  MSSP_ANNUAL: () => process.env.STRIPE_PRICE_MSSP_ANNUAL ?? '',
-  MSSP_METERED: () => process.env.STRIPE_PRICE_MSSP_METERED ?? '',
+  PRO_MONTHLY: () => process.env.STRIPE_PRICE_PRO_MONTHLY || null,
+  PRO_ANNUAL: () => process.env.STRIPE_PRICE_PRO_ANNUAL || null,
+  FOUNDERS_BETA_MONTHLY: () => process.env.STRIPE_PRICE_FOUNDERS_BETA_MONTHLY || null,
+  FOUNDERS_BETA_ANNUAL: () => process.env.STRIPE_PRICE_FOUNDERS_BETA_ANNUAL || null,
+  ENTERPRISE_MONTHLY: () => process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || null,
+  ENTERPRISE_ANNUAL: () => process.env.STRIPE_PRICE_ENTERPRISE_ANNUAL || null,
+  MSSP_MONTHLY: () => process.env.STRIPE_PRICE_MSSP_MONTHLY || null,
+  MSSP_ANNUAL: () => process.env.STRIPE_PRICE_MSSP_ANNUAL || null,
+  MSSP_METERED: () => process.env.STRIPE_PRICE_MSSP_METERED || null,
 } as const;
 
 /**
@@ -143,7 +145,7 @@ export function getTierConfig(tier: string): TierConfig | null {
  * Returns null if the price ID is not recognized.
  */
 export function getTierFromPriceId(priceId: string): string | null {
-  const mappings: Array<{ getter: () => string; tier: string }> = [
+  const mappings: Array<{ getter: () => string | null; tier: string }> = [
     { getter: STRIPE_PRICES.FOUNDERS_BETA_MONTHLY, tier: 'FOUNDERS_BETA' },
     { getter: STRIPE_PRICES.FOUNDERS_BETA_ANNUAL, tier: 'FOUNDERS_BETA' },
     { getter: STRIPE_PRICES.PRO_MONTHLY, tier: 'PRO' },
@@ -152,6 +154,7 @@ export function getTierFromPriceId(priceId: string): string | null {
     { getter: STRIPE_PRICES.ENTERPRISE_ANNUAL, tier: 'ENTERPRISE' },
     { getter: STRIPE_PRICES.MSSP_MONTHLY, tier: 'MSSP' },
     { getter: STRIPE_PRICES.MSSP_ANNUAL, tier: 'MSSP' },
+    { getter: STRIPE_PRICES.MSSP_METERED, tier: 'MSSP' },
   ];
 
   for (const { getter, tier } of mappings) {

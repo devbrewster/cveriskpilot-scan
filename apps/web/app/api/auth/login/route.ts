@@ -102,6 +102,10 @@ export async function POST(request: NextRequest) {
       const tempSessionId = crypto.randomUUID();
 
       // Store the temp session in Redis with 5-minute TTL
+      // SECURITY: Bind to client IP to prevent race-condition MFA bypass via MITM/XSS
+      const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+        ?? request.headers.get('x-real-ip')
+        ?? 'unknown';
       try {
         const { getRedisClient } = await import('@cveriskpilot/auth');
         const redis = getRedisClient();
@@ -110,6 +114,7 @@ export async function POST(request: NextRequest) {
           JSON.stringify({
             userId: result.userId,
             organizationId: result.organizationId,
+            boundIp: clientIp,
             createdAt: new Date().toISOString(),
           }),
           'EX',

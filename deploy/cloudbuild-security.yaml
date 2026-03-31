@@ -1,0 +1,130 @@
+# =============================================================================
+# CVERiskPilot — Cloud Build: Security Scanning Pipeline
+# =============================================================================
+# Trigger: pull requests + push to main (runs in parallel with CI)
+#
+# Tools:
+#   SAST  — Semgrep (code patterns, OWASP Top 10, Next.js rules)
+#   SCA   — Trivy (deps, secrets, IaC misconfigs)
+#   SAST  — Gitleaks (secrets in git history)
+#   SCA   — CVERiskPilot scan (our own compliance mapping)
+#   DAST  — ZAP (API scan against staging, deploy pipeline only)
+# =============================================================================
+
+steps:
+  # ── SAST: Semgrep ──────────────────────────────────────────────────────
+  # Scans TypeScript/JavaScript for injection, XSS, SSRF, auth bypass, etc.
+  - name: 'returntocorp/semgrep'
+    id: 'semgrep'
+    entrypoint: 'semgrep'
+    args:
+      - 'scan'
+      - '--config=auto'
+      - '--config=p/owasp-top-ten'
+      - '--config=p/typescript'
+      - '--config=p/nextjs'
+      - '--sarif'
+      - '--output=/workspace/reports/semgrep.sarif'
+      - '--error'               # exit 1 on findings
+      - '--severity=ERROR'      # only fail on high/critical
+      - '--exclude=node_modules'
+      - '--exclude=.next'
+      - '--exclude=dist'
+      - '.'
+    allowFailure: true
+
+  # ── SCA + Secrets + IaC: Trivy ─────────────────────────────────────────
+  # Scans package-lock.json, Dockerfile, Terraform, and source for secrets.
+  - name: 'aquasec/trivy:latest'
+    id: 'trivy-fs'
+    args:
+      - 'fs'
+      - '--scanners=vuln,secret,misconfig'
+      - '--severity=CRITICAL,HIGH'
+      - '--format=sarif'
+      - '--output=/workspace/reports/trivy-fs.sarif'
+      - '--exit-code=1'
+      - '--ignore-unfixed'
+      - '.'
+    allowFailure: true
+
+  # ── Secrets: Gitleaks ──────────────────────────────────────────────────
+  # Scans git history for leaked API keys, passwords, tokens.
+  - name: 'zricethezav/gitleaks:latest'
+    id: 'gitleaks'
+    args:
+      - 'detect'
+      - '--source=/workspace'
+      - '--report-format=sarif'
+      - '--report-path=/workspace/reports/gitleaks.sarif'
+      - '--exit-code=1'
+      - '--redact'
+    allowFailure: true
+
+  # ── SCA: CVERiskPilot scan (our own tool) ──────────────────────────────
+  # Maps findings to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, SSDF.
+  - name: 'node:20'
+    id: 'crp-scan'
+    entrypoint: 'npx'
+    args:
+      - '@cveriskpilot/scan@latest'
+      - '--preset=startup'
+      - '--format=sarif'
+      - '--output=/workspace/reports/cveriskpilot.sarif'
+    allowFailure: true
+
+  # ── Trivy: Container Image Scan (after Docker build) ───────────────────
+  # Only runs if a built image is available (deploy pipeline).
+  - name: 'aquasec/trivy:latest'
+    id: 'trivy-image'
+    args:
+      - 'image'
+      - '--severity=CRITICAL,HIGH'
+      - '--format=sarif'
+      - '--output=/workspace/reports/trivy-image.sarif'
+      - '--exit-code=1'
+      - '--ignore-unfixed'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/cveriskpilot/web:latest'
+    allowFailure: true
+    waitFor: ['-']  # don't wait for other steps — image may not exist in CI-only runs
+
+  # ── Collect results ────────────────────────────────────────────────────
+  - name: 'node:20'
+    id: 'report'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "=== Security Scan Summary ==="
+        echo ""
+        for f in /workspace/reports/*.sarif; do
+          if [ -f "$$f" ]; then
+            name=$$(basename "$$f" .sarif)
+            count=$$(node -e "
+              const s = require('$$f');
+              const runs = s.runs || [];
+              let total = 0;
+              runs.forEach(r => { total += (r.results || []).length; });
+              console.log(total);
+            " 2>/dev/null || echo "?")
+            echo "  $$name: $$count findings"
+          fi
+        done
+        echo ""
+        echo "Reports saved to /workspace/reports/"
+        ls -la /workspace/reports/ 2>/dev/null || echo "No reports generated"
+    waitFor: ['semgrep', 'trivy-fs', 'gitleaks', 'crp-scan']
+
+# Save SARIF reports as build artifacts
+artifacts:
+  objects:
+    location: 'gs://${_REPORTS_BUCKET}/security-scans/$BUILD_ID/'
+    paths:
+      - '/workspace/reports/*.sarif'
+
+substitutions:
+  _REPORTS_BUCKET: 'cveriskpilot-security-reports'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8

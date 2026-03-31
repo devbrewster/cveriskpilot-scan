@@ -1,8 +1,8 @@
 const features = [
   {
-    title: "Multi-Scanner Ingestion",
+    title: "Automatic Compliance Mapping",
     description:
-      "Nessus, SARIF, CycloneDX, Qualys, OpenVAS, and more. One upload, unified view. No more juggling formats.",
+      "Every vulnerability maps to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, and SSDF controls. The chain nobody else automated.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -12,7 +12,7 @@ const features = [
   {
     title: "Real Risk Prioritization",
     description:
-      "EPSS exploit probability + CISA KEV + CVSS = actual risk score, not noise. Focus on what attackers target.",
+      "EPSS exploit probability + CISA KEV + CVSS = actual risk, not noise. 55% of orgs lack vulnerability prioritization. We fix that.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -20,9 +20,9 @@ const features = [
     ),
   },
   {
-    title: "AI Remediation",
+    title: "AI Triage That Learns From You",
     description:
-      "Claude-powered fix guidance with code examples. Automated triage with human-in-the-loop approval gates.",
+      "Claude classifies findings as true positive, false positive, or needs review — then learns from your corrections. Every override trains your org-specific model. PII redacted before every AI call. Your data never trains external models.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
@@ -30,9 +30,9 @@ const features = [
     ),
   },
   {
-    title: "Executive Reports",
+    title: "Audit-Ready Evidence",
     description:
-      "One-click PDF summaries. CSV exports. Scan-over-scan trend comparison to show remediation progress over time.",
+      "PDF reports, POAM generation, and compliance dashboards your auditor will actually accept. No more 40-hour quarterly spreadsheet sprints.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -40,9 +40,9 @@ const features = [
     ),
   },
   {
-    title: "Compliance Ready",
+    title: "Multi-Scanner Ingestion",
     description:
-      "Full audit trail, SLA policies, POAM generation. NIST, SOC 2, and ASVS evidence built-in for your next audit.",
+      "11 formats: Nessus, SARIF, CycloneDX, Qualys, OpenVAS, SPDX, OSV, CSAF, CSV, JSON, XLSX. One upload, unified compliance view.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -85,11 +85,11 @@ export function Features() {
             Features
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-            Everything you need to manage vulnerabilities
+            The compliance layer your scanners are missing
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            From ingestion to remediation, CVERiskPilot covers the full
-            vulnerability lifecycle.
+            Every scanner finds vulnerabilities. None of them tell you which compliance control failed.
+            CVERiskPilot bridges the gap — automatically.
           </p>
         </div>
 

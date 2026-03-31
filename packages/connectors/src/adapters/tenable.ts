@@ -254,6 +254,13 @@ export class TenableAdapter implements ScannerAdapter {
   // -------------------------------------------------------------------------
 
   private createClient(credentials: DecryptedCredentials): HttpClientWithRetry {
+    // SSRF protection: re-validate baseUrl at invocation time (not just creation time)
+    const { validateExternalUrl } = require('@cveriskpilot/auth');
+    const urlCheck = validateExternalUrl(credentials.baseUrl);
+    if (!urlCheck.valid) {
+      throw new Error(`Blocked SSRF attempt on Tenable baseUrl: ${urlCheck.reason}`);
+    }
+
     const baseUrl = credentials.baseUrl.replace(/\/+$/, '');
     const accessKey = credentials.accessKey ?? credentials.apiKey ?? '';
     const secretKey = credentials.secretKey ?? '';

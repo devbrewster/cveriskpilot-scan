@@ -146,9 +146,9 @@ describe('metering', () => {
         storage_gb: 10,
       });
 
-      expect(estimate.baseCost).toBe(49); // PRO monthly price
+      expect(estimate.baseCost).toBe(149); // PRO monthly price
       expect(estimate.meteredCost).toBe(0); // no metered cost for PRO
-      expect(estimate.totalEstimated).toBe(49);
+      expect(estimate.totalEstimated).toBe(149);
     });
 
     it('calculates metered cost for MSSP tier', () => {
@@ -159,9 +159,9 @@ describe('metering', () => {
         storage_gb: 10,         // 10 * $0.50 = $5
       });
 
-      expect(estimate.baseCost).toBe(499); // MSSP monthly price
+      expect(estimate.baseCost).toBe(0); // MSSP is custom pricing (contact sales)
       expect(estimate.meteredCost).toBe(35); // $10 + $10 + $10 + $5
-      expect(estimate.totalEstimated).toBe(534);
+      expect(estimate.totalEstimated).toBe(35);
       expect(estimate.breakdown.assets_scanned.cost).toBe(10);
       expect(estimate.breakdown.findings_processed.cost).toBe(10);
       expect(estimate.breakdown.ai_calls.cost).toBe(10);
@@ -177,7 +177,7 @@ describe('metering', () => {
       });
 
       expect(estimate.meteredCost).toBe(0);
-      expect(estimate.totalEstimated).toBe(499);
+      expect(estimate.totalEstimated).toBe(0); // MSSP is custom pricing (contact sales)
     });
   });
 });

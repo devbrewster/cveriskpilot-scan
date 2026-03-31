@@ -7,9 +7,23 @@ import {
   SOC2_FRAMEWORK,
   SSDF_FRAMEWORK,
   ASVS_FRAMEWORK,
+  CMMC_FRAMEWORK,
+  FEDRAMP_FRAMEWORK,
+  NIST_800_53_FRAMEWORK,
+  GDPR_FRAMEWORK,
+  HIPAA_FRAMEWORK,
+  PCI_DSS_FRAMEWORK,
+  ISO27001_FRAMEWORK,
   assessSOC2,
   assessSSDF,
   assessASVS,
+  assessCMMC,
+  assessFedRAMP,
+  assessNIST80053,
+  assessGDPR,
+  assessHIPAA,
+  assessPCIDSS,
+  assessISO27001,
 } from '@cveriskpilot/compliance';
 import type { ComplianceAssessmentInput, ComplianceEvidence, ComplianceFramework } from '@cveriskpilot/compliance';
 
@@ -206,6 +220,13 @@ export async function GET(request: NextRequest) {
         { framework: SOC2_FRAMEWORK, assess: assessSOC2 },
         { framework: SSDF_FRAMEWORK, assess: assessSSDF },
         { framework: ASVS_FRAMEWORK, assess: assessASVS },
+        { framework: CMMC_FRAMEWORK, assess: assessCMMC },
+        { framework: FEDRAMP_FRAMEWORK, assess: assessFedRAMP },
+        { framework: NIST_800_53_FRAMEWORK, assess: assessNIST80053 },
+        { framework: GDPR_FRAMEWORK, assess: assessGDPR },
+        { framework: HIPAA_FRAMEWORK, assess: assessHIPAA },
+        { framework: PCI_DSS_FRAMEWORK, assess: assessPCIDSS },
+        { framework: ISO27001_FRAMEWORK, assess: assessISO27001 },
       ];
 
       complianceScores = frameworkAssessors.map(({ framework, assess }) => {

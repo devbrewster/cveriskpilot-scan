@@ -7,6 +7,7 @@ import { Features } from "@/components/landing/features";
 import { PipelineSection } from "@/components/landing/pipeline-section";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Pricing } from "@/components/landing/pricing";
+import { AiTrust } from "@/components/landing/ai-trust";
 import { VeteranOwned } from "@/components/landing/veteran-owned";
 import { CtaSection } from "@/components/landing/cta-section";
 import { Footer } from "@/components/landing/footer";
@@ -59,10 +60,18 @@ const faqJsonLd = {
     },
     {
       "@type": "Question",
+      name: "Is my vulnerability data safe when CVERiskPilot uses AI?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. All PII (IP addresses, hostnames, usernames, API keys) is automatically redacted before any AI call. Your data is never used for model training (per Anthropic API terms). All AI feedback and learning is scoped to your organization — no cross-tenant data sharing. You can also deploy with a local LLM (Ollama) for fully air-gapped AI triage with zero external calls.",
+      },
+    },
+    {
+      "@type": "Question",
       name: "How much does CVERiskPilot cost?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "CVERiskPilot offers a Free tier (1 user, 3 uploads/month, unlimited local pipeline scans), a Founders Beta at $29/month (locked pricing for early adopters), Pro at $49/month (10 users, unlimited uploads), and custom Enterprise pricing. The CLI pipeline scanner is free for everyone.",
+        text: "CVERiskPilot offers a Free tier (unlimited CLI scans, 3 dashboard uploads/month), a Founders Beta at $29/month (locked early adopter pricing), Pro at $149/month (full compliance automation for teams), and custom Enterprise and MSSP pricing. The CLI pipeline scanner with 6 compliance frameworks is free for everyone.",
       },
     },
   ],
@@ -123,6 +132,7 @@ export default function LandingPage() {
         <PipelineSection />
         <HowItWorks />
         <Pricing />
+        <AiTrust />
         <VeteranOwned />
         <CtaSection />
       </main>

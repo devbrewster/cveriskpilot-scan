@@ -28,7 +28,8 @@ export async function parseQualys(
     throw new Error('XML file exceeds maximum allowed size (100MB)');
   }
 
-  const sanitizedXml = xml.replace(/<!DOCTYPE[^>]*>/gi, '');
+  // SECURITY: Use multiline-aware regex to handle internal subsets containing '>'
+  const sanitizedXml = xml.replace(/<!DOCTYPE[\s\S]*?(?:\[[\s\S]*?\])?\s*>/gi, '');
 
   // XXE-safe: processEntities=false prevents entity expansion (billion laughs),
   // and DTD declarations are stripped above via regex.

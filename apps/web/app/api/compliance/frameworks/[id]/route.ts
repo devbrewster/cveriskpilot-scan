@@ -9,11 +9,21 @@ import {
   ASVS_FRAMEWORK,
   CMMC_FRAMEWORK,
   FEDRAMP_FRAMEWORK,
+  NIST_800_53_FRAMEWORK,
+  GDPR_FRAMEWORK,
+  HIPAA_FRAMEWORK,
+  PCI_DSS_FRAMEWORK,
+  ISO27001_FRAMEWORK,
   assessSOC2,
   assessSSDF,
   assessASVS,
   assessCMMC,
   assessFedRAMP,
+  assessNIST80053,
+  assessGDPR,
+  assessHIPAA,
+  assessPCIDSS,
+  assessISO27001,
 } from '@cveriskpilot/compliance';
 import type { ComplianceAssessmentInput, ComplianceFramework, ComplianceEvidence } from '@cveriskpilot/compliance';
 
@@ -23,6 +33,11 @@ const FRAMEWORKS: Record<string, ComplianceFramework> = {
   'owasp-asvs': ASVS_FRAMEWORK,
   'cmmc-l2': CMMC_FRAMEWORK,
   'fedramp-moderate': FEDRAMP_FRAMEWORK,
+  'nist-800-53-r5': NIST_800_53_FRAMEWORK,
+  'gdpr': GDPR_FRAMEWORK,
+  'hipaa': HIPAA_FRAMEWORK,
+  'pci-dss': PCI_DSS_FRAMEWORK,
+  'iso-27001': ISO27001_FRAMEWORK,
 };
 
 const ASSESSORS: Record<string, (input: ComplianceAssessmentInput) => ComplianceEvidence[]> = {
@@ -31,6 +46,11 @@ const ASSESSORS: Record<string, (input: ComplianceAssessmentInput) => Compliance
   'owasp-asvs': assessASVS,
   'cmmc-l2': assessCMMC,
   'fedramp-moderate': assessFedRAMP,
+  'nist-800-53-r5': assessNIST80053,
+  'gdpr': assessGDPR,
+  'hipaa': assessHIPAA,
+  'pci-dss': assessPCIDSS,
+  'iso-27001': assessISO27001,
 };
 
 // ---------------------------------------------------------------------------

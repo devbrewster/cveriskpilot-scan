@@ -13,13 +13,17 @@ export interface TierEntitlements {
 export interface TierConfig {
   name: string;
   tier: string;
+  /** Monthly price in USD. -1 means custom/contact-sales pricing. */
   monthlyPrice: number;
+  /** Annual price in USD. -1 means custom/contact-sales pricing. */
   annualPrice: number;
   description: string;
   entitlements: TierEntitlements;
   isPublic: boolean;
   badge?: string;
   hasUsageBilling?: boolean;
+  /** If true, pricing is negotiated per-deal (Enterprise, MSSP). */
+  isContactSales?: boolean;
 }
 
 export interface CheckoutParams {

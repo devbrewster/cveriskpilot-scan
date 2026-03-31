@@ -5,12 +5,20 @@ import Stripe from 'stripe';
 // import { createLogger } from '@cveriskpilot/shared';
 import { getEntitlements, getTierFromPriceId, STRIPE_PRICES } from './config';
 
+let _stripeOverride: Stripe | null = null;
+
 function getStripe(): Stripe {
+  if (_stripeOverride) return _stripeOverride;
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) {
     throw new Error('STRIPE_SECRET_KEY environment variable is not set');
   }
   return new Stripe(key, { apiVersion: '2025-02-24.acacia' });
+}
+
+/** Override the Stripe instance (for testing only). */
+export function setStripeInstance(stripe: Stripe | null): void {
+  _stripeOverride = stripe;
 }
 
 /**
@@ -55,17 +63,22 @@ async function handleCheckoutCompleted(
       ? session.customer
       : (session.customer as Stripe.Customer | null)?.id;
 
-  // Resolve tier from the subscription's price ID instead of hardcoding
-  let tier = 'PRO'; // fallback
+  // Resolve tier from the subscription's price ID
+  let tier: string | null = null;
   let meteredItemId: string | null = null;
 
   if (subscriptionId) {
     try {
       const stripe = getStripe();
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-      const priceId = subscription.items.data[0]?.price?.id;
-      if (priceId) {
-        tier = getTierFromPriceId(priceId) ?? 'PRO';
+
+      // Check all items — the base plan may not be the first item
+      for (const item of subscription.items.data) {
+        const resolved = getTierFromPriceId(item.price.id);
+        if (resolved) {
+          tier = resolved;
+          break;
+        }
       }
 
       // Persist the metered subscription item ID for MSSP usage reporting
@@ -76,9 +89,14 @@ async function handleCheckoutCompleted(
         );
         meteredItemId = meteredItem?.id ?? null;
       }
-    } catch {
-      // If retrieval fails, fall back to PRO
+    } catch (err) {
+      console.error('[billing] Failed to retrieve subscription for tier resolution:', err);
     }
+  }
+
+  if (!tier) {
+    console.error('[billing] Could not resolve tier from checkout session', { organizationId, subscriptionId });
+    return;
   }
 
   const db = prisma as {
@@ -217,6 +235,7 @@ export async function handleWebhookEvent(
     case 'checkout.session.completed':
       await handleCheckoutCompleted(event, prisma);
       break;
+    case 'customer.subscription.created':
     case 'customer.subscription.updated':
       await handleSubscriptionUpdated(event, prisma);
       break;

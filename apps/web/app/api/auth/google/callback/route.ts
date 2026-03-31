@@ -144,11 +144,12 @@ export async function GET(request: NextRequest) {
       // Only redirect to Stripe for paid plans — FREE goes straight to dashboard
       if (VALID_PAID_PLANS.has(plan)) {
         try {
-          const priceKey = `${plan}_MONTHLY`;
-          const priceGetter = (STRIPE_PRICES as Record<string, (() => string) | undefined>)[priceKey];
+          const billingInterval = request.cookies.get('crp_oauth_billing')?.value === 'annual' ? 'ANNUAL' : 'MONTHLY';
+          const priceKey = `${plan}_${billingInterval}`;
+          const priceGetter = (STRIPE_PRICES as Record<string, (() => string | null) | undefined>)[priceKey];
           const priceId = priceGetter?.();
 
-          if (priceId) {
+          if (priceId && priceId.length > 0) {
             const checkout = await createCheckoutSession({
               organizationId: result.organizationId,
               email: user.email,

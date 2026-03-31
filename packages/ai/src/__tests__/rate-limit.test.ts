@@ -52,8 +52,8 @@ describe('rate-limit', () => {
     it('allows requests for PRO tier with higher limit', async () => {
       const result = await checkAiRateLimit('org-1', 'PRO');
       expect(result.allowed).toBe(true);
-      expect(result.remaining).toBe(500);
-      expect(result.limit).toBe(500);
+      expect(result.remaining).toBe(1000);
+      expect(result.limit).toBe(1000);
     });
 
     it('allows requests for ENTERPRISE tier', async () => {
@@ -93,7 +93,7 @@ describe('rate-limit', () => {
 
     it('is case-insensitive for tier names', async () => {
       const result = await checkAiRateLimit('org-1', 'pro');
-      expect(result.limit).toBe(500);
+      expect(result.limit).toBe(1000);
     });
   });
 
@@ -119,7 +119,7 @@ describe('rate-limit', () => {
     it('returns zero usage when no calls made', async () => {
       const stats = await getAiUsage('org-1', 'PRO');
       expect(stats.used).toBe(0);
-      expect(stats.limit).toBe(500);
+      expect(stats.limit).toBe(1000);
       expect(stats.resetAt).toBeInstanceOf(Date);
     });
 

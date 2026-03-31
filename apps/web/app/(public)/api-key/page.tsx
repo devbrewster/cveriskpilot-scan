@@ -26,15 +26,13 @@ const plans = [
     name: 'Founders Beta',
     price: 29,
     period: '/mo',
-    description: 'Enriched scan data + dashboard access. Locked-in pricing.',
+    description: 'Everything in Pro — locked at early adopter pricing forever. Only 50 spots.',
     features: [
-      'Everything in Free',
-      'CVE details + CVSS scores',
-      'Fix versions + advisories',
-      'AI-powered remediation recommendations',
-      'Upload results to dashboard',
-      '100 PR comments/month',
-      '250 AI calls/month',
+      'All Pro features',
+      '5 users, 250 assets',
+      'Price locked forever',
+      'Unlimited uploads',
+      '250 AI triage calls/month',
       'Email support',
     ],
     limits: [],
@@ -46,16 +44,17 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    price: 49,
+    price: 149,
     period: '/mo',
-    description: 'Full enrichment, priority support, and executive reporting.',
+    description: 'Full compliance automation for teams preparing for SOC 2 or CMMC.',
     features: [
       'Everything in Founders Beta',
-      '500 AI remediation calls',
-      'Unlimited uploads',
-      'Unlimited PR comments',
+      '10 users, 1,000 assets',
+      '1,000 AI triage & remediation calls',
+      'Unlimited uploads & PR comments',
+      'POAM auto-generation',
       'Executive PDF reports',
-      'Scan-over-scan comparison',
+      'Jira & ServiceNow sync',
       'SLA policy engine',
       'Priority support',
     ],
@@ -207,7 +206,7 @@ export default function ApiKeyPage() {
           </li>
           <li className="flex gap-2">
             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-100 text-[10px] font-bold text-primary-700 dark:bg-primary-900 dark:text-primary-300">3</span>
-            <span><strong className="text-gray-900 dark:text-white">Add to CLI</strong> — <code className="rounded bg-gray-200 px-1 py-0.5 text-[10px] dark:bg-gray-700">crp-scan --api-key YOUR_KEY</code> or set <code className="rounded bg-gray-200 px-1 py-0.5 text-[10px] dark:bg-gray-700">CRP_API_KEY</code> env var</span>
+            <span><strong className="text-gray-900 dark:text-white">Add to CLI</strong> — <code className="rounded bg-gray-200 px-1 py-0.5 text-[10px] dark:bg-gray-700">npx @cveriskpilot/scan --api-key YOUR_KEY</code> or set <code className="rounded bg-gray-200 px-1 py-0.5 text-[10px] dark:bg-gray-700">CRP_API_KEY</code> env var</span>
           </li>
         </ol>
       </div>

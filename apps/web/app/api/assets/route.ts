@@ -120,7 +120,19 @@ export async function POST(request: NextRequest) {
 
     // Resolve clientId — use provided or pick the first client in the org
     let resolvedClientId = clientId;
-    if (!resolvedClientId) {
+    if (resolvedClientId) {
+      // SECURITY: Validate clientId belongs to the session's organization
+      const clientBelongsToOrg = await prisma.client.findFirst({
+        where: { id: resolvedClientId, organizationId: session.organizationId, deletedAt: null },
+        select: { id: true },
+      });
+      if (!clientBelongsToOrg) {
+        return NextResponse.json(
+          { error: 'Client not found in your organization' },
+          { status: 403 },
+        );
+      }
+    } else {
       const firstClient = await prisma.client.findFirst({
         where: { organizationId: session.organizationId, deletedAt: null },
         select: { id: true },

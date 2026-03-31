@@ -1,6 +1,6 @@
 {
   "name": "@cveriskpilot/web",
-  "version": "0.1.0",
+  "version": "0.3.0-beta",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,6 +19,7 @@
     "@cveriskpilot/connectors": "*",
     "@cveriskpilot/db-scale": "*",
     "@cveriskpilot/domain": "*",
+    "@cveriskpilot/enrichment": "*",
     "@cveriskpilot/integrations": "*",
     "@cveriskpilot/notifications": "*",
     "@cveriskpilot/parsers": "*",

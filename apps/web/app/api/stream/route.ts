@@ -9,6 +9,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@cveriskpilot/auth';
 import { SSEEmitter } from '@cveriskpilot/streaming';
+import { prisma } from '@/lib/prisma';
 
 // ---------------------------------------------------------------------------
 // Singleton SSEEmitter (lives for the lifetime of the server process)
@@ -43,6 +44,17 @@ export async function GET(request: NextRequest): Promise<Response> {
   const tenantId = session.organizationId;
   const { searchParams } = request.nextUrl;
   const jobId = searchParams.get('jobId');
+
+  // SECURITY: Validate jobId belongs to the session's organization (prevent cross-tenant data leak)
+  if (jobId) {
+    const job = await prisma.uploadJob.findFirst({
+      where: { id: jobId, organizationId: tenantId },
+      select: { id: true },
+    });
+    if (!job) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    }
+  }
 
   const emitter = getSSEEmitter();
 

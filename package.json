@@ -47,7 +47,11 @@
     "security:scan:fix": "node scripts/security-scan.mjs --fix",
     "security:scan:apt": "node scripts/security-scan.mjs --fix --level 4",
     "audit:deep": "npx tsx packages/audit/src/index.ts",
-    "blog:medium": "node scripts/md-to-medium.mjs"
+    "blog:medium": "node scripts/md-to-medium.mjs",
+    "security:semgrep": "semgrep scan --config=auto --config=p/owasp-top-ten --config=p/typescript --exclude=node_modules --exclude=.next .",
+    "security:trivy": "trivy fs --scanners vuln,secret,misconfig --severity CRITICAL,HIGH .",
+    "security:gitleaks": "gitleaks detect --source . --redact",
+    "security:all": "npm run security:semgrep && npm run security:trivy && npm run security:gitleaks && npx @cveriskpilot/scan@latest --preset startup"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
@@ -67,6 +71,7 @@
   },
   "packageManager": "npm@10.8.0",
   "dependencies": {
+    "@anthropic-ai/claude-code": "^2.1.87",
     "@cveriskpilot/scan": "^0.1.0",
     "@prisma/client": "^5.22.0",
     "@react-pdf/renderer": "^4.3.2",

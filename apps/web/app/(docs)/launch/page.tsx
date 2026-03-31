@@ -56,6 +56,9 @@ export const metadata: Metadata = {
   },
 };
 
+/** Revalidate every 60 seconds (ISR) so the page serves from cache */
+export const revalidate = 60;
+
 export default function LaunchPage() {
   return <LaunchPageClient />;
 }

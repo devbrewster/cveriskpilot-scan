@@ -27,9 +27,9 @@ const PLANS: PlanInfo[] = [
     tier: 'FREE',
     monthlyPrice: 0,
     annualPrice: 0,
-    description: 'For individual security researchers getting started.',
+    description: 'Unlimited CLI scans with full compliance mapping.',
     limits: { users: '1', assets: '50', uploads: '3/mo', aiCalls: '50/mo' },
-    features: ['API access', 'Standard reports', 'Community support'],
+    features: ['API access', '6 compliance frameworks', 'Community support'],
     cta: 'Get Started Free',
     ctaHref: '/signup?plan=free',
   },
@@ -38,82 +38,82 @@ const PLANS: PlanInfo[] = [
     tier: 'FOUNDERS_BETA',
     monthlyPrice: 29,
     annualPrice: 278,
-    description: 'Early adopter pricing. Locked in forever.',
+    description: 'Everything in Pro — locked at early adopter pricing forever.',
     limits: { users: '5', assets: '250', uploads: 'Unlimited', aiCalls: '250/mo' },
     features: [
+      'All Pro features',
+      'Price locked forever',
       'Email support',
     ],
     badge: 'Limited',
-    cta: 'Join Founders Beta',
+    cta: 'Lock In $29/mo Forever',
     ctaHref: '/signup?plan=founders_beta',
   },
   {
     name: 'Pro',
     tier: 'PRO',
-    monthlyPrice: 49,
-    annualPrice: 470,
-    description: 'For security teams that need full coverage.',
-    limits: { users: '10', assets: '500', uploads: 'Unlimited', aiCalls: '500/mo' },
+    monthlyPrice: 149,
+    annualPrice: 1428,
+    description: 'Full compliance automation for teams preparing for SOC 2 or CMMC.',
+    limits: { users: '10', assets: '1,000', uploads: 'Unlimited', aiCalls: '1,000/mo' },
     features: [
       'API access',
-      'Jira integration',
+      'Jira & ServiceNow sync',
       'Custom SLA policies',
       'Webhooks',
-      'Portfolio dashboard',
-      'Scheduled reports',
+      'POAM auto-generation',
+      'Executive PDF reports',
       'Priority support',
     ],
     highlighted: true,
     badge: 'Most Popular',
-    cta: 'Get Started',
+    cta: 'Start 14-Day Trial',
     ctaHref: '/signup?plan=pro',
   },
   {
     name: 'Enterprise',
     tier: 'ENTERPRISE',
-    monthlyPrice: 199,
-    annualPrice: 1910,
-    description: 'For organizations with advanced security needs.',
-    limits: { users: '50', assets: '5,000', uploads: 'Unlimited', aiCalls: '5,000/mo' },
+    monthlyPrice: -1,
+    annualPrice: -1,
+    description: 'Enterprise compliance automation with SSO, SCIM, and custom policies.',
+    limits: { users: 'Unlimited', assets: 'Unlimited', uploads: 'Unlimited', aiCalls: 'Unlimited' },
     features: [
       'Everything in Pro',
-      'SSO / SAML',
-      'Custom parser formats (coming soon)',
-      'Multi-client management',
-      'Advanced compliance',
-      'Dedicated support',
-      'SLA guarantees',
+      'SSO / SAML / OIDC',
+      'SCIM provisioning',
+      'ABAC policies & custom roles',
+      'Dedicated account manager',
+      '99.9% SLA',
     ],
-    cta: 'Contact Sales',
-    ctaHref: '/contact?plan=enterprise',
+    cta: 'Talk to Sales',
+    ctaHref: 'mailto:sales@cveriskpilot.com?subject=Enterprise%20Plan',
   },
   {
     name: 'MSSP',
     tier: 'MSSP',
-    monthlyPrice: 499,
-    annualPrice: 4790,
-    description: 'Multi-tenant managed security provider.',
+    monthlyPrice: -1,
+    annualPrice: -1,
+    description: 'Multi-tenant compliance platform for managed security providers.',
     limits: { users: 'Unlimited', assets: 'Unlimited', uploads: 'Unlimited', aiCalls: 'Unlimited' },
     features: [
       'Everything in Enterprise',
       'White-label branding',
+      'Multi-tenant isolation',
       'Per-client usage metering',
-      'Bulk tenant onboarding',
-      'Usage-based billing',
-      'Full API access',
-      'Dedicated support channel',
+      'Usage-based billing API',
+      'Custom SLAs',
     ],
     badge: 'For MSSPs',
-    cta: 'Contact Sales',
-    ctaHref: '/contact?plan=mssp',
+    cta: 'Talk to Sales',
+    ctaHref: 'mailto:sales@cveriskpilot.com?subject=MSSP%20Plan',
   },
 ];
 
 const FEATURE_MATRIX = [
-  { name: 'Users', free: '1', founders: '5', pro: '10', enterprise: '50', mssp: 'Unlimited' },
-  { name: 'Assets', free: '50', founders: '250', pro: '500', enterprise: '5,000', mssp: 'Unlimited' },
+  { name: 'Users', free: '1', founders: '5', pro: '10', enterprise: 'Unlimited', mssp: 'Unlimited' },
+  { name: 'Assets', free: '50', founders: '250', pro: '1,000', enterprise: 'Unlimited', mssp: 'Unlimited' },
   { name: 'Monthly uploads', free: '3', founders: 'Unlimited', pro: 'Unlimited', enterprise: 'Unlimited', mssp: 'Unlimited' },
-  { name: 'AI remediation calls', free: '50/mo', founders: '250/mo', pro: '500/mo', enterprise: '5,000/mo', mssp: 'Unlimited' },
+  { name: 'AI triage & remediation calls', free: '50/mo', founders: '250/mo', pro: '1,000/mo', enterprise: 'Unlimited', mssp: 'Unlimited' },
   { name: 'API access', free: true, founders: true, pro: true, enterprise: true, mssp: true },
   { name: 'Jira integration', free: false, founders: true, pro: true, enterprise: true, mssp: true },
   { name: 'Custom SLA policies', free: false, founders: true, pro: true, enterprise: true, mssp: true },
@@ -150,6 +150,7 @@ function XIcon() {
 }
 
 function formatPrice(monthly: number, annual: number, isAnnual: boolean): string {
+  if (monthly < 0) return 'Custom';
   if (monthly === 0) return '$0';
   if (isAnnual) {
     const perMonth = Math.round(annual / 12);
@@ -259,7 +260,7 @@ export function TierComparison() {
               <span className="text-3xl font-bold text-gray-900 dark:text-white">
                 {formatPrice(plan.monthlyPrice, plan.annualPrice, isAnnual)}
               </span>
-              {plan.monthlyPrice > 0 && (
+              {plan.monthlyPrice >= 0 && plan.monthlyPrice > 0 && (
                 <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">/mo</span>
               )}
             </div>
@@ -268,9 +269,9 @@ export function TierComparison() {
                 ${plan.annualPrice}/yr billed annually
               </p>
             )}
-            {plan.tier === 'MSSP' && (
+            {plan.monthlyPrice < 0 && (
               <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                + per-client usage
+                Tailored to your organization
               </p>
             )}
 

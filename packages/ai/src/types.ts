@@ -104,7 +104,7 @@ export interface AiUsageStats {
 export const AI_TIER_LIMITS: Record<string, number> = {
   FREE: 50,
   FOUNDERS_BETA: 250,
-  PRO: 500,
+  PRO: 1000,
   ENTERPRISE: 5000,
   MSSP: 10000,
 };

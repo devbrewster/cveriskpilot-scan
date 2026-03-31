@@ -27,9 +27,9 @@ interface OnboardingResult {
 const TIERS = [
   { value: 'FREE', label: 'Free', price: '$0/mo' },
   { value: 'FOUNDERS_BETA', label: 'Founders Beta', price: '$29/mo' },
-  { value: 'PRO', label: 'Pro', price: '$49/mo' },
-  { value: 'ENTERPRISE', label: 'Enterprise', price: '$199/mo' },
-  { value: 'MSSP', label: 'MSSP', price: '$499/mo' },
+  { value: 'PRO', label: 'Pro', price: '$149/mo' },
+  { value: 'ENTERPRISE', label: 'Enterprise', price: 'Custom' },
+  { value: 'MSSP', label: 'MSSP', price: 'Custom' },
 ];
 
 const AVAILABLE_FEATURES = [

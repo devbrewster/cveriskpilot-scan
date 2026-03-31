@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { handleWebhookEvent } from '../webhooks';
+import { handleWebhookEvent, setStripeInstance } from '../webhooks';
 import type Stripe from 'stripe';
 
 // Minimal mock Prisma client
@@ -35,9 +35,21 @@ describe('webhooks', () => {
     process.env.STRIPE_PRICE_PRO_ANNUAL = 'price_annual_test';
     process.env.STRIPE_PRICE_MSSP_MONTHLY = 'price_mssp_monthly';
     process.env.STRIPE_PRICE_MSSP_METERED = 'price_mssp_metered';
+
+    // Mock Stripe SDK so tests never call the real API
+    setStripeInstance({
+      subscriptions: {
+        retrieve: vi.fn(async () => ({
+          items: {
+            data: [{ id: 'si_test', price: { id: 'price_monthly_test' } }],
+          },
+        })),
+      },
+    } as unknown as Stripe);
   });
 
   afterEach(() => {
+    setStripeInstance(null);
     process.env = originalEnv;
   });
 

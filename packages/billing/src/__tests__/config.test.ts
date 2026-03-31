@@ -21,9 +21,9 @@ describe('config', () => {
     it('has correct PRO entitlements', () => {
       expect(TIER_ENTITLEMENTS.PRO).toEqual({
         max_users: 10,
-        max_assets: 500,
+        max_assets: 1000,
         max_monthly_uploads: 'unlimited',
-        max_ai_calls: 500,
+        max_ai_calls: 1000,
         api_rate_limit: 500,
         features: ['api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view', 'scheduled_reports'],
       });
@@ -31,10 +31,10 @@ describe('config', () => {
 
     it('has correct ENTERPRISE entitlements', () => {
       expect(TIER_ENTITLEMENTS.ENTERPRISE).toEqual({
-        max_users: 50,
-        max_assets: 5000,
+        max_users: 'unlimited',
+        max_assets: 'unlimited',
         max_monthly_uploads: 'unlimited',
-        max_ai_calls: 5000,
+        max_ai_calls: 'unlimited',
         api_rate_limit: 2000,
         features: [
           'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',

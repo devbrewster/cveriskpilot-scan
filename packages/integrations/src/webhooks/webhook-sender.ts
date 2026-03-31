@@ -39,12 +39,40 @@ export function verifySignature(
  * Send a webhook to the given URL with HMAC-SHA256 signing.
  * Retries up to 3 times with exponential backoff on failure.
  */
+/**
+ * Inline SSRF validation — blocks private IPs, metadata endpoints, non-HTTPS.
+ * Duplicated from @cveriskpilot/auth to avoid adding a cross-package dependency.
+ */
+function isUrlSafe(url: string): { valid: boolean; reason?: string } {
+  let parsed: URL;
+  try { parsed = new URL(url); } catch { return { valid: false, reason: 'Malformed URL' }; }
+  if (!['https:', 'http:'].includes(parsed.protocol)) return { valid: false, reason: 'Non-HTTP scheme' };
+  const h = parsed.hostname.toLowerCase();
+  const blocked = ['metadata.google.internal', 'metadata.goog', '169.254.169.254', 'localhost', '127.0.0.1', '0.0.0.0', '::1'];
+  if (blocked.includes(h)) return { valid: false, reason: 'Blocked host' };
+  const parts = h.split('.').map(Number);
+  if (parts.length === 4 && parts.every(p => !isNaN(p) && p >= 0 && p <= 255)) {
+    const [a, b] = parts;
+    if (a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254) || a === 127)
+      return { valid: false, reason: 'Private IP' };
+  }
+  if (h.includes('169.254.169.254') || h.includes('metadata.google')) return { valid: false, reason: 'Metadata pattern' };
+  return { valid: true };
+}
+
 export async function sendWebhook(
   url: string,
   secret: string,
   eventType: string,
   payload: WebhookPayload,
 ): Promise<{ success: boolean; statusCode?: number; error?: string; attempts: number }> {
+  // SSRF protection: validate webhook destination URL before sending
+  const urlCheck = isUrlSafe(url);
+  if (!urlCheck.valid) {
+    logger.warn(`Blocked webhook SSRF attempt: ${urlCheck.reason}`, { url: url.substring(0, 50) });
+    return { success: false, error: `Blocked: ${urlCheck.reason}`, attempts: 0 };
+  }
+
   const body = JSON.stringify(payload);
   const signature = generateSignature(body, secret);
 

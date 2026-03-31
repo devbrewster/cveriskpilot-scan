@@ -223,7 +223,8 @@ export function estimateUsageCost(
   totals: Record<UsageMetric, number>,
 ): UsageCostEstimate {
   const config = getTierConfig(tier);
-  const baseCost = config?.monthlyPrice ?? 0;
+  const rawPrice = config?.monthlyPrice ?? 0;
+  const baseCost = rawPrice < 0 ? 0 : rawPrice; // custom/contact-sales tiers have no fixed base
 
   let meteredCost = 0;
   const breakdown = {} as Record<UsageMetric, { quantity: number; unitCost: number; cost: number }>;

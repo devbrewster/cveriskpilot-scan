@@ -152,6 +152,16 @@ export interface OrchestratorInput {
   };
 }
 
+/** Record of a single tool call made during an agentic loop */
+export interface ToolCallRecord {
+  toolName: string;
+  input: Record<string, unknown>;
+  output: unknown;
+  durationMs: number;
+  isError: boolean;
+  iteration: number;
+}
+
 /** Orchestrator result */
 export interface OrchestratorResult {
   taskId: string;
@@ -159,6 +169,12 @@ export interface OrchestratorResult {
   rawOutput: string;
   gateDecision: GateDecision;
   completedAt: string;
+  /** Tool calls made during the agentic loop (only for tool-loop agents) */
+  toolCalls?: ToolCallRecord[];
+  /** Number of loop iterations (only for tool-loop agents) */
+  iterations?: number;
+  /** Whether the loop hit maxIterations */
+  truncated?: boolean;
 }
 
 /** Dispatch input for triage tasks triggered by uploads */

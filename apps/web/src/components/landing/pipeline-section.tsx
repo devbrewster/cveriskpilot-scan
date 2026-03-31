@@ -102,6 +102,7 @@ const comparisonRows = [
   { feature: "Maps to SOC 2 / CMMC / FedRAMP", crp: true, snyk: false, sonar: false, ghas: false },
   { feature: "Auto-generates POAM", crp: true, snyk: false, sonar: false, ghas: false },
   { feature: "Compliance verdict in CI/CD", crp: true, snyk: false, sonar: "partial", ghas: false },
+  { feature: "AI fix guidance per finding", crp: true, snyk: "partial", sonar: false, ghas: "partial" },
 ];
 
 const prFindings = [
@@ -389,8 +390,12 @@ export function PipelineSection() {
               View Documentation
             </Link>
           </div>
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-gray-700 bg-gray-900/50 px-4 py-2">
+            <span className="font-mono text-xs text-gray-400">$</span>
+            <code className="text-sm text-primary-400">npx @cveriskpilot/scan --preset startup</code>
+          </div>
           <p className="mt-4 text-sm text-gray-500">
-            Local scans are free and unlimited. No credit card required.
+            One command. 30 seconds. Compliance mapping across 6 frameworks. Free and unlimited.
           </p>
         </div>
       </div>

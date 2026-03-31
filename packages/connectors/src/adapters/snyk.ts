@@ -125,6 +125,13 @@ export class SnykAdapter implements ScannerAdapter {
       throw new Error('Snyk adapter requires a token or apiKey credential');
     }
 
+    // SSRF protection: re-validate baseUrl at invocation time (not just creation time)
+    const { validateExternalUrl } = require('@cveriskpilot/auth');
+    const urlCheck = validateExternalUrl(credentials.baseUrl);
+    if (!urlCheck.valid) {
+      throw new Error(`Blocked SSRF attempt on Snyk baseUrl: ${urlCheck.reason}`);
+    }
+
     return new HttpClientWithRetry({
       baseUrl: credentials.baseUrl.replace(/\/+$/, ''),
       defaultHeaders: {

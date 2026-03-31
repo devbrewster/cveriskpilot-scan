@@ -5,9 +5,9 @@ import { useState, useEffect, useRef } from "react";
 
 // The scan findings — shared between terminal and dashboard
 const FINDINGS = [
-  { cve: "CVE-2026-1234", title: "Prototype Pollution in lodash", score: "9.8", epss: "0.97", severity: "CRITICAL", status: "KEV", statusColor: "red" as const },
-  { cve: "CVE-2026-5678", title: "SQL Injection in pg-query", score: "8.5", epss: "0.82", severity: "HIGH", status: "Exploited", statusColor: "orange" as const },
-  { cve: "CVE-2026-9012", title: "XSS in react-markdown", score: "7.2", epss: "0.45", severity: "HIGH", status: "Active", statusColor: "yellow" as const },
+  { cve: "CVE-2026-1234", title: "Prototype Pollution in lodash", score: "9.8", epss: "0.97", severity: "CRITICAL", status: "NIST SI-2", statusColor: "red" as const },
+  { cve: "CWE-798", title: "Hard-Coded Credentials in config.ts", score: "8.5", epss: "0.82", severity: "HIGH", status: "SOC 2 CC6.1", statusColor: "orange" as const },
+  { cve: "CWE-79", title: "XSS in user input handler", score: "7.2", epss: "0.45", severity: "HIGH", status: "CMMC SI.L2", statusColor: "yellow" as const },
 ];
 
 type AnimPhase = 'idle' | 'typing' | 'scanning' | 'results' | 'importing' | 'done';
@@ -104,23 +104,22 @@ export function Hero() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
             </span>
-            Now processing 8,000+ CVEs per scan
+            Compliance as a Service — now in beta
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl lg:leading-[1.1]">
-            Know Which{" "}
+            Compliance{" "}
             <span className="bg-gradient-to-r from-primary-400 to-primary-300 bg-clip-text text-transparent">
-              50 CVEs
-            </span>{" "}
-            Matter This Week
+              in the Shell
+            </span>
           </h1>
 
           {/* Subheadline */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl sm:leading-relaxed">
-            CVERiskPilot unifies vulnerability signals from every scanner into a
-            single, AI-powered remediation system. Prioritize by real exploit
-            risk, not just CVSS.
+            Scan your code for vulnerabilities and map every finding to NIST
+            800-53, SOC 2, CMMC, and FedRAMP controls — automatically. The
+            compliance layer your scanner is missing.
           </p>
 
           {/* Copy-pasteable CLI command */}
@@ -247,19 +246,19 @@ export function Hero() {
 
               {/* Stats row — animate counters */}
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <DashboardStat label="Critical" value={importedFindings > 0 ? "1" : "—"} color="red" active={importedFindings > 0} />
-                <DashboardStat label="High" value={importedFindings > 1 ? "2" : importedFindings > 0 ? "0" : "—"} color="orange" active={importedFindings > 1} />
-                <DashboardStat label="EPSS > 0.5" value={importedFindings > 1 ? "2" : importedFindings > 0 ? "1" : "—"} color="yellow" active={importedFindings > 0} />
-                <DashboardStat label="KEV Listed" value={importedFindings > 0 ? "1" : "—"} color="purple" active={importedFindings > 0} />
+                <DashboardStat label="Controls Affected" value={importedFindings > 0 ? "12" : "—"} color="red" active={importedFindings > 0} />
+                <DashboardStat label="Frameworks" value={importedFindings > 1 ? "4" : importedFindings > 0 ? "2" : "—"} color="orange" active={importedFindings > 1} />
+                <DashboardStat label="POAM Entries" value={importedFindings > 1 ? "3" : importedFindings > 0 ? "1" : "—"} color="yellow" active={importedFindings > 0} />
+                <DashboardStat label="Compliance" value={importedFindings > 0 ? "73%" : "—"} color="purple" active={importedFindings > 0} />
               </div>
 
               {/* Findings table — rows appear as they're imported */}
               <div className="mt-3 min-h-[140px] overflow-hidden rounded-lg border border-gray-800/80">
                 <div className="grid grid-cols-4 gap-2 border-b border-gray-800 bg-gray-800/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
-                  <span>CVE ID</span>
-                  <span>Risk</span>
+                  <span>Finding</span>
+                  <span>CVSS</span>
                   <span>EPSS</span>
-                  <span>Status</span>
+                  <span>Control</span>
                 </div>
                 {importedFindings === 0 && (
                   <div className="flex items-center justify-center py-8 text-xs text-gray-600">
@@ -279,10 +278,10 @@ export function Hero() {
         {/* Labels */}
         <div className="mx-auto mt-3 grid max-w-6xl gap-4 lg:grid-cols-2">
           <p className="text-center text-xs text-gray-600">
-            Free — run in any project, no account needed
+            Free CLI — scan and map to 6 frameworks, no account needed
           </p>
           <p className="text-center text-xs text-gray-600">
-            Paid — upload results, enrich with AI, track over time
+            Platform — AI triage, POAM generation, audit trails, compliance scores
           </p>
         </div>
       </div>
@@ -317,7 +316,7 @@ function CopyableCommand() {
         </span>
       </button>
       <p className="mt-2 text-xs text-gray-500">
-        Zero dependencies. Works offline. Scans deps, secrets, and IaC in seconds.
+        6 frameworks. 135 controls. Scans deps, secrets, and IaC in seconds.
       </p>
     </div>
   );

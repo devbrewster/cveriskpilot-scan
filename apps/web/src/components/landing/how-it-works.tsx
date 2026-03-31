@@ -1,7 +1,7 @@
 const steps = [
   {
-    title: "Upload",
-    description: "Drag & drop your scan file. Nessus, SARIF, CycloneDX, CSV, or JSON — any format works.",
+    title: "Scan",
+    description: "Run the CLI locally or in CI/CD. Or upload results from any of 11 scanner formats.",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
@@ -9,8 +9,8 @@ const steps = [
     ),
   },
   {
-    title: "Enrich",
-    description: "Automatic NVD, EPSS, and CISA KEV enrichment adds real-world exploit context to every finding.",
+    title: "Map",
+    description: "Every finding chains through CWE to NIST 800-53, then maps to SOC 2, CMMC, FedRAMP, ASVS, and SSDF.",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -18,8 +18,8 @@ const steps = [
     ),
   },
   {
-    title: "Prioritize",
-    description: "See what actually matters this week. Composite risk scores cut through the noise instantly.",
+    title: "Triage",
+    description: "AI auto-classifies findings as true positive, false positive, or needs review. No more alert fatigue.",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6z" />
@@ -28,8 +28,8 @@ const steps = [
     ),
   },
   {
-    title: "Remediate",
-    description: "AI-generated fix plans with code examples and verification steps. Close the loop fast.",
+    title: "Comply",
+    description: "Auto-generate POAMs, audit evidence, and compliance scores. Your auditor gets structured data, not PDFs.",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -48,11 +48,11 @@ export function HowItWorks() {
             How It Works
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-            From scan to fix in four steps
+            From scan to compliance in four steps
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Upload your scan results and get actionable remediation plans in
-            under 90 seconds.
+            Run one command. Get every finding mapped to 6 compliance frameworks with
+            audit-ready evidence in under 90 seconds.
           </p>
         </div>
 

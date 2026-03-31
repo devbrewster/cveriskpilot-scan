@@ -4,6 +4,7 @@
 
 import { getClient } from './client';
 import { buildRedactionMap, applyRedaction } from './redaction';
+import { isLocalLlmConfigured, triageLocal } from './local-client';
 import type { Severity, AssetContext } from './types';
 
 // ---------------------------------------------------------------------------
@@ -65,6 +66,11 @@ export interface BatchTriageResult {
   errors: Array<{ caseId: string; error: string }>;
   totalProcessed: number;
   totalErrors: number;
+}
+
+export interface TriageOptions {
+  /** Pre-built feedback context string to inject into prompts */
+  feedbackContext?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -141,7 +147,7 @@ export class TriageAgent {
   /**
    * Build the triage prompt from case data.
    */
-  buildTriagePrompt(caseData: TriageCaseData): {
+  buildTriagePrompt(caseData: TriageCaseData, feedbackContext?: string): {
     system: string;
     userMessage: string;
   } {
@@ -238,28 +244,56 @@ export class TriageAgent {
     lines.push('');
     lines.push('Provide your triage decision as JSON for the vulnerability data above.');
 
+    const system = feedbackContext
+      ? `${TRIAGE_SYSTEM_PROMPT}\n\n${feedbackContext}`
+      : TRIAGE_SYSTEM_PROMPT;
+
     return {
-      system: TRIAGE_SYSTEM_PROMPT,
+      system,
       userMessage: lines.join('\n'),
     };
   }
 
   /**
-   * Triage a single case using Claude AI.
+   * Triage a single case using Claude AI, with local LLM fallback on API exhaustion.
    */
-  async triageCase(caseData: TriageCaseData): Promise<TriageDecision> {
-    const client = getClient();
-    const { system, userMessage } = this.buildTriagePrompt(caseData);
+  async triageCase(caseData: TriageCaseData, options?: TriageOptions): Promise<TriageDecision> {
+    const { system, userMessage } = this.buildTriagePrompt(caseData, options?.feedbackContext);
 
-    const response = await client.messages.create({
-      model: TRIAGE_MODEL,
-      max_tokens: TRIAGE_MAX_TOKENS,
-      system,
-      messages: [{ role: 'user', content: userMessage }],
-    });
+    let content: string;
+    let model: string;
+    let inputTokens: number;
+    let outputTokens: number;
 
-    const textBlock = response.content.find((block) => block.type === 'text');
-    const content = textBlock && 'text' in textBlock ? textBlock.text : '';
+    try {
+      const client = getClient();
+      const response = await client.messages.create({
+        model: TRIAGE_MODEL,
+        max_tokens: TRIAGE_MAX_TOKENS,
+        system,
+        messages: [{ role: 'user', content: userMessage }],
+      });
+
+      const textBlock = response.content.find((block) => block.type === 'text');
+      content = textBlock && 'text' in textBlock ? textBlock.text : '';
+      model = response.model;
+      inputTokens = response.usage.input_tokens;
+      outputTokens = response.usage.output_tokens;
+    } catch (error: unknown) {
+      // Fall back to local LLM on rate limit / quota exhaustion
+      if (this.isApiExhausted(error) && isLocalLlmConfigured()) {
+        console.warn(
+          `[TriageAgent] Anthropic API exhausted for case ${caseData.caseId}, falling back to local LLM`,
+        );
+        const local = await triageLocal(system, userMessage);
+        content = local.content;
+        model = local.model;
+        inputTokens = local.inputTokens;
+        outputTokens = local.outputTokens;
+      } else {
+        throw error;
+      }
+    }
 
     const parsed = this.parseTriageResponse(content, caseData.caseId);
 
@@ -272,12 +306,9 @@ export class TriageAgent {
       confidenceScore: parsed.confidenceScore,
       requiresHumanReview: parsed.confidenceScore < AUTO_APPROVE_THRESHOLD,
       autoApproved: parsed.confidenceScore >= AUTO_APPROVE_THRESHOLD,
-      model: response.model,
+      model,
       triagedAt: new Date(),
-      usage: {
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-      },
+      usage: { inputTokens, outputTokens },
     };
 
     // Store in audit trail
@@ -287,9 +318,24 @@ export class TriageAgent {
   }
 
   /**
+   * Check if an error indicates Anthropic API exhaustion (429, 529, quota).
+   */
+  private isApiExhausted(error: unknown): boolean {
+    if (error && typeof error === 'object' && 'status' in error) {
+      const status = (error as { status: number }).status;
+      return status === 429 || status === 529;
+    }
+    if (error instanceof Error) {
+      const msg = error.message.toLowerCase();
+      return msg.includes('rate limit') || msg.includes('quota') || msg.includes('overloaded');
+    }
+    return false;
+  }
+
+  /**
    * Batch-triage multiple cases with rate limiting.
    */
-  async batchTriage(cases: TriageCaseData[]): Promise<BatchTriageResult> {
+  async batchTriage(cases: TriageCaseData[], options?: TriageOptions): Promise<BatchTriageResult> {
     const decisions: TriageDecision[] = [];
     const errors: Array<{ caseId: string; error: string }> = [];
 
@@ -298,7 +344,7 @@ export class TriageAgent {
       const chunk = cases.slice(i, i + BATCH_CONCURRENCY);
 
       const results = await Promise.allSettled(
-        chunk.map((caseData) => this.triageCase(caseData)),
+        chunk.map((caseData) => this.triageCase(caseData, options)),
       );
 
       for (let j = 0; j < results.length; j++) {

@@ -195,9 +195,9 @@ export default function DemoBillingPage() {
         </h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { label: 'Base Cost', value: '$49/mo' },
+            { label: 'Base Cost', value: '$149/mo' },
             { label: 'Metered Overage', value: '$0' },
-            { label: 'Estimated Total', value: '$49/mo' },
+            { label: 'Estimated Total', value: '$149/mo' },
           ].map((c) => (
             <div
               key={c.label}

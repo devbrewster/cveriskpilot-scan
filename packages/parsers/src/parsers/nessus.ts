@@ -42,7 +42,8 @@ export async function parseNessus(
   }
 
   // Strip DTD declarations to prevent XXE and billion laughs attacks
-  const sanitizedXml = xml.replace(/<!DOCTYPE[^>]*>/gi, '');
+  // SECURITY: Use multiline-aware regex to handle internal subsets containing '>'
+  const sanitizedXml = xml.replace(/<!DOCTYPE[\s\S]*?(?:\[[\s\S]*?\])?\s*>/gi, '');
 
   // XXE-safe: processEntities=false prevents entity expansion (billion laughs),
   // and DTD declarations are stripped above via regex.

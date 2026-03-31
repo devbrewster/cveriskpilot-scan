@@ -122,6 +122,13 @@ export class Rapid7InsightVMAdapter implements ScannerAdapter {
       throw new Error('Rapid7 InsightVM adapter requires an API key');
     }
 
+    // SSRF protection: re-validate baseUrl at invocation time (not just creation time)
+    const { validateExternalUrl } = require('@cveriskpilot/auth');
+    const urlCheck = validateExternalUrl(credentials.baseUrl);
+    if (!urlCheck.valid) {
+      throw new Error(`Blocked SSRF attempt on Rapid7 baseUrl: ${urlCheck.reason}`);
+    }
+
     return new HttpClientWithRetry({
       baseUrl: credentials.baseUrl.replace(/\/+$/, ''),
       defaultHeaders: {

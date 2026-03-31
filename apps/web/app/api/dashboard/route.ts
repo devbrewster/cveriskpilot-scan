@@ -206,8 +206,8 @@ export async function GET(request: NextRequest) {
     let complianceScores: {
       framework: string;
       score: number;
-      totalControls: number;
-      passingControls: number;
+      controlsTotal: number;
+      controlsMet: number;
     }[] = [];
 
     try {
@@ -242,8 +242,8 @@ export async function GET(request: NextRequest) {
         return {
           framework: framework.name,
           score,
-          totalControls: framework.controls.length,
-          passingControls: metCount,
+          controlsTotal: framework.controls.length,
+          controlsMet: metCount,
         };
       });
     } catch (err) {

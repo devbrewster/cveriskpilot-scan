@@ -9,6 +9,7 @@ import { CommentThread } from '@/components/cases/comment-thread';
 import { AssignDropdown } from '@/components/cases/assign-dropdown';
 import { RiskExceptionForm } from '@/components/cases/risk-exception-form';
 import { useAuth } from '@/lib/auth-context';
+import { AiTriagePanel } from '@/components/cases/ai-triage-panel';
 import { useToast } from '@/components/ui/toast';
 
 type Severity = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
@@ -38,6 +39,11 @@ interface VulnerabilityCase {
   assignedToId: string | null;
   dueAt: string | null;
   aiAdvisory: Record<string, unknown> | null;
+  triageVerdict: string | null;
+  triageConfidence: number | null;
+  triageModel: string | null;
+  triageAt: string | null;
+  severityOverride: string | null;
   remediationNotes: string;
   findingCount: number;
   firstSeenAt: string;
@@ -310,6 +316,16 @@ export function CaseDetail({ vulnCase: initialCase, findings, assignedUserName, 
           </div>
         </div>
       </div>
+
+      {/* AI Triage */}
+      <AiTriagePanel
+        caseId={caseData.id}
+        currentSeverity={caseData.severity}
+        existingVerdict={caseData.triageVerdict}
+        existingConfidence={caseData.triageConfidence}
+        existingModel={caseData.triageModel}
+        existingTriageAt={caseData.triageAt}
+      />
 
       {/* SLA */}
       <SlaSection dueAt={caseData.dueAt} />

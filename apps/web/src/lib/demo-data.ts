@@ -657,6 +657,11 @@ export interface DetailVulnCase {
   findingCount: number;
   firstSeenAt: string;
   lastSeenAt: string;
+  triageVerdict: string | null;
+  triageConfidence: number | null;
+  triageModel: string | null;
+  triageAt: string | null;
+  severityOverride: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -1011,6 +1016,11 @@ export const demoDetailCases: DetailVulnCase[] = [
     findingCount: 14,
     firstSeenAt: '2024-03-29T08:12:00Z',
     lastSeenAt: '2024-03-29T08:12:00Z',
+    triageVerdict: 'REMEDIATE',
+    triageConfidence: 0.95,
+    triageModel: 'claude-sonnet-4-5-20250514',
+    triageAt: '2024-03-29T08:15:00Z',
+    severityOverride: null,
   },
   {
     id: 'c-002',
@@ -1048,6 +1058,7 @@ export const demoDetailCases: DetailVulnCase[] = [
     findingCount: 3,
     firstSeenAt: '2024-02-09T14:30:00Z',
     lastSeenAt: '2024-02-09T14:30:00Z',
+    triageVerdict: null, triageConfidence: null, triageModel: null, triageAt: null, severityOverride: null,
   },
   {
     id: 'c-003',
@@ -1074,6 +1085,7 @@ export const demoDetailCases: DetailVulnCase[] = [
     findingCount: 7,
     firstSeenAt: '2024-01-15T10:00:00Z',
     lastSeenAt: '2024-01-22T14:30:00Z',
+    triageVerdict: null, triageConfidence: null, triageModel: null, triageAt: null, severityOverride: null,
   },
   {
     id: 'c-004',
@@ -1100,6 +1112,7 @@ export const demoDetailCases: DetailVulnCase[] = [
     findingCount: 2,
     firstSeenAt: '2023-10-18T09:20:00Z',
     lastSeenAt: '2023-10-18T09:20:00Z',
+    triageVerdict: null, triageConfidence: null, triageModel: null, triageAt: null, severityOverride: null,
   },
   {
     id: 'c-005',
@@ -1126,6 +1139,7 @@ export const demoDetailCases: DetailVulnCase[] = [
     findingCount: 4,
     firstSeenAt: '2023-10-05T11:05:00Z',
     lastSeenAt: '2023-10-06T09:15:00Z',
+    triageVerdict: null, triageConfidence: null, triageModel: null, triageAt: null, severityOverride: null,
   },
 ];
 

@@ -305,9 +305,24 @@ export async function POST(request: NextRequest) {
     // QUEUED -> PARSING -> ENRICHING -> BUILDING_CASES -> COMPLETED (or FAILED)
     try {
       const { processUploadJob } = await import('@cveriskpilot/storage');
-      (processUploadJob as any)(jobId, prisma).catch((err: Error) => {
-        console.error(`[API] Upload job ${jobId} processing failed:`, err);
-      });
+      (processUploadJob as any)(jobId, prisma)
+        .then(() => {
+          // Step 4.5: After cases are built, trigger auto-triage for CRITICAL/HIGH
+          const cronSecret = process.env.CRON_SECRET;
+          if (cronSecret) {
+            fetch(new URL('/api/cron/batch-triage', request.url), {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${cronSecret}`,
+              },
+              body: JSON.stringify({ organizationId, limit: 10 }),
+            }).catch(() => {}); // fire and forget
+          }
+        })
+        .catch((err: Error) => {
+          console.error(`[API] Upload job ${jobId} processing failed:`, err);
+        });
     } catch {
       console.info(`[API] Upload job ${jobId} created but consumer not available`);
     }

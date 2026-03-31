@@ -53,6 +53,11 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
     findingCount: vulnCase.findingCount,
     firstSeenAt: vulnCase.firstSeenAt.toISOString(),
     lastSeenAt: vulnCase.lastSeenAt.toISOString(),
+    triageVerdict: vulnCase.triageVerdict ?? null,
+    triageConfidence: vulnCase.triageConfidence ?? null,
+    triageModel: vulnCase.triageModel ?? null,
+    triageAt: vulnCase.triageAt?.toISOString() ?? null,
+    severityOverride: vulnCase.severityOverride ?? null,
   };
 
   const serializedFindings = vulnCase.findings.map((f) => ({

@@ -1,5 +1,6 @@
 // @cveriskpilot/auth - Authentication, authorization, and session management
 export * from './providers/google';
+export * from './providers/github';
 export * from './providers/credentials';
 export * from './providers/workos';
 export * from './providers/tenant-sso';

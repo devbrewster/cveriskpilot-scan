@@ -1,0 +1,148 @@
+import type { NextRequest} from 'next/server';
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import {
+  authenticateWithGitHub,
+  createSession,
+  setSessionCookie,
+} from '@cveriskpilot/auth';
+import {
+  STRIPE_PRICES,
+  createCheckoutSession,
+} from '@cveriskpilot/billing';
+
+export const dynamic = 'force-dynamic';
+
+/** Allowlist of valid origins to prevent host header poisoning. */
+const ALLOWED_ORIGINS = [
+  process.env.APP_BASE_URL,
+  'http://localhost:3000',
+].filter(Boolean) as string[];
+
+function getSafeOrigin(request: NextRequest): string {
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const candidate = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : request.nextUrl.origin;
+
+  if (ALLOWED_ORIGINS.includes(candidate)) return candidate;
+  return ALLOWED_ORIGINS[0] || request.nextUrl.origin;
+}
+
+/**
+ * GET /api/auth/github/callback
+ * Handles the OAuth2 callback from GitHub.
+ * Exchanges the authorization code for tokens, authenticates/provisions the user,
+ * creates a session, and redirects to the dashboard.
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = request.nextUrl;
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    const error = searchParams.get('error');
+
+    const origin = getSafeOrigin(request);
+
+    // Handle GitHub-side errors (user denied, etc.)
+    if (error) {
+      console.warn('[GitHub OAuth] Authorization error:', error);
+      return NextResponse.redirect(
+        new URL('/login?error=github_denied', origin),
+      );
+    }
+
+    if (!code || !state) {
+      return NextResponse.redirect(
+        new URL('/login?error=github_invalid', origin),
+      );
+    }
+
+    // Validate CSRF state
+    const savedState = request.cookies.get('crp_oauth_state')?.value;
+    if (!savedState || savedState !== state) {
+      return NextResponse.redirect(
+        new URL('/login?error=github_state', origin),
+      );
+    }
+
+    const redirectUri = `${origin}/api/auth/github/callback`;
+
+    // Authenticate with GitHub (exchanges code, fetches user info, JIT provisions user/org)
+    const result = await authenticateWithGitHub(prisma, code, redirectUri);
+
+    // Look up user details for session
+    const user = await (prisma as any).user.findUnique({
+      where: { id: result.userId },
+      select: { role: true, email: true },
+    });
+
+    // Create server-side session
+    let sessionId: string | null = null;
+    try {
+      sessionId = await createSession({
+        userId: result.userId,
+        organizationId: result.organizationId,
+        role: user.role,
+        email: user.email,
+      });
+    } catch {
+      // Redis not available — fallback below
+    }
+
+    // Session creation is required — no insecure fallback
+    if (!sessionId) {
+      console.error('[API] GitHub OAuth callback: Redis unavailable, cannot create session');
+      return NextResponse.redirect(
+        new URL('/login?error=session_unavailable', origin),
+      );
+    }
+
+    // Determine post-auth destination: Stripe checkout (new signup) or dashboard (returning user)
+    let redirectUrl = new URL('/dashboard', origin);
+
+    if (result.isNewUser) {
+      const plan = request.cookies.get('crp_oauth_plan')?.value?.toUpperCase() || '';
+      const VALID_PAID_PLANS = new Set(['FOUNDERS_BETA', 'PRO', 'ENTERPRISE', 'MSSP']);
+
+      // Only redirect to Stripe for paid plans — FREE goes straight to dashboard
+      if (VALID_PAID_PLANS.has(plan)) {
+        try {
+          const billingInterval = request.cookies.get('crp_oauth_billing')?.value === 'annual' ? 'ANNUAL' : 'MONTHLY';
+          const priceKey = `${plan}_${billingInterval}`;
+          const priceGetter = (STRIPE_PRICES as Record<string, (() => string | null) | undefined>)[priceKey];
+          const priceId = priceGetter?.();
+
+          if (priceId && priceId.length > 0) {
+            const checkout = await createCheckoutSession({
+              organizationId: result.organizationId,
+              email: user.email,
+              priceId,
+            });
+            redirectUrl = new URL(checkout.url);
+          }
+        } catch (stripeErr) {
+          console.error('[GitHub OAuth] Stripe checkout creation failed:', stripeErr);
+          // Fall through to dashboard — user can upgrade later
+        }
+      }
+    }
+
+    const response = NextResponse.redirect(redirectUrl);
+
+    setSessionCookie(response, sessionId);
+
+    // Clear OAuth cookies
+    response.cookies.delete('crp_oauth_state');
+    response.cookies.delete('crp_oauth_plan');
+
+    return response;
+  } catch (error) {
+    console.error('[API] GET /api/auth/github/callback error:', error);
+    const fallbackOrigin = getSafeOrigin(request);
+    return NextResponse.redirect(
+      new URL('/login?error=github_fail', fallbackOrigin),
+    );
+  }
+}

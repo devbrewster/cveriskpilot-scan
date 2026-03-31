@@ -13,6 +13,7 @@ import { SlaWidget } from '@/components/dashboard/sla-widget';
 import { ComplianceScores } from '@/components/dashboard/compliance-scores';
 import { ActivityTimeline } from '@/components/dashboard/activity-timeline';
 import type { VulnerabilityCase, UploadJob, Severity } from '@/lib/types';
+import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist';
 
 export const dynamic = 'force-dynamic';
 
@@ -155,6 +156,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Onboarding checklist for new users */}
+      <OnboardingChecklist />
+
       {/* Client scope indicator */}
       {activeClientId && (
         <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-800 dark:bg-blue-950">

@@ -1,6 +1,8 @@
 // @cveriskpilot/integrations — scanner connector type definitions
 
-export type ConnectorType = 'nessus' | 'qualys' | 'openvas' | 'generic';
+export type ConnectorType = 'nessus' | 'qualys' | 'openvas' | 'tenable' | 'crowdstrike' | 'rapid7' | 'snyk' | 'generic';
+
+export type ConnectorMode = 'pull' | 'push';
 
 export type ConnectorStatus = 'online' | 'offline' | 'degraded' | 'pending';
 
@@ -22,6 +24,12 @@ export interface ConnectorConfig {
   lastHeartbeat?: Date | null;
   status: ConnectorStatus;
   metadata?: Record<string, unknown>;
+  /** Connector mode: pull (default) fetches from scanner, push receives webhooks */
+  mode?: ConnectorMode;
+  /** The URL the scanner should POST findings to in push mode */
+  webhookUrl?: string;
+  /** HMAC-SHA256 secret for verifying push payloads */
+  webhookSecret?: string;
 }
 
 export interface ConnectorHeartbeat {
@@ -67,4 +75,20 @@ export interface ScanTriggerResult {
   scanId: string;
   status: 'queued' | 'started' | 'failed';
   message?: string;
+}
+
+export interface PushWebhookConfig {
+  connectorId: string;
+  orgId: string;
+  callbackUrl: string; // e.g., https://app.cveriskpilot.com/api/events/ingest
+  secret: string; // HMAC-SHA256 secret
+  events: string[]; // which events to receive
+  registeredAt: Date;
+}
+
+export interface PushRegistrationResult {
+  success: boolean;
+  webhookId?: string;
+  callbackUrl: string;
+  error?: string;
 }

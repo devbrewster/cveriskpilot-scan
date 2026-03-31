@@ -26,3 +26,19 @@ export type {
   PipelineStages,
   PipelineResult,
 } from './pipeline';
+
+export {
+  EVENT_TYPES,
+  InMemoryEventBus,
+  PubSubEventBus,
+  createEventBus,
+} from './event-bus';
+export type {
+  EventType,
+  EventBusMessage,
+  Subscription,
+  EventBus,
+  DeadLetterEntry,
+  CreateEventBusOptions,
+  PubSubEventBusOptions,
+} from './event-bus';

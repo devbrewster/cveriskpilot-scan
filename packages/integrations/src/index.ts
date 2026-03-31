@@ -70,11 +70,20 @@ export type {
   ConnectorHeartbeat,
   ConnectorRecord,
   ConnectorType,
+  ConnectorMode,
   ConnectorStatus,
   ConnectorAuthConfig,
   ScanTriggerConfig,
   ScanTriggerResult,
+  PushWebhookConfig,
+  PushRegistrationResult,
 } from './connectors/types';
+export {
+  registerPushWebhook,
+  verifyPushPayload,
+  deregisterPushWebhook,
+  getPushConfig,
+} from './connectors/push-registry';
 
 // ServiceNow
 export { ServiceNowClient, ServiceNowApiError } from './servicenow/client';

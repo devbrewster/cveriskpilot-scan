@@ -198,53 +198,66 @@ export function Pricing() {
                 </div>
               )}
 
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {plan.name}
-              </h3>
-              {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining > 0 && (
-                <span className={`mt-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                  foundersSpots.remaining < 10
-                    ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                }`}>
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${foundersSpots.remaining < 10 ? 'bg-red-500' : 'bg-amber-500'}`} />
-                    <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${foundersSpots.remaining < 10 ? 'bg-red-600' : 'bg-amber-600'}`} />
-                  </span>
-                  Only {foundersSpots.remaining} spots left
-                </span>
-              )}
-              {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining === 0 && (
-                <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-                  Sold Out
-                </span>
-              )}
-              <p className="mt-1 min-h-10 text-sm text-gray-500 dark:text-gray-400">
-                {plan.description}
-              </p>
+              {/* --- Row 1: Name + badge (fixed height) --- */}
+              <div className="min-h-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {plan.name}
+                </h3>
+              </div>
 
-              <div className="mt-6 flex items-baseline">
-                <span className="text-4xl font-extrabold tabular-nums text-gray-900 dark:text-white">
-                  {formatPrice(plan.monthlyPrice, plan.annualPrice, isAnnual)}
-                </span>
-                {plan.monthlyPrice >= 0 && (
-                  <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">
-                    /month
+              {/* --- Row 2: Spots indicator (fixed height) --- */}
+              <div className="min-h-7">
+                {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining > 0 && (
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    foundersSpots.remaining < 10
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                  }`}>
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${foundersSpots.remaining < 10 ? 'bg-red-500' : 'bg-amber-500'}`} />
+                      <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${foundersSpots.remaining < 10 ? 'bg-red-600' : 'bg-amber-600'}`} />
+                    </span>
+                    Only {foundersSpots.remaining} spots left
+                  </span>
+                )}
+                {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining === 0 && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                    Sold Out
                   </span>
                 )}
               </div>
-              {isAnnual && plan.monthlyPrice > 0 && (
-                <p className="mt-1 text-xs text-primary-600 dark:text-primary-400">
-                  ${plan.annualPrice}/yr billed annually
-                </p>
-              )}
-              {plan.monthlyPrice < 0 && (
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Tailored to your organization
-                </p>
-              )}
 
-              <ul className="mt-8 flex-1 space-y-3">
+              {/* --- Row 3: Description (fixed height for alignment) --- */}
+              <p className="min-h-14 text-sm text-gray-500 dark:text-gray-400">
+                {plan.description}
+              </p>
+
+              {/* --- Row 4: Price (fixed height) --- */}
+              <div className="mt-4 min-h-16">
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-extrabold tabular-nums text-gray-900 dark:text-white">
+                    {formatPrice(plan.monthlyPrice, plan.annualPrice, isAnnual)}
+                  </span>
+                  {plan.monthlyPrice >= 0 && (
+                    <span className="ml-1 text-sm text-gray-500 dark:text-gray-400">
+                      /month
+                    </span>
+                  )}
+                </div>
+                {isAnnual && plan.monthlyPrice > 0 && (
+                  <p className="mt-1 text-xs text-primary-600 dark:text-primary-400">
+                    ${plan.annualPrice}/yr billed annually
+                  </p>
+                )}
+                {plan.monthlyPrice < 0 && (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Tailored to your organization
+                  </p>
+                )}
+              </div>
+
+              {/* --- Row 5: Features (flex-1 pushes CTA to bottom) --- */}
+              <ul className="mt-6 flex-1 space-y-3">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300">
                     <svg

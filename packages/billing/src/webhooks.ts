@@ -226,21 +226,27 @@ async function handlePaymentFailed(
 
 /**
  * Dispatches a verified Stripe event to the appropriate handler.
+ * After subscription changes, triggers infra scaling check.
  */
 export async function handleWebhookEvent(
   event: Stripe.Event,
   prisma: unknown,
 ): Promise<void> {
+  let subscriptionChanged = false;
+
   switch (event.type) {
     case 'checkout.session.completed':
       await handleCheckoutCompleted(event, prisma);
+      subscriptionChanged = true;
       break;
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
       await handleSubscriptionUpdated(event, prisma);
+      subscriptionChanged = true;
       break;
     case 'customer.subscription.deleted':
       await handleSubscriptionDeleted(event, prisma);
+      subscriptionChanged = true;
       break;
     case 'invoice.payment_failed':
       await handlePaymentFailed(event, prisma);
@@ -248,5 +254,24 @@ export async function handleWebhookEvent(
     default:
       // Unhandled event type — no-op
       break;
+  }
+
+  // After any subscription change, fire-and-forget an infra scale check.
+  // The /api/ops/infra-scale endpoint handles MRR calculation and threshold logic.
+  if (subscriptionChanged) {
+    const appUrl = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL;
+    const cronSecret = process.env.CRON_SECRET;
+    if (appUrl && cronSecret) {
+      fetch(`${appUrl}/api/ops/infra-scale`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cronSecret}`,
+        },
+        body: JSON.stringify({ auto: true }),
+      }).catch((err) => {
+        console.warn('[billing] Infra scale check failed (non-blocking):', err);
+      });
+    }
   }
 }

@@ -85,7 +85,7 @@ export async function PUT(
     if (!existing) {
       return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
     }
-    if ((existing as any).organizationId && (existing as any).organizationId !== session.organizationId) {
+    if ((existing as any).organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
     }
 
@@ -174,7 +174,7 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
     }
-    if ((existing as any).organizationId && (existing as any).organizationId !== session.organizationId) {
+    if ((existing as any).organizationId !== session.organizationId) {
       return NextResponse.json({ error: 'Connector not found' }, { status: 404 });
     }
 

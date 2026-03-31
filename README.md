@@ -113,6 +113,15 @@ crp-scan --list-frameworks
 
 # Defense contractor full scan
 crp-scan --preset defense --fail-on high --verbose
+
+# AI-powered remediation (requires local Ollama or llama.cpp)
+crp-scan --ai
+
+# AI with specific model
+crp-scan --ai --ai-model mistral
+
+# AI with explicit provider and URL
+crp-scan --ai --ai-provider llamacpp --ai-url http://127.0.0.1:8080
 ```
 
 > **Note:** `crp-scan` and `cveriskpilot-scan` are interchangeable. Use whichever you prefer.
@@ -148,12 +157,61 @@ crp-scan --preset defense --fail-on high --verbose
 | `--ci` | Shorthand for `--format json --fail-on critical` |
 | `--verbose` | Show detailed scanner output |
 
+### AI Enrichment (Offline LLM)
+| Flag | Description |
+|------|-------------|
+| `--ai` | Enable AI-powered remediation via local LLM |
+| `--ai-provider <name>` | Force provider: `ollama`, `llamacpp` (auto-detected by default) |
+| `--ai-model <model>` | Model name (default: `llama3.2`) |
+| `--ai-url <url>` | LLM endpoint URL (must be localhost) |
+
 ### Upload (Optional)
 | Flag | Description |
 |------|-------------|
 | `--api-key <key>` | CVERiskPilot API key (or `CRP_API_KEY` env) |
 | `--api-url <url>` | API endpoint (or `CRP_API_URL` env) |
 | `--no-upload` | Skip upload even if API key is set |
+
+## Offline AI Enrichment
+
+The `--ai` flag enables local LLM-powered analysis. **No data leaves your machine.**
+
+### What It Does
+
+- **Remediation guidance** — actionable fix suggestions per finding
+- **Executive risk summary** — CISO-ready security posture assessment
+- **Priority ordering** — findings ranked by remediation urgency
+
+### Security Architecture
+
+- **Localhost-only** — the client validates that all requests go to `127.0.0.1`, `localhost`, or `::1`. Non-loopback URLs are rejected.
+- **Data minimization** — findings are sanitized before LLM inference (paths stripped to basename, raw observations removed, snippets truncated)
+- **Zero dependencies** — uses native `fetch()` (Node.js 20+), no third-party HTTP libraries
+- **Time-budgeted** — AI phase has a 120-second time limit, returns partial results on timeout
+- **Zero overhead** — dynamic imports ensure no performance impact when `--ai` is not used
+
+### Supported LLM Servers
+
+| Server | Install | Default URL |
+|--------|---------|-------------|
+| [Ollama](https://ollama.com) | `curl -fsSL https://ollama.com/install.sh \| sh && ollama pull llama3.2` | `http://127.0.0.1:11434` |
+| [llama.cpp](https://github.com/ggerganov/llama.cpp) | Build from source, run `./llama-server -m model.gguf` | `http://127.0.0.1:8080` |
+
+### Example
+
+```bash
+# Install and start Ollama
+ollama pull llama3.2
+
+# Scan with AI enrichment
+crp-scan --ai --verbose
+
+# Use a different model
+crp-scan --ai --ai-model mistral
+
+# Force llama.cpp on a custom port
+crp-scan --ai --ai-provider llamacpp --ai-url http://127.0.0.1:9090
+```
 
 ## Output Formats
 

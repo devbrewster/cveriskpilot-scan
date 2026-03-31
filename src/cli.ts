@@ -51,6 +51,11 @@ import {
   EXIT_ERROR,
   resolveFrameworks,
   resolvePreset,
+  AI_DEFAULT_OLLAMA_URL,
+  AI_DEFAULT_LLAMACPP_URL,
+  AI_DEFAULT_MODEL,
+  AI_REQUEST_TIMEOUT_MS,
+  AI_TOTAL_TIMEOUT_MS,
 } from './constants.js';
 
 // ---------------------------------------------------------------------------
@@ -131,6 +136,10 @@ interface CliOptions {
   excludeCwe: string[];
   dryRun: boolean;
   targetDir: string;
+  ai: boolean;
+  aiProvider: string | undefined;
+  aiModel: string | undefined;
+  aiUrl: string | undefined;
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -156,6 +165,10 @@ function parseArgs(argv: string[]): CliOptions {
     excludeCwe: [],
     dryRun: false,
     targetDir: process.cwd(),
+    ai: false,
+    aiProvider: undefined,
+    aiModel: undefined,
+    aiUrl: undefined,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -227,6 +240,18 @@ function parseArgs(argv: string[]): CliOptions {
         opts.excludeCwe.push(...cweArg.split(',').filter(Boolean));
         break;
       }
+      case '--ai':
+        opts.ai = true;
+        break;
+      case '--ai-provider':
+        opts.aiProvider = args[++i];
+        break;
+      case '--ai-model':
+        opts.aiModel = args[++i];
+        break;
+      case '--ai-url':
+        opts.aiUrl = args[++i];
+        break;
       default:
         // Positional argument: target directory
         if (!arg.startsWith('-')) {
@@ -286,6 +311,12 @@ ${bold('OUTPUT FLAGS')}
   --fail-on <sev>      Fail threshold: critical, high, medium, low (default: critical)
   --verbose            Show detailed scanner output
   --ci                 Shorthand: --format json --fail-on critical
+
+${bold('AI FLAGS (offline LLM)')}
+  --ai                 Enable AI enrichment via local LLM (Ollama/llama.cpp)
+  --ai-provider <name> Force provider: ollama, llamacpp (auto-detected by default)
+  --ai-model <model>   Model name (default: llama3.2)
+  --ai-url <url>       LLM endpoint URL (must be localhost)
 
 ${bold('UPLOAD FLAGS')}
   --api-key <key>      CVERiskPilot API key (or set CRP_API_KEY env)
@@ -812,6 +843,74 @@ async function main(): Promise<void> {
   );
   const exitCode = hasFailure ? EXIT_VIOLATION : EXIT_PASS;
 
+  // ---- AI Enrichment (offline LLM, opt-in) ----
+  let aiResult: import('./ai/types.js').AiEnrichmentResult | undefined;
+
+  if (opts.ai) {
+    try {
+      // Dynamic import — zero overhead when --ai is not used
+      const { detectProvider } = await import('./ai/client.js');
+      const { enrichWithAi } = await import('./ai/enrichment.js');
+      const { mapFindingsToComplianceImpact } = await import('./vendor/compliance/mapping/cross-framework.js');
+
+      let provider = opts.aiProvider as 'ollama' | 'llamacpp' | undefined;
+      let baseUrl = opts.aiUrl;
+
+      if (!provider || !baseUrl) {
+        const detected = await detectProvider(
+          opts.aiUrl ?? AI_DEFAULT_OLLAMA_URL,
+          opts.aiUrl ?? AI_DEFAULT_LLAMACPP_URL,
+        );
+        if (!detected) {
+          process.stderr.write('\n  \x1b[33m\u26a0 No local LLM server detected. Start Ollama or llama.cpp, or specify --ai-url.\x1b[0m\n');
+        } else {
+          provider = provider ?? detected.provider;
+          baseUrl = baseUrl ?? detected.baseUrl;
+        }
+      }
+
+      if (provider && baseUrl) {
+        // Build compliance impact data to give the LLM context
+        const impactReport = allFindings.length > 0
+          ? mapFindingsToComplianceImpact(allFindings, activeFrameworks)
+          : null;
+        const complianceImpact = impactReport && impactReport.totalAffectedControls > 0
+          ? {
+              totalAffectedControls: impactReport.totalAffectedControls,
+              frameworkSummary: impactReport.frameworkSummary.map((fw: { frameworkName: string; affectedControlCount: number; affectedControlIds: string[] }) => ({
+                framework: fw.frameworkName,
+                affectedControls: fw.affectedControlCount,
+                controlIds: fw.affectedControlIds,
+              })),
+            }
+          : null;
+
+        aiResult = await enrichWithAi(
+          allFindings,
+          complianceImpact,
+          {
+            provider,
+            model: opts.aiModel ?? AI_DEFAULT_MODEL,
+            baseUrl,
+            timeoutMs: AI_REQUEST_TIMEOUT_MS,
+            maxTotalMs: AI_TOTAL_TIMEOUT_MS,
+          },
+          opts.verbose ?? false,
+        );
+
+        if (aiResult.errors.length > 0 && opts.verbose) {
+          for (const err of aiResult.errors) {
+            process.stderr.write(`  \x1b[33m\u26a0 AI: ${err}\x1b[0m\n`);
+          }
+        }
+      }
+    } catch (err) {
+      if (opts.verbose) {
+        console.error(`  AI enrichment error: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+  }
+
   // ---- Tier gating: redact enriched fields for free tier ----
   const isPaidTier = !!opts.apiKey;
   const outputFindings = isPaidTier ? filteredFindings : redactEnrichedFields(filteredFindings);
@@ -833,6 +932,7 @@ async function main(): Promise<void> {
     exitCode,
     durationMs,
     activeFrameworks,
+    aiResult,
   };
 
   const output = formatOutput(summary, opts.format);

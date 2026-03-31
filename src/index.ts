@@ -33,3 +33,9 @@ export {
   resolvePreset,
 } from './constants.js';
 export type { FrameworkResolution } from './constants.js';
+
+// AI enrichment (offline LLM)
+export { createAiClient, detectProvider } from './ai/client.js';
+export type { AiClient } from './ai/client.js';
+export { enrichWithAi } from './ai/enrichment.js';
+export type { AiClientConfig, AiEnrichmentResult, SanitizedFinding } from './ai/types.js';

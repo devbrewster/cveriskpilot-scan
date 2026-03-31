@@ -9,7 +9,9 @@
  */
 
 import crypto from 'node:crypto';
-import { parseStringPromise } from 'xml2js';
+import { parseStringPromise, processors } from 'xml2js';
+
+const stripPrefix = processors.stripPrefix;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -74,10 +76,8 @@ export async function parseSAMLResponse(
 
     // 2. Parse XML (xml2js with strict options — no external entities)
     const parsed = await parseStringPromise(xml, {
-      tagNameProcessors: [],
+      tagNameProcessors: [stripPrefix],
       explicitArray: true,
-      xmlns: true,
-      // Disable external entity processing
       strict: true,
     });
 
@@ -94,8 +94,8 @@ export async function parseSAMLResponse(
       const statusEl = response[statusKey]?.[0];
       const statusCodeKey = findNestedKey(statusEl, 'StatusCode');
       if (statusCodeKey) {
-        const statusCode = statusEl[statusCodeKey]?.[0]?.$?.Value ??
-          statusEl[statusCodeKey]?.[0]?.$?.['samlp:Value'] ?? '';
+        const statusCodeEl = statusEl[statusCodeKey]?.[0];
+        const statusCode: string = statusCodeEl?.$?.Value ?? '';
         if (!statusCode.includes('Success')) {
           return { valid: false, error: `SAML response status: ${statusCode}` };
         }
@@ -472,10 +472,12 @@ export function extractSAMLProfile(assertion: SAMLAssertion): {
 // XML helpers
 // ---------------------------------------------------------------------------
 
-/** Find a key in an object that ends with the given local name (handles namespace prefixes) */
+/** Find a key in an object matching the given local name (after stripPrefix, keys are already local) */
 function findKey(obj: Record<string, unknown>, localName: string): string | null {
+  if (localName in obj) return localName;
+  // Fallback: check for namespace-prefixed keys (shouldn't happen with stripPrefix)
   for (const key of Object.keys(obj)) {
-    if (key === localName || key.endsWith(`:${localName}`)) return key;
+    if (key.endsWith(`:${localName}`)) return key;
   }
   return null;
 }

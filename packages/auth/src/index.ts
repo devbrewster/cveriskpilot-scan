@@ -27,3 +27,5 @@ export * from './security/webauthn';
 export * from './security/password-policy';
 export * from './security/ip-allowlist';
 export * from './security/saml-parser';
+export * from './security/crypto-audit';
+export * from './security/merkle-tree';

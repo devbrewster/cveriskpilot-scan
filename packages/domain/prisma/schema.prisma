@@ -202,6 +202,9 @@ model Organization {
   notifications       Notification[]
   triageFeedbacks     TriageFeedback[]
   caseApprovals       CaseApproval[]
+  merkleNodes         MerkleNode[]
+  auditSignatures     AuditSignature[]
+  merkleTreeStates    MerkleTreeState[]
 
   @@index([createdAt])
   @@map("organizations")
@@ -1060,4 +1063,52 @@ model PipelineUsage {
   @@unique([organizationId, month])
   @@index([organizationId, month])
   @@map("pipeline_usage")
+}
+
+// ---------------------------------------------------------------------------
+// Vault Protocol — Cryptographic Audit Trail
+// ---------------------------------------------------------------------------
+
+model MerkleNode {
+  id             String   @id @default(cuid()) @map("id")
+  organizationId String   @map("organization_id")
+  level          Int      @map("level")
+  position       Int      @map("position")
+  hash           String   @map("hash")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, level, position])
+  @@index([organizationId, level, position])
+  @@map("merkle_nodes")
+}
+
+model AuditSignature {
+  id           String   @id @default(cuid()) @map("id")
+  organizationId String @map("organization_id")
+  auditEntryId String   @unique @map("audit_entry_id")
+  entryHash    String   @map("entry_hash")
+  signature    String   @map("signature")
+  keyVersion   String   @map("key_version")
+  leafIndex    Int?     @map("leaf_index")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([auditEntryId])
+  @@map("audit_signatures")
+}
+
+model MerkleTreeState {
+  id             String   @id @default(cuid()) @map("id")
+  organizationId String   @unique @map("organization_id")
+  leafCount      Int      @default(0) @map("leaf_count")
+  rootHash       String?  @map("root_hash")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("merkle_tree_states")
 }

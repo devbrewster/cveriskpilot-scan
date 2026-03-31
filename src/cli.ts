@@ -847,13 +847,10 @@ async function main(): Promise<void> {
 
   // ---- Upsell message for free tier ----
   if (!isPaidTier && filteredFindings.length > 0 && isTTY) {
-    const enrichedCount = filteredFindings.filter((f) => f.recommendation || f.advisoryUrl).length;
-    if (enrichedCount > 0) {
-      console.error('');
-      console.error(`  \x1b[33m\x1b[1m${enrichedCount} finding(s)\x1b[0m have CVE details, fix versions, and triage recommendations available.`);
-      console.error(`  Add \x1b[36m--api-key\x1b[0m to unlock enriched scan data. Get your key at \x1b[36mhttps://cveriskpilot.com/api-key\x1b[0m`);
-      console.error('');
-    }
+    console.error('');
+    console.error(`  \x1b[33m\x1b[1m${filteredFindings.length} finding(s)\x1b[0m can be enriched with CVSS scores, fix versions, and AI remediation guidance.`);
+    console.error(`  Add \x1b[36m--api-key\x1b[0m to unlock enriched data. Get your key at \x1b[36mhttps://cveriskpilot.com/api-key\x1b[0m`);
+    console.error('');
   }
 
   // ---- Upload if API key provided ----

@@ -49,7 +49,13 @@ crp-scan /path/to/your/project
    Finding → CWE → NIST 800-53 → SOC 2 / CMMC / FedRAMP / ASVS / SSDF
    ```
 
-3. **Reports** which compliance controls are affected, so you know your audit impact immediately
+3. **Enriches** every CVE with free public intelligence:
+   - **EPSS** — Exploit Prediction Scoring System probability + percentile (api.first.org)
+   - **CISA KEV** — Known Exploited Vulnerabilities catalog with federal remediation deadlines
+   - **Risk Score** — Composite 0-100 score from CVSS + EPSS + KEV
+   - **Remediation Effort** — Heuristic estimate (LOW/MEDIUM/HIGH) based on fix type
+
+4. **Reports** which compliance controls are affected, so you know your audit impact immediately
 
 ## Supported Frameworks
 
@@ -114,6 +120,15 @@ crp-scan --list-frameworks
 # Defense contractor full scan
 crp-scan --preset defense --fail-on high --verbose
 
+# Compare against last scan (shows new/fixed delta)
+crp-scan --compare
+
+# Stream findings as NDJSON (for piping to other tools)
+crp-scan --stream
+
+# Incremental scan — only files changed since a commit
+crp-scan --since abc1234
+
 # AI-powered remediation (requires local Ollama or llama.cpp)
 crp-scan --ai
 
@@ -148,6 +163,13 @@ crp-scan --ai --ai-provider llamacpp --ai-url http://127.0.0.1:8080
 | `--severity <level>` | Minimum severity: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFO` |
 | `--exclude <glob>` | Exclude paths (repeatable) |
 | `--exclude-cwe <ids>` | Exclude CWE IDs, comma-separated (repeatable) |
+
+### Incremental & Comparison
+| Flag | Description |
+|------|-------------|
+| `--since <commit>` | Only scan files changed since a git commit |
+| `--compare` | Compare results against previous scan and show delta |
+| `--stream` | Emit findings as NDJSON (newline-delimited JSON) |
 
 ### Output
 | Flag | Description |
@@ -212,6 +234,57 @@ crp-scan --ai --ai-model mistral
 # Force llama.cpp on a custom port
 crp-scan --ai --ai-provider llamacpp --ai-url http://127.0.0.1:9090
 ```
+
+## Free Risk Intelligence
+
+Every scan automatically enriches CVE findings with free public data — no API keys, no accounts, no cost.
+
+### What You Get
+
+- **EPSS Score** — Probability (0-1) that a CVE will be exploited in the next 30 days, plus percentile rank
+- **CISA KEV** — Whether a CVE is on the Known Exploited Vulnerabilities catalog, with federal remediation deadline
+- **Risk Score** — Composite 0-100 score: `CVSS base (0-50) + EPSS (0-30) + KEV boost (+20)`
+- **Remediation Effort** — Heuristic estimate: patch update = LOW, minor = MEDIUM, major/no-fix = HIGH
+- **Compliance Scorecard** — Visual progress bars per framework showing control coverage
+- **Risk Priority** — Top 10 findings ranked by composite risk score
+- **KEV Deadline Alerts** — Urgency warnings with days remaining
+- **POAM Preview** — Plan of Action & Milestones for the top findings
+
+### Scan Comparison
+
+Track your security posture over time:
+
+```bash
+# First scan saves a baseline
+crp-scan /path/to/project
+
+# Next scan shows the delta
+crp-scan --compare /path/to/project
+# Output: Findings: 15 → 12 (-3), Critical: 2 → 1 (-1)
+```
+
+### Incremental Scanning
+
+Only scan files that changed since a specific commit:
+
+```bash
+crp-scan --since HEAD~5
+crp-scan --since abc1234
+```
+
+### Streaming Output
+
+Emit findings as NDJSON for piping to other tools:
+
+```bash
+crp-scan --stream | jq 'select(.severity == "CRITICAL")'
+```
+
+### Performance
+
+- **OSV response caching** — Disk cache with 24h TTL (clean) / 1h TTL (vulnerable), avoids redundant API calls
+- **Retry with backoff** — All network calls (OSV, EPSS, KEV) retry with exponential backoff + jitter
+- **Non-blocking enrichment** — EPSS and KEV fetched in parallel; enrichment is non-fatal if APIs are unreachable
 
 ## Output Formats
 

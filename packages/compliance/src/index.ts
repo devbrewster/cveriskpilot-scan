@@ -32,6 +32,9 @@ export { GDPR_FRAMEWORK, assessGDPR } from './frameworks/gdpr';
 export { HIPAA_FRAMEWORK, assessHIPAA } from './frameworks/hipaa';
 export { PCI_DSS_FRAMEWORK, assessPCIDSS } from './frameworks/pci-dss';
 export { ISO27001_FRAMEWORK, assessISO27001 } from './frameworks/iso27001';
+export { NIST_CSF_FRAMEWORK, assessNISTCSF } from './frameworks/nist-csf';
+export { EU_CRA_FRAMEWORK, assessEUCRA } from './frameworks/eu-cra';
+export { NIS2_FRAMEWORK, assessNIS2 } from './frameworks/nis2';
 
 // NIST 800-53 Control Mapping
 export {

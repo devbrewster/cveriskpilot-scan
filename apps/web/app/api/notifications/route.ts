@@ -1,7 +1,7 @@
 import type { NextRequest} from 'next/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAuth, checkCsrf } from '@cveriskpilot/auth';
+import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 
 // ---------------------------------------------------------------------------
 // GET /api/notifications — list notifications for the authenticated user (paginated)
@@ -72,6 +72,9 @@ export async function PUT(request: NextRequest) {
 
     const csrfError = checkCsrf(request);
     if (csrfError) return csrfError;
+
+    const permError = requirePerm(session.role, 'org:read');
+    if (permError) return permError;
 
     const body = await request.json();
     const { notificationIds, markAllRead } = body as {

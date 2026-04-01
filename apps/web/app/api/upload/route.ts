@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 import { getOrgTier, checkBillingGate, trackUpload } from '@/lib/billing';
+import { trackFunnelEvent } from '@cveriskpilot/observability';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -298,6 +299,14 @@ export async function POST(request: NextRequest) {
 
     // Step 3.5: Track billing usage (upload counter + MSSP metering)
     await trackUpload(organizationId, clientId);
+
+    // Step 3.6: Fire-and-forget funnel event (first_upload)
+    trackFunnelEvent({
+      step: 'first_upload',
+      orgId: organizationId,
+      userId: uploadedById,
+      metadata: { format: resolvedFormat, jobId },
+    });
 
     // Step 4: Fire-and-forget processing pipeline
     // (parse -> normalize -> dedup -> enrich -> build cases)

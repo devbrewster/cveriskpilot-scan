@@ -1,5 +1,7 @@
 // @cveriskpilot/observability
 export { DashboardBuilder, createPlatformDashboard, createTenantOverviewDashboard } from './dashboards';
+export { trackFunnelEvent } from './funnel';
+export type { FunnelEvent, FunnelStep } from './funnel';
 export { StructuredLogger } from './logging';
 export type { LogContext, StructuredLoggerOptions } from './logging';
 export { BUILTIN_METRICS, MetricsCollector } from './metrics';

@@ -73,11 +73,25 @@ interface StatusChange {
   changedAt: string;
 }
 
+interface ComplianceControl {
+  framework: string;
+  controlId: string;
+  controlTitle: string;
+  cweIds: string[];
+}
+
+interface ComplianceImpact {
+  totalAffectedControls: number;
+  frameworks: { name: string; count: number; controlIds: string[] }[];
+  controls: ComplianceControl[];
+}
+
 interface CaseDetailProps {
   vulnCase: VulnerabilityCase;
   findings: Finding[];
   assignedUserName: string | null;
   basePath?: string;
+  complianceImpact?: ComplianceImpact | null;
 }
 
 function CvssBar({ score }: { score: number }) {
@@ -146,6 +160,101 @@ function SlaSection({ dueAt }: { dueAt: string | null }) {
   );
 }
 
+const FRAMEWORK_COLORS: Record<string, string> = {
+  'NIST 800-53': 'bg-blue-50 text-blue-700 ring-blue-700/10',
+  'SOC 2 Type II': 'bg-purple-50 text-purple-700 ring-purple-700/10',
+  'CMMC Level 2': 'bg-green-50 text-green-700 ring-green-700/10',
+  'FedRAMP Moderate': 'bg-red-50 text-red-700 ring-red-700/10',
+  'OWASP ASVS': 'bg-orange-50 text-orange-700 ring-orange-700/10',
+  'HIPAA Security Rule': 'bg-pink-50 text-pink-700 ring-pink-700/10',
+  'PCI-DSS': 'bg-indigo-50 text-indigo-700 ring-indigo-700/10',
+  'ISO 27001:2022': 'bg-teal-50 text-teal-700 ring-teal-700/10',
+  'GDPR': 'bg-yellow-50 text-yellow-700 ring-yellow-700/10',
+};
+
+function ComplianceImpactPanel({ impact }: { impact: ComplianceImpact }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white dark:bg-gray-900 p-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-900">Compliance Impact</h2>
+          <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-700">
+            {impact.totalAffectedControls} control{impact.totalAffectedControls !== 1 ? 's' : ''} affected
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="text-sm text-primary-600 hover:text-primary-500"
+        >
+          {expanded ? 'Collapse' : 'Show details'}
+        </button>
+      </div>
+
+      {/* Framework summary badges */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {impact.frameworks.map((fw) => {
+          const colorClass = FRAMEWORK_COLORS[fw.name] ?? 'bg-gray-50 text-gray-700 ring-gray-700/10';
+          return (
+            <span
+              key={fw.name}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium ring-1 ring-inset ${colorClass}`}
+            >
+              {fw.name}
+              <span className="rounded-full bg-black/10 px-1.5 py-0.5 text-[10px] font-bold">
+                {fw.count}
+              </span>
+            </span>
+          );
+        })}
+      </div>
+
+      {/* Expanded control list */}
+      {expanded && (
+        <div className="mt-4 overflow-hidden rounded-md border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Framework</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Control</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Title</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">CWEs</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {impact.controls.map((ctrl) => {
+                const colorClass = FRAMEWORK_COLORS[ctrl.framework] ?? 'bg-gray-50 text-gray-700 ring-gray-700/10';
+                return (
+                  <tr key={`${ctrl.framework}:${ctrl.controlId}`} className="hover:bg-gray-50">
+                    <td className="px-4 py-2">
+                      <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${colorClass}`}>
+                        {ctrl.framework}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 font-mono text-xs text-gray-900">{ctrl.controlId}</td>
+                    <td className="px-4 py-2 text-gray-600">{ctrl.controlTitle}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex flex-wrap gap-1">
+                        {ctrl.cweIds.map((cwe) => (
+                          <span key={cwe} className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600">
+                            CWE-{cwe}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FindingsTab({ findings, basePath = '' }: { findings: Finding[]; basePath?: string }) {
   const router = useRouter();
   return (
@@ -180,7 +289,7 @@ function FindingsTab({ findings, basePath = '' }: { findings: Finding[]; basePat
   );
 }
 
-export function CaseDetail({ vulnCase: initialCase, findings, assignedUserName, basePath = '' }: CaseDetailProps) {
+export function CaseDetail({ vulnCase: initialCase, findings, assignedUserName, basePath = '', complianceImpact }: CaseDetailProps) {
   const router = useRouter();
   const { addToast } = useToast();
   const { userId, organizationId, role } = useAuth();
@@ -316,6 +425,11 @@ export function CaseDetail({ vulnCase: initialCase, findings, assignedUserName, 
           </div>
         </div>
       </div>
+
+      {/* Compliance Impact */}
+      {complianceImpact && complianceImpact.totalAffectedControls > 0 && (
+        <ComplianceImpactPanel impact={complianceImpact} />
+      )}
 
       {/* AI Triage */}
       <AiTriagePanel

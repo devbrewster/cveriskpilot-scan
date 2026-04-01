@@ -8,6 +8,8 @@ export interface TierEntitlements {
   /** API requests per minute per org */
   api_rate_limit: number | 'unlimited';
   features?: readonly string[];
+  /** Framework IDs available for detailed compliance output. 'all' = unlimited. */
+  allowedFrameworks?: readonly string[] | 'all';
 }
 
 export interface TierConfig {

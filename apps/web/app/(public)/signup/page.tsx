@@ -8,6 +8,7 @@ export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const planParam = searchParams.get('plan');
+  const refParam = searchParams.get('ref');
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [orgName, setOrgName] = useState("");
@@ -31,7 +32,7 @@ export default function SignupPage() {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, orgName, plan: planParam }),
+        body: JSON.stringify({ name, email, password, orgName, plan: planParam, ref: refParam }),
       });
 
       const data = await res.json();
@@ -65,7 +66,7 @@ export default function SignupPage() {
       {/* Google Sign Up */}
       <button
         type="button"
-        onClick={() => { window.location.href = `/api/auth/google${planParam ? `?plan=${planParam}` : ''}`; }}
+        onClick={() => { const params = new URLSearchParams(); if (planParam) params.set('plan', planParam); if (refParam) params.set('ref', refParam); const qs = params.toString(); window.location.href = `/api/auth/google${qs ? `?${qs}` : ''}`; }}
         className="mt-8 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-750"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -92,7 +93,7 @@ export default function SignupPage() {
       {/* GitHub Sign Up */}
       <button
         type="button"
-        onClick={() => { window.location.href = `/api/auth/github${planParam ? `?plan=${planParam}` : ''}`; }}
+        onClick={() => { const params = new URLSearchParams(); if (planParam) params.set('plan', planParam); if (refParam) params.set('ref', refParam); const qs = params.toString(); window.location.href = `/api/auth/github${qs ? `?${qs}` : ''}`; }}
         className="mt-3 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-750"
       >
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

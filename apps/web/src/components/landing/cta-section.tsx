@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const steps = [
   { num: "1", label: "Run the CLI", detail: "npx @cveriskpilot/scan --preset startup" },
-  { num: "2", label: "See compliance impact", detail: "Every finding mapped to 6 frameworks." },
+  { num: "2", label: "See compliance impact", detail: "Every finding mapped to 10 frameworks." },
   { num: "3", label: "Ship audit-ready evidence", detail: "POAMs, reports, and control scores." },
 ];
 

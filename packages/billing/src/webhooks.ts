@@ -4,6 +4,8 @@ import Stripe from 'stripe';
 // createLogger reserved for future structured logging in this module
 // import { createLogger } from '@cveriskpilot/shared';
 import { getEntitlements, getTierFromPriceId, STRIPE_PRICES } from './config';
+import { sendEmail, paymentFailedTemplate } from '@cveriskpilot/notifications';
+import { trackFunnelEvent } from '@cveriskpilot/observability';
 
 let _stripeOverride: Stripe | null = null;
 
@@ -127,6 +129,13 @@ async function handleCheckoutCompleted(
       entitlements: getEntitlements(tier),
     },
   });
+
+  // Fire-and-forget funnel event — paid conversion
+  trackFunnelEvent({
+    step: 'paid_conversion',
+    orgId: organizationId,
+    metadata: { tier, stripeCustomerId: customerId ?? 'unknown' },
+  });
 }
 
 async function handleSubscriptionUpdated(
@@ -217,7 +226,44 @@ async function handlePaymentFailed(
     `[billing] Payment failed for customer ${customerId ?? 'unknown'}, invoice ${invoice.id}`,
   );
 
-  // Future: send email notification, set a flag on org, etc.
+  // Send payment failed email to org owner (fire-and-forget)
+  if (customerId) {
+    const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cveriskpilot.com';
+    const retryUrl = `${BASE_URL}/settings/billing`;
+    const amount = `$${((invoice.amount_due ?? 0) / 100).toFixed(2)}`;
+
+    const db = _prisma as {
+      organization: {
+        findFirst: (args: Record<string, unknown>) => Promise<Record<string, unknown> | null>;
+      };
+      user: {
+        findMany: (args: Record<string, unknown>) => Promise<Array<{ email: string }>>;
+      };
+    };
+
+    db.organization
+      .findFirst({ where: { stripeCustomerId: customerId }, select: { id: true, name: true } })
+      .then((org) => {
+        if (!org) return;
+        return db.user
+          .findMany({
+            where: { organizationId: org.id, role: { in: ['OWNER', 'ADMIN'] } },
+            select: { email: true },
+          })
+          .then((owners) => {
+            const emails = owners.map((u) => u.email).filter(Boolean);
+            if (emails.length > 0) {
+              const html = paymentFailedTemplate(org.name as string, amount, retryUrl);
+              return sendEmail({
+                to: emails,
+                subject: 'Action required: payment failed for your CVERiskPilot subscription',
+                html,
+              });
+            }
+          });
+      })
+      .catch(() => {});
+  }
 }
 
 // ---------------------------------------------------------------------------

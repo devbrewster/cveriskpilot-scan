@@ -139,3 +139,173 @@ export function digestTemplate(
     <div style="margin:16px 0;">${items}</div>
   `);
 }
+
+/**
+ * Welcome email sent after first signup.
+ */
+export function welcomeTemplate(
+  userName: string,
+  loginUrl: string,
+  docsUrl: string,
+): string {
+  return baseWrapper(`
+    <h2 style="margin:0 0 8px;font-size:20px;color:#1e293b;">Welcome to CVERiskPilot</h2>
+    <p style="color:#475569;font-size:14px;line-height:1.6;">
+      Hi <strong>${userName}</strong>, thanks for signing up! You're now ready to turn vulnerability noise into audit-ready decisions.
+    </p>
+    <p style="color:#475569;font-size:14px;line-height:1.6;margin-top:16px;font-weight:600;">
+      Get started in 3 steps:
+    </p>
+    <div style="margin:16px 0;">
+      <div style="padding:12px 16px;background:#f8fafc;border-radius:6px;border-left:4px solid #3b82f6;margin-bottom:8px;">
+        <p style="margin:0;font-weight:600;color:#1e293b;">1. Upload your first scan</p>
+        <p style="margin:4px 0 0;font-size:13px;color:#475569;">Drag and drop a Nessus, SARIF, CycloneDX, or any of 11 supported formats.</p>
+      </div>
+      <div style="padding:12px 16px;background:#f8fafc;border-radius:6px;border-left:4px solid #3b82f6;margin-bottom:8px;">
+        <p style="margin:0;font-weight:600;color:#1e293b;">2. Review your findings</p>
+        <p style="margin:4px 0 0;font-size:13px;color:#475569;">See enriched CVE data with EPSS, KEV, and compliance impact at a glance.</p>
+      </div>
+      <div style="padding:12px 16px;background:#f8fafc;border-radius:6px;border-left:4px solid #3b82f6;margin-bottom:8px;">
+        <p style="margin:0;font-weight:600;color:#1e293b;">3. Set up compliance frameworks</p>
+        <p style="margin:4px 0 0;font-size:13px;color:#475569;">Select SOC 2, HIPAA, CMMC, or any of 13 frameworks to map findings to controls.</p>
+      </div>
+    </div>
+    <a href="${loginUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#3b82f6;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">
+      Upload Your First Scan
+    </a>
+    <p style="color:#94a3b8;font-size:12px;margin-top:16px;">
+      Want to scan from your CI/CD pipeline? Try our free CLI: <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:12px;">npx @cveriskpilot/scan</code>
+    </p>
+    <p style="color:#94a3b8;font-size:12px;margin-top:8px;">
+      Need help? Check the <a href="${docsUrl}" style="color:#3b82f6;text-decoration:none;">documentation</a>.
+    </p>
+  `);
+}
+
+/**
+ * Email warning that a Pro trial is about to expire.
+ */
+export function trialExpiryTemplate(
+  orgName: string,
+  daysRemaining: number,
+  upgradeUrl: string,
+  features: string[],
+): string {
+  const heading =
+    daysRemaining === 0
+      ? 'Your Trial Has Expired'
+      : `Your Pro Trial Expires in ${daysRemaining} Day${daysRemaining === 1 ? '' : 's'}`;
+
+  const message =
+    daysRemaining === 0
+      ? `<strong>${orgName}</strong> has been downgraded to the Free plan. Upgrade now to restore full access.`
+      : `<strong>${orgName}</strong>'s Pro trial ends in <strong>${daysRemaining} day${daysRemaining === 1 ? '' : 's'}</strong>. After expiration, you'll lose access to:`;
+
+  const featureList = features
+    .map(
+      (f) => `
+    <li style="padding:4px 0;color:#475569;font-size:14px;">${f}</li>`,
+    )
+    .join('');
+
+  return baseWrapper(`
+    <h2 style="margin:0 0 8px;font-size:20px;color:#1e293b;">${heading}</h2>
+    <p style="color:#475569;font-size:14px;line-height:1.6;">
+      ${message}
+    </p>
+    <ul style="margin:16px 0;padding-left:20px;">${featureList}</ul>
+    <a href="${upgradeUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#3b82f6;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">
+      Upgrade Now
+    </a>
+  `);
+}
+
+/**
+ * Email sent when a payment fails.
+ */
+export function paymentFailedTemplate(
+  orgName: string,
+  amount: string,
+  retryUrl: string,
+): string {
+  return baseWrapper(`
+    <h2 style="margin:0 0 8px;font-size:20px;color:#1e293b;">Payment Failed</h2>
+    <p style="color:#475569;font-size:14px;line-height:1.6;">
+      A payment of <strong>${amount}</strong> for <strong>${orgName}</strong> could not be processed.
+    </p>
+    <div style="margin:16px 0;padding:12px 16px;background:#fef2f2;border-radius:6px;border-left:4px solid #dc2626;">
+      <p style="margin:0;font-size:14px;color:#dc2626;font-weight:600;">Action required</p>
+      <p style="margin:4px 0 0;font-size:13px;color:#475569;">Please update your payment method to avoid service interruption. If not resolved, your account may be downgraded.</p>
+    </div>
+    <a href="${retryUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#3b82f6;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">
+      Update Payment Method
+    </a>
+  `);
+}
+
+/**
+ * Email warning that a usage limit is being approached.
+ */
+export function usageLimitTemplate(
+  orgName: string,
+  metric: string,
+  currentUsage: number,
+  limit: number,
+  upgradeUrl: string,
+): string {
+  const pct = Math.round((currentUsage / limit) * 100);
+  const barColor = pct >= 95 ? '#dc2626' : pct >= 80 ? '#ea580c' : '#3b82f6';
+
+  return baseWrapper(`
+    <h2 style="margin:0 0 8px;font-size:20px;color:#1e293b;">Approaching Usage Limit</h2>
+    <p style="color:#475569;font-size:14px;line-height:1.6;">
+      <strong>${orgName}</strong> has used <strong>${currentUsage}</strong> of <strong>${limit}</strong> ${metric}.
+    </p>
+    <div style="margin:16px 0;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:4px;">
+        <span>${metric}</span>
+        <span>${pct}%</span>
+      </div>
+      <div style="background:#e2e8f0;border-radius:9999px;height:8px;overflow:hidden;">
+        <div style="background:${barColor};height:100%;width:${pct}%;border-radius:9999px;"></div>
+      </div>
+    </div>
+    <p style="color:#475569;font-size:14px;line-height:1.6;">
+      Upgrade your plan to increase your ${metric} allowance.
+    </p>
+    <a href="${upgradeUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#3b82f6;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">
+      Upgrade Plan
+    </a>
+  `);
+}
+
+/**
+ * Email sent when a trial has fully expired and the org is downgraded.
+ */
+export function trialExpiredTemplate(
+  orgName: string,
+  upgradeUrl: string,
+): string {
+  return baseWrapper(`
+    <h2 style="margin:0 0 8px;font-size:20px;color:#1e293b;">Your Trial Has Expired</h2>
+    <p style="color:#475569;font-size:14px;line-height:1.6;">
+      <strong>${orgName}</strong>'s Pro trial has ended. Your organization has been downgraded to the Free plan.
+    </p>
+    <div style="margin:16px 0;padding:12px 16px;background:#f8fafc;border-radius:6px;border-left:4px solid #ea580c;">
+      <p style="margin:0;font-weight:600;color:#1e293b;">What you no longer have access to:</p>
+      <ul style="margin:8px 0 0;padding-left:20px;color:#475569;font-size:13px;">
+        <li style="padding:2px 0;">Automated AI triage on upload</li>
+        <li style="padding:2px 0;">Scheduled compliance reports</li>
+        <li style="padding:2px 0;">Extended asset and AI call limits</li>
+        <li style="padding:2px 0;">Jira and webhook integrations</li>
+        <li style="padding:2px 0;">Custom SLA policies</li>
+      </ul>
+    </div>
+    <p style="color:#475569;font-size:14px;line-height:1.6;">
+      Reactivate Pro to restore full access and pick up where you left off.
+    </p>
+    <a href="${upgradeUrl}" style="display:inline-block;margin-top:8px;padding:10px 20px;background:#3b82f6;color:#fff;border-radius:6px;text-decoration:none;font-size:14px;font-weight:500;">
+      Reactivate Pro
+    </a>
+  `);
+}

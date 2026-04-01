@@ -2,7 +2,7 @@ const features = [
   {
     title: "Automatic Compliance Mapping",
     description:
-      "Every vulnerability maps to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, and SSDF controls. The chain nobody else automated.",
+      "Every vulnerability maps to 10 frameworks — NIST 800-53, SOC 2, CMMC, FedRAMP, HIPAA, PCI-DSS, ISO 27001, ASVS, GDPR, and SSDF. See exactly which controls a CVE threatens and how remediation moves your compliance score.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -12,7 +12,7 @@ const features = [
   {
     title: "Real Risk Prioritization",
     description:
-      "EPSS exploit probability + CISA KEV + CVSS = actual risk, not noise. 55% of orgs lack vulnerability prioritization. We fix that.",
+      "EPSS exploit probability + CISA KEV + CVSS + compliance impact = actual risk, not noise. A CVSS 7.2 that affects 5 SOC 2 controls outranks a CVSS 9.8 with no compliance impact.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -32,7 +32,7 @@ const features = [
   {
     title: "Audit-Ready Evidence",
     description:
-      "PDF reports, POAM generation, and compliance dashboards your auditor will actually accept. No more 40-hour quarterly spreadsheet sprints.",
+      "One-click POAM, PDF reports, and compliance dashboards your auditor will accept. Top-down platforms generate evidence without technical depth. We generate evidence from actual scan data — the bridge auditors need.",
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -82,14 +82,15 @@ export function Features() {
         {/* Section Header */}
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400">
-            Features
+            Bridge the 82% Gap
           </p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-            The compliance layer your scanners are missing
+            Top-down dashboards + bottom-up precision, unified
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Every scanner finds vulnerabilities. None of them tell you which compliance control failed.
-            CVERiskPilot bridges the gap — automatically.
+            Vanta tells your board you&apos;re compliant. InSpec tells your engineers what&apos;s misconfigured.
+            CVERiskPilot does both — every vulnerability mapped to the exact compliance controls it threatens,
+            with AI triage that speaks both auditor and engineer.
           </p>
         </div>
 

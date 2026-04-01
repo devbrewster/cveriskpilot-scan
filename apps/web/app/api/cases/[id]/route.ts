@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { validateTransition, getValidNextStatuses } from '@/lib/workflow';
 import { logAudit } from '@/lib/audit';
+import { mapCweToAllFrameworks } from '@cveriskpilot/compliance';
 
 // ---------------------------------------------------------------------------
 // GET /api/cases/[id] — Single case with full details
@@ -63,8 +64,41 @@ export async function GET(
       return NextResponse.json({ error: 'Case not found' }, { status: 404 });
     }
 
+    // Compute compliance impact from CWE IDs
+    let complianceImpact = null;
+    if (vuln.cweIds.length > 0) {
+      const controlMap = new Map<string, { framework: string; controlId: string; controlTitle: string; cweIds: string[] }>();
+      for (const cwe of vuln.cweIds) {
+        const mappings = mapCweToAllFrameworks(cwe);
+        for (const mapping of mappings) {
+          for (const ctrl of mapping.mappedControls) {
+            const key = `${ctrl.frameworkId}:${ctrl.controlId}`;
+            const existing = controlMap.get(key);
+            if (existing) {
+              if (!existing.cweIds.includes(cwe)) existing.cweIds.push(cwe);
+            } else {
+              controlMap.set(key, { framework: ctrl.frameworkName, controlId: ctrl.controlId, controlTitle: ctrl.controlTitle, cweIds: [cwe] });
+            }
+          }
+        }
+      }
+      const controls = Array.from(controlMap.values());
+      const frameworkCounts = new Map<string, { name: string; count: number; controlIds: string[] }>();
+      for (const ctrl of controls) {
+        const existing = frameworkCounts.get(ctrl.framework);
+        if (existing) { existing.count++; existing.controlIds.push(ctrl.controlId); }
+        else { frameworkCounts.set(ctrl.framework, { name: ctrl.framework, count: 1, controlIds: [ctrl.controlId] }); }
+      }
+      complianceImpact = {
+        totalAffectedControls: controls.length,
+        frameworks: Array.from(frameworkCounts.values()),
+        controls,
+      };
+    }
+
     return NextResponse.json({
       ...vuln,
+      complianceImpact,
       validNextStatuses: getValidNextStatuses(vuln.status),
     });
   } catch (error) {

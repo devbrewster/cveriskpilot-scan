@@ -3,6 +3,7 @@ import Link from "next/link";
 import { NavBar } from "@/components/landing/nav-bar";
 import { Footer } from "@/components/landing/footer";
 import { CmmcCountdown } from "@/components/landing/cmmc-countdown";
+import { SprsCalculator } from "@/components/cmmc/sprs-calculator";
 
 export const metadata: Metadata = {
   title:
@@ -298,6 +299,9 @@ export default function CmmcPage() {
             </div>
           </div>
         </section>
+
+        {/* ── SPRS Score Calculator ─────────────────────────────── */}
+        <SprsCalculator />
 
         {/* ── Pricing ──────────────────────────────────────────── */}
         <section className="border-t border-gray-800 bg-gray-950 py-20 sm:py-28">

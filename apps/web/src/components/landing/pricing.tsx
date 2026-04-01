@@ -1,12 +1,77 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import {
+  AB_VISITOR_COOKIE,
+  AB_VARIANTS_COOKIE,
+  assignAllVariants,
+  generateVisitorId,
+  serializeVariants,
+  deserializeVariants,
+  buildABParam,
+} from '@cveriskpilot/rollout';
+import type { ABExperimentName } from '@cveriskpilot/rollout';
 
 interface FoundersSpots {
   total: number;
   taken: number;
   remaining: number;
+}
+
+/** Read a cookie value by name. */
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/** Set a cookie with a 1-year expiry. */
+function setCookie(name: string, value: string): void {
+  const maxAge = 365 * 24 * 60 * 60; // 1 year in seconds
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+}
+
+/** Get or create visitor A/B variant assignments. */
+function getABVariants(): Record<ABExperimentName, string> {
+  // Check for existing assignments in cookie
+  const existingVariants = getCookie(AB_VARIANTS_COOKIE);
+  if (existingVariants) {
+    const parsed = deserializeVariants(existingVariants);
+    // Verify all experiments are assigned (new experiments may have been added)
+    const experimentNames: ABExperimentName[] = [
+      'pricing_cta_variant',
+      'pricing_show_annual',
+      'pricing_founders_scarcity',
+    ];
+    const allAssigned = experimentNames.every((name) => name in parsed);
+    if (allAssigned) {
+      return parsed as Record<ABExperimentName, string>;
+    }
+  }
+
+  // Get or create visitor ID
+  let visitorId = getCookie(AB_VISITOR_COOKIE);
+  if (!visitorId) {
+    visitorId = generateVisitorId();
+    setCookie(AB_VISITOR_COOKIE, visitorId);
+  }
+
+  // Assign variants deterministically
+  const variants = assignAllVariants(visitorId);
+  setCookie(AB_VARIANTS_COOKIE, serializeVariants(variants));
+  return variants;
+}
+
+/** Append A/B variant params to a CTA href. */
+function appendABParams(
+  href: string,
+  variants: Record<ABExperimentName, string>,
+): string {
+  const abValues = Object.entries(variants)
+    .map(([k, v]) => buildABParam(k, v))
+    .join(',');
+  const separator = href.includes('?') ? '&' : '?';
+  return `${href}${separator}ab=${encodeURIComponent(abValues)}`;
 }
 
 const plans = [
@@ -122,8 +187,20 @@ function formatPrice(monthly: number, annual: number, isAnnual: boolean): string
 }
 
 export function Pricing() {
+  const [abVariants, setAbVariants] = useState<Record<ABExperimentName, string> | null>(null);
   const [isAnnual, setIsAnnual] = useState(false);
   const [foundersSpots, setFoundersSpots] = useState<FoundersSpots | null>(null);
+
+  // Initialize A/B variants from cookies (client-side only)
+  useEffect(() => {
+    const variants = getABVariants();
+    setAbVariants(variants);
+
+    // Apply annual-first variant
+    if (variants.pricing_show_annual === 'true') {
+      setIsAnnual(true);
+    }
+  }, []);
 
   useEffect(() => {
     fetch('/api/billing/founders-spots')
@@ -131,6 +208,40 @@ export function Pricing() {
       .then((data: FoundersSpots) => setFoundersSpots(data))
       .catch(() => { /* silently fail */ });
   }, []);
+
+  // Resolve CTA text for the Free plan based on A/B variant
+  const getCtaText = useCallback(
+    (plan: typeof plans[number]): string => {
+      if (!abVariants) return plan.cta;
+      // Only override the Free plan CTA
+      if (plan.planKey === 'free' && abVariants.pricing_cta_variant === 'start-trial') {
+        return 'Start 14-Day Pro Trial';
+      }
+      return plan.cta;
+    },
+    [abVariants],
+  );
+
+  // Resolve CTA href for the Free plan based on A/B variant
+  const getCtaHref = useCallback(
+    (plan: typeof plans[number]): string => {
+      if (!abVariants) return plan.ctaHref;
+      let href = plan.ctaHref;
+      // When CTA variant is "start-trial", redirect Free plan to Pro trial signup
+      if (plan.planKey === 'free' && abVariants.pricing_cta_variant === 'start-trial') {
+        href = '/signup?plan=pro&trial=true';
+      }
+      // Only append A/B params to internal links (not mailto: or external)
+      if (href.startsWith('/')) {
+        return appendABParams(href, abVariants);
+      }
+      return href;
+    },
+    [abVariants],
+  );
+
+  // Whether to show scarcity indicator (founders spots)
+  const showScarcity = abVariants?.pricing_founders_scarcity === 'true';
 
   return (
     <section id="pricing" className="bg-white dark:bg-gray-950 py-20 sm:py-28">
@@ -207,7 +318,7 @@ export function Pricing() {
 
               {/* --- Row 2: Spots indicator (fixed height) --- */}
               <div className="min-h-7">
-                {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining > 0 && (
+                {plan.planKey === 'founders_beta' && showScarcity && foundersSpots && foundersSpots.remaining > 0 && (
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                     foundersSpots.remaining < 10
                       ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
@@ -220,7 +331,7 @@ export function Pricing() {
                     Only {foundersSpots.remaining} spots left
                   </span>
                 )}
-                {plan.planKey === 'founders_beta' && foundersSpots && foundersSpots.remaining === 0 && (
+                {plan.planKey === 'founders_beta' && showScarcity && foundersSpots && foundersSpots.remaining === 0 && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                     Sold Out
                   </span>
@@ -280,16 +391,20 @@ export function Pricing() {
                 </span>
               ) : (
                 <Link
-                  href={'planKey' in plan && plan.planKey && isAnnual
-                    ? `${plan.ctaHref}&billing=annual`
-                    : plan.ctaHref}
+                  href={(() => {
+                    let href = getCtaHref(plan);
+                    if ('planKey' in plan && plan.planKey && isAnnual && !href.includes('billing=annual')) {
+                      href += href.includes('?') ? '&billing=annual' : '?billing=annual';
+                    }
+                    return href;
+                  })()}
                   className={`mt-6 block w-full rounded-xl py-2.5 text-center text-sm font-semibold transition-all duration-200 ${
                     plan.highlighted
                       ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-500/25'
                       : 'border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:bg-gray-800'
                   }`}
                 >
-                  {plan.cta}
+                  {getCtaText(plan)}
                 </Link>
               )}
             </div>

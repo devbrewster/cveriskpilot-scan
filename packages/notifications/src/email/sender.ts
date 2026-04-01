@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
-// Email sender using nodemailer with SMTP config from environment variables.
-// Falls back to console logging when SMTP is not configured.
+// Email sender using Resend HTTP API with SMTP fallback.
+// Falls back to console logging when neither is configured.
 // ---------------------------------------------------------------------------
 
 import { createTransport, type Transporter } from 'nodemailer';
@@ -39,35 +39,74 @@ function getTransporter(): Transporter | null {
 }
 
 /**
- * Send an email. If SMTP is not configured, logs the email content to the
- * console so development can proceed without a mail server.
+ * Send an email via Resend HTTP API (preferred) or SMTP fallback.
+ * If neither is configured, logs the email to console for development.
  *
  * This function is designed to be fire-and-forget -- callers should not
  * await it in hot API paths unless delivery confirmation is required.
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   const { to, subject, html } = options;
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@cveriskpilot.com';
+  const recipients = Array.isArray(to) ? to : [to];
+
+  // Prefer Resend HTTP API if key is available
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: `CVERiskPilot <${from}>`,
+          to: recipients,
+          subject,
+          html,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.text();
+        console.error(`[email] Resend API error ${res.status}:`, body);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('[email] Resend API request failed:', error);
+      return false;
+    }
+  }
+
+  // Fallback to SMTP
   const transport = getTransporter();
-
-  if (!transport) {
-    console.log('[email] SMTP not configured -- logging email instead');
-    console.log(
-      JSON.stringify({
-        to,
+  if (transport) {
+    try {
+      await transport.sendMail({
+        from,
+        to: recipients.join(', '),
         subject,
-        htmlLength: html.length,
-        preview: html.slice(0, 200),
-      }),
-    );
-    return false;
+        html,
+      });
+      return true;
+    } catch (error) {
+      console.error('[email] SMTP send failed:', error);
+      return false;
+    }
   }
 
-  try {
-    const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@cveriskpilot.com';
-    await transport.sendMail({ from, to: Array.isArray(to) ? to.join(', ') : to, subject, html });
-    return true;
-  } catch (error) {
-    console.error('[email] Failed to send email:', error);
-    return false;
-  }
+  // No transport configured — log for development
+  console.log('[email] No email transport configured -- logging instead');
+  console.log(
+    JSON.stringify({
+      to,
+      subject,
+      htmlLength: html.length,
+      preview: html.slice(0, 200),
+    }),
+  );
+  return false;
 }

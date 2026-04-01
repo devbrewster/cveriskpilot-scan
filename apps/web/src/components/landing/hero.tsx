@@ -104,22 +104,25 @@ export function Hero() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary-500" />
             </span>
-            Compliance as a Service — now in beta
+            Only 18% of orgs connect risk to compliance. Bridge the gap.
           </div>
 
           {/* Headline */}
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl lg:leading-[1.1]">
-            Compliance{" "}
+            From Scan to{" "}
             <span className="bg-gradient-to-r from-primary-400 to-primary-300 bg-clip-text text-transparent">
-              in the Shell
+              Audit-Ready
             </span>
+            {" "}in One Pipeline
           </h1>
 
           {/* Subheadline */}
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-400 sm:text-xl sm:leading-relaxed">
-            Scan your code for vulnerabilities and map every finding to NIST
-            800-53, SOC 2, CMMC, and FedRAMP controls — automatically. The
-            compliance layer your scanner is missing.
+            Top-down platforms tell your board you&apos;re 85% compliant. Bottom-up
+            tools tell your engineers a port is open. Neither tells you which CVEs
+            are putting your certification at risk. CVERiskPilot connects the scan
+            to the audit — automatically mapping every finding to NIST 800-53, SOC 2,
+            CMMC, and 7 more frameworks.
           </p>
 
           {/* Copy-pasteable CLI command */}
@@ -278,7 +281,7 @@ export function Hero() {
         {/* Labels */}
         <div className="mx-auto mt-3 grid max-w-6xl gap-4 lg:grid-cols-2">
           <p className="text-center text-xs text-gray-600">
-            Free CLI — scan and map to 6 frameworks, no account needed
+            Free CLI — scan and map to 6 frameworks, 10 on platform
           </p>
           <p className="text-center text-xs text-gray-600">
             Platform — AI triage, POAM generation, audit trails, compliance scores
@@ -316,7 +319,7 @@ function CopyableCommand() {
         </span>
       </button>
       <p className="mt-2 text-xs text-gray-500">
-        6 frameworks. 135 controls. Scans deps, secrets, and IaC in seconds.
+        10 frameworks. 200+ controls. Scans deps, secrets, and IaC in seconds.
       </p>
     </div>
   );

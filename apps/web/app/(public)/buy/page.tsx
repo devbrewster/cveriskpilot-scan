@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 type Plan = 'FREE' | 'FOUNDERS_BETA' | 'PRO';
-type BillingInterval = 'monthly' | 'annual';
 
 interface FoundersSpots {
   total: number;
@@ -12,39 +11,15 @@ interface FoundersSpots {
   remaining: number;
 }
 
-const PLANS = [
-  {
-    id: 'FREE' as Plan,
-    name: 'Free',
-    monthlyPrice: 0,
-    annualPrice: 0,
-    description: 'Unlimited CLI scans with compliance mapping',
-    features: ['1 user', '50 assets', '3 uploads / month', '50 AI calls / month', 'Unlimited CLI scans', '6 compliance frameworks'],
-  },
-  {
-    id: 'FOUNDERS_BETA' as Plan,
-    name: 'Founders Beta',
-    monthlyPrice: 29,
-    annualPrice: 278,
-    description: 'Everything in Pro — locked at early adopter pricing forever',
-    features: ['5 users', '250 assets', 'Unlimited uploads', '250 AI calls / month', 'All Pro features', 'Price locked forever'],
-    badge: 'Best Value',
-  },
-  {
-    id: 'PRO' as Plan,
-    name: 'Pro',
-    monthlyPrice: 149,
-    annualPrice: 1428,
-    description: 'Full compliance automation for security teams',
-    features: ['10 users', '1,000 assets', 'Unlimited uploads', '1,000 AI calls / month', 'POAM auto-generation', 'Jira & ServiceNow sync', 'Executive PDF reports', 'SLA policy engine'],
-    badge: 'Most Popular',
-  },
+const PLANS: { id: Plan; name: string; price: number; tagline: string; highlight?: string }[] = [
+  { id: 'FREE', name: 'Free', price: 0, tagline: '1 user, 50 assets, 6 frameworks' },
+  { id: 'FOUNDERS_BETA', name: 'Founders Beta', price: 29, tagline: '5 users, 250 assets, 10 frameworks', highlight: 'Best Value' },
+  { id: 'PRO', name: 'Pro', price: 149, tagline: '10 users, 1K assets, POAM export' },
 ];
 
 export default function BuyPage() {
   const [email, setEmail] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<Plan>('FOUNDERS_BETA');
-  const [interval, setInterval] = useState<BillingInterval>('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [foundersSpots, setFoundersSpots] = useState<FoundersSpots | null>(null);
@@ -54,17 +29,15 @@ export default function BuyPage() {
       .then((res) => res.json())
       .then((data: FoundersSpots) => {
         setFoundersSpots(data);
-        // If sold out and Founders Beta is selected, switch to Pro
         if (data.remaining === 0 && selectedPlan === 'FOUNDERS_BETA') {
           setSelectedPlan('PRO');
         }
       })
-      .catch(() => {
-        // Silently fail — hardcoded fallback is fine
-      });
+      .catch(() => {});
   }, []);
 
   const foundersSoldOut = foundersSpots !== null && foundersSpots.remaining === 0;
+  const activePlan = PLANS.find((p) => p.id === selectedPlan)!;
 
   async function handlePurchase(startTrial = false) {
     if (!email) {
@@ -81,7 +54,7 @@ export default function BuyPage() {
         body: JSON.stringify({
           email,
           plan: selectedPlan,
-          billingInterval: interval,
+          billingInterval: 'monthly',
           ...(startTrial ? { trial: true } : {}),
         }),
       });
@@ -113,247 +86,172 @@ export default function BuyPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10">
-      {/* Hero */}
+    <div className="space-y-6">
+      {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl dark:text-white">
-          Get your API key in 60 seconds
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          Get your API key
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-500 dark:text-gray-400">
-          Run{' '}
-          <code className="rounded-md bg-gray-100 px-2 py-1 font-mono text-sm text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-            npx @cveriskpilot/scan
-          </code>{' '}
-          with AI-powered compliance scanning. Pick a plan, enter your email, and start scanning.
+        <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+          Pick a plan, enter your email, start scanning.
         </p>
       </div>
 
-      {/* Billing interval toggle */}
-      <div className="flex justify-center">
-        <div className="inline-flex rounded-lg border border-gray-200 p-1 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={() => setInterval('monthly')}
-            className={`rounded-md px-6 py-2 text-sm font-medium transition-colors ${
-              interval === 'monthly'
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-            }`}
-          >
-            Monthly
-          </button>
-          <button
-            type="button"
-            onClick={() => setInterval('annual')}
-            className={`rounded-md px-6 py-2 text-sm font-medium transition-colors ${
-              interval === 'annual'
-                ? 'bg-primary-600 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'
-            }`}
-          >
-            Annual <span className="ml-1 text-xs opacity-75">Save 20%</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Plan cards — wide desktop layout */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {PLANS.map((plan) => {
-          const price = interval === 'annual' ? plan.annualPrice : plan.monthlyPrice;
-          const isSelected = selectedPlan === plan.id;
-          const isFoundersBeta = plan.id === 'FOUNDERS_BETA';
-          const isDisabled = isFoundersBeta && foundersSoldOut;
-
-          return (
-            <button
-              key={plan.id}
-              type="button"
-              onClick={() => !isDisabled && setSelectedPlan(plan.id)}
-              disabled={isDisabled}
-              className={`relative rounded-2xl border-2 p-8 text-left transition-all ${
-                isDisabled
-                  ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60 dark:border-gray-800 dark:bg-gray-950'
-                  : isSelected
-                    ? 'border-primary-600 bg-primary-50/50 shadow-lg shadow-primary-600/10 ring-1 ring-primary-600 dark:bg-primary-950/20'
-                    : 'border-gray-200 bg-white shadow-sm hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600'
-              }`}
-            >
-              {isDisabled ? (
-                <span className="absolute -top-3 right-4 rounded-full bg-gray-500 px-3 py-1 text-xs font-semibold text-white">
-                  Sold Out
-                </span>
-              ) : plan.badge ? (
-                <span className={`absolute -top-3 right-4 rounded-full px-3 py-1 text-xs font-semibold ${
-                  plan.badge === 'Most Popular'
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                }`}>
-                  {plan.badge}
-                </span>
-              ) : null}
-
-              <div className="flex items-center gap-3">
-                <div className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
-                  isDisabled
-                    ? 'border-gray-300 dark:border-gray-600'
-                    : isSelected
-                      ? 'border-primary-600 bg-primary-600'
-                      : 'border-gray-300 dark:border-gray-600'
-                }`}>
-                  {isSelected && !isDisabled && (
-                    <svg className="h-3 w-3 text-white" viewBox="0 0 12 12">
-                      <path d="M10 3L4.5 8.5 2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{plan.name}</h3>
-              </div>
-
-              {/* Founders Beta spots counter */}
-              {isFoundersBeta && foundersSpots && (
-                <div className="mt-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">
-                      {foundersSpots.taken} of {foundersSpots.total} spots claimed
-                    </span>
-                    <span className={`font-semibold ${
-                      foundersSpots.remaining === 0
-                        ? 'text-red-600 dark:text-red-400'
-                        : foundersSpots.remaining < 10
-                          ? 'text-amber-600 dark:text-amber-400'
-                          : 'text-green-600 dark:text-green-400'
-                    }`}>
-                      {foundersSpots.remaining === 0
-                        ? 'Sold out'
-                        : `${foundersSpots.remaining} left`
-                      }
-                    </span>
-                  </div>
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        foundersSpots.remaining === 0
-                          ? 'bg-red-500'
-                          : foundersSpots.remaining < 10
-                            ? 'bg-amber-500'
-                            : 'bg-primary-600'
-                      }`}
-                      style={{ width: `${(foundersSpots.taken / foundersSpots.total) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6">
-                {price === 0 ? (
-                  <span className="text-4xl font-bold text-gray-900 dark:text-white">Free</span>
-                ) : (
-                  <div className="flex items-baseline gap-1">
-                    <span className={`text-4xl font-bold ${isDisabled ? 'text-gray-400 line-through dark:text-gray-600' : 'text-gray-900 dark:text-white'}`}>
-                      ${interval === 'annual' ? Math.round(price / 12) : price}
-                    </span>
-                    <span className="text-base text-gray-500 dark:text-gray-400">/mo</span>
-                    {interval === 'annual' && (
-                      <span className="ml-2 text-sm text-gray-400 dark:text-gray-500">
-                        (${price}/yr)
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{plan.description}</p>
-
-              <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
-                <ul className="space-y-3">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-300">
-                      <svg className="h-4 w-4 shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/>
-                      </svg>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Email + submit — wide form */}
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      {/* Single form card */}
+      <form onSubmit={handleSubmit} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
         {error && (
-          <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
             {error}
           </div>
         )}
 
-        <div className="grid items-end gap-4 sm:grid-cols-[1fr_auto]">
-          <div>
-            <label htmlFor="buy-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Email address
-            </label>
-            <input
-              id="buy-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
-            />
-          </div>
+        {/* Plan selector — side by side */}
+        <fieldset>
+          <legend className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Plan</legend>
+          <div className="grid grid-cols-3 gap-3">
+            {PLANS.map((plan) => {
+              const isSelected = selectedPlan === plan.id;
+              const isFounders = plan.id === 'FOUNDERS_BETA';
+              const isDisabled = isFounders && foundersSoldOut;
 
-          <div className="flex items-end gap-3">
-            <button
-              type="submit"
-              disabled={loading}
-              className="rounded-lg bg-primary-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading
-                ? 'Setting up...'
-                : selectedPlan === 'FREE'
-                  ? 'Get free API key'
-                  : `Continue to checkout — $${interval === 'annual' ? PLANS.find(p => p.id === selectedPlan)!.annualPrice : PLANS.find(p => p.id === selectedPlan)!.monthlyPrice}${interval === 'annual' ? '/yr' : '/mo'}`
-              }
-            </button>
+              return (
+                <label
+                  key={plan.id}
+                  className={`relative flex cursor-pointer flex-col items-center rounded-xl border-2 px-3 py-4 text-center transition-all ${
+                    isDisabled
+                      ? 'cursor-not-allowed border-gray-100 opacity-50 dark:border-gray-800'
+                      : isSelected
+                        ? 'border-primary-600 bg-primary-50/50 ring-1 ring-primary-600/20 dark:bg-primary-950/20'
+                        : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="plan"
+                    value={plan.id}
+                    checked={isSelected}
+                    disabled={isDisabled}
+                    onChange={() => setSelectedPlan(plan.id)}
+                    className="sr-only"
+                  />
 
-            {selectedPlan === 'PRO' && (
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handlePurchase(true)}
-                className="rounded-lg border border-primary-600 px-6 py-3 text-sm font-semibold text-primary-600 transition-colors hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-950/20"
-              >
-                Start 14-day free trial
-              </button>
-            )}
+                  {/* Badge */}
+                  {plan.highlight && !isDisabled && (
+                    <span className="absolute -top-2.5 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                      {plan.highlight}
+                    </span>
+                  )}
+                  {isDisabled && (
+                    <span className="absolute -top-2.5 rounded-full bg-gray-200 px-2 py-0.5 text-[9px] font-bold uppercase text-gray-500 dark:bg-gray-700">
+                      Sold Out
+                    </span>
+                  )}
+
+                  {/* Plan name */}
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{plan.name}</span>
+
+                  {/* Price */}
+                  <span className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                  </span>
+                  {plan.price > 0 && (
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">/mo</span>
+                  )}
+
+                  {/* Tagline */}
+                  <span className="mt-1.5 text-[10px] leading-tight text-gray-500 dark:text-gray-400">
+                    {plan.tagline}
+                  </span>
+
+                  {/* Founders spots */}
+                  {isFounders && foundersSpots && !foundersSoldOut && (
+                    <span className="mt-1.5 text-[10px] font-medium text-green-600 dark:text-green-400">
+                      {foundersSpots.remaining} spots left
+                    </span>
+                  )}
+
+                  {/* Selected indicator */}
+                  {isSelected && !isDisabled && (
+                    <div className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary-600">
+                      <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 12 12">
+                        <path d="M10 3L4.5 8.5 2 6" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                  )}
+                </label>
+              );
+            })}
           </div>
+        </fieldset>
+
+        {/* Email */}
+        <div className="mt-5">
+          <label htmlFor="buy-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Email
+          </label>
+          <input
+            id="buy-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            placeholder="you@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="mt-1.5 block w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+          />
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-400 dark:text-gray-500">
-          <p>
-            Need Enterprise or MSSP?{' '}
-            <a href="mailto:sales@cveriskpilot.com" className="text-primary-600 hover:text-primary-500 dark:text-primary-400">
+        {/* Submit */}
+        <div className="mt-5 flex gap-3">
+          <button
+            type="submit"
+            disabled={loading}
+            className="flex-1 rounded-xl bg-primary-600 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading
+              ? 'Setting up...'
+              : selectedPlan === 'FREE'
+                ? 'Get free API key'
+                : `Checkout — $${activePlan.price}/mo`
+            }
+          </button>
+
+          {selectedPlan === 'PRO' && (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => handlePurchase(true)}
+              className="rounded-xl border border-primary-600 px-5 py-3 text-sm font-semibold text-primary-600 transition-colors hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-950/20"
+            >
+              14-day trial
+            </button>
+          )}
+        </div>
+
+        {/* Footer links */}
+        <div className="mt-4 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
+          <span>
+            Enterprise?{' '}
+            <a href="mailto:sales@cveriskpilot.com" className="text-primary-600 hover:underline dark:text-primary-400">
               Contact sales
             </a>
-          </p>
-          <div className="flex items-center gap-4">
-            <span>Already have an account?{' '}
-              <Link href="/login" className="font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400">
-                Sign in
-              </Link>
-            </span>
-            <span>&middot;</span>
-            <Link href="/pricing" className="font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400">
-              Compare all plans
-            </Link>
-          </div>
+          </span>
+          <span>
+            <Link href="/login" className="text-primary-600 hover:underline dark:text-primary-400">Sign in</Link>
+            {' | '}
+            <Link href="/pricing" className="text-primary-600 hover:underline dark:text-primary-400">Compare plans</Link>
+          </span>
         </div>
       </form>
+
+      {/* CLI hint */}
+      <p className="text-center text-xs text-gray-400 dark:text-gray-500">
+        Free tier works without a key:{' '}
+        <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[10px] text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+          npx @cveriskpilot/scan
+        </code>
+      </p>
     </div>
   );
 }

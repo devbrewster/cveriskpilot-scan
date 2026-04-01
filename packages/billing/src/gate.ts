@@ -2,6 +2,7 @@
 
 import type { GateResult } from './types';
 import { checkUploadLimit, checkAiLimit, checkUserLimit, checkAssetLimit } from './usage';
+import { getEntitlements } from './config';
 
 // ---------------------------------------------------------------------------
 // Tier hierarchy helpers
@@ -119,6 +120,28 @@ const FEATURE_GATES: Record<string, GateChecker> = {
     };
   },
 };
+
+// ---------------------------------------------------------------------------
+// Framework-specific gate
+// ---------------------------------------------------------------------------
+
+/**
+ * Check if a specific compliance framework is available for the given tier.
+ * Returns the list of allowed framework IDs for the tier.
+ */
+export function getAllowedFrameworks(tier: string): readonly string[] | 'all' {
+  const entitlements = getEntitlements(tier);
+  return entitlements.allowedFrameworks ?? [];
+}
+
+/**
+ * Check if a specific framework ID is allowed for the given tier.
+ */
+export function isFrameworkAllowed(tier: string, frameworkId: string): boolean {
+  const allowed = getAllowedFrameworks(tier);
+  if (allowed === 'all') return true;
+  return allowed.includes(frameworkId);
+}
 
 // ---------------------------------------------------------------------------
 // Public API

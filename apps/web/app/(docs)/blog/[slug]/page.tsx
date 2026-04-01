@@ -17,6 +17,15 @@ interface BlogPost {
 }
 
 const POSTS: Record<string, BlogPost> = {
+  "cmmc-compliance-30-days": {
+    title: "CMMC Level 2 in 30 Days: A Defense Contractor's Compliance Playbook",
+    description:
+      "The CMMC Level 2 deadline is November 10, 2026. A week-by-week playbook to get from gap analysis to assessment-ready in 30 days, with tooling to automate most of it.",
+    date: "2026-03-31",
+    author: "George — CVERiskPilot",
+    tags: ["CMMC", "NIST 800-171", "Defense", "Compliance", "POAM"],
+    ogImage: "/graphics/og-veteran-owned.svg",
+  },
   "npm-supply-chain-compliance": {
     title: "Two npm Supply Chain Attacks in One Day — Here's What Your Compliance Framework Says About It",
     description:

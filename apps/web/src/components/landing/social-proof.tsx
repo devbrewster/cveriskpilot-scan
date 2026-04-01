@@ -1,5 +1,5 @@
 const stats = [
-  { value: "135", label: "Compliance controls mapped", sublabel: "across 6 frameworks, automatically" },
+  { value: "200+", label: "Compliance controls mapped", sublabel: "across 10 frameworks, automatically" },
   { value: "60%", label: "of GRC teams still use spreadsheets", sublabel: "we replace the spreadsheet" },
   { value: "90s", label: "from scan to compliance verdict", sublabel: "not 40 hours per quarter" },
 ];

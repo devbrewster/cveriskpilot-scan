@@ -11,6 +11,8 @@ import {
 import { UserRole } from '@cveriskpilot/domain';
 import { STRIPE_PRICES, createCheckoutSession } from '@cveriskpilot/billing';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
+import { sendEmail, welcomeTemplate } from '@cveriskpilot/notifications';
+import { trackFunnelEvent } from '@cveriskpilot/observability';
 import crypto from 'crypto';
 
 /**
@@ -70,6 +72,25 @@ export async function POST(request: NextRequest) {
       emailPrefix,
       randomPassword,
     );
+
+    // Fire-and-forget funnel event
+    trackFunnelEvent({
+      step: 'signup',
+      orgId: result.organizationId,
+      userId: result.userId,
+      metadata: {
+        plan: plan?.toUpperCase() ?? 'FREE',
+        source: 'quick-purchase',
+      },
+    });
+
+    // Fire-and-forget welcome email
+    const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cveriskpilot.com';
+    sendEmail({
+      to: email,
+      subject: 'Welcome to CVERiskPilot',
+      html: welcomeTemplate(emailPrefix, `${BASE_URL}/login`, `${BASE_URL}/developers`),
+    }).catch(() => {});
 
     // Create session
     let sessionId: string | null = null;

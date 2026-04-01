@@ -15,7 +15,8 @@
  *   --iac-only           IaC scan only
  *   --api-routes         API route security scan (Next.js)
  *   --frameworks <list>  Comma-separated framework IDs (aliases OK)
- *   --preset <name>      Framework preset: federal, defense, enterprise, startup, devsecops, all
+ *   --preset <name>      Framework preset: federal, defense, enterprise, startup, devsecops,
+ *                       healthcare, payments, international, eu-compliance, all
  *   --severity <level>   Min severity to display: CRITICAL, HIGH, MEDIUM, LOW, INFO
  *   --exclude <glob>     Exclude paths (repeatable)
  *   --exclude-cwe <id>   Exclude CWE IDs (repeatable)
@@ -26,6 +27,8 @@
  *   --no-upload          Scan locally only, don't upload
  *   --dry-run            Preview scan results without uploading or persisting
  *   --ci                 Shorthand: --format json --no-color --fail-on critical
+ *   --since <ref>        Incremental: only scan files changed since commit/branch/tag
+ *   --stream             Emit findings as NDJSON to stdout as they are discovered
  *   --list-frameworks    List all supported frameworks and presets
  *   --verbose            Detailed output
  *   --help               Show help
@@ -35,6 +38,7 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import * as https from 'node:https';
+import { execSync } from 'node:child_process';
 import { scanDependencies } from './scanners/sbom-scanner.js';
 import { scanSecrets } from './scanners/secrets-scanner.js';
 import { scanIaC } from './scanners/iac-scanner.js';
@@ -140,6 +144,8 @@ interface CliOptions {
   aiProvider: string | undefined;
   aiModel: string | undefined;
   aiUrl: string | undefined;
+  since: string | undefined;
+  stream: boolean;
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -169,6 +175,8 @@ function parseArgs(argv: string[]): CliOptions {
     aiProvider: undefined,
     aiModel: undefined,
     aiUrl: undefined,
+    since: undefined,
+    stream: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -252,6 +260,13 @@ function parseArgs(argv: string[]): CliOptions {
       case '--ai-url':
         opts.aiUrl = args[++i];
         break;
+      case '--since':
+      case '--since-commit':
+        opts.since = args[++i];
+        break;
+      case '--stream':
+        opts.stream = true;
+        break;
       default:
         // Positional argument: target directory
         if (!arg.startsWith('-')) {
@@ -298,7 +313,7 @@ ${bold('SCANNER FLAGS')}
 
 ${bold('FRAMEWORK FLAGS')}
   --frameworks <list>  Comma-separated frameworks: SOC2,CMMC,FEDRAMP,NIST,ASVS,SSDF
-  --preset <name>      Preset: federal, defense, startup, devsecops, all
+  --preset <name>      Preset: federal, defense, startup, devsecops, healthcare, payments, international, eu-compliance, all
   --list-frameworks    List all supported frameworks, aliases, and presets
 
 ${bold('FILTERING')}
@@ -353,25 +368,31 @@ ${bold('EXAMPLES')}
 }
 
 function printListFrameworks(): void {
+  const frameworkCount = Object.keys(IMPLEMENTED_FRAMEWORKS).length;
   console.log(`
-${bold('Implemented Frameworks (6)')}
+${bold(`Implemented Frameworks (${frameworkCount})`)}
 `);
+  const FREE_CORE = new Set(['nist-800-53', 'soc2-type2', 'cmmc-level2', 'fedramp-moderate', 'owasp-asvs', 'nist-ssdf']);
   for (const [id, fw] of Object.entries(IMPLEMENTED_FRAMEWORKS)) {
-    console.log(`  ${id.padEnd(20)} ${fw.name.padEnd(25)} ${fw.controls} controls`);
+    const tier = FREE_CORE.has(id) ? '' : ' [PRO]';
+    console.log(`  ${id.padEnd(20)} ${fw.name.padEnd(35)} ${fw.controls} controls${tier}`);
   }
 
   console.log(`
 ${bold('Framework Presets')}
 `);
   for (const [name, fws] of Object.entries(FRAMEWORK_PRESETS)) {
-    console.log(`  ${name.padEnd(15)} ${fws.join(', ')}`);
+    console.log(`  ${name.padEnd(18)} ${fws.join(', ')}`);
   }
 
-  console.log(`
-${bold('Planned Frameworks (not yet implemented)')}
+  const plannedKeys = Object.keys(PLANNED_FRAMEWORKS);
+  if (plannedKeys.length > 0) {
+    console.log(`
+${bold('Planned Frameworks (coming soon)')}
 `);
-  for (const [id, name] of Object.entries(PLANNED_FRAMEWORKS)) {
-    console.log(`  ${id.padEnd(15)} ${name}`);
+    for (const [id, name] of Object.entries(PLANNED_FRAMEWORKS)) {
+      console.log(`  ${id.padEnd(18)} ${name}`);
+    }
   }
   console.log('');
 }
@@ -560,6 +581,33 @@ function filterFindings(
 }
 
 // ---------------------------------------------------------------------------
+// Incremental Scanning — git diff for --since flag
+// ---------------------------------------------------------------------------
+
+/**
+ * Get files changed since a given commit/branch/tag.
+ * Returns a Set of absolute file paths, or null if git is unavailable.
+ */
+function getChangedFilesSince(targetDir: string, since: string): Set<string> | null {
+  try {
+    const output = execSync(`git diff --name-only --diff-filter=ACMR ${since}`, {
+      cwd: targetDir,
+      encoding: 'utf-8',
+      timeout: 10_000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    const files = new Set<string>();
+    for (const line of output.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed) files.add(path.resolve(targetDir, trimmed));
+    }
+    return files;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Tier Gating — Enriched fields are paid add-on
 // ---------------------------------------------------------------------------
 
@@ -653,11 +701,26 @@ async function main(): Promise<void> {
   const allFindings: CanonicalFinding[] = [];
   const scannersRun: string[] = [];
 
+  // Incremental scanning: resolve changed files
+  let changedFiles: Set<string> | null = null;
+  if (opts.since) {
+    changedFiles = getChangedFilesSince(opts.targetDir, opts.since);
+    if (changedFiles === null) {
+      console.error(`\x1b[33m⚠ Warning: Could not resolve --since "${opts.since}". Running full scan.\x1b[0m`);
+    } else if (changedFiles.size === 0) {
+      if (opts.verbose) console.log('  No files changed since ' + opts.since + ' — nothing to scan.');
+      process.exit(EXIT_PASS);
+    }
+  }
+
   // Detect project type
   const project = detectProjectType(opts.targetDir);
 
   if (opts.verbose) {
     console.log(`\n  Scanning: ${opts.targetDir}`);
+    if (changedFiles) {
+      console.log(`  Incremental: ${changedFiles.size} files changed since ${opts.since}`);
+    }
     console.log(`  Detected: ${project.types.length > 0 ? project.types.join(', ') : 'unknown project type'}`);
     if (activeFrameworks) {
       const names = activeFrameworks.map((id) => IMPLEMENTED_FRAMEWORKS[id]?.name ?? id);
@@ -695,6 +758,14 @@ async function main(): Promise<void> {
     if (isTTY) process.stderr.write('\r' + ' '.repeat(80) + '\r');
   }
 
+  // ---- Streaming helper: emit findings as NDJSON immediately ----
+  function emitStreamFindings(findings: CanonicalFinding[], scanner: string): void {
+    if (!opts.stream) return;
+    for (const f of findings) {
+      process.stdout.write(JSON.stringify({ scanner, ...f, discoveredAt: f.discoveredAt.toISOString() }) + '\n');
+    }
+  }
+
   // ---- Run scanners in parallel ----
   const scanPromises: Promise<void>[] = [];
 
@@ -710,6 +781,7 @@ async function main(): Promise<void> {
         try {
           const result = await scanDependencies(opts.targetDir);
           allFindings.push(...result.findings);
+          emitStreamFindings(result.findings, 'sbom');
           scannersRun.push('sbom');
           depsCount = result.dependencies.length;
           ecosystems = result.ecosystems;
@@ -740,6 +812,7 @@ async function main(): Promise<void> {
             onProgress: (n) => { status['secrets'] = `${n} files...`; },
           });
           allFindings.push(...result.findings);
+          emitStreamFindings(result.findings, 'secrets');
           scannersRun.push('secrets');
           secretsFilesScanned = result.filesScanned;
           status['secrets'] = `${result.filesScanned} files`;
@@ -768,6 +841,7 @@ async function main(): Promise<void> {
         try {
           const result = await scanIaC(opts.targetDir, { exclude: opts.exclude });
           allFindings.push(...result.findings);
+          emitStreamFindings(result.findings, 'iac');
           scannersRun.push('iac');
           iacFilesScanned = result.filesScanned;
           iacRulesPassed = result.rulesPassed;
@@ -799,6 +873,7 @@ async function main(): Promise<void> {
         try {
           const result = await scanApiSecurity(opts.targetDir);
           allFindings.push(...result.findings);
+          emitStreamFindings(result.findings, 'api-security');
           scannersRun.push('api-security');
           apiRoutesScanned = result.routesScanned;
           apiRulesPassed = result.rulesPassed;
@@ -820,6 +895,28 @@ async function main(): Promise<void> {
   // Wait for all scanners
   await Promise.all(scanPromises);
   clearProgress();
+
+  // Incremental: filter findings to only changed files (SBOM findings always included since lockfile deps are project-wide)
+  if (changedFiles) {
+    const beforeCount = allFindings.length;
+    const filtered: CanonicalFinding[] = [];
+    for (const f of allFindings) {
+      // SBOM findings have no filePath or match lockfiles — always include
+      if (f.scannerType === 'sbom' || f.scannerType === 'dependency' || !f.filePath) {
+        filtered.push(f);
+        continue;
+      }
+      const absPath = path.isAbsolute(f.filePath) ? f.filePath : path.resolve(opts.targetDir, f.filePath);
+      if (changedFiles.has(absPath)) {
+        filtered.push(f);
+      }
+    }
+    allFindings.length = 0;
+    allFindings.push(...filtered);
+    if (opts.verbose && beforeCount !== allFindings.length) {
+      console.log(`  Incremental filter: ${beforeCount} → ${allFindings.length} findings (from changed files)`);
+    }
+  }
 
   const durationMs = Date.now() - startTime;
 
@@ -915,6 +1012,11 @@ async function main(): Promise<void> {
   const isPaidTier = !!opts.apiKey;
   const outputFindings = isPaidTier ? filteredFindings : redactEnrichedFields(filteredFindings);
 
+  // Core 6 frameworks available to free tier; paid tier gets all 10
+  const FREE_TIER_FRAMEWORKS = [
+    'nist-800-53', 'soc2-type2', 'cmmc-level2', 'fedramp-moderate', 'owasp-asvs', 'nist-ssdf',
+  ];
+
   // ---- Format and display results ----
   const summary: ScanSummary = {
     findings: outputFindings,
@@ -933,10 +1035,13 @@ async function main(): Promise<void> {
     durationMs,
     activeFrameworks,
     aiResult,
+    allowedFrameworks: isPaidTier ? undefined : FREE_TIER_FRAMEWORKS,
   };
 
-  const output = formatOutput(summary, opts.format);
-  console.log(output);
+  if (!opts.stream) {
+    const output = formatOutput(summary, opts.format);
+    console.log(output);
+  }
 
   // ---- Dry-run notice ----
   if (opts.dryRun && isTTY) {

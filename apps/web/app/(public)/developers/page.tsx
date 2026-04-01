@@ -4,15 +4,34 @@ import { Footer } from '@/components/landing/footer';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Developer Portal | CVERiskPilot',
+  title: 'Developer Portal — API Docs, SDKs & Webhooks',
   description:
-    'API documentation, SDKs, webhooks, and integration guides for CVERiskPilot. Build vulnerability management workflows with our REST API.',
+    'REST API documentation, TypeScript SDK, CloudEvents webhooks, and integration guides for CVERiskPilot. Automate vulnerability management and compliance workflows programmatically.',
+  keywords: [
+    'vulnerability management API',
+    'security API',
+    'compliance API',
+    'webhooks',
+    'TypeScript SDK',
+    'REST API',
+    'CVE API',
+    'SBOM API',
+    'DevSecOps integration',
+    'scanner integration',
+  ],
   alternates: { canonical: 'https://cveriskpilot.com/developers' },
   openGraph: {
     title: 'Developer Portal | CVERiskPilot',
-    description: 'API docs, SDKs, and webhook integration guides.',
+    description: 'REST API docs, TypeScript SDK, CloudEvents webhooks, and integration guides for compliance intelligence automation.',
     url: 'https://cveriskpilot.com/developers',
     type: 'website',
+    images: [{ url: '/graphics/og-hero.svg', width: 1200, height: 675, alt: 'CVERiskPilot Developer Portal' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CVERiskPilot Developer Portal',
+    description: 'REST API, TypeScript SDK, and webhook integration guides for compliance intelligence automation.',
+    images: [{ url: '/graphics/og-hero.svg', alt: 'CVERiskPilot Developer Portal' }],
   },
 };
 

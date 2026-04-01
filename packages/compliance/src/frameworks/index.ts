@@ -19,3 +19,6 @@ export { GDPR_FRAMEWORK, assessGDPR } from './gdpr';
 export { HIPAA_FRAMEWORK, assessHIPAA } from './hipaa';
 export { PCI_DSS_FRAMEWORK, assessPCIDSS } from './pci-dss';
 export { ISO27001_FRAMEWORK, assessISO27001 } from './iso27001';
+export { NIST_CSF_FRAMEWORK, assessNISTCSF } from './nist-csf';
+export { EU_CRA_FRAMEWORK, assessEUCRA } from './eu-cra';
+export { NIS2_FRAMEWORK, assessNIS2 } from './nis2';

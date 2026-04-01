@@ -4,10 +4,18 @@ import { Footer } from '@/components/landing/footer';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Webhook Events | CVERiskPilot Developer Portal',
+  title: 'Webhook Events — CloudEvents 1.0 Reference',
   description:
-    'CloudEvents 1.0 webhook reference for CVERiskPilot. Event types, payload schemas, HMAC verification, and retry behavior.',
+    'CloudEvents 1.0 webhook reference for CVERiskPilot. Event types, payload schemas, HMAC-SHA256 verification, retry behavior, and integration examples.',
+  keywords: ['webhooks', 'CloudEvents', 'HMAC verification', 'event-driven', 'security webhooks', 'vulnerability notifications'],
   alternates: { canonical: 'https://cveriskpilot.com/developers/webhooks' },
+  openGraph: {
+    title: 'Webhook Events | CVERiskPilot Developer Portal',
+    description: 'CloudEvents 1.0 webhook reference — event types, HMAC verification, payload schemas.',
+    url: 'https://cveriskpilot.com/developers/webhooks',
+    type: 'article',
+    images: [{ url: '/graphics/og-hero.svg', width: 1200, height: 675, alt: 'CVERiskPilot Webhooks' }],
+  },
 };
 
 // ---------------------------------------------------------------------------

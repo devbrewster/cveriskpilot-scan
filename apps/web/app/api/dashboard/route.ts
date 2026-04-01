@@ -251,6 +251,23 @@ export async function GET(request: NextRequest) {
       // Graceful degradation — return empty array
     }
 
+    // Evidence freshness summary
+    let evidenceStats = { current: 0, stale: 0, missing: 0, expired: 0, total: 0 };
+    try {
+      const evCounts = await prisma.complianceEvidenceRecord.groupBy({
+        by: ['status'],
+        where: { organizationId },
+        _count: true,
+      });
+      for (const row of evCounts) {
+        const key = row.status.toLowerCase() as keyof typeof evidenceStats;
+        if (key in evidenceStats) evidenceStats[key] = row._count;
+        evidenceStats.total += row._count;
+      }
+    } catch {
+      // Graceful degradation — evidence stats not critical
+    }
+
     return NextResponse.json({
       severityCounts: severityMap,
       kevCount,
@@ -262,6 +279,7 @@ export async function GET(request: NextRequest) {
       mttrDays,
       recentActivity,
       complianceScores,
+      evidenceStats,
     });
   } catch (error) {
     console.error('[API] GET /api/dashboard error:', error);

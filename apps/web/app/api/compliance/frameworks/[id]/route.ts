@@ -26,6 +26,7 @@ import {
   assessISO27001,
 } from '@cveriskpilot/compliance';
 import type { ComplianceAssessmentInput, ComplianceFramework, ComplianceEvidence } from '@cveriskpilot/compliance';
+import { syncAssessmentEvidence } from '@/lib/evidence-sync';
 
 const FRAMEWORKS: Record<string, ComplianceFramework> = {
   'soc2-type2': SOC2_FRAMEWORK,
@@ -83,6 +84,11 @@ export async function GET(
     const assessmentInput = await buildAssessmentInput(prisma, organizationId);
 
     const evidences = assessor(assessmentInput);
+
+    // Persist evidence records to the database (fire-and-forget, non-blocking)
+    syncAssessmentEvidence(prisma, organizationId, framework, evidences).catch((err) => {
+      console.error('Evidence sync error (non-blocking):', err);
+    });
 
     // Calculate overall score
     const applicableEvidences = evidences.filter((e) => e.status !== 'na');

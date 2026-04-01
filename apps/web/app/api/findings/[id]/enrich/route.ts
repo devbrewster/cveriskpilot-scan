@@ -5,6 +5,7 @@ import { requireAuth, requirePerm, checkCsrf } from '@cveriskpilot/auth';
 import { logAudit } from '@/lib/audit';
 import { getOrgTier, checkBillingGate, trackAiCall } from '@/lib/billing';
 import { enrichFindings } from '@cveriskpilot/enrichment';
+import { trackFunnelEvent } from '@cveriskpilot/observability';
 import type { CanonicalFinding } from '@cveriskpilot/parsers';
 
 // ---------------------------------------------------------------------------
@@ -162,6 +163,18 @@ export async function POST(
     // Track AI usage for billing
     const clientId = (session as unknown as Record<string, string>).clientId ?? orgId;
     await trackAiCall(orgId, clientId).catch(() => {});
+
+    // Fire-and-forget funnel event (first_triage)
+    trackFunnelEvent({
+      step: 'first_triage',
+      orgId,
+      userId: session.userId,
+      metadata: {
+        findingId: id,
+        caseId: finding.vulnerabilityCase.id,
+        riskLevel: enriched.riskScore?.riskLevel ?? 'unknown',
+      },
+    });
 
     // Audit log
     await logAudit({

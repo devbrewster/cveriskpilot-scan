@@ -88,12 +88,15 @@ export default function PricingPage() {
       <main className="pt-20">
         {/* Hero header */}
         <section className="bg-white px-4 pb-4 pt-16 text-center dark:bg-gray-950 sm:px-6 lg:px-8">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-primary-400">
+            CLI free forever. Platform scales with you.
+          </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            Simple, transparent pricing
+            One price to bridge the gap
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-            Start free. Upgrade when you need more. No surprise charges, no
-            feature gates on security.
+            Top-down compliance platforms start at $10K/yr and can&apos;t parse a Nessus scan.
+            Bottom-up tools are free but can&apos;t generate a POAM. CVERiskPilot does both — starting at $0.
           </p>
         </section>
 

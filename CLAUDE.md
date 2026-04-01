@@ -1,11 +1,25 @@
 # CVERiskPilot - Claude Code Instructions
 
 ## Project Overview
-CVERiskPilot is a vulnerability management SaaS platform for GRC/compliance teams. It ingests scan results from multiple scanner formats, enriches CVE data, performs AI-powered triage, and manages the remediation lifecycle including POAM generation and compliance framework mapping.
+CVERiskPilot is an **AI-Powered Compliance Intelligence Platform** for security and risk teams. It bridges the gap between bottom-up vulnerability scanners (which dump CVEs) and top-down compliance platforms (which track control checklists) — connecting every finding to its compliance impact across 13 frameworks, with AI-generated risk narratives, audit-ready justifications, and automated decision workflows.
 
+**Positioning**: Not a scanner. Not a GRC dashboard. The intelligence layer between your scanners and your auditors.
 **Business**: CVERiskPilot LLC, 100% Veteran Owned, Texas-registered
 **Version**: 0.3.0-beta (ground-up rebuild, replacing legacy 2.0-beta on Cloudflare)
 **Domain**: cveriskpilot.com
+
+### Strategic Positioning
+- **Market gap**: Only 18% of organizations connect vulnerability risk to compliance posture. Top-down platforms (Vanta, Drata, $10K+/yr) track controls but can't parse a Nessus scan. Bottom-up tools (InSpec, OPA, free) find misconfigs but can't generate a POAM.
+- **CVERiskPilot bridges both**: Ingests scan data like a bottom-up tool, maps to compliance like a top-down platform, adds AI intelligence neither has.
+- **Core differentiator**: Every finding shows which compliance controls it threatens. Every remediation shows how it improves posture. AI explains risk in business + compliance language — not just CVSS scores.
+- **Hook**: "Turn vulnerability noise into audit-ready decisions in minutes"
+
+### Product Pillars
+1. **Ingestion Layer** (data moat) — 11 scanner formats, 5 connectors, CLI scanner, SBOM support
+2. **Intelligence Layer** (the gold) — CVE enrichment (EPSS/KEV/NVD), asset context, business impact scoring, AI-generated risk statements + auditor-ready justifications
+3. **Decision Layer** (differentiator) — Risk acceptance workflows, POAM generation, false positive justification, compensating controls logic, "not exploitable because…" engine
+4. **Action Layer** — Push to Jira/ServiceNow, executive reports, evidence packages, audit trails
+5. **Executive Intelligence** — Risk posture score, KEV exposure, SLA compliance, "what will fail audit today" dashboard
 
 ## Architecture
 
@@ -40,7 +54,7 @@ packages/
   integrations/              # Jira, ServiceNow, HackerOne, SIEMs, webhooks
   auth/                      # Authentication providers + RBAC
   billing/                   # Stripe billing + usage metering
-  compliance/                # SOC2, SSDF, ASVS frameworks + POAM
+  compliance/                # 13 compliance frameworks + POAM + cross-framework CWE mapping
   ai/                        # Claude triage agent + remediation
   notifications/             # Email templates + delivery
   observability/             # Logging, metrics, tracing (OTEL)
@@ -178,7 +192,7 @@ Beta milestone. All core flows functional end-to-end. Security hardened (13 find
 - **5 scanner connectors** (Tenable, Qualys, CrowdStrike, Rapid7, Snyk)
 - **10 RBAC roles** with granular permissions enforced on all mutation routes
 - **7 agentic tools** for CVE triage (NVD, KEV, EPSS, CVSS, Compliance Map, Risk Score, Audit Log)
-- **10 compliance frameworks** (NIST 800-53, CMMC, SOC2, FedRAMP, ASVS, GDPR, HIPAA, PCI DSS, ISO 27001, SSDF)
+- **13 compliance frameworks** (NIST 800-53, CMMC, SOC2, FedRAMP, ASVS, SSDF, GDPR, HIPAA, PCI DSS, ISO 27001, NIST CSF 2.0, EU CRA, NIS2)
 - **3 OAuth providers** (Google, GitHub, WorkOS SSO)
 
 ### Completed Waves (0-12 + R1-R5)
@@ -234,21 +248,17 @@ All revenue-critical flows secured and tested. RBAC enforced on all mutation rou
 | 15 | Missing DB indexes | **FIXED** (Wave R5) — 8 indexes added |
 
 ### What Works Well
-- Stripe billing fully wired (webhooks, checkout, tier upgrades, usage metering)
-- 11 scanner format parsers with magic-byte validation
-- Enrichment pipeline (NVD + EPSS + KEV) with Redis caching
-- Risk scoring with transparent breakdown
-- 10 compliance frameworks with cross-framework CWE mapping
-- POAM generation and export (CSV, PDF)
-- Agentic CVE triage with tool-calling loop (7 tools, HITL gates, audit trail)
-- Docker + Terraform + Cloud Run deploy pipeline
-- RBAC permission matrix well-defined (10 roles, granular permissions)
+- **Ingestion Layer**: 11 scanner format parsers with magic-byte validation, 5 scanner connectors
+- **Intelligence Layer**: Enrichment pipeline (NVD + EPSS + KEV) with Redis caching, risk scoring with transparent breakdown, compliance impact per finding (CWE → 13 frameworks)
+- **Decision Layer**: Agentic CVE triage with tool-calling loop (7 tools, HITL gates, audit trail), POAM generation and export (CSV, PDF)
+- **Action Layer**: Stripe billing fully wired (webhooks, checkout, tier upgrades, usage metering), Docker + Terraform + Cloud Run deploy pipeline
+- **Security**: RBAC permission matrix well-defined (10 roles, granular permissions), org-scoped tenant isolation, CSRF protection
 
 ---
 
 ## Revenue Generation Design & Build Plan
 
-### Pricing Tiers (current)
+### Pricing Tiers (current — launch phase)
 | Tier | Price | Users | Assets | AI Calls | Key Features |
 |------|-------|-------|--------|----------|-------------|
 | FREE | $0 | 1 | 50 | 50/mo | Upload, dashboard, basic triage |
@@ -256,6 +266,13 @@ All revenue-critical flows secured and tested. RBAC enforced on all mutation rou
 | PRO | $149/mo | 10 | 1,000 | 1,000/mo | + scheduled reports, 14-day trial |
 | ENTERPRISE | Custom | Unlimited | Unlimited | Unlimited | + SSO, custom parsers, multi-client |
 | MSSP | Custom | Unlimited | Unlimited | Unlimited | + white label, usage billing |
+
+### Pricing Evolution (post-platform upgrade)
+As Solivagant platform features ship (Vault Protocol, Cortex Analytics, Signal Engine, Flux Pipelines), pricing evolves:
+- **Starter** ($49-$199/mo): SMB security teams — limited scans + basic risk scoring
+- **Professional** ($500-$2,000/mo): Core market — full ingestion + AI risk intelligence + compliance reporting
+- **Enterprise** ($15K-$150K/yr): Custom integrations, compliance frameworks (FedRAMP, NIST, SOC 2), multi-tenant
+- **Target**: $1M-$10M ARR at scale
 
 ### Revenue Strategy
 **Target**: First 10 paying customers within 8 weeks. Focus on Founders Beta ($29/mo) and Pro ($149/mo).
@@ -442,9 +459,9 @@ Priority: Protect revenue flows from regressions.
 | Demo dashboard (no login) | Live | High — 27 sub-routes, realistic data, full product experience |
 | CLI lead gen (`npx @cveriskpilot/scan`) | Live | High — offline, zero-config, 6 frameworks, npm ecosystem |
 | Blog (4 posts) | Live | Medium — SEO metadata, OG tags, canonical URLs |
-| Sitemap + robots.txt + SEO | Live | Medium — 17 pages indexed, AI crawlers blocked |
+| Sitemap + robots.txt + SEO | Live | High — 16 public pages indexed, AI crawlers blocked, JSON-LD structured data |
 | Email templates (transactional) | Ready | Low — 4 templates built, no nurture sequences |
-| API docs (OpenAPI spec) | Ready | Medium — spec exists, no public page |
+| Developer portal (`/developers`) | Live | High — API docs, SDK generator, API playground, webhook catalog |
 | Content calendar (40 posts queued) | Live | High — 4 weeks pre-loaded, approval workflow |
 | Brand voice guidelines | Live | High — detailed tone rules, forbidden phrases, platform-specific |
 
@@ -631,18 +648,64 @@ After scan results, print:
 | G4 (Conversion optimization) | Medium | High — improves funnel efficiency | Week 3-4 |
 | G5 (Vertical GTM) | High | Very High — opens enterprise pipeline | Week 4-8 |
 
-### Immediate Actions (this week)
-1. Add CLI upload CTA to scan output (G1.1) — 30 min
-2. Add blog email subscribe CTA (G2.4) — 1 hour
-3. Add demo-to-signup banner (G4.1) — 1 hour
-4. Add UTM tracking to signup route (G4.4) — 2 hours
-5. Publish "Compliance Control of the Week" first post on X (G3.4) — use existing autopilot
+### Immediate Actions Status
+1. ~~Add CLI upload CTA to scan output (G1.1)~~ — **DONE** (output.ts platform upsell box)
+2. ~~Add blog email subscribe CTA (G2.4)~~ — **DONE** (`BlogSubscribe` component on blog index)
+3. ~~Add demo-to-signup banner (G4.1)~~ — **DONE** (`ref=demo` links in demo layout)
+4. ~~Add UTM tracking to signup route (G4.4)~~ — **DONE** (`utmRef` stored on org in signup route)
+5. ~~Add blog RSS feed (G3.2)~~ — **DONE** (`/blog/rss.xml`)
+6. ~~Compliance Control of the Week (G3.4)~~ — **DONE** (`scripts/generate-compliance-cotw.mjs` — 45+ NIST 800-53 controls, X threads + LinkedIn posts)
+7. ~~Email nurture templates (G2.1/G2.3)~~ — **DONE** (5 templates: welcome, trial expiry, trial expired, payment failed, usage limit)
+8. ~~Welcome email on signup (G2.1)~~ — **DONE** (fire-and-forget in signup + quick-purchase routes)
+9. ~~Trial expiry emails (G2.3)~~ — **DONE** (3-day/1-day warnings + expired notification in expire-trials cron)
+10. ~~Payment failed email (G2.3)~~ — **DONE** (in Stripe invoice.payment_failed webhook)
+11. ~~Email sender upgrade~~ — **DONE** (switched from SMTP to Resend HTTP API)
+12. ~~LinkedIn automation (G3.1)~~ — **DONE** (`scripts/publish-linkedin-posts.mjs` — mirrors X publisher, LinkedIn REST API v2)
+
+---
+
+---
+
+## Platform Evolution Roadmap — Solivagant Integration
+
+**Goal**: Upgrade CVERiskPilot from "vulnerability scanner aggregator" to "compliance intelligence platform" — justifying 10x higher pricing and enterprise deals — using existing GCP infrastructure.
+
+**Full plan**: `.claude/plans/elegant-floating-taco.md`
+
+**Infrastructure cost increase**: ~$6-55/mo (vs. Solivagant standalone: $15K-50K/mo)
+
+### Phases
+
+| Phase | Component | What It Adds | Timeline | Status |
+|-------|-----------|-------------|----------|--------|
+| 1 | **Vault Protocol** | Cryptographic audit trail (Ed25519 signing + Merkle tree via Cloud KMS) — enterprise differentiator for FedRAMP/CMMC/SOC2 evidence | 2-3 weeks | **Committed** (47ce009) |
+| 2 | **Cortex Analytics** | AI compliance intelligence — scan-over-scan trends, NL query ("show HIPAA-relevant criticals"), AI executive summaries | 3-4 weeks | **Committed** (52f623f) |
+| 3 | **Horizon API** | Developer portal — interactive API docs, TypeScript SDK, API playground, webhook catalog | 2 weeks | **Committed** (27bf0f7) |
+| 4 | **Signal Engine** | Continuous ingestion via Cloud Pub/Sub — real-time finding feed, scanner push mode, SSE dashboard updates | 3-4 weeks | **Committed** (d8e49ec) |
+| 5 | **Flux Pipelines** | Visual automation rules — IF condition THEN action engine, rule builder UI, templates | 4-5 weeks | **Committed** (f7f19a2) |
+
+**Total**: 14-18 weeks (10-12 aggressive with parallelism, 16-20 conservative solo)
+
+### AI Agents (existing + planned)
+- **Risk Agent** (exists) — Calculates real risk (EPSS + KEV + CVSS + env context), not just CVSS
+- **Compliance Agent** (exists) — Maps findings to 13 frameworks via CWE bridge
+- **Auditor Agent** (planned) — Generates POAM, justifications, evidence language, "not exploitable because…"
+- **Remediation Agent** (exists) — Suggests fix, priority, SLA, compliance impact of remediation
+
+### Key Output Differentiator
+Most tools dump vulnerabilities. CVERiskPilot explains risk in business + compliance language:
+> "Although CVE-2023-XXXX is rated critical, exploitation requires authenticated access to an internal container isolated via network segmentation and RBAC, reducing practical risk…"
+That's auditor gold — and what justifies $20K-$100K/year pricing.
 
 ---
 
 ### Known Issues
-- `complianceScores` returns empty array (scheduled for Wave R3.3)
 - Demo route group `(demo)` duplicates dashboard logic — could share components better
 
 ### TODO
 - **Verify security tool integration pipelines** — Confirm all connector adapters and integration pipelines are created, wired end-to-end, and functional for: Jira, JFrog, Trivy, Snyk, Nessus, Tenable, Qualys, CrowdStrike, Rapid7, ServiceNow, HackerOne, SIEMs (webhook). Includes: connector creation wizard, test endpoint, sync orchestration, webhook delivery, and scanner format parsers (11 formats: Nessus, SARIF, CSV, JSON, CycloneDX, Qualys, OpenVAS, SPDX, OSV, CSAF, XLSX).
+- **Build Auditor Agent** — POAM generation, justifications, evidence language, "not exploitable because…" engine (planned in AI Agents section)
+- **Wire email nurture sequences** (GTM G2) — Welcome sequence, re-engagement, billing lifecycle, blog digest cron
+- **LinkedIn automation** (GTM G3.1) — Publisher script mirroring X automation
+- **Blog RSS feed** — `/blog/rss.xml` (GTM G3.2) — DONE
+- **Conversion funnel analytics** (GTM G4.3) — Track signup → upload → paid with observability events

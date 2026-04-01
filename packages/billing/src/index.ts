@@ -59,6 +59,8 @@ export {
 export {
   checkFeatureGate,
   requireFeature,
+  getAllowedFrameworks,
+  isFrameworkAllowed,
 } from './gate';
 
 export {

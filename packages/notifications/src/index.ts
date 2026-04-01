@@ -5,4 +5,9 @@ export {
   commentMentionTemplate,
   slaBreachTemplate,
   digestTemplate,
+  welcomeTemplate,
+  trialExpiryTemplate,
+  paymentFailedTemplate,
+  usageLimitTemplate,
+  trialExpiredTemplate,
 } from './email/templates';

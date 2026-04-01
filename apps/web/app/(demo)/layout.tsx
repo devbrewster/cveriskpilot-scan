@@ -221,16 +221,18 @@ export default function DemoLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Demo banner */}
-      <div className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between bg-blue-600 px-4 py-2 text-sm text-white">
+      <div className="fixed left-0 right-0 top-0 z-50 flex items-center justify-between bg-linear-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm text-white">
         <span>
-          You&apos;re viewing a demo of CVERiskPilot. Data shown is simulated.
+          This is sample data. Upload your real scans to get AI-powered triage + compliance mapping across 10 frameworks.
         </span>
-        <Link
-          href="/signup"
-          className="rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50"
-        >
-          Get Started
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/signup?ref=demo"
+            className="rounded-md bg-white px-4 py-1.5 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50"
+          >
+            Start Free
+          </Link>
+        </div>
       </div>
 
       {/* Sidebar */}

@@ -1,7 +1,7 @@
 /**
  * CVERiskPilot Production Stress Test — 1000 Concurrent Analysts
  *
- * Extends the 500-analyst pattern with deeper workflow coverage (25 steps)
+ * Extends the 500-analyst pattern with deeper workflow coverage (30 steps)
  * and zero-day / gap detection probes targeting org isolation, rate limiting,
  * race conditions, input validation, and information leakage.
  *
@@ -35,6 +35,11 @@
  *   23. GET  /api/portfolio
  *   24. GET  /api/sla/check
  *   25. POST /api/reports/generate
+ *   26. GET  /api/compliance/frameworks/{id}/assessment
+ *   27. POST /api/compliance/poam/generate
+ *   28. GET  /api/compliance/impact?frameworks=hipaa,pci-dss,iso-27001,gdpr
+ *   29. POST /api/export/pdf (compliance report)
+ *   30. POST /api/integrations/jira/bulk (dry run)
  *
  * Zero-Day / Gap Detection (post-workflow):
  *   - Org isolation (cross-org data access)
@@ -653,6 +658,70 @@ async function runAnalystWorkflow(analystId: number): Promise<AnalystResult> {
     cookie,
   );
   push(genReport);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STEP 26: Compliance framework assessment (random framework)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const frameworks = ['nist-800-53', 'soc2-type2', 'cmmc-level2', 'hipaa', 'pci-dss', 'iso-27001', 'gdpr'];
+  const randomFw = frameworks[analystId % frameworks.length];
+  const fwAssessment = await jsonGet(
+    '26-compliance-assessment',
+    `${BASE_URL}/api/compliance/frameworks/${randomFw}/assessment?organizationId=${organizationId}`,
+    cookie,
+  );
+  push(fwAssessment);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STEP 27: POAM generation (compute-heavy)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const poamGen = await jsonPost(
+    '27-poam-generate',
+    `${BASE_URL}/api/compliance/poam/generate`,
+    { organizationId, frameworks: [randomFw] },
+    cookie,
+  );
+  push(poamGen);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STEP 28: Cross-framework compliance impact
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const crossImpact = await jsonGet(
+    '28-cross-framework-impact',
+    `${BASE_URL}/api/compliance/impact?organizationId=${organizationId}&frameworks=hipaa,pci-dss,iso-27001,gdpr`,
+    cookie,
+  );
+  push(crossImpact);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STEP 29: Compliance report PDF
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  const compliancePdf = await jsonPost(
+    '29-compliance-pdf',
+    `${BASE_URL}/api/export/pdf`,
+    { type: 'compliance', format: 'pdf', organizationId, framework: randomFw },
+    cookie,
+  );
+  push(compliancePdf);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STEP 30: Jira bulk sync simulation
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  if (caseIds.length > 0) {
+    const jiraBulk = await jsonPost(
+      '30-jira-bulk-sync',
+      `${BASE_URL}/api/integrations/jira/bulk`,
+      { organizationId, caseIds: caseIds.slice(0, 3), dryRun: true },
+      cookie,
+    );
+    push(jiraBulk);
+  } else {
+    push({ step: '30-jira-bulk-sync', method: 'POST', endpoint: '/api/integrations/jira/bulk', status: -1, durationMs: 0, error: 'No cases available' });
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // ZERO-DAY / GAP DETECTION PROBES

@@ -40,6 +40,6 @@
     "Treat beta-launch and reports/final as evidence sources, not as customer-facing copy to paste verbatim.",
     "Keep every post within the configured character limit and attach the supporting source paths.",
     "Require human approval before anything is posted to a real X account.",
-    "LinkedIn copy stays manual or scheduler-driven until an approved direct integration exists."
+    "LinkedIn publishing uses scripts/publish-linkedin-posts.mjs — same approval workflow as X."
   ]
 }

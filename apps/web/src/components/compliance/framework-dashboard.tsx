@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 
 interface FrameworkSummary {
   id: string;
@@ -302,7 +303,7 @@ export function FrameworkDashboard({
                     Status
                   </th>
                   <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">
-                    Details
+                    Evidence
                   </th>
                 </tr>
               </thead>
@@ -358,8 +359,51 @@ export function FrameworkDashboard({
                           {badge.label}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-400">
-                        {isExpanded ? 'Click to collapse' : 'Click to expand'}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {ctrl.lastVerified ? (
+                            <>
+                              {(() => {
+                                const age = Math.floor(
+                                  (Date.now() - new Date(ctrl.lastVerified).getTime()) /
+                                    (1000 * 60 * 60 * 24),
+                                );
+                                const fresh = age <= 30;
+                                const stale = age > 90;
+                                return (
+                                  <span
+                                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                                      fresh
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                        : stale
+                                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                    }`}
+                                  >
+                                    <span
+                                      className={`h-1.5 w-1.5 rounded-full ${
+                                        fresh ? 'bg-green-500' : stale ? 'bg-red-500' : 'bg-yellow-500'
+                                      }`}
+                                    />
+                                    {age}d
+                                  </span>
+                                );
+                              })()}
+                            </>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                              <span className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                              None
+                            </span>
+                          )}
+                          <Link
+                            href={`/evidence?frameworkId=${assessment?.frameworkId ?? ''}&controlId=${ctrl.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                          >
+                            View
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );

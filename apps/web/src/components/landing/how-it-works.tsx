@@ -10,7 +10,7 @@ const steps = [
   },
   {
     title: "Map",
-    description: "Every finding chains through CWE to NIST 800-53, then maps to SOC 2, CMMC, FedRAMP, ASVS, and SSDF.",
+    description: "Every finding chains through CWE to NIST 800-53, then bridges to SOC 2, CMMC, FedRAMP, HIPAA, PCI-DSS, ISO 27001, GDPR, ASVS, and SSDF.",
     icon: (
       <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9zm3.75 11.625a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -51,7 +51,7 @@ export function HowItWorks() {
             From scan to compliance in four steps
           </h2>
           <p className="mt-4 text-lg leading-relaxed text-gray-600 dark:text-gray-400">
-            Run one command. Get every finding mapped to 6 compliance frameworks with
+            Run one command. Get every finding mapped to 10 compliance frameworks with
             audit-ready evidence in under 90 seconds.
           </p>
         </div>

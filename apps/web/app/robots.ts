@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/government', '/docs', '/docs/pipeline', '/blog/', '/login', '/signup', '/terms', '/privacy'],
+        allow: ['/', '/pricing', '/government', '/cmmc', '/hipaa', '/developers', '/developers/webhooks', '/docs', '/docs/pipeline', '/blog/', '/terms', '/privacy', '/security-policy'],
         disallow: [
           '/api/',
           '/dashboard/',
@@ -28,6 +28,10 @@ export default function robots(): MetadataRoute.Robots {
           '/ops/',
           '/demo/',
           '/pipelines/',
+          '/launch/',
+          '/buy/',
+          '/login',
+          '/signup',
           '/_next/',
         ],
       },

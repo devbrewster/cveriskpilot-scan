@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BlogSubscribe } from "@/components/blog/blog-subscribe";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -7,6 +8,9 @@ export const metadata: Metadata = {
     "Insights on vulnerability management, DevSecOps, compliance automation, and building security into CI/CD pipelines. Written by the CVERiskPilot team.",
   alternates: {
     canonical: "https://cveriskpilot.com/blog",
+    types: {
+      "application/rss+xml": "https://cveriskpilot.com/blog/rss.xml",
+    },
   },
   openGraph: {
     title: "Blog | CVERiskPilot",
@@ -22,6 +26,16 @@ export const metadata: Metadata = {
 /* ------------------------------------------------------------------ */
 
 const posts = [
+  {
+    slug: "cmmc-compliance-30-days",
+    title:
+      "CMMC Level 2 in 30 Days: A Defense Contractor's Compliance Playbook",
+    excerpt:
+      "The CMMC Level 2 deadline is November 10, 2026. Here is a week-by-week playbook to get from 'we handle CUI somewhere' to 'assessment-ready' in 30 days.",
+    date: "2026-03-31",
+    readTime: "12 min read",
+    tags: ["CMMC", "NIST 800-171", "Defense", "Compliance", "POAM"],
+  },
   {
     slug: "npm-supply-chain-compliance",
     title:
@@ -111,6 +125,8 @@ export default function BlogIndex() {
           </Link>
         ))}
       </div>
+
+      <BlogSubscribe />
     </div>
   );
 }

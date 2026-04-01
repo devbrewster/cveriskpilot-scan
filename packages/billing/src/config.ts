@@ -10,6 +10,7 @@ export const TIER_ENTITLEMENTS = {
     max_ai_calls: 50,
     api_rate_limit: 60,       // 60 req/min
     features: ['api_access'],
+    allowedFrameworks: ['nist-800-53', 'soc2-type2', 'cmmc-level2', 'fedramp-moderate', 'owasp-asvs', 'nist-ssdf'],
   },
   FOUNDERS_BETA: {
     max_users: 5,
@@ -18,6 +19,10 @@ export const TIER_ENTITLEMENTS = {
     max_ai_calls: 250,
     api_rate_limit: 200,      // 200 req/min
     features: ['api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view'],
+    allowedFrameworks: [
+      'nist-800-53', 'soc2-type2', 'cmmc-level2', 'fedramp-moderate', 'owasp-asvs', 'nist-ssdf',
+      'gdpr', 'hipaa', 'pci-dss', 'iso-27001',
+    ],
   },
   PRO: {
     max_users: 10,
@@ -26,6 +31,10 @@ export const TIER_ENTITLEMENTS = {
     max_ai_calls: 1000,
     api_rate_limit: 500,      // 500 req/min
     features: ['api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view', 'scheduled_reports'],
+    allowedFrameworks: [
+      'nist-800-53', 'soc2-type2', 'cmmc-level2', 'fedramp-moderate', 'owasp-asvs', 'nist-ssdf',
+      'gdpr', 'hipaa', 'pci-dss', 'iso-27001',
+    ],
   },
   ENTERPRISE: {
     max_users: 'unlimited',
@@ -37,6 +46,7 @@ export const TIER_ENTITLEMENTS = {
       'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',
       'scheduled_reports', 'sso', 'custom_parsers', 'multi_client',
     ],
+    allowedFrameworks: 'all',
   },
   MSSP: {
     max_users: 'unlimited',
@@ -48,6 +58,7 @@ export const TIER_ENTITLEMENTS = {
       'api_access', 'jira_sync', 'custom_sla', 'webhooks', 'portfolio_view',
       'scheduled_reports', 'sso', 'custom_parsers', 'multi_client', 'white_label',
     ],
+    allowedFrameworks: 'all',
   },
 } as const satisfies Record<string, TierEntitlements>;
 

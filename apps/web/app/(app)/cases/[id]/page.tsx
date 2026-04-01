@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { CaseDetail } from '@/components/cases/case-detail';
 import { prisma } from '@/lib/prisma';
+import { mapCweToAllFrameworks } from '@cveriskpilot/compliance';
 
 export const dynamic = 'force-dynamic';
 
@@ -75,9 +76,41 @@ export default async function CaseDetailPage({ params }: CaseDetailPageProps) {
 
   const assignedUserName = vulnCase.assignedTo?.name ?? null;
 
+  // Compute compliance impact from CWE IDs
+  let complianceImpact = null;
+  if (vulnCase.cweIds.length > 0) {
+    const controlMap = new Map<string, { framework: string; controlId: string; controlTitle: string; cweIds: string[] }>();
+    for (const cwe of vulnCase.cweIds) {
+      const mappings = mapCweToAllFrameworks(cwe);
+      for (const mapping of mappings) {
+        for (const ctrl of mapping.mappedControls) {
+          const key = `${ctrl.frameworkId}:${ctrl.controlId}`;
+          const existing = controlMap.get(key);
+          if (existing) {
+            if (!existing.cweIds.includes(cwe)) existing.cweIds.push(cwe);
+          } else {
+            controlMap.set(key, { framework: ctrl.frameworkName, controlId: ctrl.controlId, controlTitle: ctrl.controlTitle, cweIds: [cwe] });
+          }
+        }
+      }
+    }
+    const controls = Array.from(controlMap.values());
+    const frameworkCounts = new Map<string, { name: string; count: number; controlIds: string[] }>();
+    for (const ctrl of controls) {
+      const existing = frameworkCounts.get(ctrl.framework);
+      if (existing) { existing.count++; existing.controlIds.push(ctrl.controlId); }
+      else { frameworkCounts.set(ctrl.framework, { name: ctrl.framework, count: 1, controlIds: [ctrl.controlId] }); }
+    }
+    complianceImpact = {
+      totalAffectedControls: controls.length,
+      frameworks: Array.from(frameworkCounts.values()),
+      controls,
+    };
+  }
+
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8">
-      <CaseDetail vulnCase={serializedCase} findings={serializedFindings} assignedUserName={assignedUserName} />
+      <CaseDetail vulnCase={serializedCase} findings={serializedFindings} assignedUserName={assignedUserName} complianceImpact={complianceImpact} />
     </div>
   );
 }

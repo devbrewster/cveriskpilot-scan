@@ -15,6 +15,8 @@ import {
   createCheckoutSession,
 } from '@cveriskpilot/billing';
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit';
+import { sendEmail, welcomeTemplate } from '@cveriskpilot/notifications';
+import { trackFunnelEvent } from '@cveriskpilot/observability';
 
 export async function POST(request: NextRequest) {
   // IP-based auth rate limit (10 req/min) — runs before any other logic
@@ -40,13 +42,15 @@ export async function POST(request: NextRequest) {
     // Parse body first before anything else
     const body = await request.json() as Record<string, unknown>;
 
-    const { name, email, password, orgName, plan, billingInterval } = body as {
+    const { name, email, password, orgName, plan, billingInterval, ref: utmRef, ab: abVariant } = body as {
       name?: string;
       email?: string;
       password?: string;
       orgName?: string;
       plan?: string;
       billingInterval?: string;
+      ref?: string;
+      ab?: string;
     };
 
     // Validate required fields
@@ -88,6 +92,50 @@ export async function POST(request: NextRequest) {
       name!,
       password!,
     );
+
+    // Store UTM attribution source and A/B variant on the organization for conversion tracking
+    if ((utmRef && typeof utmRef === 'string' && utmRef.length <= 64) ||
+        (abVariant && typeof abVariant === 'string' && abVariant.length <= 256)) {
+      try {
+        const existing = await prisma.organization.findUnique({
+          where: { id: result.organizationId },
+          select: { entitlements: true },
+        });
+        const entitlements = (existing?.entitlements as Record<string, unknown>) ?? {};
+        const updates: Record<string, unknown> = { ...entitlements, signupAt: new Date().toISOString() };
+        if (utmRef && typeof utmRef === 'string' && utmRef.length <= 64) {
+          updates.utmSource = utmRef;
+        }
+        if (abVariant && typeof abVariant === 'string' && abVariant.length <= 256) {
+          updates.abVariant = abVariant;
+        }
+        await prisma.organization.update({
+          where: { id: result.organizationId },
+          data: { entitlements: updates },
+        });
+      } catch {
+        // Non-critical — don't block signup for attribution tracking failure
+      }
+    }
+
+    // Fire-and-forget funnel event
+    trackFunnelEvent({
+      step: 'signup',
+      orgId: result.organizationId,
+      userId: result.userId,
+      metadata: {
+        plan: plan?.toUpperCase() ?? 'FREE',
+        ...(utmRef ? { utmSource: utmRef } : {}),
+      },
+    });
+
+    // Fire-and-forget welcome email
+    const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cveriskpilot.com';
+    sendEmail({
+      to: email!,
+      subject: 'Welcome to CVERiskPilot',
+      html: welcomeTemplate(name || email!.split('@')[0], `${BASE_URL}/login`, `${BASE_URL}/developers`),
+    }).catch(() => {});
 
     // Create session in Redis (graceful fallback if unavailable)
     let sessionId: string | null = null;

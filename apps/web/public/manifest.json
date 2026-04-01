@@ -1,7 +1,7 @@
 {
   "name": "CVERiskPilot",
   "short_name": "CRP",
-  "description": "AI-Powered Vulnerability Management — unify CVE signals, prioritize by real exploit risk, and map to compliance frameworks automatically.",
+  "description": "AI-Powered Compliance Intelligence Platform — turn vulnerability noise into audit-ready decisions across 13 frameworks. Built by veterans.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",

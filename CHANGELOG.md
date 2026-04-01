@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.1.17 (2026-04-01)
+
+### Improvements
+
+- **RBAC detection** — scanner now recognizes `requirePerm()` and `requireOpsAuth()` in addition to `requireRole()`, eliminating false positives on routes using the permission-based auth pattern
+- **Raw SQL detection** — `$executeRawUnsafe` flagged as CRITICAL (CWE-89); `$executeRaw` with tagged templates treated as safe
+- **Public endpoint detection** — routes with `/** public endpoint */` JSDoc or `// public endpoint` comments correctly classified as `NEEDS_REVIEW`
+
+## 0.1.16 (2026-03-31)
+
+### Features
+
+- **Free risk intelligence** — every CVE enriched with EPSS score, CISA KEV status, and composite risk score (0-100) using free public APIs
+- **Compliance scorecard** — visual progress bars per framework showing control coverage percentage
+- **Risk priority table** — top 10 findings ranked by composite risk score with EPSS and KEV context
+- **Remediation effort** — heuristic estimate (LOW/MEDIUM/HIGH) based on fix type (patch, minor, major)
+- **POAM preview** — Plan of Action & Milestones for top findings with deadlines
+- **Scan comparison** (`--compare`) — track delta between scans (new/fixed/unchanged)
+- **Incremental scanning** (`--since <commit>`) — only scan files changed since a git commit
+- **Streaming output** (`--stream`) — emit findings as NDJSON for piping to other tools
+- **OSV response caching** — disk cache with 24h TTL (clean) / 1h TTL (vulnerable)
+- **Platform upsell CTA** — actionable signup banner with finding-count context
+
+## 0.1.15 (2026-03-31)
+
+### Improvements
+
+- **Expanded dist files** — `dist/**/*.js` and `dist/**/*.d.ts` globs ensure all nested modules (ai/, scanners/, vendor/) are included in the npm package
+
 ## 0.1.14 (2026-03-31)
 
 ### Features

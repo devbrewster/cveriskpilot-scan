@@ -66,6 +66,7 @@ const PUBLIC_PATHS = [
   '/robots.txt',
   '/sitemap.xml',
   '/security-policy',
+  '/soc2',
   '/buy',
   '/buy/success',
   '/launch',
@@ -93,6 +94,8 @@ const API_PUBLIC_PATHS = [
   '/api/connectors/webhook/',               // Scanner webhooks (HMAC auth)
   '/api/billing/founders-spots',              // Public spots counter (no auth)
   '/api/billing/quick-purchase',             // Simplified API purchase (creates account)
+  '/api/soc2-readiness',                    // Public SOC 2 readiness tool (email-gated, rate-limited)
+  '/api/soc2-readiness/pdf',                // Public SOC 2 readiness PDF (rate-limited)
   '/api/badge',                              // Public compliance badge (shields.io SVG)
   '/api/billing/webhook',                   // Stripe webhook (signature verification)
   '/api/cron/expire-trials',                 // cron uses CRON_SECRET auth

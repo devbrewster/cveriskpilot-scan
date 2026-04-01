@@ -1,4 +1,5 @@
 import type { AiClientConfig } from './types.js';
+import { withRetry } from '../retry.js';
 
 const LOCALHOST_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
 
@@ -46,62 +47,64 @@ export function createAiClient(config: AiClientConfig): AiClient {
   validateLocalhostUrl(config.baseUrl);
 
   async function complete(systemPrompt: string, userPrompt: string): Promise<string> {
-    // Re-validate before every request (defense in depth)
-    validateLocalhostUrl(config.baseUrl);
+    return withRetry(async () => {
+      // Re-validate before every request (defense in depth)
+      validateLocalhostUrl(config.baseUrl);
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), config.timeoutMs);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), config.timeoutMs);
 
-    try {
-      if (config.provider === 'ollama') {
-        const res = await fetch(`${config.baseUrl}/api/generate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: config.model,
-            system: systemPrompt,
-            prompt: userPrompt,
-            stream: false,
-            options: { temperature: 0.2, num_predict: 2048 },
-          }),
-          signal: controller.signal,
-        });
+      try {
+        if (config.provider === 'ollama') {
+          const res = await fetch(`${config.baseUrl}/api/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: config.model,
+              system: systemPrompt,
+              prompt: userPrompt,
+              stream: false,
+              options: { temperature: 0.2, num_predict: 2048 },
+            }),
+            signal: controller.signal,
+          });
 
-        if (!res.ok) {
-          const body = await res.text().catch(() => '');
-          if (res.status === 404 || body.includes('not found')) {
-            throw new Error(`Model '${config.model}' not found. Run: ollama pull ${config.model}`);
+          if (!res.ok) {
+            const body = await res.text().catch(() => '');
+            if (res.status === 404 || body.includes('not found')) {
+              throw new Error(`Model '${config.model}' not found. Run: ollama pull ${config.model}`);
+            }
+            throw new Error(`Ollama error ${res.status}: ${body.slice(0, 200)}`);
           }
-          throw new Error(`Ollama error ${res.status}: ${body.slice(0, 200)}`);
+
+          const data = await res.json() as { response?: string };
+          return data.response ?? '';
+        } else {
+          // llama.cpp
+          const combinedPrompt = `<|system|>\n${systemPrompt}\n<|end|>\n<|user|>\n${userPrompt}\n<|end|>\n<|assistant|>`;
+          const res = await fetch(`${config.baseUrl}/completion`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: combinedPrompt,
+              n_predict: 2048,
+              temperature: 0.2,
+              stop: ['</s>', '<|end|>'],
+            }),
+            signal: controller.signal,
+          });
+
+          if (!res.ok) {
+            throw new Error(`llama.cpp error ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`);
+          }
+
+          const data = await res.json() as { content?: string };
+          return data.content ?? '';
         }
-
-        const data = await res.json() as { response?: string };
-        return data.response ?? '';
-      } else {
-        // llama.cpp
-        const combinedPrompt = `<|system|>\n${systemPrompt}\n<|end|>\n<|user|>\n${userPrompt}\n<|end|>\n<|assistant|>`;
-        const res = await fetch(`${config.baseUrl}/completion`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: combinedPrompt,
-            n_predict: 2048,
-            temperature: 0.2,
-            stop: ['</s>', '<|end|>'],
-          }),
-          signal: controller.signal,
-        });
-
-        if (!res.ok) {
-          throw new Error(`llama.cpp error ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`);
-        }
-
-        const data = await res.json() as { content?: string };
-        return data.content ?? '';
+      } finally {
+        clearTimeout(timer);
       }
-    } finally {
-      clearTimeout(timer);
-    }
+    }, { maxRetries: 2, baseDelayMs: 500, maxDelayMs: 8_000 });
   }
 
   return { complete, provider: config.provider, model: config.model };

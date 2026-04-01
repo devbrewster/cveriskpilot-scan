@@ -688,12 +688,9 @@ async function scanFile(filePath: string, projectDir: string, gitignorePatterns:
       // Still scan comments -- secrets often appear there
     }
 
-    // Regex-based detection
+    // Regex-based detection (matchAll avoids shared lastIndex mutation)
     for (const pattern of SECRET_PATTERNS) {
-      // Reset regex state for global patterns
-      pattern.pattern.lastIndex = 0;
-      let regexMatch;
-      while ((regexMatch = pattern.pattern.exec(line)) !== null) {
+      for (const regexMatch of line.matchAll(pattern.pattern)) {
         const matchedText = regexMatch[0];
 
         // Classify the finding with a verdict

@@ -123,96 +123,112 @@ export async function enrichWithAi(
   // Sanitize findings
   const sanitized = actionable.map(({ finding, index }) => sanitizeFinding(finding, index));
 
-  // Phase 1: Batch remediations (5 per prompt)
+  // Phase 1: Batch remediations (5 per prompt) — run batches concurrently (up to 3)
   if (!isTimedOut()) {
     log(`Generating remediations for ${sanitized.length} findings...`);
     const batches = chunk(sanitized, 5);
+    const AI_CONCURRENCY = 3;
 
-    for (const batch of batches) {
+    for (let i = 0; i < batches.length; i += AI_CONCURRENCY) {
       if (isTimedOut()) {
         result.errors.push('Time budget exceeded during remediation phase');
         break;
       }
 
-      try {
-        const prompt = buildRemediationPrompt(batch);
-        const raw = await client.complete(prompt.system, prompt.user);
-        const parsed = parseJsonResponse<{ remediations: Array<{ index: number; text: string }> }>(raw);
+      const concurrentBatches = batches.slice(i, i + AI_CONCURRENCY);
+      const promises = concurrentBatches.map(async (batch) => {
+        if (isTimedOut()) return;
+        try {
+          const prompt = buildRemediationPrompt(batch);
+          const raw = await client.complete(prompt.system, prompt.user);
+          const parsed = parseJsonResponse<{ remediations: Array<{ index: number; text: string }> }>(raw);
 
-        if (parsed?.remediations) {
-          for (const r of parsed.remediations) {
-            if (typeof r.index === 'number' && typeof r.text === 'string') {
-              result.remediations.set(r.index, r.text);
+          if (parsed?.remediations) {
+            for (const r of parsed.remediations) {
+              if (typeof r.index === 'number' && typeof r.text === 'string') {
+                result.remediations.set(r.index, r.text);
+              }
             }
+          } else {
+            result.errors.push('Failed to parse remediation response');
           }
-        } else {
-          result.errors.push('Failed to parse remediation response');
+        } catch (err) {
+          result.errors.push(`Remediation error: ${err instanceof Error ? err.message : String(err)}`);
         }
-      } catch (err) {
-        result.errors.push(`Remediation error: ${err instanceof Error ? err.message : String(err)}`);
-      }
+      });
+
+      await Promise.all(promises);
     }
     log(`Got ${result.remediations.size} remediations`);
   }
 
-  // Phase 2: Risk summary (one call)
+  // Phase 2+3: Risk summary and priority ordering — run concurrently (independent calls)
+  const phase2Promises: Promise<void>[] = [];
+
   if (!isTimedOut()) {
-    log('Generating executive risk summary...');
-    try {
-      const severityCounts: Record<string, number> = {};
-      const cweCounts: Record<string, number> = {};
-      for (const f of findings) {
-        severityCounts[f.severity] = (severityCounts[f.severity] ?? 0) + 1;
-        for (const cwe of (f.cweIds ?? [])) {
-          cweCounts[cwe] = (cweCounts[cwe] ?? 0) + 1;
+    // Risk summary
+    phase2Promises.push((async () => {
+      log('Generating executive risk summary...');
+      try {
+        const severityCounts: Record<string, number> = {};
+        const cweCounts: Record<string, number> = {};
+        for (const f of findings) {
+          severityCounts[f.severity] = (severityCounts[f.severity] ?? 0) + 1;
+          for (const cwe of (f.cweIds ?? [])) {
+            cweCounts[cwe] = (cweCounts[cwe] ?? 0) + 1;
+          }
         }
+
+        const topCwes = Object.entries(cweCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([cwe]) => cwe);
+
+        const prompt = buildRiskSummaryPrompt({
+          total: findings.length,
+          critical: severityCounts['CRITICAL'] ?? 0,
+          high: severityCounts['HIGH'] ?? 0,
+          medium: severityCounts['MEDIUM'] ?? 0,
+          low: severityCounts['LOW'] ?? 0,
+          topCwes,
+          frameworksAffected: complianceImpact?.frameworkSummary.length ?? 0,
+          controlsAffected: complianceImpact?.totalAffectedControls ?? 0,
+          actionable: actionable.length,
+        });
+
+        const raw = await client.complete(prompt.system, prompt.user);
+        const parsed = parseJsonResponse<{ summary: string }>(raw);
+        if (parsed?.summary) {
+          result.riskSummary = parsed.summary;
+          log('Risk summary generated');
+        } else {
+          result.errors.push('Failed to parse risk summary response');
+        }
+      } catch (err) {
+        result.errors.push(`Risk summary error: ${err instanceof Error ? err.message : String(err)}`);
       }
+    })());
 
-      const topCwes = Object.entries(cweCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([cwe]) => cwe);
-
-      const prompt = buildRiskSummaryPrompt({
-        total: findings.length,
-        critical: severityCounts['CRITICAL'] ?? 0,
-        high: severityCounts['HIGH'] ?? 0,
-        medium: severityCounts['MEDIUM'] ?? 0,
-        low: severityCounts['LOW'] ?? 0,
-        topCwes,
-        frameworksAffected: complianceImpact?.frameworkSummary.length ?? 0,
-        controlsAffected: complianceImpact?.totalAffectedControls ?? 0,
-        actionable: actionable.length,
-      });
-
-      const raw = await client.complete(prompt.system, prompt.user);
-      const parsed = parseJsonResponse<{ summary: string }>(raw);
-      if (parsed?.summary) {
-        result.riskSummary = parsed.summary;
-        log('Risk summary generated');
-      } else {
-        result.errors.push('Failed to parse risk summary response');
-      }
-    } catch (err) {
-      result.errors.push(`Risk summary error: ${err instanceof Error ? err.message : String(err)}`);
+    // Priority ordering (only if >1 actionable finding)
+    if (sanitized.length > 1) {
+      phase2Promises.push((async () => {
+        log('Generating priority ordering...');
+        try {
+          const prompt = buildPriorityOrderPrompt(sanitized);
+          const raw = await client.complete(prompt.system, prompt.user);
+          const parsed = parseJsonResponse<{ priority: Array<{ index: number; reason: string }> }>(raw);
+          if (parsed?.priority) {
+            result.priorityOrder = parsed.priority.map(p => p.index);
+            log(`Priority order: ${result.priorityOrder.length} findings ranked`);
+          }
+        } catch (err) {
+          result.errors.push(`Priority error: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      })());
     }
   }
 
-  // Phase 3: Priority ordering (one call, only if >1 actionable finding)
-  if (!isTimedOut() && sanitized.length > 1) {
-    log('Generating priority ordering...');
-    try {
-      const prompt = buildPriorityOrderPrompt(sanitized);
-      const raw = await client.complete(prompt.system, prompt.user);
-      const parsed = parseJsonResponse<{ priority: Array<{ index: number; reason: string }> }>(raw);
-      if (parsed?.priority) {
-        result.priorityOrder = parsed.priority.map(p => p.index);
-        log(`Priority order: ${result.priorityOrder.length} findings ranked`);
-      }
-    } catch (err) {
-      result.errors.push(`Priority error: ${err instanceof Error ? err.message : String(err)}`);
-    }
-  }
+  await Promise.all(phase2Promises);
 
   result.durationMs = Date.now() - startTime;
   log(`AI enrichment complete in ${result.durationMs}ms`);

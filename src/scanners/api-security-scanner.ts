@@ -168,8 +168,8 @@ const rules: ApiSecurityRule[] = [
       const methodRegex = new RegExp(`export\\s+(?:async\\s+)?function\\s+${httpMethod}\\b`);
       if (!methodRegex.test(content)) return [];
 
-      // Detect role checks: requireRole(), inline role comparisons, ADMIN check
-      const hasRbac = /requireRole\s*\(|session\.role\s*[!=]==?\s*['"]|PLATFORM_ADMIN|ADMIN_ROLES|MANAGE_ROLES|WRITE_ROLES|APPROVER_ROLES/.test(content);
+      // Detect role checks: requireRole(), requirePerm(), requireOpsAuth(), inline role comparisons, ADMIN check
+      const hasRbac = /requireRole\s*\(|requirePerm\s*\(|requireOpsAuth\s*\(|session\.role\s*[!=]==?\s*['"]|PLATFORM_ADMIN|ADMIN_ROLES|MANAGE_ROLES|WRITE_ROLES|APPROVER_ROLES/.test(content);
       if (hasRbac) return [];
 
       return [{
@@ -177,7 +177,7 @@ const rules: ApiSecurityRule[] = [
         filePath,
         lineNumber: findLine(content, methodRegex),
         httpMethod,
-        detail: `${httpMethod} handler has auth but no requireRole() — any authenticated user can mutate`,
+        detail: `${httpMethod} handler has auth but no role/permission check — any authenticated user can mutate`,
       }];
     },
   },

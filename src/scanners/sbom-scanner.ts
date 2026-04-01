@@ -12,6 +12,8 @@ import * as readline from 'node:readline';
 import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import type { CanonicalFinding, FindingVerdict } from '../vendor/parsers/types.js';
+import { withRetry } from '../retry.js';
+import { getCached, setCached, flushCache } from '../cache.js';
 
 const __require = createRequire(import.meta.url);
 const VERSION: string = (__require('../../package.json') as { version: string }).version;
@@ -108,6 +110,18 @@ const PACKAGE_MANAGERS: PackageManagerDef[] = [
     lockFile: 'Pipfile.lock',
     manifestFile: 'Pipfile',
     parser: parsePipfileLock,
+  },
+  {
+    ecosystem: 'pip',
+    lockFile: 'poetry.lock',
+    manifestFile: 'pyproject.toml',
+    parser: parsePoetryLock,
+  },
+  {
+    ecosystem: 'pip',
+    lockFile: 'pyproject.toml',
+    manifestFile: 'pyproject.toml',
+    parser: parsePyprojectToml,
   },
   {
     ecosystem: 'go',
@@ -287,6 +301,116 @@ async function parsePipfileLock(_projectDir: string, lockPath: string): Promise<
     for (const [name, info] of Object.entries(packages) as [string, Record<string, unknown>][]) {
       const version = typeof info.version === 'string' ? info.version.replace(/^==/, '') : 'unknown';
       deps.push({ name, version, ecosystem: 'pip', direct: section === 'default' });
+    }
+  }
+  return deps;
+}
+
+async function parsePoetryLock(_projectDir: string, lockPath: string): Promise<Dependency[]> {
+  const deps: Dependency[] = [];
+  const rl = readline.createInterface({
+    input: fs.createReadStream(lockPath, 'utf-8'),
+    crlfDelay: Infinity,
+  });
+
+  // poetry.lock uses TOML-like [[package]] sections with name and version keys
+  let currentName = '';
+  for await (const line of rl) {
+    const nameMatch = line.match(/^name\s*=\s*"([^"]+)"/);
+    if (nameMatch) {
+      currentName = nameMatch[1];
+      continue;
+    }
+    const versionMatch = line.match(/^version\s*=\s*"([^"]+)"/);
+    if (versionMatch && currentName) {
+      deps.push({ name: currentName, version: versionMatch[1], ecosystem: 'pip', direct: false });
+      currentName = '';
+    }
+  }
+  return deps;
+}
+
+async function parsePyprojectToml(_projectDir: string, lockPath: string): Promise<Dependency[]> {
+  const deps: Dependency[] = [];
+  const content = await fs.promises.readFile(lockPath, 'utf-8');
+
+  // Extract dependencies from [project.dependencies] (PEP 621)
+  // and [tool.poetry.dependencies] (Poetry)
+  const lines = content.split('\n');
+  let inDepsSection = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    // Detect dependency sections
+    if (
+      trimmed === '[project]' ||
+      trimmed === '[tool.poetry.dependencies]' ||
+      trimmed === '[tool.poetry.group.dev.dependencies]'
+    ) {
+      inDepsSection = true;
+      continue;
+    }
+
+    // New section header ends the current section
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      inDepsSection = false;
+      continue;
+    }
+
+    if (!inDepsSection) continue;
+
+    // PEP 621 inline list: dependencies = ["requests>=2.28", "click~=8.0"]
+    const inlineMatch = trimmed.match(/^dependencies\s*=\s*\[([^\]]*)\]/);
+    if (inlineMatch) {
+      const items = inlineMatch[1].split(',');
+      for (const item of items) {
+        const cleaned = item.trim().replace(/^["']|["']$/g, '');
+        const depMatch = cleaned.match(/^([a-zA-Z0-9_.-]+)\s*(?:[><=~!]+\s*([^\s,;]+))?/);
+        if (depMatch) {
+          deps.push({
+            name: depMatch[1],
+            version: depMatch[2] ?? 'unknown',
+            ecosystem: 'pip',
+            direct: true,
+          });
+        }
+      }
+      continue;
+    }
+
+    // PEP 621 multi-line dependencies list items: "requests>=2.28",
+    const listItemMatch = trimmed.match(/^"([a-zA-Z0-9_.-]+)\s*(?:[><=~!]+\s*([^\s,"]+))?/);
+    if (listItemMatch) {
+      deps.push({
+        name: listItemMatch[1],
+        version: listItemMatch[2] ?? 'unknown',
+        ecosystem: 'pip',
+        direct: true,
+      });
+      continue;
+    }
+
+    // Poetry style: package = "^1.2.3" or package = {version = "^1.2.3", ...}
+    const poetryMatch = trimmed.match(/^([a-zA-Z0-9_.-]+)\s*=\s*"([^"]+)"/);
+    if (poetryMatch && poetryMatch[1] !== 'python' && poetryMatch[1] !== 'name' && poetryMatch[1] !== 'version' && poetryMatch[1] !== 'description') {
+      deps.push({
+        name: poetryMatch[1],
+        version: poetryMatch[2].replace(/^[\^~>=<!=]+/, ''),
+        ecosystem: 'pip',
+        direct: true,
+      });
+      continue;
+    }
+
+    const poetryObjMatch = trimmed.match(/^([a-zA-Z0-9_.-]+)\s*=\s*\{.*version\s*=\s*"([^"]+)"/);
+    if (poetryObjMatch && poetryObjMatch[1] !== 'python') {
+      deps.push({
+        name: poetryObjMatch[1],
+        version: poetryObjMatch[2].replace(/^[\^~>=<!=]+/, ''),
+        ecosystem: 'pip',
+        direct: true,
+      });
     }
   }
   return deps;
@@ -619,6 +743,10 @@ async function queryOsv(dep: Dependency): Promise<Advisory[] | null> {
   const ecosystem = OSV_ECOSYSTEM_MAP[dep.ecosystem];
   if (!ecosystem || dep.version === 'unknown') return null;
 
+  // Check disk cache first
+  const cached = getCached(dep.name, dep.ecosystem, dep.version);
+  if (cached !== undefined) return cached as Advisory[];
+
   // For Maven/Gradle, OSV expects the groupId:artifactId format
   const packageName = dep.name;
 
@@ -628,24 +756,37 @@ async function queryOsv(dep: Dependency): Promise<Advisory[] | null> {
   });
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), OSV_QUERY_TIMEOUT_MS);
+    const data = await withRetry(async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), OSV_QUERY_TIMEOUT_MS);
 
-    const response = await fetch(OSV_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body,
-      signal: controller.signal,
-    });
+      try {
+        const response = await fetch(OSV_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          signal: controller.signal,
+        });
 
-    clearTimeout(timeout);
+        clearTimeout(timeout);
 
-    if (!response.ok) return null;
+        if (!response.ok) {
+          const err = new Error(`OSV ${response.status}`);
+          (err as any).status = response.status;
+          throw err;
+        }
 
-    const data = (await response.json()) as OsvQueryResponse;
-    if (!data.vulns || data.vulns.length === 0) return [];
+        return (await response.json()) as OsvQueryResponse;
+      } finally {
+        clearTimeout(timeout);
+      }
+    }, { maxRetries: 2, baseDelayMs: 300, maxDelayMs: 5_000 });
+    if (!data.vulns || data.vulns.length === 0) {
+      setCached(dep.name, dep.ecosystem, dep.version, [], false);
+      return [];
+    }
 
-    return data.vulns.map((vuln): Advisory => {
+    const advisories = data.vulns.map((vuln): Advisory => {
       // Extract CVE IDs from aliases
       const cveIds = (vuln.aliases ?? []).filter((a) => a.startsWith('CVE-'));
       if (vuln.id.startsWith('CVE-') && !cveIds.includes(vuln.id)) {
@@ -710,6 +851,9 @@ async function queryOsv(dep: Dependency): Promise<Advisory[] | null> {
         fixedVersion,
       };
     });
+
+    setCached(dep.name, dep.ecosystem, dep.version, advisories, advisories.length > 0);
+    return advisories;
   } catch {
     // Network error, timeout, parse error — caller handles null
     return null;
@@ -740,10 +884,14 @@ async function batchQueryOsv(deps: Dependency[]): Promise<{ dep: Dependency; adv
     // If the first batch all failed, assume OSV is unreachable and bail early
     if (i === 0 && batch.length > 0 && anyFailed) {
       const allFailed = batchResults.every((r) => r.advisories.length === 0);
-      if (allFailed && anyFailed) return null;
+      if (allFailed && anyFailed) {
+        flushCache();
+        return null;
+      }
     }
   }
 
+  flushCache();
   return results;
 }
 

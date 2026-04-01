@@ -13,6 +13,13 @@ export const IMPLEMENTED_FRAMEWORKS: Record<string, { id: string; name: string; 
   'fedramp-moderate': { id: 'fedramp-moderate', name: 'FedRAMP Moderate', controls: 35 },
   'owasp-asvs': { id: 'owasp-asvs', name: 'OWASP ASVS 4.0', controls: 7 },
   'nist-ssdf': { id: 'nist-ssdf', name: 'NIST SSDF 1.1', controls: 8 },
+  'gdpr': { id: 'gdpr', name: 'EU General Data Protection Regulation', controls: 15 },
+  'hipaa': { id: 'hipaa', name: 'HIPAA Security Rule', controls: 19 },
+  'pci-dss': { id: 'pci-dss', name: 'PCI-DSS 4.0', controls: 20 },
+  'iso-27001': { id: 'iso-27001', name: 'ISO/IEC 27001:2022', controls: 24 },
+  'nist-csf': { id: 'nist-csf', name: 'NIST Cybersecurity Framework 2.0', controls: 30 },
+  'eu-cra': { id: 'eu-cra', name: 'EU Cyber Resilience Act', controls: 15 },
+  'nis2': { id: 'nis2', name: 'NIS2 Directive', controls: 12 },
 };
 
 // ---------------------------------------------------------------------------
@@ -42,6 +49,27 @@ export const FRAMEWORK_ALIASES: Record<string, string> = {
   // NIST SSDF
   'ssdf': 'nist-ssdf',
   'nist-ssdf-1.1': 'nist-ssdf',
+  // GDPR
+  'eu-gdpr': 'gdpr',
+  // HIPAA
+  'hipaa-security': 'hipaa',
+  // PCI-DSS
+  'pci': 'pci-dss',
+  'pcidss': 'pci-dss',
+  'pci-dss-4': 'pci-dss',
+  // ISO 27001
+  'iso': 'iso-27001',
+  'iso27001': 'iso-27001',
+  'iso-27001-2022': 'iso-27001',
+  // NIST CSF
+  'csf': 'nist-csf',
+  'nist-csf-2': 'nist-csf',
+  'csf2': 'nist-csf',
+  // EU CRA
+  'cra': 'eu-cra',
+  'cyber-resilience': 'eu-cra',
+  // NIS2
+  'nis-2': 'nis2',
 };
 
 // ---------------------------------------------------------------------------
@@ -49,12 +77,7 @@ export const FRAMEWORK_ALIASES: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 export const PLANNED_FRAMEWORKS: Record<string, string> = {
-  'gdpr': 'EU General Data Protection Regulation',
-  'hipaa': 'Health Insurance Portability and Accountability Act',
-  'pci-dss': 'Payment Card Industry Data Security Standard',
-  'pci': 'Payment Card Industry Data Security Standard',
-  'iso-27001': 'ISO/IEC 27001 Information Security Management',
-  'iso27001': 'ISO/IEC 27001 Information Security Management',
+  // All planned frameworks are now implemented.
 };
 
 // ---------------------------------------------------------------------------
@@ -67,6 +90,10 @@ export const FRAMEWORK_PRESETS: Record<string, string[]> = {
   'enterprise': ['nist-800-53', 'soc2-type2', 'owasp-asvs', 'nist-ssdf'],
   'startup': ['soc2-type2', 'owasp-asvs'],
   'devsecops': ['owasp-asvs', 'nist-ssdf'],
+  'healthcare': ['hipaa', 'nist-800-53'],
+  'payments': ['pci-dss', 'nist-800-53', 'soc2-type2'],
+  'international': ['iso-27001', 'gdpr', 'nis2'],
+  'eu-compliance': ['gdpr', 'eu-cra', 'nis2'],
   'all': Object.keys(IMPLEMENTED_FRAMEWORKS),
 };
 

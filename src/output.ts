@@ -78,6 +78,8 @@ export interface ScanSummary {
   durationMs: number;
   activeFrameworks?: string[];
   aiResult?: AiEnrichmentResult;
+  /** Framework IDs that this tier has full detail access to. Undefined = all. */
+  allowedFrameworks?: string[];
 }
 
 export function formatOutput(summary: ScanSummary, format: OutputFormat): string {
@@ -234,11 +236,26 @@ function formatTable(summary: ScanSummary): string {
     lines.push(c(BOLD, '  Compliance Impact'));
     lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 80))));
 
+    // Determine which frameworks are gated for this tier
+    const gatedSet = summary.allowedFrameworks
+      ? new Set(summary.allowedFrameworks)
+      : null; // null = all allowed
+
     for (const fw of impact.frameworkSummary) {
+      const isGated = gatedSet !== null && !gatedSet.has(fw.frameworkId);
+      const tierTag = isGated ? c(MAGENTA, ' [PRO]') : '';
+      const controlsStr = isGated
+        ? '' // Don't show control IDs for gated frameworks
+        : fw.affectedControlIds.join(', ');
       const prefix = `${fw.frameworkName.padEnd(22)} ${fw.affectedControlCount} controls affected  `;
-      const controlsStr = fw.affectedControlIds.join(', ');
       const availableWidth = contentWidth - prefix.length;
-      if (controlsStr.length <= availableWidth) {
+
+      if (isGated) {
+        // Gated: show framework name + count only (teaser)
+        lines.push(
+          `  ${c(CYAN, fw.frameworkName.padEnd(22))} ${c(YELLOW, `${fw.affectedControlCount}`)} controls affected${tierTag}`,
+        );
+      } else if (controlsStr.length <= availableWidth) {
         lines.push(
           `  ${c(CYAN, fw.frameworkName.padEnd(22))} ${c(YELLOW, `${fw.affectedControlCount}`)} controls affected  ${c(DIM, controlsStr)}`,
         );
@@ -250,6 +267,15 @@ function formatTable(summary: ScanSummary): string {
         wrapText(controlsStr, contentWidth - wrapIndent.length).forEach(line =>
           lines.push(`  ${c(DIM, wrapIndent + line)}`),
         );
+      }
+    }
+
+    // Upsell for gated frameworks
+    if (gatedSet !== null) {
+      const gatedFrameworks = impact.frameworkSummary.filter(fw => !gatedSet.has(fw.frameworkId));
+      if (gatedFrameworks.length > 0) {
+        lines.push('');
+        lines.push(`  ${c(MAGENTA, `Unlock ${gatedFrameworks.length} additional framework(s) with PRO → https://cveriskpilot.com/pricing`)}`);
       }
     }
 
@@ -315,6 +341,23 @@ function formatTable(summary: ScanSummary): string {
     lines.push(`  ${c(RED + BOLD, 'FAIL')} ${failCount} true-positive finding(s) at or above ${summary.failOnSeverity} severity.`);
     lines.push(c(DIM, `  Exit code: ${summary.exitCode}`));
   }
+  lines.push('');
+
+  // Platform upsell CTA
+  const boxWidth = Math.min(contentWidth, 60);
+  const border = '\u2500'.repeat(boxWidth - 2);
+  lines.push(c(CYAN, `  \u250C${border}\u2510`));
+  lines.push(c(CYAN, `  \u2502${' '.repeat(boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('Upload to CVERiskPilot for:', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 AI-powered triage with source citations', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 Compliance mapping across 13 frameworks', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 POAM generation for auditors', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 Team collaboration and SLA tracking', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${' '.repeat(boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('\u2192 https://cveriskpilot.com/signup?ref=cli', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('Free tier: 50 assets, 50 AI calls/month', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${' '.repeat(boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2514${border}\u2518`));
   lines.push('');
 
   return lines.join('\n');
@@ -648,6 +691,12 @@ export function severityRank(severity: string): number {
 
 function truncate(s: string, maxLen: number): string {
   return s.length > maxLen ? s.slice(0, maxLen - 3) + '...' : s;
+}
+
+/** Left-pad text within a fixed-width field (left-aligned). */
+function centerPad(text: string, width: number): string {
+  if (text.length >= width) return text.slice(0, width);
+  return ' ' + text + ' '.repeat(width - text.length - 1);
 }
 
 /** Wrap text to fit within maxLen, breaking at commas or spaces. */

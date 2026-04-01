@@ -10,6 +10,7 @@ import type { CanonicalFinding } from './vendor/parsers/types.js';
 import { mapFindingsToComplianceImpact } from './vendor/compliance/mapping/cross-framework.js';
 import type { ComplianceImpactReport } from './vendor/compliance/mapping/cross-framework.js';
 import type { AiEnrichmentResult } from './ai/types.js';
+import { IMPLEMENTED_FRAMEWORKS } from './constants.js';
 
 const __require = createRequire(import.meta.url);
 const PKG_VERSION: string = (__require('../package.json') as { version: string }).version;
@@ -80,6 +81,10 @@ export interface ScanSummary {
   aiResult?: AiEnrichmentResult;
   /** Framework IDs that this tier has full detail access to. Undefined = all. */
   allowedFrameworks?: string[];
+  /** Enrichment stats from free EPSS/KEV enrichment */
+  enrichStats?: { epssEnriched: number; kevEnriched: number; kevListed: number; riskScored: number; durationMs: number };
+  /** Previous scan data for --compare delta */
+  previousScan?: { findings: number; timestamp: string; severityCounts: Record<string, number> } | null;
 }
 
 export function formatOutput(summary: ScanSummary, format: OutputFormat): string {
@@ -187,15 +192,28 @@ function formatTable(summary: ScanSummary): string {
         : f.verdict === 'NEEDS_REVIEW' ? c(YELLOW, '[REVIEW]')
         : c(GREEN, '[TP]');
 
-      // Line 1: severity + verdict + title
+      // Line 1: severity + verdict + title + risk score
       const cvss = f.cvssScore !== undefined ? c(YELLOW, ` CVSS:${f.cvssScore}`) : '';
+      const risk = f.riskScore !== undefined ? c(f.riskScore >= 70 ? RED : f.riskScore >= 40 ? YELLOW : BLUE, ` Risk:${f.riskScore}`) : '';
       lines.push(
-        `  ${severityBadge(f.severity)}${cvss} ${verdictTag} ${c(BOLD, truncate(f.title, titleMax))}`,
+        `  ${severityBadge(f.severity)}${cvss}${risk} ${verdictTag} ${c(BOLD, truncate(f.title, titleMax))}`,
       );
-      // Line 2: location + CWE + scanner
+      // Line 2: location + CWE + scanner + EPSS + KEV
+      const epssTag = f.epssPercentile !== undefined ? c(f.epssPercentile >= 90 ? RED : YELLOW, `EPSS:${f.epssPercentile.toFixed(0)}th`) : '';
+      const kevTag = f.kevListed ? c(BG_RED + WHITE + BOLD, ' KEV ') : '';
+      const effortTag = f.remediationEffort ? c(f.remediationEffort === 'LOW' ? GREEN : f.remediationEffort === 'HIGH' ? RED : YELLOW, `[${f.remediationEffort}]`) : '';
       lines.push(
-        `  ${c(DIM, indent)}${c(DIM, truncate(location, locMax))}  ${c(DIM, cwe)}  ${c(MAGENTA, scanner)}`,
+        `  ${c(DIM, indent)}${c(DIM, truncate(location, locMax))}  ${c(DIM, cwe)}  ${c(MAGENTA, scanner)}  ${epssTag} ${kevTag} ${effortTag}`,
       );
+      // Line 2b: KEV deadline alert
+      if (f.kevListed && f.kevDueDate) {
+        const dueDate = new Date(f.kevDueDate);
+        const daysLeft = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const urgency = daysLeft <= 0 ? c(BG_RED + WHITE + BOLD, ' OVERDUE ') : daysLeft <= 14 ? c(RED + BOLD, `${daysLeft}d left`) : c(YELLOW, `${daysLeft}d left`);
+        lines.push(
+          `  ${c(DIM, indent)}${c(RED + BOLD, `⚠ CISA KEV — federal remediation deadline: ${f.kevDueDate}`)} ${urgency}`,
+        );
+      }
       // Line 3: verdict reason (wrapped)
       if (f.verdictReason) {
         wrapText(`→ ${f.verdictReason}`, detailMax).forEach(line =>
@@ -282,6 +300,134 @@ function formatTable(summary: ScanSummary): string {
     lines.push('');
     lines.push(`  ${c(DIM, `Total: ${impact.totalAffectedControls} controls affected across ${impact.frameworkSummary.length} frameworks`)}`);
     lines.push('');
+
+    // Compliance Scorecard — show % score per framework (free, gates drill-down)
+    lines.push(c(BOLD, '  Compliance Scorecard'));
+    lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 80))));
+    for (const fw of impact.frameworkSummary) {
+      const fwDef = IMPLEMENTED_FRAMEWORKS[fw.frameworkId];
+      const totalControls = fwDef?.controls ?? fw.affectedControlCount;
+      const passing = Math.max(0, totalControls - fw.affectedControlCount);
+      const pct = totalControls > 0 ? Math.round((passing / totalControls) * 100) : 100;
+      const barLen = 20;
+      const filled = Math.round((pct / 100) * barLen);
+      const bar = c(pct >= 80 ? GREEN : pct >= 50 ? YELLOW : RED,
+        '\u2588'.repeat(filled) + c(DIM, '\u2591'.repeat(barLen - filled)));
+      const pctStr = `${pct}%`.padStart(4);
+      const pctColor = pct >= 80 ? GREEN + BOLD : pct >= 50 ? YELLOW + BOLD : RED + BOLD;
+      lines.push(`  ${fw.frameworkName.padEnd(22)} ${bar} ${c(pctColor, pctStr)}  ${c(DIM, `${fw.affectedControlCount}/${totalControls} controls impacted`)}`);
+    }
+    lines.push('');
+    lines.push(`  ${c(DIM, 'Full control drill-down + evidence tracking →')} ${c(CYAN, 'https://cveriskpilot.com/compliance')}`);
+    lines.push('');
+  }
+
+  // Risk Priority Table (sorted by riskScore desc)
+  const actionable = summary.findings.filter(f => (f.verdict ?? 'TRUE_POSITIVE') === 'TRUE_POSITIVE' && f.riskScore !== undefined);
+  if (actionable.length > 0) {
+    const ranked = [...actionable].sort((a, b) => (b.riskScore ?? 0) - (a.riskScore ?? 0));
+    const top10 = ranked.slice(0, 10);
+    lines.push(c(BOLD, '  Risk Priority'));
+    lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 80))));
+    lines.push(c(DIM, `  #   Risk  Severity   EPSS         CVE              Title`));
+    for (let i = 0; i < top10.length; i++) {
+      const f = top10[i]!;
+      const rank = `${i + 1}.`.padEnd(4);
+      const riskStr = `${f.riskScore ?? '-'}`.padStart(3);
+      const riskColor = (f.riskScore ?? 0) >= 70 ? RED + BOLD : (f.riskScore ?? 0) >= 40 ? YELLOW : BLUE;
+      const sev = f.severity.padEnd(10);
+      const epss = f.epssPercentile !== undefined ? `${f.epssPercentile.toFixed(0)}th pctl`.padEnd(12) : '—'.padEnd(12);
+      const cve = (f.cveIds[0] ?? '—').padEnd(16);
+      const kev = f.kevListed ? c(BG_RED + WHITE, 'KEV') + ' ' : '    ';
+      lines.push(`  ${rank} ${c(riskColor, riskStr)}   ${sev} ${epss} ${kev}${cve} ${truncate(f.title, 40)}`);
+    }
+    if (ranked.length > 10) {
+      lines.push(c(DIM, `  ... and ${ranked.length - 10} more ranked findings`));
+    }
+    lines.push('');
+    lines.push(`  ${c(DIM, 'AI-powered triage reasoning for each finding →')} ${c(CYAN, 'https://cveriskpilot.com/ai/triage')}`);
+    lines.push('');
+  }
+
+  // KEV Summary
+  const kevFindings = summary.findings.filter(f => f.kevListed);
+  if (kevFindings.length > 0) {
+    lines.push(c(BG_RED + WHITE + BOLD, '  ⚠ CISA Known Exploited Vulnerabilities '));
+    lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 80))));
+    lines.push(`  ${c(RED + BOLD, `${kevFindings.length}`)} finding(s) are on the CISA KEV catalog — federal agencies must remediate by deadline.`);
+    for (const f of kevFindings.slice(0, 5)) {
+      const dueDate = f.kevDueDate ? new Date(f.kevDueDate) : null;
+      const daysLeft = dueDate ? Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+      const deadline = dueDate ? (daysLeft !== null && daysLeft <= 0 ? c(BG_RED + WHITE, ' OVERDUE ') : daysLeft !== null && daysLeft <= 14 ? c(RED + BOLD, `${daysLeft} days`) : c(YELLOW, `${daysLeft} days`)) : '';
+      lines.push(`  ${c(RED, f.cveIds[0] ?? f.title)}  ${deadline}  ${f.fixedVersion ? c(GREEN, `→ fix: ${f.fixedVersion}`) : c(RED, 'no fix available')}`);
+    }
+    lines.push('');
+    lines.push(`  ${c(DIM, 'SLA tracking + auto-escalation →')} ${c(CYAN, 'https://cveriskpilot.com/cases')}`);
+    lines.push('');
+  }
+
+  // Remediation Effort Summary
+  if (summary.findings.length > 0) {
+    const effortCounts = { LOW: 0, MEDIUM: 0, HIGH: 0 };
+    for (const f of summary.findings) {
+      if (f.remediationEffort && (f.verdict ?? 'TRUE_POSITIVE') === 'TRUE_POSITIVE') {
+        effortCounts[f.remediationEffort]++;
+      }
+    }
+    if (effortCounts.LOW + effortCounts.MEDIUM + effortCounts.HIGH > 0) {
+      lines.push(c(BOLD, '  Remediation Effort'));
+      lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 80))));
+      lines.push(`  ${c(GREEN + BOLD, `${effortCounts.LOW}`)} low effort (patch/config)  ${c(YELLOW + BOLD, `${effortCounts.MEDIUM}`)} medium (minor upgrade)  ${c(RED + BOLD, `${effortCounts.HIGH}`)} high (major/rewrite)`);
+      if (effortCounts.LOW > 0) {
+        lines.push(`  ${c(GREEN, `→ ${effortCounts.LOW} quick wins — start here for immediate risk reduction`)}`);
+      }
+      lines.push('');
+      lines.push(`  ${c(DIM, 'AI remediation plans with code diffs →')} ${c(CYAN, 'https://cveriskpilot.com/ai/remediation')}`);
+      lines.push('');
+    }
+  }
+
+  // POAM Preview (first 2 items, gate rest behind platform)
+  if (actionable.length > 0) {
+    const poamItems = [...actionable].sort((a, b) => (b.riskScore ?? 0) - (a.riskScore ?? 0));
+    const previewCount = Math.min(2, poamItems.length);
+    lines.push(c(BOLD, '  POAM Preview'));
+    lines.push(c(DIM, '  ' + '-'.repeat(Math.min(contentWidth, 80))));
+    lines.push(c(DIM, '  #   Weakness                    Deadline        Remediation'));
+    for (let i = 0; i < previewCount; i++) {
+      const f = poamItems[i]!;
+      const weakness = truncate(f.cweIds[0] ? `${f.cweIds[0]} ${f.title}` : f.title, 28).padEnd(28);
+      const deadline = f.kevDueDate ?? (f.severity === 'CRITICAL' ? '30 days' : f.severity === 'HIGH' ? '90 days' : '180 days');
+      const fix = f.fixedVersion ? `Upgrade to ${f.fixedVersion}` : f.scannerType === 'secrets' ? 'Rotate credential' : 'Remediate per CWE guidance';
+      lines.push(`  ${`${i + 1}.`.padEnd(4)} ${weakness} ${deadline.padEnd(15)} ${truncate(fix, 30)}`);
+    }
+    if (poamItems.length > previewCount) {
+      lines.push(c(DIM, `  ... ${poamItems.length - previewCount} more action items`));
+    }
+    lines.push('');
+    lines.push(`  ${c(CYAN, 'Full POAM with evidence + auditor export →')} ${c(CYAN + BOLD, 'https://cveriskpilot.com/compliance/poam')}`);
+    lines.push('');
+  }
+
+  // Scan Comparison Delta (if --compare data available)
+  if (summary.previousScan) {
+    const prev = summary.previousScan;
+    const delta = summary.findings.length - prev.findings;
+    const currentCounts = countBySeverity(summary.findings);
+    lines.push(c(BOLD, '  Delta Since Last Scan'));
+    lines.push(c(DIM, `  Last scan: ${prev.timestamp}`));
+    const deltaStr = delta > 0 ? c(RED + BOLD, `+${delta} new`) : delta < 0 ? c(GREEN + BOLD, `${delta} resolved`) : c(DIM, 'no change');
+    lines.push(`  Findings: ${prev.findings} → ${summary.findings.length} (${deltaStr})`);
+    const critDelta = (currentCounts.CRITICAL ?? 0) - (prev.severityCounts?.CRITICAL ?? 0);
+    const highDelta = (currentCounts.HIGH ?? 0) - (prev.severityCounts?.HIGH ?? 0);
+    if (critDelta !== 0 || highDelta !== 0) {
+      const critStr = critDelta > 0 ? c(RED, `+${critDelta} critical`) : critDelta < 0 ? c(GREEN, `${critDelta} critical`) : '';
+      const highStr = highDelta > 0 ? c(RED, `+${highDelta} high`) : highDelta < 0 ? c(GREEN, `${highDelta} high`) : '';
+      lines.push(`  ${[critStr, highStr].filter(Boolean).join('  ')}`);
+    }
+    lines.push('');
+    lines.push(`  ${c(DIM, 'Full trend history + team dashboards →')} ${c(CYAN, 'https://cveriskpilot.com/dashboard')}`);
+    lines.push('');
   }
 
   // AI Enrichment (if available)
@@ -343,16 +489,27 @@ function formatTable(summary: ScanSummary): string {
   }
   lines.push('');
 
-  // Platform upsell CTA
-  const boxWidth = Math.min(contentWidth, 60);
+  // Platform upsell CTA — dynamic, references actual scan data
+  const boxWidth = Math.min(contentWidth, 64);
   const border = '\u2500'.repeat(boxWidth - 2);
+  const poamCount = actionable.length;
+  const impactCta = impact;
   lines.push(c(CYAN, `  \u250C${border}\u2510`));
   lines.push(c(CYAN, `  \u2502${' '.repeat(boxWidth - 2)}\u2502`));
-  lines.push(c(CYAN, `  \u2502${centerPad('Upload to CVERiskPilot for:', boxWidth - 2)}\u2502`));
-  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 AI-powered triage with source citations', boxWidth - 2)}\u2502`));
-  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 Compliance mapping across 13 frameworks', boxWidth - 2)}\u2502`));
-  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 POAM generation for auditors', boxWidth - 2)}\u2502`));
-  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 Team collaboration and SLA tracking', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('Compliance Intelligence Platform', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${' '.repeat(boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('This scan would generate on the platform:', boxWidth - 2)}\u2502`));
+  if (poamCount > 0) {
+    lines.push(c(CYAN, `  \u2502${centerPad(`  \u2022 ${poamCount} POAM action items with deadlines`, boxWidth - 2)}\u2502`));
+  }
+  if (impactCta) {
+    lines.push(c(CYAN, `  \u2502${centerPad(`  \u2022 ${impactCta.totalAffectedControls} compliance controls mapped + evidence`, boxWidth - 2)}\u2502`));
+  }
+  if (kevFindings.length > 0) {
+    lines.push(c(CYAN, `  \u2502${centerPad(`  \u2022 ${kevFindings.length} KEV finding(s) with SLA auto-escalation`, boxWidth - 2)}\u2502`));
+  }
+  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 AI triage reasoning for every finding', boxWidth - 2)}\u2502`));
+  lines.push(c(CYAN, `  \u2502${centerPad('  \u2022 Trend tracking + team collaboration', boxWidth - 2)}\u2502`));
   lines.push(c(CYAN, `  \u2502${' '.repeat(boxWidth - 2)}\u2502`));
   lines.push(c(CYAN, `  \u2502${centerPad('\u2192 https://cveriskpilot.com/signup?ref=cli', boxWidth - 2)}\u2502`));
   lines.push(c(CYAN, `  \u2502${centerPad('Free tier: 50 assets, 50 AI calls/month', boxWidth - 2)}\u2502`));
@@ -401,6 +558,10 @@ function formatJson(summary: ScanSummary): string {
         ...(f.fixedVersion && { fixedVersion: f.fixedVersion }),
         ...(f.advisoryUrl && { advisoryUrl: f.advisoryUrl }),
         ...(f.recommendation && { recommendation: f.recommendation }),
+        ...(f.epssScore !== undefined && { epssScore: f.epssScore, epssPercentile: f.epssPercentile }),
+        ...(f.kevListed && { kevListed: true, kevDueDate: f.kevDueDate }),
+        ...(f.riskScore !== undefined && { riskScore: f.riskScore }),
+        ...(f.remediationEffort && { remediationEffort: f.remediationEffort }),
         ...(summary.aiResult?.remediations.has(idx) && { aiRemediation: summary.aiResult.remediations.get(idx) }),
       })),
       ...(summary.aiResult?.riskSummary ? { aiRiskSummary: summary.aiResult.riskSummary } : {}),

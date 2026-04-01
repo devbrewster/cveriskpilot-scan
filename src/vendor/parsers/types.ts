@@ -43,6 +43,14 @@ export interface CanonicalFinding {
   advisoryUrl?: string;
   recommendation?: string;
 
+  // Free enrichment (public data: EPSS, KEV)
+  epssScore?: number;       // 0-1 probability
+  epssPercentile?: number;  // 0-100 percentile rank
+  kevListed?: boolean;      // On CISA KEV catalog
+  kevDueDate?: string;      // ISO date string
+  riskScore?: number;       // 0-100 composite risk score
+  remediationEffort?: 'LOW' | 'MEDIUM' | 'HIGH'; // Heuristic effort estimate
+
   // Evidence
   filePath?: string;
   lineNumber?: number;

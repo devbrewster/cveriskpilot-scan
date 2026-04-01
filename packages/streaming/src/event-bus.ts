@@ -198,9 +198,19 @@ export class PubSubEventBus implements EventBus {
     if (this.initPromise) return this.initPromise;
 
     this.initPromise = (async () => {
-      // @ts-expect-error — optional dependency, not installed in dev/test
-      const { PubSub } = await import('@google-cloud/pubsub');
-      this.client = new PubSub({ projectId: this.projectId });
+      try {
+        // Use variable to prevent Next.js/webpack static analysis from
+        // trying to bundle @google-cloud/pubsub at build time.
+        const moduleName = '@google-cloud/pubsub';
+        const { PubSub } = await (Function('m', 'return import(m)')(moduleName) as Promise<any>);
+        this.client = new PubSub({ projectId: this.projectId });
+      } catch (err) {
+        throw new Error(
+          '@google-cloud/pubsub is not installed. Install it to use PubSubEventBus, ' +
+          'or use provider: "memory" instead. Original error: ' +
+          (err instanceof Error ? err.message : String(err)),
+        );
+      }
     })();
 
     return this.initPromise;
@@ -365,11 +375,17 @@ function detectProvider(): 'memory' | 'pubsub' {
   // Emulator mode — use memory for simplicity (or could still use pubsub)
   if (process.env.PUBSUB_EMULATOR_HOST) return 'memory';
 
-  // Check if @google-cloud/pubsub is available
+  // Check if @google-cloud/pubsub is available.
+  // Use Function constructor to hide the require from webpack/turbopack
+  // static analysis so the build doesn't fail when the package is absent.
   try {
-    require.resolve('@google-cloud/pubsub');
-    return 'pubsub';
+    const _require = Function('return typeof require !== "undefined" ? require : undefined')();
+    if (_require) {
+      _require.resolve('@google-cloud/pubsub');
+      return 'pubsub';
+    }
   } catch {
-    return 'memory';
+    // package not installed — fall through to memory
   }
+  return 'memory';
 }

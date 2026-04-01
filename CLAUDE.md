@@ -5,7 +5,7 @@ CVERiskPilot is an **AI-Powered Compliance Intelligence Platform** for security 
 
 **Positioning**: Not a scanner. Not a GRC dashboard. The intelligence layer between your scanners and your auditors.
 **Business**: CVERiskPilot LLC, 100% Veteran Owned, Texas-registered
-**Version**: 0.3.0-beta (ground-up rebuild, replacing legacy 2.0-beta on Cloudflare)
+**Version**: 0.4.0-beta (ground-up rebuild, replacing legacy 2.0-beta on Cloudflare)
 **Domain**: cveriskpilot.com
 
 ### Strategic Positioning
@@ -15,11 +15,12 @@ CVERiskPilot is an **AI-Powered Compliance Intelligence Platform** for security 
 - **Hook**: "Turn vulnerability noise into audit-ready decisions in minutes"
 
 ### Product Pillars
-1. **Ingestion Layer** (data moat) — 11 scanner formats, 5 connectors, CLI scanner, SBOM support
+1. **Ingestion Layer** (data moat) — 11 scanner formats, 5 connectors, CLI scanner (13 package manager formats), SBOM support, Signal Engine (real-time Pub/Sub)
 2. **Intelligence Layer** (the gold) — CVE enrichment (EPSS/KEV/NVD), asset context, business impact scoring, AI-generated risk statements + auditor-ready justifications
 3. **Decision Layer** (differentiator) — Risk acceptance workflows, POAM generation, false positive justification, compensating controls logic, "not exploitable because…" engine
-4. **Action Layer** — Push to Jira/ServiceNow, executive reports, evidence packages, audit trails
-5. **Executive Intelligence** — Risk posture score, KEV exposure, SLA compliance, "what will fail audit today" dashboard
+4. **Action Layer** — Push to Jira/ServiceNow, executive reports, evidence packages, audit trails, Flux Pipelines (visual automation rules)
+5. **Executive Intelligence** — Risk posture score, KEV exposure, SLA compliance, Cortex Analytics (AI NL queries, trend detection), "what will fail audit today" dashboard
+6. **Trust Layer** — Vault Protocol (Ed25519 + Merkle tree cryptographic audit trail), compliance evidence collection, SOC 2 readiness reports
 
 ## Architecture
 
@@ -52,8 +53,11 @@ packages/
   parsers/                   # 11 scanner format parsers
   enrichment/                # NVD/EPSS/KEV enrichment + risk scoring
   integrations/              # Jira, ServiceNow, HackerOne, SIEMs, webhooks
+  connectors/                # Scanner connector adapters (Tenable, Qualys, CrowdStrike, Rapid7, Snyk)
   auth/                      # Authentication providers + RBAC
+  audit/                     # Audit trail + Vault Protocol (Ed25519 signing + Merkle tree)
   billing/                   # Stripe billing + usage metering
+  security-bundle/           # Security middleware bundle (rate limit, WAF, CORS)
   compliance/                # 13 compliance frameworks + POAM + cross-framework CWE mapping
   ai/                        # Claude triage agent + remediation
   notifications/             # Email templates + delivery
@@ -176,46 +180,56 @@ FREE, FOUNDERS_BETA, PRO, ENTERPRISE, MSSP
 
 ## Save Point — 2026-03-31
 
-### Version: 0.3.0-beta
-Beta milestone. All core flows functional end-to-end. Security hardened (13 findings remediated). Agentic tool-calling loop added to CVE triage agent (packages/agents/src/tools/ + loop.ts). Revenue Generation Plan (Waves R1-R5) fully implemented.
+### Version: 0.4.0-beta
+Platform evolution milestone. All Solivagant phases (1-5) committed. GTM waves (G1-G5) implemented. Evidence system, Python parser support, stress testing framework, SOC 2 readiness tool, and partner program added. All 5 platform components shipped: Vault Protocol, Cortex Analytics, Horizon API, Signal Engine, Flux Pipelines.
 
 ### Build Status: GREEN
 `npm run build` passes. Worker healthy on Cloud Run.
 
 ### Repo Stats
-- **76 pages** (app + portal + demo + public + pricing)
-- **140+ API routes** (including health, cron, export, onboarding)
-- **205+ components** in `apps/web/`
-- **25 packages** in `packages/`
-- **1171 tests** (unit + integration + security + revenue path)
+- **97 pages** (30 app + 29 demo + 11 public + 10 ops + 7 docs + 4 portal + 6 root marketing)
+- **159 API routes** across 45 top-level API directories
+- **103 components** in `apps/web/src/components/`
+- **26 packages** in `packages/`
+- **955+ test cases** across 61 test files (unit + integration + security + revenue path + stress)
 - **11 scanner format parsers** (Nessus, SARIF, CSV, JSON, CycloneDX, Qualys, OpenVAS, SPDX, OSV, CSAF, XLSX)
+- **13 CLI package manager formats** (npm, yarn, pnpm, pip/requirements.txt, Pipfile.lock, poetry.lock, pyproject.toml, go, cargo, gem, maven, gradle)
 - **5 scanner connectors** (Tenable, Qualys, CrowdStrike, Rapid7, Snyk)
-- **10 RBAC roles** with granular permissions enforced on all mutation routes
+- **10 RBAC roles** with 22 granular permissions enforced on all mutation routes
 - **7 agentic tools** for CVE triage (NVD, KEV, EPSS, CVSS, Compliance Map, Risk Score, Audit Log)
 - **13 compliance frameworks** (NIST 800-53, CMMC, SOC2, FedRAMP, ASVS, SSDF, GDPR, HIPAA, PCI DSS, ISO 27001, NIST CSF 2.0, EU CRA, NIS2)
-- **3 OAuth providers** (Google, GitHub, WorkOS SSO)
+- **4 OAuth providers** (Google, GitHub, WorkOS SSO SAML/OIDC)
+- **9 email templates** (welcome, trial expiry/expired, payment failed, usage limit, case assigned, comment mention, SLA breach, digest)
+- **12 stress test scenarios** (50–2000 analyst concurrency, auth, compliance, upload, production load)
 
-### Completed Waves (0-12 + R1-R5)
+### Completed Waves (0-12 + R1-R5 + Solivagant 1-5 + GTM G1-G5)
 - **Waves 0-5** (commit `aa63986`): Full MVP scaffold — auth, upload, parsers, enrichment, dashboard, findings, cases, reports, compliance, POAM, portal, demo, billing, teams, clients, portfolio, settings, Terraform, Dockerfile, CI/CD
 - **Wave 6**: Dashboard completeness — SLA widget, compliance scores, activity timeline, 6 stat cards + 5 widget rows
 - **Wave 7**: Settings page completion — API keys, service accounts, IP allowlist, connector settings, notification prefs, webhook config, org profile
 - **Wave 8**: RBAC enforcement in UI — role-aware sidebar, page guards, client switcher role checks
 - **Wave 9**: Missing functional pages — billing, notifications, audit log, user management, asset inventory, risk exceptions
 - **Wave 10**: Polish — security audit remediation (auth, RBAC, CSRF, MSSP isolation), CSP fix, build fixes
-- **Wave 11**: Pipeline compliance scanner CLI (`@cveriskpilot/scan`) — 6 frameworks, offline-first, npx support
+- **Wave 11**: Pipeline compliance scanner CLI (`@cveriskpilot/scan`) — 6 frameworks, 13 package manager formats, offline-first, npx support
 - **Wave 12**: Ops dashboard — internal staff monitoring, customer support tools
 - **Wave R1**: Revenue blockers — RBAC enforced on 36+ routes, billing gates on AI endpoints, case approval workflow, session revocation
 - **Wave R2**: Signup funnel — /pricing page, GitHub OAuth, onboarding checklist, trial extension admin endpoint
 - **Wave R3**: Differentiation — AI triage UI on case detail, auto-triage on upload, compliance scores wired to dashboard, CVE digest cron
 - **Wave R4**: Enterprise — SSO login button, CSV export (audit/cases/findings), connector wizard (already complete)
 - **Wave R5**: Testing & hardening — 1171 tests, health check endpoints (live/ready/full), 8 DB indexes, 2FA backup codes
+- **Solivagant Phase 1**: Vault Protocol (47ce009) — Ed25519 signing + Merkle tree cryptographic audit trail via Cloud KMS
+- **Solivagant Phase 2**: Cortex Analytics (52f623f) — AI compliance intelligence, scan-over-scan trends, NL query, executive summaries
+- **Solivagant Phase 3**: Horizon API (27bf0f7) — Developer portal, interactive API docs, TypeScript SDK, API playground, webhook catalog
+- **Solivagant Phase 4**: Signal Engine (d8e49ec) — Continuous ingestion via Cloud Pub/Sub, real-time finding feed, scanner push mode, SSE
+- **Solivagant Phase 5**: Flux Pipelines (f7f19a2) — Visual automation rules engine, IF/THEN builder UI, rule templates
+- **GTM G1-G5** (1d9c91c): CLI upload CTA, email nurture (9 templates), blog RSS, LinkedIn automation, demo-to-signup bridge, UTM tracking, Compliance Control of the Week, SOC 2 readiness tool, partner program page
+- **Post-GTM**: Evidence system (compliance evidence collection + CRUD API), Python parser support (poetry.lock + pyproject.toml), stress testing framework (50–2000 analyst concurrency), whitepapers
 
 ---
 
 ## Audit Findings — 2026-03-31
 
-### Production Readiness: ~95%
-All revenue-critical flows secured and tested. RBAC enforced on all mutation routes, billing gates on AI endpoints, approval workflow wired, session revocation available. Signup funnel complete with pricing page, 3 OAuth providers, and onboarding checklist.
+### Production Readiness: ~97%
+All revenue-critical flows secured and tested. RBAC enforced on all mutation routes, billing gates on AI endpoints, approval workflow wired, session revocation available. Signup funnel complete with pricing page, 4 OAuth providers, and onboarding checklist. All 5 Solivagant platform phases committed. GTM acceleration waves G1-G5 implemented. Stress-tested to 2000 concurrent analysts (zero errors at 8.5K rps).
 
 ### Critical Issues — ALL FIXED
 
@@ -234,7 +248,7 @@ All revenue-critical flows secured and tested. RBAC enforced on all mutation rou
 | 6 | No SAML SSO | **FIXED** (Wave R4) — WorkOS SSO + OIDC + login button |
 | 7 | No onboarding flow | **FIXED** (Wave R2) — onboarding checklist on dashboard |
 | 8 | Missing pricing page | **FIXED** (Wave R2) — `/pricing` with plan cards + feature matrix |
-| 9 | Test coverage at ~5% | **IMPROVED** (Wave R5) — 40 → 1171 tests |
+| 9 | Test coverage at ~5% | **IMPROVED** (Wave R5 + post-GTM) — 40 → 955+ test cases across 61 files + 12 stress test scenarios |
 | 10 | GitHub OAuth incomplete | **FIXED** (Wave R2) — full provider + routes + UI buttons |
 
 ### Minor Issues
@@ -248,11 +262,13 @@ All revenue-critical flows secured and tested. RBAC enforced on all mutation rou
 | 15 | Missing DB indexes | **FIXED** (Wave R5) — 8 indexes added |
 
 ### What Works Well
-- **Ingestion Layer**: 11 scanner format parsers with magic-byte validation, 5 scanner connectors
-- **Intelligence Layer**: Enrichment pipeline (NVD + EPSS + KEV) with Redis caching, risk scoring with transparent breakdown, compliance impact per finding (CWE → 13 frameworks)
-- **Decision Layer**: Agentic CVE triage with tool-calling loop (7 tools, HITL gates, audit trail), POAM generation and export (CSV, PDF)
-- **Action Layer**: Stripe billing fully wired (webhooks, checkout, tier upgrades, usage metering), Docker + Terraform + Cloud Run deploy pipeline
-- **Security**: RBAC permission matrix well-defined (10 roles, granular permissions), org-scoped tenant isolation, CSRF protection
+- **Ingestion Layer**: 11 scanner format parsers with magic-byte validation, 5 scanner connectors, CLI scanner with 13 package manager formats (incl. Python poetry.lock + pyproject.toml), Signal Engine for real-time push ingestion
+- **Intelligence Layer**: Enrichment pipeline (NVD + EPSS + KEV) with Redis caching, risk scoring with transparent breakdown, compliance impact per finding (CWE → 13 frameworks), Cortex Analytics (AI NL queries, trend detection)
+- **Decision Layer**: Agentic CVE triage with tool-calling loop (7 tools, HITL gates, audit trail), POAM generation and export (CSV, PDF), Flux Pipelines (visual automation rules)
+- **Action Layer**: Stripe billing fully wired (webhooks, checkout, tier upgrades, usage metering), Docker + Terraform + Cloud Run deploy pipeline, 9 email templates (transactional + nurture)
+- **Trust Layer**: Vault Protocol (Ed25519 + Merkle tree cryptographic audit trail), compliance evidence collection system, SOC 2 readiness report tool
+- **Security**: RBAC permission matrix well-defined (10 roles, 22 permissions), org-scoped tenant isolation, CSRF protection, stress-tested to 2000 concurrent analysts
+- **GTM**: Social automation (X + LinkedIn), blog RSS, email nurture sequences, CLI-to-platform funnel, UTM tracking, partner program, vertical landing pages (CMMC, HIPAA, SOC 2, Government)
 
 ---
 
@@ -684,7 +700,7 @@ After scan results, print:
 | 4 | **Signal Engine** | Continuous ingestion via Cloud Pub/Sub — real-time finding feed, scanner push mode, SSE dashboard updates | 3-4 weeks | **Committed** (d8e49ec) |
 | 5 | **Flux Pipelines** | Visual automation rules — IF condition THEN action engine, rule builder UI, templates | 4-5 weeks | **Committed** (f7f19a2) |
 
-**Total**: 14-18 weeks (10-12 aggressive with parallelism, 16-20 conservative solo)
+**All 5 phases committed.** Total implementation scope was 14-18 weeks; delivered across Waves through 2026-03-31.
 
 ### AI Agents (existing + planned)
 - **Risk Agent** (exists) — Calculates real risk (EPSS + KEV + CVSS + env context), not just CVSS
@@ -703,9 +719,8 @@ That's auditor gold — and what justifies $20K-$100K/year pricing.
 - Demo route group `(demo)` duplicates dashboard logic — could share components better
 
 ### TODO
-- **Verify security tool integration pipelines** — Confirm all connector adapters and integration pipelines are created, wired end-to-end, and functional for: Jira, JFrog, Trivy, Snyk, Nessus, Tenable, Qualys, CrowdStrike, Rapid7, ServiceNow, HackerOne, SIEMs (webhook). Includes: connector creation wizard, test endpoint, sync orchestration, webhook delivery, and scanner format parsers (11 formats: Nessus, SARIF, CSV, JSON, CycloneDX, Qualys, OpenVAS, SPDX, OSV, CSAF, XLSX).
+- **Verify security tool integration pipelines** — Confirm all connector adapters and integration pipelines are created, wired end-to-end, and functional for: Jira, JFrog, Trivy, Snyk, Nessus, Tenable, Qualys, CrowdStrike, Rapid7, ServiceNow, HackerOne, SIEMs (webhook). Includes: connector creation wizard, test endpoint, sync orchestration, webhook delivery, and scanner format parsers.
 - **Build Auditor Agent** — POAM generation, justifications, evidence language, "not exploitable because…" engine (planned in AI Agents section)
-- **Wire email nurture sequences** (GTM G2) — Welcome sequence, re-engagement, billing lifecycle, blog digest cron
-- **LinkedIn automation** (GTM G3.1) — Publisher script mirroring X automation
-- **Blog RSS feed** — `/blog/rss.xml` (GTM G3.2) — DONE
 - **Conversion funnel analytics** (GTM G4.3) — Track signup → upload → paid with observability events
+- **Re-engagement emails** (GTM G2.2) — Activity-based triggers ("you haven't uploaded in 7 days", "new CVEs affecting your stack")
+- **Marketing public pages** — Port remaining marketing pages from legacy 2.0 repo

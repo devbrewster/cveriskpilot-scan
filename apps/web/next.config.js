@@ -70,6 +70,17 @@ const nextConfig = {
     ];
   },
 
+  // WSL2 file-watching fix — poll instead of inotify (dev only, no-op in production)
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
+    return config;
+  },
+
   serverExternalPackages: ['@prisma/client', 'prisma', 'bcryptjs', 'nodemailer', 'ioredis'],
   transpilePackages: [
     '@cveriskpilot/domain',

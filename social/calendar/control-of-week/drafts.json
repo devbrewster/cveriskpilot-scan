@@ -1,0 +1,53 @@
+{
+  "campaign": "Compliance Control of the Week",
+  "drafts": [
+    {
+      "id": "cotw-ac-3-1774996536224",
+      "status": "draft",
+      "approved_by": null,
+      "type": "compliance-control-of-week",
+      "control_id": "AC-3",
+      "control_title": "Access Enforcement",
+      "created_at": "2026-03-31T22:35:36.224Z",
+      "platforms": {
+        "x": {
+          "status": "draft",
+          "thread": [
+            {
+              "position": 1,
+              "content": "Compliance Control of the Week: AC-3 — Access Enforcement\n\nFamily: Access Control\n\nOnly the right people can access the right things. Sounds obvious? 60% of breaches involve access control failures.",
+              "character_count": 198
+            },
+            {
+              "position": 2,
+              "content": "AC-3 maps to 6 frameworks:\n\nSOC 2: CC6.1\nCMMC: AC.L2-3.1.2\nFedRAMP: AC-3\nHIPAA: 164.312(a)\nPCI-DSS: Req-7.2\nISO 27001: A.8.3\n\nOne vulnerability can trigger findings across all of them. That's why mapping matters.",
+              "character_count": 212
+            },
+            {
+              "position": 3,
+              "content": "Related weaknesses: CWE-284, CWE-285, CWE-862\n\nIf your scanner finds any of these CWEs, AC-3 is the compliance control your auditor cares about.\n\nMost tools show the CVE. We show which controls it threatens.",
+              "character_count": 207
+            },
+            {
+              "position": 4,
+              "content": "Map your vulnerabilities to AC-3 and 64+ other controls automatically.\n\nFree CLI: npx @cveriskpilot/scan@latest\nPlatform: https://cveriskpilot.com/signup?ref=x-cotw\n\n#ComplianceAutomation #AC #NIST80053",
+              "character_count": 202
+            }
+          ]
+        }
+      },
+      "tags": [
+        "compliance",
+        "nist-800-53",
+        "ac",
+        "education"
+      ],
+      "hashtags": [
+        "#ComplianceAutomation",
+        "#NIST80053",
+        "#AC",
+        "#GRC"
+      ]
+    }
+  ]
+}

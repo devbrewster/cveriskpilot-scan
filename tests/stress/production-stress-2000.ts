@@ -733,7 +733,7 @@ function aggregateSteps(results: AnalystResult[]): StepAggregate[] {
   return aggregates.sort((a, b) => a.step.localeCompare(b.step));
 }
 
-function printReport(results: AnalystResult[], durationMs: number) {
+async function printReport(results: AnalystResult[], durationMs: number) {
   const totalAnalysts = results.length;
   const successAnalysts = results.filter((r) => r.success).length;
   const failedAnalysts = totalAnalysts - successAnalysts;

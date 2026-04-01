@@ -1,0 +1,1618 @@
+{
+  "runId": 1775012072313,
+  "baseUrl": "http://localhost:3000",
+  "analystCount": 100,
+  "batchSize": 200,
+  "durationMs": 145952,
+  "throughputReqPerSec": 28.502521376891032,
+  "successRate": 0,
+  "totalRequests": 4160,
+  "analystLatency": {
+    "p50": 140399,
+    "p95": 140434,
+    "p99": 145505
+  },
+  "zeroDayFindings": [
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests returned no 429",
+      "severity": "MEDIUM",
+      "analystId": 1
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests returned no 429",
+      "severity": "MEDIUM",
+      "analystId": 21
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests returned no 429",
+      "severity": "MEDIUM",
+      "analystId": 41
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests returned no 429",
+      "severity": "MEDIUM",
+      "analystId": 61
+    },
+    {
+      "category": "rate-limit-absent",
+      "description": "100 rapid requests returned no 429",
+      "severity": "MEDIUM",
+      "analystId": 81
+    }
+  ],
+  "stepAggregates": [
+    {
+      "step": "01-signup",
+      "endpoint": "/api/auth/signup",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 100,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 6982,
+      "p50Ms": 6986,
+      "p95Ms": 7531,
+      "p99Ms": 7594,
+      "minMs": 6326,
+      "maxMs": 7602
+    },
+    {
+      "step": "01-signup-fallback-login",
+      "endpoint": "/api/auth/login",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 100,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 11086,
+      "p50Ms": 10999,
+      "p95Ms": 15251,
+      "p99Ms": 15420,
+      "minMs": 7160,
+      "maxMs": 15524
+    },
+    {
+      "step": "02-dashboard",
+      "endpoint": "/api/dashboard",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 514,
+      "p50Ms": 359,
+      "p95Ms": 1597,
+      "p99Ms": 1832,
+      "minMs": 34,
+      "maxMs": 1902
+    },
+    {
+      "step": "03-upload-scan",
+      "endpoint": "/api/upload",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 418,
+      "p50Ms": 183,
+      "p95Ms": 1305,
+      "p99Ms": 1609,
+      "minMs": 47,
+      "maxMs": 1610
+    },
+    {
+      "step": "04-poll-job",
+      "endpoint": "/api/upload/[jobId]",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 100,
+      "avgMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "p99Ms": 0,
+      "minMs": 0,
+      "maxMs": 0
+    },
+    {
+      "step": "05-findings-list",
+      "endpoint": "/api/findings",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 392,
+      "p50Ms": 152,
+      "p95Ms": 1602,
+      "p99Ms": 1605,
+      "minMs": 100,
+      "maxMs": 1607
+    },
+    {
+      "step": "06-findings-critical",
+      "endpoint": "/api/findings",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 281,
+      "p50Ms": 137,
+      "p95Ms": 653,
+      "p99Ms": 868,
+      "minMs": 85,
+      "maxMs": 870
+    },
+    {
+      "step": "07-finding-detail",
+      "endpoint": "/api/findings/[id]",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 100,
+      "avgMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "p99Ms": 0,
+      "minMs": 0,
+      "maxMs": 0
+    },
+    {
+      "step": "08-build-cases",
+      "endpoint": "/api/cases/build",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 285,
+      "p50Ms": 143,
+      "p95Ms": 1147,
+      "p99Ms": 1195,
+      "minMs": 98,
+      "maxMs": 1195
+    },
+    {
+      "step": "09-cases-list",
+      "endpoint": "/api/cases",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 175,
+      "p50Ms": 136,
+      "p95Ms": 348,
+      "p99Ms": 451,
+      "minMs": 95,
+      "maxMs": 461
+    },
+    {
+      "step": "10-case-detail",
+      "endpoint": "/api/cases/[id]",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 100,
+      "avgMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "p99Ms": 0,
+      "minMs": 0,
+      "maxMs": 0
+    },
+    {
+      "step": "11-update-case",
+      "endpoint": "/api/cases/[id]",
+      "method": "PATCH",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 100,
+      "avgMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "p99Ms": 0,
+      "minMs": 0,
+      "maxMs": 0
+    },
+    {
+      "step": "12-case-comment",
+      "endpoint": "/api/cases/[id]/comments",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 100,
+      "avgMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "p99Ms": 0,
+      "minMs": 0,
+      "maxMs": 0
+    },
+    {
+      "step": "13-bulk-cases",
+      "endpoint": "/api/cases/bulk",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 100,
+      "avgMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "p99Ms": 0,
+      "minMs": 0,
+      "maxMs": 0
+    },
+    {
+      "step": "14-ai-remediation",
+      "endpoint": "/api/ai/remediation",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 263,
+      "p50Ms": 131,
+      "p95Ms": 862,
+      "p99Ms": 1961,
+      "minMs": 111,
+      "maxMs": 1962
+    },
+    {
+      "step": "15-compliance-frameworks",
+      "endpoint": "/api/compliance/frameworks",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 126,
+      "p50Ms": 126,
+      "p95Ms": 167,
+      "p99Ms": 172,
+      "minMs": 101,
+      "maxMs": 173
+    },
+    {
+      "step": "16-compliance-assessment",
+      "endpoint": "/api/compliance/frameworks/soc2-type2/assessment",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 153,
+      "p50Ms": 129,
+      "p95Ms": 444,
+      "p99Ms": 477,
+      "minMs": 101,
+      "maxMs": 477
+    },
+    {
+      "step": "17-cross-framework-impact",
+      "endpoint": "/api/compliance/impact",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 128,
+      "p50Ms": 125,
+      "p95Ms": 149,
+      "p99Ms": 153,
+      "minMs": 105,
+      "maxMs": 154
+    },
+    {
+      "step": "18-poam",
+      "endpoint": "/api/compliance/poam",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 133,
+      "p50Ms": 127,
+      "p95Ms": 213,
+      "p99Ms": 224,
+      "minMs": 96,
+      "maxMs": 226
+    },
+    {
+      "step": "19-poam-generate",
+      "endpoint": "/api/compliance/poam/generate",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 141,
+      "p50Ms": 129,
+      "p95Ms": 226,
+      "p99Ms": 234,
+      "minMs": 94,
+      "maxMs": 236
+    },
+    {
+      "step": "20-export-csv",
+      "endpoint": "/api/export/findings",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 134,
+      "p50Ms": 130,
+      "p95Ms": 227,
+      "p99Ms": 233,
+      "minMs": 54,
+      "maxMs": 234
+    },
+    {
+      "step": "21-export-pdf-exec",
+      "endpoint": "/api/export/pdf",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 158,
+      "p50Ms": 136,
+      "p95Ms": 267,
+      "p99Ms": 278,
+      "minMs": 49,
+      "maxMs": 280
+    },
+    {
+      "step": "22-export-pdf-compliance",
+      "endpoint": "/api/export/pdf",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 173,
+      "p50Ms": 169,
+      "p95Ms": 300,
+      "p99Ms": 312,
+      "minMs": 98,
+      "maxMs": 314
+    },
+    {
+      "step": "23-billing-usage",
+      "endpoint": "/api/billing/usage",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 147,
+      "p50Ms": 136,
+      "p95Ms": 210,
+      "p99Ms": 293,
+      "minMs": 60,
+      "maxMs": 294
+    },
+    {
+      "step": "24-create-api-key",
+      "endpoint": "/api/keys",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 160,
+      "p50Ms": 163,
+      "p95Ms": 271,
+      "p99Ms": 313,
+      "minMs": 50,
+      "maxMs": 317
+    },
+    {
+      "step": "25-create-webhook",
+      "endpoint": "/api/webhooks/config",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 5889,
+      "p50Ms": 5865,
+      "p95Ms": 6258,
+      "p99Ms": 6306,
+      "minMs": 5501,
+      "maxMs": 6330
+    },
+    {
+      "step": "26-notifications",
+      "endpoint": "/api/notifications",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 123,
+      "p50Ms": 94,
+      "p95Ms": 291,
+      "p99Ms": 361,
+      "minMs": 31,
+      "maxMs": 380
+    },
+    {
+      "step": "27-soc2-readiness",
+      "endpoint": "/api/soc2-readiness",
+      "method": "POST",
+      "total": 100,
+      "successes": 10,
+      "failures4xx": 90,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 6281,
+      "p50Ms": 6292,
+      "p95Ms": 6518,
+      "p99Ms": 6540,
+      "minMs": 5934,
+      "maxMs": 6578
+    },
+    {
+      "step": "28-soc2-readiness-pdf",
+      "endpoint": "/api/soc2-readiness/pdf",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 8871,
+      "p50Ms": 8919,
+      "p95Ms": 9405,
+      "p99Ms": 9613,
+      "minMs": 8420,
+      "maxMs": 9632
+    },
+    {
+      "step": "29-funnel-analytics",
+      "endpoint": "/api/admin/funnel",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 246,
+      "p50Ms": 208,
+      "p95Ms": 373,
+      "p99Ms": 544,
+      "minMs": 28,
+      "maxMs": 558
+    },
+    {
+      "step": "30-blog-subscribe",
+      "endpoint": "/api/subscribe",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 302,
+      "p50Ms": 188,
+      "p95Ms": 939,
+      "p99Ms": 943,
+      "minMs": 62,
+      "maxMs": 945
+    },
+    {
+      "step": "31-page-hipaa",
+      "endpoint": "/hipaa",
+      "method": "GET",
+      "total": 100,
+      "successes": 100,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 14179,
+      "p50Ms": 14192,
+      "p95Ms": 15085,
+      "p99Ms": 15495,
+      "minMs": 12881,
+      "maxMs": 15794
+    },
+    {
+      "step": "32-page-soc2",
+      "endpoint": "/soc2",
+      "method": "GET",
+      "total": 100,
+      "successes": 100,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 11373,
+      "p50Ms": 11280,
+      "p95Ms": 13484,
+      "p99Ms": 13935,
+      "minMs": 8132,
+      "maxMs": 13944
+    },
+    {
+      "step": "33-page-cmmc",
+      "endpoint": "/cmmc",
+      "method": "GET",
+      "total": 100,
+      "successes": 100,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 9580,
+      "p50Ms": 10561,
+      "p95Ms": 10735,
+      "p99Ms": 12448,
+      "minMs": 4887,
+      "maxMs": 12530
+    },
+    {
+      "step": "34-page-pricing",
+      "endpoint": "/pricing",
+      "method": "GET",
+      "total": 100,
+      "successes": 100,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 12436,
+      "p50Ms": 11982,
+      "p95Ms": 15810,
+      "p99Ms": 16108,
+      "minMs": 3871,
+      "maxMs": 16123
+    },
+    {
+      "step": "35-page-rss",
+      "endpoint": "/blog/rss.xml",
+      "method": "GET",
+      "total": 100,
+      "successes": 100,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 6591,
+      "p50Ms": 6748,
+      "p95Ms": 6939,
+      "p99Ms": 6978,
+      "minMs": 442,
+      "maxMs": 6996
+    },
+    {
+      "step": "36-page-developers",
+      "endpoint": "/developers",
+      "method": "GET",
+      "total": 100,
+      "successes": 100,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 15794,
+      "p50Ms": 17182,
+      "p95Ms": 17474,
+      "p99Ms": 18766,
+      "minMs": 7342,
+      "maxMs": 18826
+    },
+    {
+      "step": "37-portfolio",
+      "endpoint": "/api/portfolio",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 177,
+      "p50Ms": 170,
+      "p95Ms": 252,
+      "p99Ms": 255,
+      "minMs": 16,
+      "maxMs": 256
+    },
+    {
+      "step": "38-sla-check",
+      "endpoint": "/api/sla/check",
+      "method": "GET",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 211,
+      "p50Ms": 213,
+      "p95Ms": 268,
+      "p99Ms": 271,
+      "minMs": 15,
+      "maxMs": 274
+    },
+    {
+      "step": "39-generate-report",
+      "endpoint": "/api/reports/generate",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 100,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 162,
+      "p50Ms": 171,
+      "p95Ms": 248,
+      "p99Ms": 254,
+      "minMs": 22,
+      "maxMs": 259
+    },
+    {
+      "step": "40-jira-bulk-sync",
+      "endpoint": "/api/integrations/jira/bulk",
+      "method": "POST",
+      "total": 100,
+      "successes": 0,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 100,
+      "avgMs": 0,
+      "p50Ms": 0,
+      "p95Ms": 0,
+      "p99Ms": 0,
+      "minMs": 0,
+      "maxMs": 0
+    },
+    {
+      "step": "zd-ab-manipulation",
+      "endpoint": "/pricing",
+      "method": "GET",
+      "total": 5,
+      "successes": 5,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 1415,
+      "p50Ms": 635,
+      "p95Ms": 2900,
+      "p99Ms": 2900,
+      "minMs": 528,
+      "maxMs": 2900
+    },
+    {
+      "step": "zd-cors",
+      "endpoint": "/api/findings",
+      "method": "OPTIONS",
+      "total": 5,
+      "successes": 0,
+      "failures4xx": 5,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 27,
+      "p50Ms": 16,
+      "p95Ms": 83,
+      "p99Ms": 83,
+      "minMs": 8,
+      "maxMs": 83
+    },
+    {
+      "step": "zd-data-leakage",
+      "endpoint": "/api/findings/finding-foreign-501-probe",
+      "method": "GET",
+      "total": 5,
+      "successes": 0,
+      "failures4xx": 5,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 15,
+      "p50Ms": 19,
+      "p95Ms": 23,
+      "p99Ms": 23,
+      "minMs": 6,
+      "maxMs": 23
+    },
+    {
+      "step": "zd-file-type-restriction",
+      "endpoint": "/api/upload",
+      "method": "POST",
+      "total": 5,
+      "successes": 0,
+      "failures4xx": 5,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 24,
+      "p50Ms": 23,
+      "p95Ms": 48,
+      "p99Ms": 48,
+      "minMs": 9,
+      "maxMs": 48
+    },
+    {
+      "step": "zd-org-isolation",
+      "endpoint": "/api/findings",
+      "method": "GET",
+      "total": 5,
+      "successes": 0,
+      "failures4xx": 5,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 49,
+      "p50Ms": 23,
+      "p95Ms": 167,
+      "p99Ms": 167,
+      "minMs": 16,
+      "maxMs": 167
+    },
+    {
+      "step": "zd-pagination-boundary",
+      "endpoint": "/api/findings",
+      "method": "GET",
+      "total": 5,
+      "successes": 0,
+      "failures4xx": 5,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 19,
+      "p50Ms": 14,
+      "p95Ms": 51,
+      "p99Ms": 51,
+      "minMs": 7,
+      "maxMs": 51
+    },
+    {
+      "step": "zd-rate-limit",
+      "endpoint": "/api/dashboard",
+      "method": "GET",
+      "total": 5,
+      "successes": 5,
+      "failures4xx": 0,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 1394,
+      "p50Ms": 1417,
+      "p95Ms": 2802,
+      "p99Ms": 2802,
+      "minMs": 242,
+      "maxMs": 2802
+    },
+    {
+      "step": "zd-session-integrity",
+      "endpoint": "/api/auth/session",
+      "method": "GET",
+      "total": 5,
+      "successes": 0,
+      "failures4xx": 5,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 31,
+      "p50Ms": 18,
+      "p95Ms": 77,
+      "p99Ms": 77,
+      "minMs": 5,
+      "maxMs": 77
+    },
+    {
+      "step": "zd-soc2-abuse",
+      "endpoint": "/api/soc2-readiness",
+      "method": "POST",
+      "total": 5,
+      "successes": 0,
+      "failures4xx": 5,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 4390,
+      "p50Ms": 2046,
+      "p95Ms": 15128,
+      "p99Ms": 15128,
+      "minMs": 532,
+      "maxMs": 15128
+    },
+    {
+      "step": "zd-sqli-filter",
+      "endpoint": "/api/findings",
+      "method": "GET",
+      "total": 15,
+      "successes": 0,
+      "failures4xx": 15,
+      "failures5xx": 0,
+      "connErrors": 0,
+      "skipped": 0,
+      "avgMs": 24,
+      "p50Ms": 18,
+      "p95Ms": 73,
+      "p99Ms": 73,
+      "minMs": 3,
+      "maxMs": 73
+    }
+  ],
+  "failedAnalysts": [
+    {
+      "id": 1,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 2,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 3,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 4,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 5,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 6,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 7,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 8,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 9,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 10,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 11,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 12,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 13,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 14,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 15,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 16,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 17,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 18,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 19,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 20,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 21,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 22,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 23,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 24,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 25,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 26,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 27,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 28,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 29,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 30,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 31,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 32,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 33,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 34,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 35,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 36,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 37,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 38,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 39,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 40,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 41,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 42,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 43,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 44,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 45,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 46,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 47,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 48,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 49,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 50,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 51,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 52,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 53,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 54,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 55,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 56,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 57,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 58,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 59,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 60,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 61,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 62,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 63,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 64,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 65,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 66,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 67,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 68,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 69,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 70,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 71,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 72,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 73,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 74,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 75,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 76,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 77,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 78,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 79,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 80,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 81,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 82,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 83,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 84,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 85,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 86,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 87,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 88,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 89,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 90,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 91,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 92,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 93,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 94,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 95,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 96,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 97,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 98,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 99,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    },
+    {
+      "id": 100,
+      "failedSteps": [
+        "01-signup",
+        "01-signup-fallback-login"
+      ]
+    }
+  ]
+}

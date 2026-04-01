@@ -67,6 +67,7 @@ const PUBLIC_PATHS = [
   '/sitemap.xml',
   '/security-policy',
   '/soc2',
+  '/partners',
   '/buy',
   '/buy/success',
   '/launch',
@@ -92,6 +93,7 @@ const API_PUBLIC_PATHS = [
   '/api/webhooks',                          // webhooks have their own HMAC auth
   '/api/integrations/jira/webhook',         // Jira webhook (HMAC auth)
   '/api/connectors/webhook/',               // Scanner webhooks (HMAC auth)
+  '/api/partners/apply',                      // Partner application (public form)
   '/api/billing/founders-spots',              // Public spots counter (no auth)
   '/api/billing/quick-purchase',             // Simplified API purchase (creates account)
   '/api/soc2-readiness',                    // Public SOC 2 readiness tool (email-gated, rate-limited)

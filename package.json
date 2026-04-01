@@ -1,6 +1,6 @@
 {
   "name": "@cveriskpilot/scan",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Compliance as a Service CLI — scan dependencies, secrets, and IaC, then auto-map every finding to NIST 800-53, SOC 2, CMMC, FedRAMP, ASVS, and SSDF controls",
   "type": "module",
   "bin": {

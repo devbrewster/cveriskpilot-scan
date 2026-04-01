@@ -29,6 +29,7 @@
  *   --ci                 Shorthand: --format json --no-color --fail-on critical
  *   --since <ref>        Incremental: only scan files changed since commit/branch/tag
  *   --stream             Emit findings as NDJSON to stdout as they are discovered
+ *   --compare            Show delta vs previous scan of same directory
  *   --list-frameworks    List all supported frameworks and presets
  *   --verbose            Detailed output
  *   --help               Show help
@@ -37,6 +38,7 @@
 
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as https from 'node:https';
 import { execSync } from 'node:child_process';
 import { scanDependencies } from './scanners/sbom-scanner.js';
@@ -146,6 +148,7 @@ interface CliOptions {
   aiUrl: string | undefined;
   since: string | undefined;
   stream: boolean;
+  compare: boolean;
 }
 
 function parseArgs(argv: string[]): CliOptions {
@@ -177,6 +180,7 @@ function parseArgs(argv: string[]): CliOptions {
     aiUrl: undefined,
     since: undefined,
     stream: false,
+    compare: false,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -266,6 +270,9 @@ function parseArgs(argv: string[]): CliOptions {
         break;
       case '--stream':
         opts.stream = true;
+        break;
+      case '--compare':
+        opts.compare = true;
         break;
       default:
         // Positional argument: target directory
@@ -608,18 +615,64 @@ function getChangedFilesSince(targetDir: string, since: string): Set<string> | n
 }
 
 // ---------------------------------------------------------------------------
+// Scan History — save/load for --compare delta
+// ---------------------------------------------------------------------------
+
+const SCAN_HISTORY_DIR = path.join(os.homedir(), '.cveriskpilot');
+const SCAN_HISTORY_FILE = path.join(SCAN_HISTORY_DIR, 'last-scan.json');
+
+interface ScanHistoryEntry {
+  timestamp: string;
+  findings: number;
+  severityCounts: Record<string, number>;
+  targetDir: string;
+}
+
+function loadPreviousScan(targetDir: string): ScanHistoryEntry | null {
+  try {
+    const raw = fs.readFileSync(SCAN_HISTORY_FILE, 'utf-8');
+    const entry = JSON.parse(raw) as ScanHistoryEntry;
+    // Only compare if same target directory
+    if (entry.targetDir === targetDir) return entry;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveScanHistory(targetDir: string, findings: CanonicalFinding[]): void {
+  try {
+    fs.mkdirSync(SCAN_HISTORY_DIR, { recursive: true });
+    const counts: Record<string, number> = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0, INFO: 0 };
+    for (const f of findings) counts[f.severity] = (counts[f.severity] ?? 0) + 1;
+    const entry: ScanHistoryEntry = {
+      timestamp: new Date().toISOString(),
+      findings: findings.length,
+      severityCounts: counts,
+      targetDir,
+    };
+    const tmpFile = SCAN_HISTORY_FILE + `.${process.pid}.tmp`;
+    fs.writeFileSync(tmpFile, JSON.stringify(entry), 'utf-8');
+    fs.renameSync(tmpFile, SCAN_HISTORY_FILE);
+  } catch {
+    // Best-effort
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Tier Gating — Enriched fields are paid add-on
 // ---------------------------------------------------------------------------
 
 function redactEnrichedFields(findings: CanonicalFinding[]): CanonicalFinding[] {
-  // Keep cveIds/cweIds — they come from scanners, not enrichment,
-  // and are required for compliance mapping.
+  // Keep: cveIds/cweIds (scanner data), fixedVersion (OSV public data),
+  //       epssScore/epssPercentile (FIRST.org public), kevListed/kevDueDate (CISA public),
+  //       riskScore (computed), remediationEffort (heuristic)
+  // Redact: CVSS details (NVD enrichment), advisory URLs, AI recommendations
   return findings.map((f) => ({
     ...f,
     cvssScore: undefined,
     cvssVector: undefined,
     cvssVersion: undefined,
-    fixedVersion: undefined,
     isSemVerMajor: undefined,
     advisoryUrl: undefined,
     recommendation: undefined,
@@ -920,6 +973,17 @@ async function main(): Promise<void> {
 
   const durationMs = Date.now() - startTime;
 
+  // ---- Free enrichment: EPSS + KEV + Risk Score + Effort (no API key needed) ----
+  let enrichStats: import('./enrich.js').EnrichmentStats | undefined;
+  if (allFindings.length > 0) {
+    try {
+      const { enrichFindings } = await import('./enrich.js');
+      enrichStats = await enrichFindings(allFindings, opts.verbose ?? false);
+    } catch (err) {
+      if (opts.verbose) console.error(`  Enrichment error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   // ---- Apply filters ----
   const filteredFindings = filterFindings(allFindings, {
     severity: opts.severity,
@@ -1017,6 +1081,23 @@ async function main(): Promise<void> {
     'nist-800-53', 'soc2-type2', 'cmmc-level2', 'fedramp-moderate', 'owasp-asvs', 'nist-ssdf',
   ];
 
+  // ---- Scan comparison: load previous, save current ----
+  let previousScan: ScanSummary['previousScan'] = null;
+  if (opts.compare) {
+    const prev = loadPreviousScan(opts.targetDir);
+    if (prev) {
+      previousScan = {
+        findings: prev.findings,
+        timestamp: prev.timestamp,
+        severityCounts: prev.severityCounts,
+      };
+    }
+  }
+  // Always save scan history (for next --compare run)
+  if (!opts.dryRun) {
+    saveScanHistory(opts.targetDir, filteredFindings);
+  }
+
   // ---- Format and display results ----
   const summary: ScanSummary = {
     findings: outputFindings,
@@ -1036,6 +1117,8 @@ async function main(): Promise<void> {
     activeFrameworks,
     aiResult,
     allowedFrameworks: isPaidTier ? undefined : FREE_TIER_FRAMEWORKS,
+    enrichStats,
+    previousScan,
   };
 
   if (!opts.stream) {

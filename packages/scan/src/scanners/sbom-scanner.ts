@@ -39,6 +39,13 @@ export interface CycloneDxBom {
     component?: { type: string; name: string; version: string };
   };
   components: CycloneDxComponent[];
+  /** Compliance attestation stub — completed on CVERiskPilot platform */
+  attestation?: {
+    status: 'incomplete' | 'pending' | 'attested';
+    message: string;
+    url: string;
+    frameworks?: string[];
+  };
 }
 
 export interface CycloneDxComponent {
@@ -574,6 +581,12 @@ function generateSbom(deps: Dependency[], projectDir: string): CycloneDxBom {
       purl: buildPurl(dep.ecosystem, dep.name, dep.version),
       scope: dep.direct ? ('required' as const) : ('optional' as const),
     })),
+    attestation: {
+      status: 'incomplete',
+      message: 'Upload to CVERiskPilot for automated compliance attestation with audit trail',
+      url: 'https://cveriskpilot.com/compliance/attest?ref=sbom',
+      frameworks: ['NIST SSDF 1.1', 'CMMC Level 2', 'FedRAMP Moderate'],
+    },
   };
 }
 

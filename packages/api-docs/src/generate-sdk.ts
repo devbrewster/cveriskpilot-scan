@@ -4,7 +4,7 @@
 
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { openApiSpec } from './spec.js';
+import { openApiSpec } from './spec';
 
 // ---------------------------------------------------------------------------
 // Internal types for parsing the spec

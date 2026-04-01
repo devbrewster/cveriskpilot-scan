@@ -86,6 +86,7 @@ export default function AutomationRulesPage() {
   const [rules, setRules] = useState<RuleListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [saving, setSaving] = useState(false);
 
   // Builder state

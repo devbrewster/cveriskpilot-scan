@@ -247,7 +247,7 @@ async function handlePaymentFailed(
         if (!org) return;
         return db.user
           .findMany({
-            where: { organizationId: org.id, role: { in: ['OWNER', 'ADMIN'] } },
+            where: { organizationId: org.id, role: { in: ['ORG_OWNER', 'SECURITY_ADMIN'] as any } },
             select: { email: true },
           })
           .then((owners) => {

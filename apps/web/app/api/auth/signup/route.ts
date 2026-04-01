@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         }
         await prisma.organization.update({
           where: { id: result.organizationId },
-          data: { entitlements: updates },
+          data: { entitlements: updates as any },
         });
       } catch {
         // Non-critical — don't block signup for attribution tracking failure

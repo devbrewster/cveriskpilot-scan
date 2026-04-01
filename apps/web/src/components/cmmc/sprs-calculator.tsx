@@ -133,11 +133,6 @@ const CONTROL_FAMILIES: ControlFamily[] = [
   },
 ];
 
-const TOTAL_MAX_DEDUCTION = CONTROL_FAMILIES.reduce(
-  (sum, f) => sum + f.maxDeduction,
-  0,
-); // Should be ~203 + some, but we cap at 203 per SPRS spec
-
 const MAX_SCORE = 110;
 const MIN_SCORE = -203;
 

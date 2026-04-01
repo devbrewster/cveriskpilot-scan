@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
 
       const owners = await prisma.user.findMany({
-        where: { organizationId: org.id, role: { in: ['OWNER', 'ADMIN'] } },
+        where: { organizationId: org.id, role: { in: ['ORG_OWNER', 'SECURITY_ADMIN'] } },
         select: { email: true },
       });
 
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     // Send expired notifications (fire-and-forget)
     for (const org of expiredOrgs) {
       const owners = await prisma.user.findMany({
-        where: { organizationId: org.id, role: { in: ['OWNER', 'ADMIN'] } },
+        where: { organizationId: org.id, role: { in: ['ORG_OWNER', 'SECURITY_ADMIN'] } },
         select: { email: true },
       });
 
